@@ -56,10 +56,10 @@ const pageText = {
     understandCalculation:
       "Berechnung verstehen",
     howCalculated:
-      "Wie berechnet TinyTools die Stromkosten?",
+      "Wie berechnet EAVESENCE die Stromkosten?",
 
     powerExplanation1:
-      "TinyTools rechnet die Leistung des Geräts von Watt in Kilowatt um und multipliziert sie mit der Nutzungsdauer.",
+      "EAVESENCE rechnet die Leistung des Geräts von Watt in Kilowatt um und multipliziert sie mit der Nutzungsdauer.",
     powerExplanation2:
       "Anschließend wird der errechnete Verbrauch mit deinem Strompreis und der Nutzungshäufigkeit multipliziert.",
     powerFormula:
@@ -70,11 +70,11 @@ const pageText = {
     consumptionExplanation1:
       "Bei diesem Gerät ist ein Verbrauchswert pro Nutzung sinnvoller als eine einfache Rechnung aus Watt und Laufzeit.",
     consumptionExplanation2:
-      "TinyTools multipliziert deshalb den Verbrauch pro Nutzung mit deinem Strompreis und deiner Nutzungshäufigkeit.",
+      "EAVESENCE multipliziert deshalb den Verbrauch pro Nutzung mit deinem Strompreis und deiner Nutzungshäufigkeit.",
     consumptionFormula:
       "kWh pro Nutzung × Strompreis × Nutzungen",
     consumptionExplanation3:
-      "Wenn dein Energielabel einen Wert pro 100 Zyklen angibt, kannst du diesen durch 100 teilen und als Verbrauch pro Nutzung in TinyTools eintragen.",
+      "Wenn dein Energielabel einen Wert pro 100 Zyklen angibt, kannst du diesen durch 100 teilen und als Verbrauch pro Nutzung in EAVESENCE eintragen.",
 
     savingTip: "💡 Spartipp für",
 
@@ -135,10 +135,10 @@ const pageText = {
     understandCalculation:
       "Understand the calculation",
     howCalculated:
-      "How does TinyTools calculate electricity costs?",
+      "How does EAVESENCE calculate electricity costs?",
 
     powerExplanation1:
-      "TinyTools converts the device's power from watts to kilowatts and multiplies it by the usage time.",
+      "EAVESENCE converts the device's power from watts to kilowatts and multiplies it by the usage time.",
     powerExplanation2:
       "The calculated electricity consumption is then multiplied by your electricity price and usage frequency.",
     powerFormula:
@@ -149,11 +149,11 @@ const pageText = {
     consumptionExplanation1:
       "For this device, a consumption value per use is more useful than a simple calculation based on watts and runtime.",
     consumptionExplanation2:
-      "TinyTools therefore multiplies consumption per use by your electricity price and usage frequency.",
+      "EAVESENCE therefore multiplies consumption per use by your electricity price and usage frequency.",
     consumptionFormula:
       "kWh per use × electricity price × uses",
     consumptionExplanation3:
-      "If your energy label states a value per 100 cycles, divide it by 100 and enter the result in TinyTools as consumption per use.",
+      "If your energy label states a value per 100 cycles, divide it by 100 and enter the result in EAVESENCE as consumption per use.",
 
     savingTip: "💡 Energy-saving tip for",
 
@@ -304,7 +304,7 @@ export default function DeviceDetailPage({
                 href={homeHref}
                 className="font-semibold text-blue-600 transition hover:text-blue-800"
               >
-                TinyTools Energy
+                EAVESENCE Energy
               </Link>
 
               <span className="text-slate-300">

@@ -5,7 +5,7 @@ import HomePage from "@/components/HomePage";
 export const metadata: Metadata = {
   title: {
     absolute:
-      "TinyTools Energy – Calculate electricity costs easily",
+      "EAVESENCE Energy – Calculate electricity costs easily",
   },
 
   description:
@@ -24,17 +24,17 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_GB",
     url: "/en",
-    siteName: "TinyTools Energy",
+    siteName: "EAVESENCE Energy",
     title:
-      "TinyTools Energy – Calculate electricity costs easily",
+      "EAVESENCE Energy – Calculate electricity costs easily",
     description:
       "Calculate the electricity costs of everyday household devices – per use, week, month and year.",
     images: [
       {
-        url: "/brand/tinytools-og.png",
+        url: "/brand/eavesence-og.png",
         width: 1200,
         height: 630,
-        alt: "TinyTools Energy",
+        alt: "EAVESENCE Energy",
       },
     ],
   },
@@ -42,10 +42,10 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title:
-      "TinyTools Energy – Calculate electricity costs easily",
+      "EAVESENCE Energy – Calculate electricity costs easily",
     description:
       "Calculate the electricity costs of household devices for free.",
-    images: ["/brand/tinytools-og.png"],
+    images: ["/brand/eavesence-og.png"],
   },
 };
 

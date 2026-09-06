@@ -34,7 +34,7 @@ const calculatorText = {
       estimate: "Typische Verbrauchswerte",
       exact: "Eigene Verbrauchswerte",
       estimateDescription:
-        "TinyTools verwendet Orientierungswerte, die du an deine Nutzung anpassen kannst.",
+        "EAVESENCE verwendet Orientierungswerte, die du an deine Nutzung anpassen kannst.",
       exactDescription:
         "Nutze einen gemessenen oder anderweitig bekannten Verbrauch in kWh pro Nutzung.",
     },
@@ -81,7 +81,7 @@ const calculatorText = {
     missing: {
       title: "Noch fehlen Angaben",
       text:
-        "Gib für alle benötigten Felder einen Wert größer als 0 ein, damit TinyTools deine Stromkosten berechnen kann.",
+        "Gib für alle benötigten Felder einen Wert größer als 0 ein, damit EAVESENCE deine Stromkosten berechnen kann.",
     },
 
     warnings: {
@@ -111,7 +111,7 @@ const calculatorText = {
       waiting:
         "Bereit, sobald deine Angaben vollständig sind.",
       waitingText:
-        "TinyTools zeigt dir dann Kosten pro Nutzung, Woche, Monat und Jahr.",
+        "EAVESENCE zeigt dir dann Kosten pro Nutzung, Woche, Monat und Jahr.",
     },
 
     savingTip: {
@@ -132,13 +132,13 @@ const calculatorText = {
     },
 
     feedback: {
-      title: "💬 Hat dir TinyTools geholfen?",
+      title: "💬 Hat dir EAVESENCE geholfen?",
       text:
-        "Fehlt dir ein Gerät, war etwas unklar oder hast du eine Idee, wie TinyTools besser werden kann? Kurzes Feedback hilft uns sehr.",
+        "Fehlt dir ein Gerät, war etwas unklar oder hast du eine Idee, wie EAVESENCE besser werden kann? Kurzes Feedback hilft uns sehr.",
       button: "Feedback senden →",
       note:
-        "Der Button öffnet dein E-Mail-Programm. TinyTools speichert dabei keine Daten und verwendet weiterhin kein Tracking.",
-      subject: "Feedback zu TinyTools Energy",
+        "Der Button öffnet dein E-Mail-Programm. EAVESENCE speichert dabei keine Daten und verwendet weiterhin kein Tracking.",
+      subject: "Feedback zu EAVESENCE Energy",
     },
 
     reset: "Werte zurücksetzen",
@@ -150,7 +150,7 @@ const calculatorText = {
       estimate: "Typical consumption",
       exact: "Your consumption",
       estimateDescription:
-        "TinyTools uses typical values that you can adjust to match your usage.",
+        "EAVESENCE uses typical values that you can adjust to match your usage.",
       exactDescription:
         "Use a measured or otherwise known electricity consumption in kWh per use.",
     },
@@ -197,7 +197,7 @@ const calculatorText = {
     missing: {
       title: "Some details are still missing",
       text:
-        "Enter a value greater than 0 in all required fields so TinyTools can calculate your electricity costs.",
+        "Enter a value greater than 0 in all required fields so EAVESENCE can calculate your electricity costs.",
     },
 
     warnings: {
@@ -227,7 +227,7 @@ const calculatorText = {
       waiting:
         "Ready as soon as your details are complete.",
       waitingText:
-        "TinyTools will show your costs per use, week, month and year.",
+        "EAVESENCE will show your costs per use, week, month and year.",
     },
 
     savingTip: {
@@ -248,13 +248,13 @@ const calculatorText = {
     },
 
     feedback: {
-      title: "💬 Did TinyTools help you?",
+      title: "💬 Did EAVESENCE help you?",
       text:
-        "Is a device missing, was something unclear or do you have an idea for improving TinyTools? A short message helps us a lot.",
+        "Is a device missing, was something unclear or do you have an idea for improving EAVESENCE? A short message helps us a lot.",
       button: "Send feedback →",
       note:
-        "The button opens your email application. TinyTools does not store any data and continues to use no tracking.",
-      subject: "Feedback about TinyTools Energy",
+        "The button opens your email application. EAVESENCE does not store any data and continues to use no tracking.",
+      subject: "Feedback about EAVESENCE Energy",
     },
 
     reset: "Reset values",

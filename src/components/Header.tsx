@@ -24,7 +24,7 @@ const navigation = {
     howItWorks: "So funktioniert's",
     faq: "FAQ",
     calculate: "Berechnen",
-    homeLabel: "TinyTools Startseite",
+    homeLabel: "EAVESENCE Startseite",
     openNavigation: "Navigation öffnen",
     closeNavigation: "Navigation schließen",
   },
@@ -35,63 +35,56 @@ const navigation = {
     howItWorks: "How it works",
     faq: "FAQ",
     calculate: "Calculate",
-    homeLabel: "TinyTools home",
+    homeLabel: "EAVESENCE home",
     openNavigation: "Open navigation",
     closeNavigation: "Close navigation",
   },
 } as const;
 
-function TinyToolsLogo() {
+function EAVESENCELogo() {
   return (
     <div className="flex items-center gap-2.5">
       <svg
-        viewBox="0 0 64 64"
+        viewBox="0 0 256 256"
         aria-hidden="true"
         className="h-10 w-10 shrink-0"
       >
         <defs>
           <linearGradient
-            id="tinytools-leaf"
-            x1="12"
-            y1="52"
-            x2="52"
-            y2="10"
+            id="eavesence-leaf"
+            x1="70"
+            y1="190"
+            x2="198"
+            y2="70"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0" stopColor="#15803d" />
-            <stop offset="1" stopColor="#22c55e" />
+            <stop offset="0" stopColor="#079b8d" />
+            <stop offset="1" stopColor="#66c72f" />
           </linearGradient>
         </defs>
 
         <path
-          d="M54 8
-             C42 10 29 13 20 20
-             C11 27 8 37 12 47
-             C20 52 31 50 39 44
-             C48 37 53 24 54 8Z"
-          fill="url(#tinytools-leaf)"
-        />
-
-        <path
-          d="M13 48
-             C21 38 30 29 45 17
-             C33 24 23 32 15 42
-             C13 44 12 46 13 48Z"
-          fill="white"
-        />
-
-        <path
-          d="M14 45
-             C11 50 9 54 7 58"
+          d="M205 58A91 91 0 1 0 210 186"
           fill="none"
-          stroke="#15803d"
-          strokeWidth="3.5"
+          stroke="#062638"
+          strokeWidth="22"
+          strokeLinecap="round"
+        />
+        <path
+          d="M50 164C81 96 141 75 207 88C180 147 131 183 56 181C51 181 47 176 50 164Z"
+          fill="url(#eavesence-leaf)"
+        />
+        <path
+          d="M62 169C101 146 135 123 184 99"
+          fill="none"
+          stroke="white"
+          strokeWidth="9"
           strokeLinecap="round"
         />
       </svg>
 
       <span className="text-xl font-extrabold tracking-[-0.045em] text-slate-950 sm:text-[1.35rem]">
-        TinyTools
+        EAVESENCE
       </span>
     </div>
   );
@@ -161,7 +154,7 @@ export default function Header({
               className="transition-opacity hover:opacity-80"
               aria-label={text.homeLabel}
             >
-              <TinyToolsLogo />
+              <EAVESENCELogo />
             </Link>
 
             <span className="ml-1.5 mt-[10px] inline-flex text-[8px] font-extrabold uppercase leading-none tracking-[0.12em] text-green-700 sm:ml-2 sm:text-[9px] sm:tracking-[0.14em]">

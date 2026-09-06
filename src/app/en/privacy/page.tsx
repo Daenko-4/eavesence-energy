@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "Privacy",
-  description: "Privacy information for TinyTools Energy.",
+  description: "Privacy information for EAVESENCE Energy.",
   alternates: {
     canonical: "/en/privacy",
     languages: {
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
           href="/en"
           className="text-sm font-semibold text-green-600 hover:text-green-700"
         >
-          ← Back to TinyTools Energy
+          ← Back to EAVESENCE Energy
         </Link>
 
         <div className="mt-8">
@@ -41,7 +41,7 @@ export default function PrivacyPage() {
 
           <p className="mt-4 leading-7 text-slate-600">
             Information about the processing of personal data when using
-            TinyTools Energy.
+            EAVESENCE Energy.
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
             </p>
 
             <p className="mt-3 leading-7">
-              TinyTools Energy currently has no user accounts and no database
+              EAVESENCE Energy currently has no user accounts and no database
               of its own for permanently storing the values entered into the
               calculator.
             </p>
@@ -110,7 +110,7 @@ export default function PrivacyPage() {
             </h2>
 
             <p className="mt-4 leading-7">
-              TinyTools Energy is currently hosted via Vercel. As part of the
+              EAVESENCE Energy is currently hosted via Vercel. As part of the
               technical provision of the website, connection and access data
               may be processed by the hosting provider.
             </p>
@@ -122,12 +122,12 @@ export default function PrivacyPage() {
             </h2>
 
             <p className="mt-4 leading-7">
-              TinyTools Energy currently does not use its own analytics or
+              EAVESENCE Energy currently does not use its own analytics or
               marketing services.
             </p>
 
             <p className="mt-3 leading-7">
-              If TinyTools Energy uses analytics, marketing or other additional
+              If EAVESENCE Energy uses analytics, marketing or other additional
               services in the future, this privacy information will be updated
               accordingly.
             </p>

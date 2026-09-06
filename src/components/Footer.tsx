@@ -54,7 +54,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
           <div>
             <p className="font-bold text-slate-900">
-              ⚡ TinyTools Energy
+              ⚡ EAVESENCE Energy
             </p>
 
             <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
@@ -68,7 +68,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
 
           <div>
             <p className="text-sm font-bold text-slate-900">
-              TinyTools
+              EAVESENCE
             </p>
 
             <div className="mt-3 flex flex-col gap-2 text-sm text-slate-500">
@@ -119,7 +119,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
         </div>
 
         <div className="mt-8 border-t border-slate-200 pt-6 text-sm text-slate-400">
-          © {new Date().getFullYear()} TinyTools Energy
+          © {new Date().getFullYear()} EAVESENCE Energy
         </div>
       </div>
     </footer>

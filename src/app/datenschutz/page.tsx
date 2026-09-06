@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "Datenschutz",
-  description: "Datenschutzerklärung von TinyTools Energy.",
+  description: "Datenschutzerklärung von EAVESENCE Energy.",
   alternates: {
     canonical: "/datenschutz",
     languages: {
@@ -27,7 +27,7 @@ export default function DatenschutzPage() {
           href="/"
           className="text-sm font-semibold text-green-600 hover:text-green-700"
         >
-          ← Zurück zu TinyTools Energy
+          ← Zurück zu EAVESENCE Energy
         </Link>
 
         <div className="mt-8">
@@ -41,7 +41,7 @@ export default function DatenschutzPage() {
 
           <p className="mt-4 leading-7 text-slate-600">
             Informationen zur Verarbeitung personenbezogener Daten bei der
-            Nutzung von TinyTools Energy.
+            Nutzung von EAVESENCE Energy.
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default function DatenschutzPage() {
             </p>
 
             <p className="mt-3 leading-7">
-              TinyTools Energy verfügt derzeit über kein Benutzerkonto und
+              EAVESENCE Energy verfügt derzeit über kein Benutzerkonto und
               keine eigene Datenbank zur dauerhaften Speicherung dieser
               Rechner-Eingaben.
             </p>
@@ -111,7 +111,7 @@ export default function DatenschutzPage() {
             </h2>
 
             <p className="mt-4 leading-7">
-              TinyTools Energy wird derzeit über Vercel bereitgestellt. Im
+              EAVESENCE Energy wird derzeit über Vercel bereitgestellt. Im
               Rahmen der technischen Bereitstellung der Website können
               Verbindungs- und Zugriffsdaten durch den Hosting-Anbieter
               verarbeitet werden.
@@ -124,12 +124,12 @@ export default function DatenschutzPage() {
             </h2>
 
             <p className="mt-4 leading-7">
-              TinyTools Energy setzt derzeit keine eigenen Analyse- oder
+              EAVESENCE Energy setzt derzeit keine eigenen Analyse- oder
               Marketingdienste ein.
             </p>
 
             <p className="mt-3 leading-7">
-              Sollte TinyTools Energy künftig Analyse-, Marketing- oder andere
+              Sollte EAVESENCE Energy künftig Analyse-, Marketing- oder andere
               zusätzliche Dienste einsetzen, wird diese Datenschutzerklärung
               entsprechend aktualisiert.
             </p>

@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "Imprint",
-  description: "Imprint of TinyTools Energy.",
+  description: "Imprint of EAVESENCE Energy.",
   alternates: {
     canonical: "/en/imprint",
     languages: {
@@ -33,7 +33,7 @@ export default function ImprintPage() {
             </h1>
 
             <p className="mt-5 leading-7 text-slate-600">
-              TinyTools Energy is currently a private, non-commercial project.
+              EAVESENCE Energy is currently a private, non-commercial project.
             </p>
 
             <div className="mt-10 space-y-8">
@@ -71,7 +71,7 @@ export default function ImprintPage() {
                 </h2>
 
                 <p className="mt-3 leading-7 text-slate-600">
-                  TinyTools Energy provides simple information and tools related
+                  EAVESENCE Energy provides simple information and tools related
                   to the electricity consumption and electricity costs of
                   household devices.
                 </p>
@@ -83,7 +83,7 @@ export default function ImprintPage() {
                 </h2>
 
                 <p className="mt-3 leading-7 text-slate-600">
-                  The calculations and information provided by TinyTools Energy
+                  The calculations and information provided by EAVESENCE Energy
                   are intended as a guide. Actual electricity consumption and
                   costs may vary depending on the device, usage and electricity
                   tariff.

@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
   title: {
-    default: "TinyTools Energy – Stromkosten einfach verstehen",
-    template: "%s | TinyTools Energy",
+    default: "EAVESENCE Energy – Stromkosten einfach verstehen",
+    template: "%s | EAVESENCE Energy",
   },
 
   description:
@@ -40,19 +40,19 @@ export const metadata: Metadata = {
     type: "website",
     locale: "de_AT",
     url: siteUrl,
-    siteName: "TinyTools Energy",
+    siteName: "EAVESENCE Energy",
 
-    title: "TinyTools Energy – Stromkosten einfach verstehen",
+    title: "EAVESENCE Energy – Stromkosten einfach verstehen",
 
     description:
       "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte – pro Nutzung, Woche, Monat und Jahr.",
 
     images: [
       {
-        url: "/brand/tinytools-og-v2.png",
+        url: "/brand/eavesence-og.png",
         width: 1200,
         height: 630,
-        alt: "TinyTools Energy – Stromkosten einfach verstehen",
+        alt: "EAVESENCE Energy – Stromkosten einfach verstehen",
       },
     ],
   },
@@ -60,12 +60,12 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
 
-    title: "TinyTools Energy – Stromkosten einfach verstehen",
+    title: "EAVESENCE Energy – Stromkosten einfach verstehen",
 
     description:
       "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte – einfach und ohne Anmeldung.",
 
-    images: ["/brand/tinytools-og-v2.png"],
+    images: ["/brand/eavesence-og.png"],
   },
 
   icons: {

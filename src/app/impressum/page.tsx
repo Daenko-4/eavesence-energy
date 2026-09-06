@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "Impressum",
-  description: "Impressum von TinyTools Energy.",
+  description: "Impressum von EAVESENCE Energy.",
   alternates: {
     canonical: "/impressum",
     languages: {
@@ -33,7 +33,7 @@ export default function ImpressumPage() {
             </h1>
 
             <p className="mt-5 leading-7 text-slate-600">
-              TinyTools Energy ist derzeit ein privates, nicht
+              EAVESENCE Energy ist derzeit ein privates, nicht
               kommerzielles Projekt.
             </p>
 
@@ -72,7 +72,7 @@ export default function ImpressumPage() {
                 </h2>
 
                 <p className="mt-3 leading-7 text-slate-600">
-                  TinyTools Energy stellt einfache Informationen und
+                  EAVESENCE Energy stellt einfache Informationen und
                   Werkzeuge rund um Stromverbrauch und Stromkosten von
                   Haushaltsgeräten bereit.
                 </p>
@@ -84,7 +84,7 @@ export default function ImpressumPage() {
                 </h2>
 
                 <p className="mt-3 leading-7 text-slate-600">
-                  Die auf TinyTools Energy bereitgestellten Berechnungen
+                  Die auf EAVESENCE Energy bereitgestellten Berechnungen
                   und Informationen dienen der Orientierung. Tatsächliche
                   Verbrauchswerte und Stromkosten können je nach Gerät,
                   Nutzung und Stromtarif abweichen.

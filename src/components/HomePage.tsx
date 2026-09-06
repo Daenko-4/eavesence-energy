@@ -66,7 +66,7 @@ const content = {
       titleHighlight: "ein Rechner",
       subtitle: "Berechne die Stromkosten deines Alltags",
       text:
-        "Ob Wasserkocher, Waschmaschine oder Fernseher – mit TinyTools findest du schnell heraus, wie viel Strom deine Geräte wirklich kosten. Einfach, verständlich und kostenlos.",
+        "Ob Wasserkocher, Waschmaschine oder Fernseher – mit EAVESENCE findest du schnell heraus, wie viel Strom deine Geräte wirklich kosten. Einfach, verständlich und kostenlos.",
       calculate: "Jetzt Stromkosten berechnen",
       discoverDevices: "Geräte entdecken",
       features: [
@@ -137,7 +137,7 @@ const content = {
       label: "So funktioniert's",
       title: "Von Watt zu Euro – ohne Kopfrechnen",
       text:
-        "TinyTools nimmt dir die Umrechnung ab und zeigt dir das Ergebnis in Größen, die im Alltag verständlich sind.",
+        "EAVESENCE nimmt dir die Umrechnung ab und zeigt dir das Ergebnis in Größen, die im Alltag verständlich sind.",
 
       steps: [
         {
@@ -159,7 +159,7 @@ const content = {
           icon: "chart" as IconName,
           title: "Kosten verstehen",
           text:
-            "TinyTools berechnet deinen ungefähren Stromverbrauch und die daraus entstehenden Kosten.",
+            "EAVESENCE berechnet deinen ungefähren Stromverbrauch und die daraus entstehenden Kosten.",
         },
       ],
     },
@@ -185,13 +185,13 @@ const content = {
 
     faq: {
       label: "Häufige Fragen",
-      title: "Fragen zu TinyTools",
+      title: "Fragen zu EAVESENCE",
 
       items: [
         {
           question: "Wie genau ist der Stromkosten-Rechner?",
           answer:
-            "Im Modus „Gerät auswählen“ arbeitet TinyTools mit Orientierungswerten und deinen Angaben zur Nutzung. Das Ergebnis ist deshalb eine Schätzung. Unter „Eigene Werte“ kannst du einen selbst gemessenen oder bekannten Verbrauch pro Nutzung eintragen.",
+            "Im Modus „Gerät auswählen“ arbeitet EAVESENCE mit Orientierungswerten und deinen Angaben zur Nutzung. Das Ergebnis ist deshalb eine Schätzung. Unter „Eigene Werte“ kannst du einen selbst gemessenen oder bekannten Verbrauch pro Nutzung eintragen.",
         },
         {
           question: "Wo finde ich die Leistung meines Geräts?",
@@ -266,7 +266,7 @@ const content = {
       titleHighlight: "one calculator",
       subtitle: "Calculate the electricity costs of everyday devices",
       text:
-        "From kettles and washing machines to TVs – TinyTools helps you quickly understand how much electricity your devices really cost. Simple, clear and free.",
+        "From kettles and washing machines to TVs – EAVESENCE helps you quickly understand how much electricity your devices really cost. Simple, clear and free.",
       calculate: "Calculate electricity costs",
       discoverDevices: "Explore devices",
       features: [
@@ -337,7 +337,7 @@ const content = {
       label: "How it works",
       title: "From watts to euros – without the maths",
       text:
-        "TinyTools handles the conversion for you and shows the result in values that make sense in everyday life.",
+        "EAVESENCE handles the conversion for you and shows the result in values that make sense in everyday life.",
 
       steps: [
         {
@@ -359,7 +359,7 @@ const content = {
           icon: "chart" as IconName,
           title: "Understand the cost",
           text:
-            "TinyTools calculates your estimated electricity consumption and the resulting cost.",
+            "EAVESENCE calculates your estimated electricity consumption and the resulting cost.",
         },
       ],
     },
@@ -385,14 +385,14 @@ const content = {
 
     faq: {
       label: "Frequently asked questions",
-      title: "Questions about TinyTools",
+      title: "Questions about EAVESENCE",
 
       items: [
         {
           question:
             "How accurate is the electricity cost calculator?",
           answer:
-            "In the “Choose a device” mode, TinyTools uses typical consumption values together with your usage details, so the result is an estimate. Under “Your own values”, you can enter a measured or known electricity consumption per use.",
+            "In the “Choose a device” mode, EAVESENCE uses typical consumption values together with your usage details, so the result is an estimate. Under “Your own values”, you can enter a measured or known electricity consumption per use.",
         },
         {
           question:
