@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 import { devices } from "@/data/devices";
 import { getLocalizedDeviceSlug } from "@/i18n/devices";
 
-const siteUrl = "https://tinytools-energy.com";
+const siteUrl = "https://eavesence.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const germanDevicePages: MetadataRoute.Sitemap =
