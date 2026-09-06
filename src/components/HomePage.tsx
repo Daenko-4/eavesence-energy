@@ -772,7 +772,7 @@ export default function HomePage({
                     />
                   </span>
 
-                  <span className="mt-3 text-sm font-semibold text-slate-900">
+                  <span className="mt-3 text-base font-semibold text-slate-900">
                     {category.name}
                   </span>
 
