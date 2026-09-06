@@ -31,8 +31,8 @@ type EnergyCalculatorProps = {
 const calculatorText = {
   de: {
     modes: {
-      estimate: "Typische Werte",
-      exact: "Eigene Werte",
+      estimate: "Typische Verbrauchswerte",
+      exact: "Eigene Verbrauchswerte",
       estimateDescription:
         "TinyTools verwendet Orientierungswerte, die du an deine Nutzung anpassen kannst.",
       exactDescription:
@@ -147,8 +147,8 @@ const calculatorText = {
 
   en: {
     modes: {
-      estimate: "Typical values",
-      exact: "Your own values",
+      estimate: "Typical consumption",
+      exact: "Your consumption",
       estimateDescription:
         "TinyTools uses typical values that you can adjust to match your usage.",
       exactDescription:
