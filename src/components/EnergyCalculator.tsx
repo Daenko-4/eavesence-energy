@@ -370,6 +370,21 @@ export default function EnergyCalculator({
 
   const text = calculatorText[activeLocale];
 
+  const mobileModeLabels =
+    activeLocale === "de"
+      ? {
+          estimateFirst: "Typische",
+          estimateSecond: "Verbrauchswerte",
+          exactFirst: "Eigene",
+          exactSecond: "Verbrauchswerte",
+        }
+      : {
+          estimateFirst: "Typical",
+          estimateSecond: "consumption",
+          exactFirst: "Your",
+          exactSecond: "consumption",
+        };
+
   const initialDeviceData =
     devices.find((item) => item.name === initialDevice) ??
     devices[0];
@@ -747,16 +762,29 @@ export default function EnergyCalculator({
             onClick={() =>
               changeMode("estimate")
             }
-            className={`relative flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-black transition duration-200 active:scale-[0.99] ${
+            className={`relative flex min-h-[68px] items-center justify-center rounded-lg px-2 py-3 text-sm font-black transition duration-200 active:scale-[0.99] sm:min-h-0 sm:px-3 ${
               mode === "estimate"
                 ? "bg-green-100 text-green-950 shadow-sm"
                 : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
             }`}
           >
-            <LeafIcon />
+            <span className="flex flex-col items-center justify-center text-center leading-tight sm:hidden">
+              <span className="flex items-center justify-center gap-1.5">
+                <span className="shrink-0">
+                  <LeafIcon />
+                </span>
+                <span>{mobileModeLabels.estimateFirst}</span>
+              </span>
+              <span className="mt-1 block">
+                {mobileModeLabels.estimateSecond}
+              </span>
+            </span>
 
-            <span>
-              {text.modes.estimate}
+            <span className="hidden items-center justify-center gap-2 text-center sm:flex">
+              <span className="shrink-0">
+                <LeafIcon />
+              </span>
+              <span>{text.modes.estimate}</span>
             </span>
           </button>
 
@@ -765,16 +793,29 @@ export default function EnergyCalculator({
             onClick={() =>
               changeMode("exact")
             }
-            className={`relative flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-black transition duration-200 active:scale-[0.99] ${
+            className={`relative flex min-h-[68px] items-center justify-center rounded-lg px-2 py-3 text-sm font-black transition duration-200 active:scale-[0.99] sm:min-h-0 sm:px-3 ${
               mode === "exact"
                 ? "bg-green-100 text-green-950 shadow-sm"
                 : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
             }`}
           >
-            <CalculatorIcon />
+            <span className="flex flex-col items-center justify-center text-center leading-tight sm:hidden">
+              <span className="flex items-center justify-center gap-1.5">
+                <span className="shrink-0">
+                  <CalculatorIcon />
+                </span>
+                <span>{mobileModeLabels.exactFirst}</span>
+              </span>
+              <span className="mt-1 block">
+                {mobileModeLabels.exactSecond}
+              </span>
+            </span>
 
-            <span>
-              {text.modes.exact}
+            <span className="hidden items-center justify-center gap-2 text-center sm:flex">
+              <span className="shrink-0">
+                <CalculatorIcon />
+              </span>
+              <span>{text.modes.exact}</span>
             </span>
           </button>
         </div>
