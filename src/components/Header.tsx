@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type MouseEvent } from "react";
@@ -44,47 +45,22 @@ const navigation = {
 function EAVESENCELogo() {
   return (
     <div className="flex items-center gap-2.5">
-      <svg
-        viewBox="0 0 256 256"
-        aria-hidden="true"
+      <Image
+        src="/brand/eavesence-header-mark.png"
+        alt=""
+        width={40}
+        height={40}
         className="h-10 w-10 shrink-0"
-      >
-        <defs>
-          <linearGradient
-            id="eavesence-leaf"
-            x1="70"
-            y1="190"
-            x2="198"
-            y2="70"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0" stopColor="#079b8d" />
-            <stop offset="1" stopColor="#66c72f" />
-          </linearGradient>
-        </defs>
+        priority
+      />
 
-        <path
-          d="M205 58A91 91 0 1 0 210 186"
-          fill="none"
-          stroke="#062638"
-          strokeWidth="22"
-          strokeLinecap="round"
-        />
-        <path
-          d="M50 164C81 96 141 75 207 88C180 147 131 183 56 181C51 181 47 176 50 164Z"
-          fill="url(#eavesence-leaf)"
-        />
-        <path
-          d="M62 169C101 146 135 123 184 99"
-          fill="none"
-          stroke="white"
-          strokeWidth="9"
-          strokeLinecap="round"
-        />
-      </svg>
-
-      <span className="text-xl font-extrabold tracking-[-0.045em] text-slate-950 sm:text-[1.35rem]">
-        EAVESENCE
+      <span className="flex items-baseline gap-2">
+        <span className="text-xl font-extrabold tracking-[-0.045em] text-slate-950 sm:text-[1.35rem]">
+          EAVESENCE
+        </span>
+        <span className="text-[8px] font-extrabold uppercase leading-none tracking-[0.12em] text-green-700 sm:text-[9px] sm:tracking-[0.14em]">
+          Energy
+        </span>
       </span>
     </div>
   );
@@ -157,9 +133,6 @@ export default function Header({
               <EAVESENCELogo />
             </Link>
 
-            <span className="ml-1.5 mt-[10px] inline-flex text-[8px] font-extrabold uppercase leading-none tracking-[0.12em] text-green-700 sm:ml-2 sm:text-[9px] sm:tracking-[0.14em]">
-              Energy
-            </span>
           </div>
 
           {/* Desktop Navigation */}
