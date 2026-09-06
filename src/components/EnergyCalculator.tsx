@@ -1308,14 +1308,42 @@ export default function EnergyCalculator({
       </div>
 
       {/* Saving tip */}
-      <div className="mt-6 rounded-2xl border border-amber-200/80 bg-amber-50 p-5">
-        <p className="font-semibold text-slate-900">
-          {text.savingTip.title}
-        </p>
+      <div className="mt-6 rounded-2xl bg-amber-50/80 px-5 py-5 sm:px-6 sm:py-6">
+        <div className="mx-auto max-w-2xl">
+          <div className="flex items-center justify-center gap-3">
+            <span
+              aria-hidden="true"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                className="h-5 w-5"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 18h6" />
+                <path d="M10 22h4" />
+                <path d="M8.6 15.5c-1.4-1.1-2.3-2.8-2.3-4.7a5.7 5.7 0 1 1 11.4 0c0 1.9-.9 3.6-2.3 4.7-.9.7-1.4 1.5-1.4 2.5h-4c0-1-.5-1.8-1.4-2.5Z" />
+                <path d="M12 2V1" />
+                <path d="m4.9 4.9-.8-.8" />
+                <path d="M3 11H2" />
+                <path d="m19.1 4.9.8-.8" />
+                <path d="M21 11h1" />
+              </svg>
+            </span>
 
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          {localizedTip}
-        </p>
+            <p className="text-lg font-bold text-slate-900">
+              {text.savingTip.title.replace("💡 ", "")}
+            </p>
+          </div>
+
+          <p className="mt-4 text-center text-sm leading-6 text-slate-600">
+            {localizedTip}
+          </p>
+        </div>
       </div>
 
       {/* Accuracy */}
@@ -1332,25 +1360,48 @@ export default function EnergyCalculator({
       </div>
 
       {/* Feedback */}
-      <div className="mt-6 rounded-2xl border border-green-200 bg-green-50/80 p-5 sm:p-6">
-        <p className="font-semibold text-slate-900">
-          {text.feedback.title}
-        </p>
+      <div className="mt-6 overflow-hidden rounded-2xl bg-[#f1f6f1]">
+        <div className="flex items-center gap-3 px-5 pb-3 pt-5 sm:px-6">
+          <span
+            aria-hidden="true"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              className="h-[18px] w-[18px]"
+              stroke="currentColor"
+              strokeWidth="1.9"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
+              <path d="M8 9h8" />
+              <path d="M8 13h5" />
+            </svg>
+          </span>
 
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          {text.feedback.text}
-        </p>
+          <p className="text-base font-bold text-slate-900">
+            {text.feedback.title.replace("💬 ", "")}
+          </p>
+        </div>
 
-        <a
-          href={`mailto:${FEEDBACK_EMAIL}?subject=${feedbackSubject}`}
-          className="mt-4 inline-flex items-center rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800 hover:shadow-md active:scale-[0.98]"
-        >
-          {text.feedback.button}
-        </a>
+        <div className="px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
+          <p className="max-w-2xl text-sm leading-6 text-slate-600">
+            {text.feedback.text}
+          </p>
 
-        <p className="mt-3 text-xs leading-5 text-slate-500">
-          {text.feedback.note}
-        </p>
+          <a
+            href={`mailto:${FEEDBACK_EMAIL}?subject=${feedbackSubject}`}
+            className="mt-4 inline-flex items-center rounded-xl bg-green-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-green-800 hover:shadow-md active:scale-[0.98]"
+          >
+            {text.feedback.button}
+          </a>
+
+          <p className="mt-4 max-w-2xl text-xs leading-5 text-slate-500">
+            {text.feedback.note}
+          </p>
+        </div>
       </div>
 
     </section>
