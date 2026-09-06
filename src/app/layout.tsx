@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+
 import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
@@ -19,13 +20,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
   title: {
-    default:
-      "TinyTools Energy – Stromkosten einfach berechnen",
+    default: "TinyTools Energy – Stromkosten einfach verstehen",
     template: "%s | TinyTools Energy",
   },
 
   description:
-    "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte. Sieh Kosten pro Nutzung, Woche, Monat und Jahr – einfach und ohne Anmeldung.",
+    "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte und finde heraus, was dein Stromverbrauch wirklich kostet – einfach, schnell und ohne Anmeldung.",
 
   keywords: [
     "Stromkosten Rechner",
@@ -39,20 +39,20 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "de_AT",
+    url: siteUrl,
     siteName: "TinyTools Energy",
 
-    title:
-      "TinyTools Energy – Stromkosten einfach berechnen",
+    title: "TinyTools Energy – Stromkosten einfach verstehen",
 
     description:
       "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte – pro Nutzung, Woche, Monat und Jahr.",
 
     images: [
       {
-        url: "/brand/tinytools-og.png",
+        url: "/brand/tinytools-og-v2.png",
         width: 1200,
         height: 630,
-        alt: "TinyTools Energy",
+        alt: "TinyTools Energy – Stromkosten einfach verstehen",
       },
     ],
   },
@@ -60,13 +60,12 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
 
-    title:
-      "TinyTools Energy – Stromkosten einfach berechnen",
+    title: "TinyTools Energy – Stromkosten einfach verstehen",
 
     description:
-      "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte.",
+      "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte – einfach und ohne Anmeldung.",
 
-    images: ["/brand/tinytools-og.png"],
+    images: ["/brand/tinytools-og-v2.png"],
   },
 
   icons: {
