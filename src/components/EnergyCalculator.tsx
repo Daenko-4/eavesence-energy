@@ -741,16 +741,16 @@ export default function EnergyCalculator({
     <section className="rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_20px_60px_-32px_rgba(15,23,42,0.25)] sm:p-8">
       {/* Mode switch */}
       <div className="mb-8">
-        <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-50 p-1.5">
+        <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1.5">
           <button
             type="button"
             onClick={() =>
               changeMode("estimate")
             }
-            className={`relative flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-semibold transition active:scale-[0.99] ${
+            className={`relative flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-black transition duration-200 active:scale-[0.99] ${
               mode === "estimate"
-                ? "bg-green-50 text-green-800 shadow-sm"
-                : "text-slate-500 hover:bg-white/60 hover:text-slate-900"
+                ? "bg-green-100 text-green-950 shadow-sm"
+                : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
             }`}
           >
             <LeafIcon />
@@ -765,10 +765,10 @@ export default function EnergyCalculator({
             onClick={() =>
               changeMode("exact")
             }
-            className={`relative flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-semibold transition active:scale-[0.99] ${
+            className={`relative flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-black transition duration-200 active:scale-[0.99] ${
               mode === "exact"
-                ? "bg-green-50 text-green-800 shadow-sm"
-                : "text-slate-500 hover:bg-white/60 hover:text-slate-900"
+                ? "bg-green-100 text-green-950 shadow-sm"
+                : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
             }`}
           >
             <CalculatorIcon />

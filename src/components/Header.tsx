@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useState, type MouseEvent } from "react";
 
 import {
   getCalculatorHref,
@@ -96,8 +97,12 @@ function TinyToolsLogo() {
   );
 }
 
-export default function Header({ locale = "de" }: HeaderProps) {
+export default function Header({
+  locale = "de",
+}: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const pathname = usePathname();
 
   const text = navigation[locale];
 
@@ -107,11 +112,41 @@ export default function Header({ locale = "de" }: HeaderProps) {
   const howItWorksHref = getHowItWorksHref(locale);
   const faqHref = getFaqHref(locale);
 
-  const otherLocale: Locale = locale === "de" ? "en" : "de";
+  const otherLocale: Locale =
+    locale === "de" ? "en" : "de";
+
   const languageHref = getHomeHref(otherLocale);
 
   function closeMenu() {
     setMenuOpen(false);
+  }
+
+  function handleLogoClick(
+    event: MouseEvent<HTMLAnchorElement>,
+  ) {
+    closeMenu();
+
+    const isAlreadyOnHomePage =
+      pathname === homeHref;
+
+    if (!isAlreadyOnHomePage) {
+      return;
+    }
+
+    event.preventDefault();
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
+    if (window.location.hash) {
+      window.history.replaceState(
+        null,
+        "",
+        homeHref,
+      );
+    }
   }
 
   return (
@@ -122,7 +157,7 @@ export default function Header({ locale = "de" }: HeaderProps) {
           <div className="flex shrink-0 items-center">
             <Link
               href={homeHref}
-              onClick={closeMenu}
+              onClick={handleLogoClick}
               className="transition-opacity hover:opacity-80"
               aria-label={text.homeLabel}
             >
@@ -221,7 +256,9 @@ export default function Header({ locale = "de" }: HeaderProps) {
 
             <button
               type="button"
-              onClick={() => setMenuOpen((current) => !current)}
+              onClick={() =>
+                setMenuOpen((current) => !current)
+              }
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-green-200 hover:bg-green-50 hover:text-green-700 md:hidden"
               aria-label={
                 menuOpen
