@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 
 import {
   getCalculatorHref,
@@ -72,12 +72,14 @@ export default function Header({
   locale = "de",
 }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sloganVisible, setSloganVisible] = useState(true);
 
   const pathname = usePathname();
 
   const text = navigation[locale];
 
   const homeHref = getHomeHref(locale);
+  const isHomePage = pathname === homeHref;
   const calculatorHref = getCalculatorHref(locale);
   const devicesHref = getDevicesHref(locale);
   const howItWorksHref = getHowItWorksHref(locale);
@@ -87,6 +89,22 @@ export default function Header({
     locale === "de" ? "en" : "de";
 
   const languageHref = getHomeHref(otherLocale);
+
+  useEffect(() => {
+    if (!isHomePage) {
+      return;
+    }
+
+    function handleScroll() {
+      setSloganVisible(window.scrollY < 24);
+    }
+
+    window.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHomePage]);
 
   function closeMenu() {
     setMenuOpen(false);
@@ -290,11 +308,21 @@ export default function Header({
         )}
       </div>
 
-      <div className="border-t border-slate-100 bg-[#f8faf8] px-5 py-2 text-center sm:px-6">
-        <p className="text-xs font-semibold italic tracking-[0.01em] text-green-800 sm:text-[13px]">
-          {text.slogan}
-        </p>
-      </div>
+      {isHomePage && (
+        <div
+          className={`grid bg-[#f8faf8] text-center transition-[grid-template-rows,opacity,transform] duration-300 ease-out ${
+            sloganVisible
+              ? "grid-rows-[1fr] border-t border-slate-100 opacity-100"
+              : "-translate-y-1 grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <p className="px-5 py-2 text-xs font-semibold italic tracking-[0.01em] text-green-800 sm:px-6 sm:text-[13px]">
+              {text.slogan}
+            </p>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
