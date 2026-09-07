@@ -187,12 +187,21 @@ const content = {
       label: "Über EAVESENCE",
       title: "Ein Name für bewusstere Entscheidungen",
       text:
-        "EAVESENCE verbindet Zuhause, das Wesentliche und verständliche Entscheidungen – für einen bewussteren Alltag unter einem Dach.",
+        "EAVESENCE verbindet die Themen unseres Alltags unter einem Dach und macht das Wesentliche leichter verständlich.",
       parts: [
-        { term: "Eaves", meaning: "Zuhause und Schutz" },
-        { term: "Essence", meaning: "das Wesentliche" },
-        { term: "Sense", meaning: "verstehen und sinnvoll entscheiden" },
+        {
+          term: "EAVE",
+          meaning:
+            "Ein gemeinsames Dach über den Themen unseres Alltags",
+        },
+        {
+          term: "SENCE",
+          meaning:
+            "Verbindet „essence“ und „sense“ – das Wesentliche erkennen und verstehen",
+        },
       ],
+      closing:
+        "EAVESENCE entwickelt daraus einfache Werkzeuge für klarere Entscheidungen.",
     },
 
     faq: {
@@ -399,12 +408,21 @@ const content = {
       label: "About EAVESENCE",
       title: "A name for smarter everyday decisions",
       text:
-        "EAVESENCE combines “eaves”, “essence” and “sense”: smarter understanding of the essentials of everyday life under one roof.",
+        "EAVESENCE brings the themes of everyday life together under one roof and makes what matters most easier to understand.",
       parts: [
-        { term: "Eaves", meaning: "home and shelter" },
-        { term: "Essence", meaning: "what matters most" },
-        { term: "Sense", meaning: "understanding and thoughtful choices" },
+        {
+          term: "EAVE",
+          meaning:
+            "A shared roof over the themes of everyday life",
+        },
+        {
+          term: "SENCE",
+          meaning:
+            "Combines “essence” and “sense” – recognizing and understanding what matters most",
+        },
       ],
+      closing:
+        "EAVESENCE turns this idea into simple tools for clearer decisions.",
     },
 
     faq: {
@@ -1009,7 +1027,7 @@ export default function HomePage({
                 {text.about.text}
               </p>
 
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <div className="mt-8 grid gap-3 sm:grid-cols-2">
                 {text.about.parts.map((part) => (
                   <div
                     key={part.term}
@@ -1024,6 +1042,10 @@ export default function HomePage({
                   </div>
                 ))}
               </div>
+
+              <p className="mt-6 border-t border-green-100 pt-5 font-semibold leading-7 text-slate-700">
+                {text.about.closing}
+              </p>
             </div>
           </div>
         </section>
