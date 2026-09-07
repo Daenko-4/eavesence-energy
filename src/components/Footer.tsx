@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { MouseEvent } from "react";
 
 import {
   getCalculatorHref,
@@ -50,6 +54,39 @@ function getPrivacyHref(locale: Locale) {
 
 export default function Footer({ locale = "de" }: FooterProps) {
   const text = footerText[locale];
+  const pathname = usePathname();
+
+  function handleInternalNavigation(
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) {
+    const [targetPath, targetId] = href.split("#");
+
+    if (pathname !== targetPath) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (!targetId) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    document.getElementById(targetId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    window.history.replaceState(null, "", href);
+  }
+
+  const calculatorHref = getCalculatorHref(locale);
+  const devicesHref = getDevicesHref(locale);
+  const faqHref = getFaqHref(locale);
+  const aboutHref = `${getHomeHref(locale)}#about`;
+  const imprintHref = getImprintHref(locale);
+  const privacyHref = getPrivacyHref(locale);
 
   return (
     <footer className="border-t border-slate-200 bg-white">
@@ -76,28 +113,40 @@ export default function Footer({ locale = "de" }: FooterProps) {
 
             <div className="mt-3 flex flex-col gap-2 text-sm text-slate-500">
               <Link
-                href={getCalculatorHref(locale)}
+                href={calculatorHref}
+                onClick={(event) =>
+                  handleInternalNavigation(event, calculatorHref)
+                }
                 className="transition hover:text-slate-900"
               >
                 {text.calculator}
               </Link>
 
               <Link
-                href={getDevicesHref(locale)}
+                href={devicesHref}
+                onClick={(event) =>
+                  handleInternalNavigation(event, devicesHref)
+                }
                 className="transition hover:text-slate-900"
               >
                 {text.devices}
               </Link>
 
               <Link
-                href={getFaqHref(locale)}
+                href={faqHref}
+                onClick={(event) =>
+                  handleInternalNavigation(event, faqHref)
+                }
                 className="transition hover:text-slate-900"
               >
                 {text.faq}
               </Link>
 
               <Link
-                href={`${getHomeHref(locale)}#about`}
+                href={aboutHref}
+                onClick={(event) =>
+                  handleInternalNavigation(event, aboutHref)
+                }
                 className="transition hover:text-slate-900"
               >
                 {text.about}
@@ -112,14 +161,20 @@ export default function Footer({ locale = "de" }: FooterProps) {
 
             <div className="mt-3 flex flex-col gap-2 text-sm text-slate-500">
               <Link
-                href={getImprintHref(locale)}
+                href={imprintHref}
+                onClick={(event) =>
+                  handleInternalNavigation(event, imprintHref)
+                }
                 className="transition hover:text-slate-900"
               >
                 {text.imprint}
               </Link>
 
               <Link
-                href={getPrivacyHref(locale)}
+                href={privacyHref}
+                onClick={(event) =>
+                  handleInternalNavigation(event, privacyHref)
+                }
                 className="transition hover:text-slate-900"
               >
                 {text.privacy}

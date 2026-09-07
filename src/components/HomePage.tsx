@@ -989,7 +989,7 @@ export default function HomePage({
         {/* About EAVESENCE */}
         <section
           id="about"
-          className="scroll-mt-24 px-5 pb-16 sm:px-6 sm:pb-20"
+          className="scroll-mt-[120px] px-5 pb-16 sm:px-6 sm:pb-20"
         >
           <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[2rem] border border-green-100 bg-white shadow-[0_24px_70px_-45px_rgba(15,23,42,0.35)] lg:grid-cols-[0.8fr_1.2fr]">
             <div className="flex items-center bg-gradient-to-br from-green-950 via-green-900 to-emerald-900 p-8 text-white sm:p-10">
