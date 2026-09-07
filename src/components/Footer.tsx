@@ -4,6 +4,7 @@ import {
   getCalculatorHref,
   getDevicesHref,
   getFaqHref,
+  getHomeHref,
   type Locale,
 } from "@/i18n/config";
 
@@ -19,6 +20,7 @@ const footerText = {
     calculator: "Stromkosten-Rechner",
     devices: "Geräteübersicht",
     faq: "Häufige Fragen",
+    about: "Über EAVESENCE",
     legal: "Rechtliches",
     imprint: "Impressum",
     privacy: "Datenschutz",
@@ -31,6 +33,7 @@ const footerText = {
     calculator: "Electricity cost calculator",
     devices: "Device overview",
     faq: "Frequently asked questions",
+    about: "About EAVESENCE",
     legal: "Legal",
     imprint: "Imprint",
     privacy: "Privacy",
@@ -91,6 +94,13 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 className="transition hover:text-slate-900"
               >
                 {text.faq}
+              </Link>
+
+              <Link
+                href={`${getHomeHref(locale)}#about`}
+                className="transition hover:text-slate-900"
+              >
+                {text.about}
               </Link>
             </div>
           </div>

@@ -110,6 +110,7 @@ const content = {
       label: "Stromkosten-Rechner",
       title: "Schnell zur Antwort",
       text: "Wähle ein Gerät oder gib eigene Werte ein.",
+      slogan: "Die versteckten Kosten des Alltags sichtbar machen.",
     },
 
     benefits: [
@@ -181,6 +182,18 @@ const content = {
         text:
           "Gib deinen tatsächlichen Verbrauch pro Nutzung ein, wenn du einen Mess- oder Herstellerwert kennst.",
       },
+    },
+
+    about: {
+      label: "Über EAVESENCE",
+      title: "Ein Name für bewusstere Entscheidungen",
+      text:
+        "EAVESENCE verbindet Zuhause, das Wesentliche und verständliche Entscheidungen – für einen bewussteren Alltag unter einem Dach.",
+      parts: [
+        { term: "Eaves", meaning: "Zuhause und Schutz" },
+        { term: "Essence", meaning: "das Wesentliche" },
+        { term: "Sense", meaning: "verstehen und sinnvoll entscheiden" },
+      ],
     },
 
     faq: {
@@ -310,6 +323,7 @@ const content = {
       label: "Electricity cost calculator",
       title: "Get your answer quickly",
       text: "Choose a device or enter your own values.",
+      slogan: "Making the hidden costs of everyday living visible.",
     },
 
     benefits: [
@@ -381,6 +395,18 @@ const content = {
         text:
           "Enter the actual electricity consumption per use if you know a measured or manufacturer value.",
       },
+    },
+
+    about: {
+      label: "About EAVESENCE",
+      title: "A name for smarter everyday decisions",
+      text:
+        "EAVESENCE combines “eaves”, “essence” and “sense”: smarter understanding of the essentials of everyday life under one roof.",
+      parts: [
+        { term: "Eaves", meaning: "home and shelter" },
+        { term: "Essence", meaning: "what matters most" },
+        { term: "Sense", meaning: "understanding and thoughtful choices" },
+      ],
     },
 
     faq: {
@@ -803,10 +829,15 @@ export default function HomePage({
               {text.calculator.text}
             </p>
 
+            <p className="mt-4 border-l-4 border-green-500 pl-4 text-base font-semibold italic text-green-800">
+              {text.calculator.slogan}
+            </p>
+
             <div className="mt-8">
               <EnergyCalculator
                 controlledMode={calculatorMode}
                 onModeChange={setCalculatorMode}
+                locale={locale}
               />
             </div>
           </div>
@@ -957,6 +988,48 @@ export default function HomePage({
                   {text.twoWays.exact.text}
                 </p>
               </button>
+            </div>
+          </div>
+        </section>
+
+        {/* About EAVESENCE */}
+        <section
+          id="about"
+          className="scroll-mt-24 px-5 pb-16 sm:px-6 sm:pb-20"
+        >
+          <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[2rem] border border-green-100 bg-white shadow-[0_24px_70px_-45px_rgba(15,23,42,0.35)] lg:grid-cols-[0.8fr_1.2fr]">
+            <div className="flex items-center bg-gradient-to-br from-green-950 via-green-900 to-emerald-900 p-8 text-white sm:p-10">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.16em] text-green-200">
+                  {text.about.label}
+                </p>
+
+                <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                  {text.about.title}
+                </h2>
+              </div>
+            </div>
+
+            <div className="p-8 sm:p-10">
+              <p className="text-lg leading-8 text-slate-700">
+                {text.about.text}
+              </p>
+
+              <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                {text.about.parts.map((part) => (
+                  <div
+                    key={part.term}
+                    className="rounded-2xl border border-slate-200 bg-[#f8faf8] p-4"
+                  >
+                    <p className="font-extrabold text-green-700">
+                      {part.term}
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                      {part.meaning}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
