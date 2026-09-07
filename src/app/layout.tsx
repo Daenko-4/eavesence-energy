@@ -49,7 +49,7 @@ export const metadata: Metadata = {
 
     images: [
       {
-        url: "/brand/eavesence-og.png",
+        url: "/brand/eavesence-og-balanced-v2.png",
         width: 1200,
         height: 630,
         alt: "EAVESENCE Energy – Stromkosten einfach verstehen",
@@ -65,11 +65,11 @@ export const metadata: Metadata = {
     description:
       "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte – einfach und ohne Anmeldung.",
 
-    images: ["/brand/eavesence-og.png"],
+    images: ["/brand/eavesence-og-balanced-v2.png"],
   },
 
   icons: {
-    icon: "/brand/eavesence-icon-approved-512.png",
+    icon: "/brand/eavesence-icon-balanced-v2-512.png",
   },
 };
 

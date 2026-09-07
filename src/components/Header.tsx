@@ -48,7 +48,7 @@ function EAVESENCELogo() {
   return (
     <div className="flex items-center">
       <Image
-        src="/brand/eavesence-wordmark-approved.png"
+        src="/brand/eavesence-wordmark-balanced-v2.png"
         alt="EAVESENCE Energy"
         width={187}
         height={40}

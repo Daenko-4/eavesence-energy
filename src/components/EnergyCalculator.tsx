@@ -182,7 +182,7 @@ const calculatorText = {
       title: "💬 Hat dir EAVESENCE geholfen?",
       text:
         "Fehlt dir ein Gerät, war etwas unklar oder hast du eine Idee, wie EAVESENCE besser werden kann? Kurzes Feedback hilft uns sehr.",
-      button: "Feedback senden →",
+      button: "Feedback senden",
       note:
         "Der Button öffnet dein E-Mail-Programm. EAVESENCE speichert dabei keine Daten und verwendet weiterhin kein Tracking.",
       subject: "Feedback zu EAVESENCE Energy",
@@ -299,7 +299,7 @@ const calculatorText = {
       title: "💬 Did EAVESENCE help you?",
       text:
         "Is a device missing, was something unclear or do you have an idea for improving EAVESENCE? A short message helps us a lot.",
-      button: "Send feedback →",
+      button: "Send feedback",
       note:
         "The button opens your email application. EAVESENCE does not store any data and continues to use no tracking.",
       subject: "Feedback about EAVESENCE Energy",
@@ -1515,45 +1515,24 @@ export default function EnergyCalculator({
       </div>
 
       {/* Feedback */}
-      <div className="mt-6 overflow-hidden rounded-2xl bg-[#f1f6f1]">
-        <div className="flex items-center gap-3 px-5 pb-3 pt-5 sm:px-6">
-          <span
-            aria-hidden="true"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              className="h-[18px] w-[18px]"
-              stroke="currentColor"
-              strokeWidth="1.9"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
-              <path d="M8 9h8" />
-              <path d="M8 13h5" />
-            </svg>
-          </span>
-
-          <p className="text-base font-bold text-slate-900">
+      <div className="mt-6 rounded-2xl border border-green-100 bg-gradient-to-br from-white to-[#f1f6f1] p-5 shadow-sm sm:p-6">
+        <div className="max-w-2xl">
+          <p className="text-lg font-bold tracking-tight text-slate-900">
             {text.feedback.title.replace("💬 ", "")}
           </p>
-        </div>
 
-        <div className="px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
-          <p className="max-w-2xl text-sm leading-6 text-slate-600">
+          <p className="mt-2 text-sm leading-6 text-slate-600">
             {text.feedback.text}
           </p>
 
           <a
             href={`mailto:${FEEDBACK_EMAIL}?subject=${feedbackSubject}`}
-            className="mt-4 inline-flex items-center rounded-xl bg-green-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-green-800 hover:shadow-md active:scale-[0.98]"
+            className="mt-5 inline-flex min-h-10 items-center justify-center rounded-full bg-green-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-green-800 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
           >
             {text.feedback.button}
           </a>
 
-          <p className="mt-4 max-w-2xl text-xs leading-5 text-slate-500">
+          <p className="mt-5 border-t border-green-100 pt-4 text-xs leading-5 text-slate-500">
             {text.feedback.note}
           </p>
         </div>
