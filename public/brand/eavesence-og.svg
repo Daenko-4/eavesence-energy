@@ -6,26 +6,25 @@
       <stop stop-color="#f8fff8"/>
       <stop offset="1" stop-color="#ecf8f6"/>
     </linearGradient>
-    <linearGradient id="leaf" x1="70" y1="190" x2="198" y2="70" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#079b8d"/>
-      <stop offset="1" stop-color="#66c72f"/>
-    </linearGradient>
-    <linearGradient id="lower" x1="46" y1="166" x2="220" y2="188" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#12a66a"/>
-      <stop offset="1" stop-color="#078a9c"/>
-    </linearGradient>
   </defs>
   <rect width="1200" height="630" rx="40" fill="url(#background)"/>
-  <circle cx="1030" cy="90" r="170" fill="#66c72f" opacity=".07"/>
-  <circle cx="1110" cy="580" r="250" fill="#079b8d" opacity=".06"/>
-  <g transform="translate(80 92) scale(1.35)">
-    <path d="M49 147C32 84 78 28 139 27C172 27 198 39 216 60" fill="none" stroke="#062638" stroke-width="22" stroke-linecap="round"/>
-    <path d="M50 159C92 90 156 75 218 88C178 145 121 174 55 170C50 169 47 165 50 159Z" fill="url(#leaf)"/>
-    <path d="M61 161C106 140 151 111 198 95" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
-    <path d="M50 166C67 210 112 233 158 224C186 219 207 204 220 187" fill="none" stroke="url(#lower)" stroke-width="22" stroke-linecap="round"/>
+  <circle cx="1030" cy="90" r="170" fill="#15803d" opacity=".06"/>
+  <circle cx="1110" cy="580" r="250" fill="#15803d" opacity=".05"/>
+  <g transform="translate(78 113) scale(2.15)">
+    <path d="M91 20H31C21 20 16 25 16 35V77C16 87 21 92 31 92H91" fill="none" stroke="#0f172a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M17 66C37 39 61 33 91 39C73 62 50 72 23 72C17 72 14 69 17 66Z" fill="#15803d"/>
+    <path d="M25 66C45 57 64 47 82 41" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
   </g>
-  <text x="420" y="265" fill="#062638" font-family="Arial, Helvetica, sans-serif" font-size="84" font-weight="700" letter-spacing="2">EAVESENCE</text>
-  <text x="425" y="338" fill="#198b47" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="600" letter-spacing="25">ENERGY</text>
-  <text x="85" y="510" fill="#244657" font-family="Arial, Helvetica, sans-serif" font-size="43" font-weight="600">Stromkosten einfach verstehen.</text>
-  <text x="87" y="557" fill="#55717d" font-family="Arial, Helvetica, sans-serif" font-size="25">Einfach · verständlich · kostenlos</text>
+  <g transform="translate(374 127) scale(1.18)">
+    <g transform="translate(4 7)">
+      <path d="M88 13H28C18 13 13 18 13 28V70C13 80 18 85 28 85H88" fill="none" stroke="#0f172a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M14 59C34 32 58 26 88 32C70 55 47 65 20 65C14 65 11 62 14 59Z" fill="#15803d"/>
+      <path d="M22 59C42 50 61 40 79 34" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+      <path d="M88 85C94 85 98 80 101 74" fill="none" stroke="#0f172a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="96" y="92" fill="#0f172a" font-family="Arial Rounded MT Bold, Arial, Helvetica, sans-serif" font-size="79" font-weight="700" letter-spacing="-1.2">AVESENCE</text>
+    <text x="376" y="133" text-anchor="middle" fill="#15803d" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" letter-spacing="13">ENERGY</text>
+  </g>
+  <text x="85" y="510" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="43" font-weight="600">Stromkosten einfach verstehen.</text>
+  <text x="87" y="557" fill="#64748b" font-family="Arial, Helvetica, sans-serif" font-size="25">Einfach · verständlich · kostenlos</text>
 </svg>

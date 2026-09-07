@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { MouseEvent } from "react";
@@ -93,9 +94,13 @@ export default function Footer({ locale = "de" }: FooterProps) {
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-6">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
           <div>
-            <p className="font-bold text-slate-900">
-              ⚡ EAVESENCE Energy
-            </p>
+            <Image
+              src="/brand/eavesence-wordmark.svg"
+              alt="EAVESENCE Energy"
+              width={205}
+              height={44}
+              className="h-auto w-[205px]"
+            />
 
             <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
               {text.description}

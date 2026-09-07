@@ -46,24 +46,15 @@ const navigation = {
 
 function EAVESENCELogo() {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center">
       <Image
-        src="/brand/eavesence-header-mark.png"
-        alt=""
-        width={40}
+        src="/brand/eavesence-wordmark.svg"
+        alt="EAVESENCE Energy"
+        width={186}
         height={40}
-        className="h-10 w-10 shrink-0"
+        className="h-[35px] w-auto sm:h-10"
         priority
       />
-
-      <span className="flex items-baseline gap-2">
-        <span className="text-xl font-extrabold tracking-[-0.045em] text-slate-950 sm:text-[1.35rem]">
-          EAVESENCE
-        </span>
-        <span className="text-[8px] font-extrabold uppercase leading-none tracking-[0.12em] text-green-700 sm:text-[9px] sm:tracking-[0.14em]">
-          Energy
-        </span>
-      </span>
     </div>
   );
 }
