@@ -167,6 +167,51 @@ export const devices: Device[] = [
     dataNote:
       "Orientierungswert für einen einfachen Ventilator. Leistungsaufnahme und Stufe können deutlich variieren.",
   },
+  {
+    name: "Mobile Klimaanlage",
+    slug: "mobile-klimaanlage",
+    category: "Haushalt",
+    description:
+      "Berechne die ungefähren Stromkosten einer mobilen Klimaanlage anhand von Leistung und täglicher Laufzeit.",
+    tip: "Halte Fenster und Türen während des Betriebs geschlossen und dichte den Abluftschlauch am Fenster möglichst gut ab.",
+    calculationType: "power",
+    watts: 1200,
+    typicalMinutes: 480,
+    typicalUsesPerWeek: 5,
+    dataBasis: "Leistung × Laufzeit",
+    dataNote:
+      "Orientierungswert für ein mobiles Monoblockgerät. Kühlleistung, Raumtemperatur, Thermostatzyklen und Fensterabdichtung beeinflussen den tatsächlichen Verbrauch.",
+  },
+  {
+    name: "Split-Klimaanlage",
+    slug: "split-klimaanlage",
+    category: "Haushalt",
+    description:
+      "Schätze die Stromkosten einer Split-Klimaanlage bei deiner typischen täglichen Nutzung.",
+    tip: "Wähle eine moderate Zieltemperatur, halte Fenster geschlossen und reinige die Filter regelmäßig.",
+    calculationType: "power",
+    watts: 700,
+    typicalMinutes: 480,
+    typicalUsesPerWeek: 5,
+    dataBasis: "Leistung × Laufzeit",
+    dataNote:
+      "Orientierungswert. Inverter-Splitgeräte passen ihre Leistung laufend an; Raumgröße, Außentemperatur und Solltemperatur können den tatsächlichen Verbrauch stark verändern.",
+  },
+  {
+    name: "Luftentfeuchter",
+    slug: "luftentfeuchter",
+    category: "Haushalt",
+    description:
+      "Berechne die ungefähren Stromkosten eines Luftentfeuchters pro Nutzung, Monat und Jahr.",
+    tip: "Stelle eine sinnvolle Zielfeuchte ein, halte Türen und Fenster geschlossen und reinige den Filter regelmäßig.",
+    calculationType: "power",
+    watts: 300,
+    typicalMinutes: 480,
+    typicalUsesPerWeek: 5,
+    dataBasis: "Leistung × Laufzeit",
+    dataNote:
+      "Orientierungswert für einen Kondensations-Luftentfeuchter. Raumtemperatur, Luftfeuchtigkeit, Gerätegröße und Hygrostatzyklen beeinflussen den tatsächlichen Verbrauch.",
+  },
 
   {
     name: "Föhn",

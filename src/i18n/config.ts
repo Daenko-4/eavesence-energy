@@ -1,6 +1,6 @@
 export type Locale = "de" | "en";
 
-export const defaultLocale: Locale = "de";
+export const defaultLocale: Locale = "en";
 
 export const locales: Locale[] = ["de", "en"];
 
@@ -9,7 +9,7 @@ export function isLocale(value: string): value is Locale {
 }
 
 export function getHomeHref(locale: Locale) {
-  return locale === "de" ? "/" : "/en";
+  return locale === "de" ? "/de" : "/";
 }
 
 export function getDevicesHref(locale: Locale) {

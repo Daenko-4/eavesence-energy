@@ -53,23 +53,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
       alternates: {
         languages: {
-          de: siteUrl,
-          en: `${siteUrl}/en`,
+          de: `${siteUrl}/de`,
+          en: siteUrl,
           "x-default": siteUrl,
         },
       },
     },
 
     {
-      url: `${siteUrl}/en`,
+      url: `${siteUrl}/de`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
 
       alternates: {
         languages: {
-          de: siteUrl,
-          en: `${siteUrl}/en`,
+          de: `${siteUrl}/de`,
+          en: siteUrl,
           "x-default": siteUrl,
         },
       },

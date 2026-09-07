@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { devices } from "@/data/devices";
 import type { Locale } from "@/i18n/config";
@@ -20,6 +20,52 @@ const FEEDBACK_EMAIL = "parkwaydrive@gmx.at";
 
 type Mode = "estimate" | "exact";
 type NumericInput = number | "";
+type CurrencyCode =
+  | "EUR"
+  | "CHF"
+  | "GBP"
+  | "PLN"
+  | "CZK"
+  | "HUF"
+  | "DKK"
+  | "SEK"
+  | "NOK"
+  | "RON";
+
+const CURRENCY_STORAGE_KEY = "eavesence-currency";
+
+const currencies: Array<{
+  code: CurrencyCode;
+  symbol: string;
+}> = [
+  { code: "EUR", symbol: "€" },
+  { code: "CHF", symbol: "CHF" },
+  { code: "GBP", symbol: "£" },
+  { code: "PLN", symbol: "PLN" },
+  { code: "CZK", symbol: "CZK" },
+  { code: "HUF", symbol: "HUF" },
+  { code: "DKK", symbol: "DKK" },
+  { code: "SEK", symbol: "SEK" },
+  { code: "NOK", symbol: "NOK" },
+  { code: "RON", symbol: "RON" },
+];
+
+const highPriceThresholds: Record<CurrencyCode, number> = {
+  EUR: 1,
+  CHF: 1,
+  GBP: 1,
+  PLN: 5,
+  CZK: 25,
+  HUF: 400,
+  DKK: 8,
+  SEK: 12,
+  NOK: 12,
+  RON: 5,
+};
+
+function isCurrencyCode(value: string): value is CurrencyCode {
+  return currencies.some((currency) => currency.code === value);
+}
 
 type EnergyCalculatorProps = {
   initialDevice?: string;
@@ -56,6 +102,7 @@ const calculatorText = {
       actualConsumptionPerUse:
         "Tatsächlicher Verbrauch pro Nutzung",
       electricityPrice: "Strompreis",
+      currency: "Währung",
       usesPerWeek: "Nutzungen pro Woche",
     },
 
@@ -172,6 +219,7 @@ const calculatorText = {
       actualConsumptionPerUse:
         "Actual consumption per use",
       electricityPrice: "Electricity price",
+      currency: "Currency",
       usesPerWeek: "Uses per week",
     },
 
@@ -293,12 +341,21 @@ function formatNumber(
   );
 }
 
-function formatMoney(value: number, locale: Locale) {
-  const formatted = formatNumber(value, locale, 2, 2);
-
-  return locale === "de"
-    ? `${formatted} €`
-    : `€${formatted}`;
+function formatMoney(
+  value: number,
+  locale: Locale,
+  currency: CurrencyCode
+) {
+  return new Intl.NumberFormat(
+    locale === "de" ? "de-DE" : "en-GB",
+    {
+      style: "currency",
+      currency,
+      currencyDisplay: "symbol",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  ).format(value);
 }
 
 function formatKwh(value: number, locale: Locale) {
@@ -427,6 +484,39 @@ export default function EnergyCalculator({
   const [price, setPrice] =
     useState<NumericInput>(0.35);
 
+  const [currency, setCurrency] =
+    useState<CurrencyCode>("EUR");
+
+  const currencySymbol =
+    currencies.find((item) => item.code === currency)?.symbol ?? currency;
+
+  useEffect(() => {
+    const storedCurrency = window.localStorage.getItem(
+      CURRENCY_STORAGE_KEY
+    );
+
+    if (!storedCurrency || !isCurrencyCode(storedCurrency)) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setCurrency(storedCurrency);
+      setPrice(storedCurrency === "EUR" ? 0.35 : "");
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  function changeCurrency(value: string) {
+    if (!isCurrencyCode(value)) {
+      return;
+    }
+
+    setCurrency(value);
+    setPrice(value === "EUR" ? 0.35 : "");
+    window.localStorage.setItem(CURRENCY_STORAGE_KEY, value);
+  }
+
   const [watts, setWatts] =
     useState<NumericInput>(initialWatts);
 
@@ -547,7 +637,7 @@ export default function EnergyCalculator({
   }
 
   function handleReset() {
-    setPrice(0.35);
+    setPrice(currency === "EUR" ? 0.35 : "");
     loadDeviceDefaults(device);
 
     window.requestAnimationFrame(() => {
@@ -697,7 +787,7 @@ export default function EnergyCalculator({
 
   const warnings: string[] = [];
 
-  if (priceValue > 1) {
+  if (priceValue > highPriceThresholds[currency]) {
     warnings.push(
       text.warnings.highPrice
     );
@@ -1095,7 +1185,8 @@ export default function EnergyCalculator({
         )}
 
         {/* Electricity price */}
-        <div>
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_10rem]">
+          <div>
           <label className="mb-2 block text-sm font-semibold text-slate-700">
             {
               text.fields
@@ -1123,7 +1214,7 @@ export default function EnergyCalculator({
             />
 
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400">
-              €/kWh
+              {currencySymbol}/kWh
             </span>
           </div>
 
@@ -1133,6 +1224,25 @@ export default function EnergyCalculator({
                 .electricityPrice
             }
           </p>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              {text.fields.currency}
+            </label>
+
+            <select
+              value={currency}
+              onChange={(event) => changeCurrency(event.target.value)}
+              className={fieldClassName}
+            >
+              {currencies.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.code} ({item.symbol})
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Uses */}
@@ -1252,7 +1362,8 @@ export default function EnergyCalculator({
               <span className="text-4xl font-extrabold tracking-tight sm:text-5xl">
                 {formatMoney(
                   yearlyCost,
-                  activeLocale
+                  activeLocale,
+                  currency
                 )}
               </span>
 
@@ -1273,7 +1384,8 @@ export default function EnergyCalculator({
                 <p className="mt-1 text-xl font-semibold">
                   {formatMoney(
                     costPerUse,
-                    activeLocale
+                    activeLocale,
+                    currency
                   )}
                 </p>
               </div>
@@ -1289,7 +1401,8 @@ export default function EnergyCalculator({
                 <p className="mt-1 text-xl font-semibold">
                   {formatMoney(
                     weeklyCost,
-                    activeLocale
+                    activeLocale,
+                    currency
                   )}
                 </p>
               </div>
@@ -1305,7 +1418,8 @@ export default function EnergyCalculator({
                 <p className="mt-1 text-xl font-semibold">
                   {formatMoney(
                     monthlyCost,
-                    activeLocale
+                    activeLocale,
+                    currency
                   )}
                 </p>
               </div>

@@ -196,6 +196,51 @@ const deviceTranslations: Record<
     },
   },
 
+  "Mobile Klimaanlage": {
+    en: {
+      name: "Portable air conditioner",
+      category: "Household",
+      slug: "portable-air-conditioner",
+      description:
+        "Calculate the approximate electricity cost of a portable air conditioner based on its power and daily runtime.",
+      tip:
+        "Keep windows and doors closed while it is running and seal the exhaust hose at the window as well as possible.",
+      dataBasis: "Power × runtime",
+      dataNote:
+        "Typical value for a portable monoblock unit. Cooling capacity, room temperature, thermostat cycles and the window seal affect actual consumption.",
+    },
+  },
+
+  "Split-Klimaanlage": {
+    en: {
+      name: "Split air conditioner",
+      category: "Household",
+      slug: "split-air-conditioner",
+      description:
+        "Estimate the electricity cost of a split air conditioner based on your typical daily use.",
+      tip:
+        "Choose a moderate target temperature, keep windows closed and clean the filters regularly.",
+      dataBasis: "Power × runtime",
+      dataNote:
+        "Typical value. Inverter split systems continuously adjust their power; room size, outdoor temperature and the target temperature can significantly change actual consumption.",
+    },
+  },
+
+  Luftentfeuchter: {
+    en: {
+      name: "Dehumidifier",
+      category: "Household",
+      slug: "dehumidifier",
+      description:
+        "Calculate the approximate electricity cost of a dehumidifier per use, month and year.",
+      tip:
+        "Set a sensible target humidity, keep doors and windows closed and clean the filter regularly.",
+      dataBasis: "Power × runtime",
+      dataNote:
+        "Typical value for a refrigerant dehumidifier. Room temperature, humidity, appliance size and humidistat cycles affect actual consumption.",
+    },
+  },
+
   Föhn: {
     en: {
       name: "Hair dryer",
