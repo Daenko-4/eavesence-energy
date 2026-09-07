@@ -48,12 +48,13 @@ function EAVESENCELogo() {
   return (
     <div className="flex items-center">
       <Image
-        src="/brand/eavesence-wordmark.svg"
+        src="/brand/eavesence-wordmark-approved.png"
         alt="EAVESENCE Energy"
-        width={186}
+        width={187}
         height={40}
         className="h-[35px] w-auto sm:h-10"
         priority
+        unoptimized
       />
     </div>
   );
