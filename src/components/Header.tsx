@@ -247,7 +247,7 @@ export default function Header({
             <a
               href={calculatorHref}
               onClick={closeMenu}
-              className="hidden w-[108px] items-center justify-center rounded-xl bg-green-700 px-4 py-2.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-green-800 hover:shadow-md sm:inline-flex"
+              className="hidden h-[34px] min-w-[96px] items-center justify-center rounded-full bg-green-700 px-4 text-sm font-semibold text-white shadow-[0_2px_6px_rgba(21,128,61,0.22)] transition duration-200 hover:-translate-y-px hover:bg-green-800 hover:shadow-[0_4px_10px_rgba(21,128,61,0.28)] active:translate-y-0 active:scale-[0.98] sm:inline-flex"
             >
               {text.calculate}
             </a>
