@@ -28,6 +28,7 @@ const navigation = {
     homeLabel: "EAVESENCE Startseite",
     openNavigation: "Navigation öffnen",
     closeNavigation: "Navigation schließen",
+    slogan: "Die versteckten Kosten des Alltags sichtbar machen.",
   },
 
   en: {
@@ -39,6 +40,7 @@ const navigation = {
     homeLabel: "EAVESENCE home",
     openNavigation: "Open navigation",
     closeNavigation: "Close navigation",
+    slogan: "Making the hidden costs of everyday living visible.",
   },
 } as const;
 
@@ -286,6 +288,12 @@ export default function Header({
             </div>
           </nav>
         )}
+      </div>
+
+      <div className="border-t border-slate-100 bg-[#f8faf8] px-5 py-2 text-center sm:px-6">
+        <p className="text-xs font-semibold italic tracking-[0.01em] text-green-800 sm:text-[13px]">
+          {text.slogan}
+        </p>
       </div>
     </header>
   );

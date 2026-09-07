@@ -110,7 +110,6 @@ const content = {
       label: "Stromkosten-Rechner",
       title: "Schnell zur Antwort",
       text: "Wähle ein Gerät oder gib eigene Werte ein.",
-      slogan: "Die versteckten Kosten des Alltags sichtbar machen.",
     },
 
     benefits: [
@@ -323,7 +322,6 @@ const content = {
       label: "Electricity cost calculator",
       title: "Get your answer quickly",
       text: "Choose a device or enter your own values.",
-      slogan: "Making the hidden costs of everyday living visible.",
     },
 
     benefits: [
@@ -827,10 +825,6 @@ export default function HomePage({
 
             <p className="mt-3 text-lg text-slate-600">
               {text.calculator.text}
-            </p>
-
-            <p className="mt-4 border-l-4 border-green-500 pl-4 text-base font-semibold italic text-green-800">
-              {text.calculator.slogan}
             </p>
 
             <div className="mt-8">
