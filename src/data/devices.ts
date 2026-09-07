@@ -176,7 +176,7 @@ export const devices: Device[] = [
     tip: "Halte Fenster und Türen während des Betriebs geschlossen und dichte den Abluftschlauch am Fenster möglichst gut ab.",
     calculationType: "power",
     watts: 1200,
-    typicalMinutes: 480,
+    typicalMinutes: 240,
     typicalUsesPerWeek: 5,
     dataBasis: "Leistung × Laufzeit",
     dataNote:
@@ -191,7 +191,7 @@ export const devices: Device[] = [
     tip: "Wähle eine moderate Zieltemperatur, halte Fenster geschlossen und reinige die Filter regelmäßig.",
     calculationType: "power",
     watts: 700,
-    typicalMinutes: 480,
+    typicalMinutes: 240,
     typicalUsesPerWeek: 5,
     dataBasis: "Leistung × Laufzeit",
     dataNote:
@@ -206,7 +206,7 @@ export const devices: Device[] = [
     tip: "Stelle eine sinnvolle Zielfeuchte ein, halte Türen und Fenster geschlossen und reinige den Filter regelmäßig.",
     calculationType: "power",
     watts: 300,
-    typicalMinutes: 480,
+    typicalMinutes: 360,
     typicalUsesPerWeek: 5,
     dataBasis: "Leistung × Laufzeit",
     dataNote:
