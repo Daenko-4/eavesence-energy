@@ -96,7 +96,19 @@ export default function Header({
     }
 
     function handleScroll() {
-      setSloganVisible(window.scrollY < 24);
+      const scrollPosition = window.scrollY;
+
+      setSloganVisible((currentlyVisible) => {
+        if (scrollPosition > 64) {
+          return false;
+        }
+
+        if (scrollPosition < 4) {
+          return true;
+        }
+
+        return currentlyVisible;
+      });
     }
 
     window.addEventListener("scroll", handleScroll, {
@@ -317,9 +329,11 @@ export default function Header({
           }`}
         >
           <div className="overflow-hidden">
-            <p className="px-5 py-2 text-xs font-semibold italic tracking-[0.01em] text-green-800 sm:px-6 sm:text-[13px]">
-              {text.slogan}
-            </p>
+            <div className="mx-auto max-w-6xl px-5 sm:px-6">
+              <p className="py-2 text-left text-xs font-semibold italic tracking-[0.01em] text-green-800 sm:text-[13px]">
+                {text.slogan}
+              </p>
+            </div>
           </div>
         </div>
       )}
