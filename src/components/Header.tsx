@@ -192,37 +192,46 @@ export default function Header({
                 </svg>
               </summary>
 
-              <div className="absolute left-1/2 top-full z-20 mt-2 w-56 -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_18px_45px_-18px_rgba(15,23,42,0.35)]">
+              <div className="absolute left-1/2 top-full z-20 mt-1 flex w-max -translate-x-1/2 items-center gap-3 bg-white px-3 py-2">
                 <Link
                   href={devicesHref}
-                  className="flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                  onClick={(event) =>
+                    event.currentTarget
+                      .closest("details")
+                      ?.removeAttribute("open")
+                  }
+                  className="border-b-2 border-transparent px-1 py-1 text-xs font-semibold whitespace-nowrap text-slate-600 transition hover:border-slate-300 hover:text-slate-950"
                 >
                   {text.allDevices}
                 </Link>
 
+                <span
+                  aria-hidden="true"
+                  className="h-3.5 w-px bg-slate-200"
+                />
+
                 <Link
                   href={myDevicesHref}
-                  className="mt-1 flex items-center justify-between gap-3 rounded-xl bg-green-50 px-3 py-2.5 text-sm font-bold text-green-900 transition hover:bg-green-100"
+                  onClick={(event) =>
+                    event.currentTarget
+                      .closest("details")
+                      ?.removeAttribute("open")
+                  }
+                  className="flex items-center gap-1.5 border-b-2 border-green-300 px-1 py-1 text-xs font-bold whitespace-nowrap text-green-800 transition hover:border-green-600 hover:text-green-950"
                 >
-                  <span className="flex items-center gap-2">
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      className="h-4 w-4"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 3.5h10v13l-5-3-5 3v-13Z" />
-                    </svg>
-                    {text.myDevices}
-                  </span>
-
-                  <span className="rounded-full border border-green-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-green-700">
-                    {text.local}
-                  </span>
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="h-3.5 w-3.5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 3.5h10v13l-5-3-5 3v-13Z" />
+                  </svg>
+                  {text.myDevices}
                 </Link>
               </div>
             </details>
