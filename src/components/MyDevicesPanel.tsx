@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
 import { devices } from "@/data/devices";
 import type { Locale } from "@/i18n/config";
@@ -48,6 +48,18 @@ const copy = {
     savedDevices: "gespeicherte Geräte",
     showList: "Liste anzeigen",
     hideList: "Liste ausblenden",
+    dashboard: "Deine Übersicht",
+    yearlyConsumption: "Verbrauch pro Jahr",
+    topConsumer: "Größter Kostenpunkt",
+    sort: "Sortieren",
+    newest: "Zuletzt gespeichert",
+    highestCost: "Höchste Jahreskosten",
+    alphabetical: "Alphabetisch",
+    export: "Sicherung exportieren",
+    import: "Sicherung importieren",
+    imported: "Geräte wurden erfolgreich importiert.",
+    importError: "Die Datei konnte nicht als EAVESENCE-Sicherung gelesen werden.",
+    privateBadge: "Privat auf diesem Gerät gespeichert",
     fallbackDevice: "Gerät",
   },
   en: {
@@ -76,6 +88,18 @@ const copy = {
     savedDevices: "saved devices",
     showList: "Show list",
     hideList: "Hide list",
+    dashboard: "Your overview",
+    yearlyConsumption: "Consumption per year",
+    topConsumer: "Highest cost",
+    sort: "Sort",
+    newest: "Recently saved",
+    highestCost: "Highest yearly cost",
+    alphabetical: "Alphabetical",
+    export: "Export backup",
+    import: "Import backup",
+    imported: "Devices imported successfully.",
+    importError: "This file could not be read as an EAVESENCE backup.",
+    privateBadge: "Stored privately on this device",
     fallbackDevice: "Device",
   },
 } as const;
@@ -137,6 +161,8 @@ export default function MyDevicesPanel({
   const [savedDevices, setSavedDevices] = useState<SavedDevice[]>([]);
   const [notice, setNotice] = useState("");
   const [storageReady, setStorageReady] = useState(false);
+  const [sortBy, setSortBy] = useState<"newest" | "cost" | "name">("newest");
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -205,6 +231,44 @@ export default function MyDevicesPanel({
     setNotice("");
   }
 
+  function exportDevices() {
+    const blob = new Blob(
+      [JSON.stringify({ version: 1, devices: savedDevices }, null, 2)],
+      { type: "application/json" }
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `eavesence-devices-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importDevices(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const parsed: unknown = JSON.parse(await file.text());
+      const candidate =
+        parsed && typeof parsed === "object" && "devices" in parsed
+          ? (parsed as { devices: unknown }).devices
+          : parsed;
+      const imported = readSavedDevices(JSON.stringify(candidate));
+
+      if (!Array.isArray(candidate) || (candidate.length > 0 && imported.length === 0)) {
+        throw new Error("Invalid backup");
+      }
+
+      persist(imported);
+      onActiveSavedDeviceChange(null);
+      setNotice(text.imported);
+    } catch {
+      setNotice(text.importError);
+    }
+  }
+
   function getDeviceName(item: SavedDevice) {
     if (item.device === "__custom_device__") {
       return item.customDeviceName.trim() || text.fallbackDevice;
@@ -236,9 +300,24 @@ export default function MyDevicesPanel({
           (total, item) => total + item.yearlyCost,
           0
         ),
+        yearlyKwh: matchingDevices.reduce(
+          (total, item) => total + item.yearlyKwh,
+          0
+        ),
+        topDevice: [...matchingDevices].sort(
+          (a, b) => b.yearlyCost - a.yearlyCost
+        )[0],
       };
     })
     .filter((total) => total.count > 0);
+
+  const sortedDevices = [...savedDevices].sort((a, b) => {
+    if (sortBy === "cost") return b.yearlyCost - a.yearlyCost;
+    if (sortBy === "name") {
+      return getDeviceName(a).localeCompare(getDeviceName(b), locale);
+    }
+    return b.updatedAt.localeCompare(a.updatedAt);
+  });
 
   return (
     <div
@@ -276,6 +355,9 @@ export default function MyDevicesPanel({
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
             {text.description}
           </p>
+          <span className="mt-3 inline-flex rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-green-800 ring-1 ring-green-100">
+            ✓ {text.privateBadge}
+          </span>
         </div>
 
         <button
@@ -298,7 +380,11 @@ export default function MyDevicesPanel({
       )}
 
       {totals.length > 0 && (
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-5">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-green-700">
+            {text.dashboard}
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
           {totals.map((total) => (
             <div
               key={total.currency}
@@ -335,8 +421,23 @@ export default function MyDevicesPanel({
                   </p>
                 </div>
               </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
+                <div>
+                  <p className="text-xs text-slate-500">{text.yearlyConsumption}</p>
+                  <p className="mt-1 text-sm font-bold text-slate-950">
+                    {formatUses(total.yearlyKwh, locale)} kWh
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500">{text.topConsumer}</p>
+                  <p className="mt-1 truncate text-sm font-bold text-slate-950">
+                    {total.topDevice ? getDeviceName(total.topDevice) : "–"}
+                  </p>
+                </div>
+              </div>
             </div>
           ))}
+          </div>
         </div>
       )}
 
@@ -378,8 +479,23 @@ export default function MyDevicesPanel({
             </span>
           </summary>
 
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <label className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              {text.sort}
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value as typeof sortBy)}
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-green-400"
+              >
+                <option value="newest">{text.newest}</option>
+                <option value="cost">{text.highestCost}</option>
+                <option value="name">{text.alphabetical}</option>
+              </select>
+            </label>
+          </div>
+
           <div className="mt-3 space-y-3">
-          {savedDevices.map((item) => (
+          {sortedDevices.map((item) => (
             <div
               key={item.id}
               className={
@@ -445,15 +561,40 @@ export default function MyDevicesPanel({
           {text.storedLocally}
         </p>
 
-        {savedDevices.length > 0 && (
+        <div className="flex flex-wrap gap-3">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json,.json"
+            onChange={importDevices}
+            className="hidden"
+          />
           <button
             type="button"
-            onClick={removeAllDevices}
-            className="shrink-0 self-start text-xs font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 transition hover:text-red-700 sm:self-auto"
+            onClick={() => importInputRef.current?.click()}
+            className="text-xs font-semibold text-green-800 underline decoration-green-200 underline-offset-4"
           >
-            {text.removeAll}
+            {text.import}
           </button>
-        )}
+          {savedDevices.length > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={exportDevices}
+                className="text-xs font-semibold text-green-800 underline decoration-green-200 underline-offset-4"
+              >
+                {text.export}
+              </button>
+              <button
+                type="button"
+                onClick={removeAllDevices}
+                className="text-xs font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 transition hover:text-red-700"
+              >
+                {text.removeAll}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
