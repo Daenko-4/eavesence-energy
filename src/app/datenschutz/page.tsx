@@ -52,8 +52,7 @@ export default function DatenschutzPage() {
             </h2>
 
             <div className="mt-4 space-y-1 leading-7">
-              <p>Dan Florian</p>
-              <p>Möllersdorf</p>
+              <p>EAVESENCE Energy</p>
               <p>Österreich</p>
 
               <p>

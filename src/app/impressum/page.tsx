@@ -44,8 +44,7 @@ export default function ImpressumPage() {
                 </h2>
 
                 <div className="mt-3 space-y-1 leading-7 text-slate-600">
-                  <p>Dan Florian</p>
-                  <p>Möllersdorf</p>
+                  <p>EAVESENCE Energy</p>
                   <p>Österreich</p>
                 </div>
               </section>
