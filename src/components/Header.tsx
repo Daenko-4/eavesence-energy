@@ -3,7 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type MouseEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 
 import {
   getCalculatorHref,
@@ -71,6 +76,7 @@ export default function Header({
 }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sloganVisible, setSloganVisible] = useState(true);
+  const devicesMenuRef = useRef<HTMLDetailsElement>(null);
 
   const pathname = usePathname();
 
@@ -116,6 +122,50 @@ export default function Header({
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isHomePage]);
+
+  useEffect(() => {
+    function closeDevicesMenuOnOutsideClick(
+      event: PointerEvent,
+    ) {
+      const devicesMenu = devicesMenuRef.current;
+
+      if (
+        devicesMenu?.open &&
+        event.target instanceof Node &&
+        !devicesMenu.contains(event.target)
+      ) {
+        devicesMenu.removeAttribute("open");
+      }
+    }
+
+    function closeDevicesMenuOnEscape(
+      event: KeyboardEvent,
+    ) {
+      if (event.key === "Escape") {
+        devicesMenuRef.current?.removeAttribute("open");
+      }
+    }
+
+    document.addEventListener(
+      "pointerdown",
+      closeDevicesMenuOnOutsideClick,
+    );
+    document.addEventListener(
+      "keydown",
+      closeDevicesMenuOnEscape,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "pointerdown",
+        closeDevicesMenuOnOutsideClick,
+      );
+      document.removeEventListener(
+        "keydown",
+        closeDevicesMenuOnEscape,
+      );
+    };
+  }, []);
 
   function closeMenu() {
     setMenuOpen(false);
@@ -175,7 +225,10 @@ export default function Header({
               {text.calculator}
             </a>
 
-            <details className="group relative">
+            <details
+              ref={devicesMenuRef}
+              className="group relative"
+            >
               <summary className="flex cursor-pointer list-none items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-2 transition hover:bg-green-50 hover:text-green-700 [&::-webkit-details-marker]:hidden">
                 {text.devices}
                 <svg
@@ -192,7 +245,7 @@ export default function Header({
                 </svg>
               </summary>
 
-              <div className="absolute left-1/2 top-full z-20 mt-1 flex w-max -translate-x-1/2 items-center gap-3 bg-white px-3 py-2">
+              <div className="absolute left-1/2 top-full z-20 mt-1 flex w-32 -translate-x-1/2 flex-col items-stretch gap-0.5 bg-white px-3 py-2">
                 <Link
                   href={devicesHref}
                   onClick={(event) =>
@@ -200,15 +253,10 @@ export default function Header({
                       .closest("details")
                       ?.removeAttribute("open")
                   }
-                  className="border-b-2 border-transparent px-1 py-1 text-xs font-semibold whitespace-nowrap text-slate-600 transition hover:border-slate-300 hover:text-slate-950"
+                  className="px-1 py-1.5 text-left text-xs font-semibold whitespace-nowrap text-slate-600 transition hover:text-slate-950"
                 >
                   {text.allDevices}
                 </Link>
-
-                <span
-                  aria-hidden="true"
-                  className="h-3.5 w-px bg-slate-200"
-                />
 
                 <Link
                   href={myDevicesHref}
@@ -217,7 +265,7 @@ export default function Header({
                       .closest("details")
                       ?.removeAttribute("open")
                   }
-                  className="flex items-center gap-1.5 border-b-2 border-green-300 px-1 py-1 text-xs font-bold whitespace-nowrap text-green-800 transition hover:border-green-600 hover:text-green-950"
+                  className="flex items-center gap-1.5 px-1 py-1.5 text-left text-xs font-bold whitespace-nowrap text-green-800 transition hover:text-green-950"
                 >
                   <svg
                     viewBox="0 0 20 20"
