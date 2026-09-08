@@ -9,6 +9,12 @@ import {
   getLocalizedCategory,
   getLocalizedDevice,
 } from "@/i18n/devices";
+import type {
+  SavedDevice,
+  SavedDeviceCurrency,
+} from "@/lib/savedDevices";
+
+import MyDevicesPanel from "./MyDevicesPanel";
 
 const CUSTOM_DEVICE = "__custom_device__";
 
@@ -20,17 +26,7 @@ const FEEDBACK_EMAIL = "parkwaydrive@gmx.at";
 
 type Mode = "estimate" | "exact";
 type NumericInput = number | "";
-type CurrencyCode =
-  | "EUR"
-  | "CHF"
-  | "GBP"
-  | "PLN"
-  | "CZK"
-  | "HUF"
-  | "DKK"
-  | "SEK"
-  | "NOK"
-  | "RON";
+type CurrencyCode = SavedDeviceCurrency;
 
 const CURRENCY_STORAGE_KEY = "eavesence-currency";
 
@@ -478,6 +474,11 @@ export default function EnergyCalculator({
     initialDeviceData.name
   );
 
+  const [
+    activeSavedDeviceId,
+    setActiveSavedDeviceId,
+  ] = useState<string | null>(null);
+
   const [customDeviceName, setCustomDeviceName] =
     useState("");
 
@@ -634,6 +635,34 @@ export default function EnergyCalculator({
   function handleDeviceChange(name: string) {
     setDevice(name);
     loadDeviceDefaults(name);
+    setActiveSavedDeviceId(null);
+  }
+
+  function handleOpenSavedDevice(item: SavedDevice) {
+    setDevice(item.device);
+    setCustomDeviceName(item.customDeviceName);
+    changeMode(item.mode);
+    setCurrency(item.currency);
+    setPrice(item.price);
+    setWatts(item.watts);
+    setMinutesPerUse(item.minutesPerUse);
+    setUsesPerWeek(item.usesPerWeek);
+    setEstimatedKwhPerUse(item.estimatedKwhPerUse);
+    setMeasuredKwhPerUse(item.measuredKwhPerUse);
+    setActiveSavedDeviceId(item.id);
+    window.localStorage.setItem(
+      CURRENCY_STORAGE_KEY,
+      item.currency
+    );
+
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById("rechner")
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    });
   }
 
   function handleReset() {
@@ -1461,6 +1490,29 @@ export default function EnergyCalculator({
           </>
         )}
       </div>
+
+      <MyDevicesPanel
+        locale={activeLocale}
+        canSave={calculationIsValid}
+        activeSavedDeviceId={activeSavedDeviceId}
+        onActiveSavedDeviceChange={setActiveSavedDeviceId}
+        onOpen={handleOpenSavedDevice}
+        currentDevice={{
+          device,
+          customDeviceName,
+          mode,
+          currency,
+          price: priceValue,
+          watts: wattsValue,
+          minutesPerUse: minutesPerUseValue,
+          usesPerWeek: usesPerWeekValue,
+          estimatedKwhPerUse: estimatedKwhPerUseValue,
+          measuredKwhPerUse: measuredKwhPerUseValue,
+          yearlyKwh,
+          yearlyCost,
+          monthlyCost,
+        }}
+      />
 
       {/* Saving tip */}
       <div className="mt-6 rounded-2xl bg-amber-50/80 px-5 py-5 sm:px-6 sm:py-6">
