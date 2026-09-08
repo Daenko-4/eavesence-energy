@@ -22,6 +22,9 @@ const navigation = {
   de: {
     calculator: "Rechner",
     devices: "Geräte",
+    allDevices: "Alle Geräte",
+    myDevices: "Meine Geräte",
+    local: "Lokal",
     howItWorks: "So funktioniert's",
     faq: "FAQ",
     calculate: "Berechnen",
@@ -34,6 +37,9 @@ const navigation = {
   en: {
     calculator: "Calculator",
     devices: "Devices",
+    allDevices: "All devices",
+    myDevices: "My devices",
+    local: "Local",
     howItWorks: "How it works",
     faq: "FAQ",
     calculate: "Calculate",
@@ -74,6 +80,7 @@ export default function Header({
   const isHomePage = pathname === homeHref;
   const calculatorHref = getCalculatorHref(locale);
   const devicesHref = getDevicesHref(locale);
+  const myDevicesHref = homeHref + "#meine-geraete";
   const howItWorksHref = getHowItWorksHref(locale);
   const faqHref = getFaqHref(locale);
 
@@ -160,7 +167,7 @@ export default function Header({
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden items-center text-[15px] font-semibold text-slate-700 md:grid md:grid-cols-[92px_78px_128px_48px] md:gap-3">
+          <nav className="hidden items-center text-[15px] font-semibold text-slate-700 md:grid md:grid-cols-[92px_118px_128px_48px] md:gap-3">
             <a
               href={calculatorHref}
               className="flex justify-center whitespace-nowrap transition hover:text-green-700"
@@ -168,12 +175,57 @@ export default function Header({
               {text.calculator}
             </a>
 
-            <a
-              href={devicesHref}
-              className="flex justify-center whitespace-nowrap transition hover:text-green-700"
-            >
-              {text.devices}
-            </a>
+            <details className="group relative">
+              <summary className="flex cursor-pointer list-none items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-2 transition hover:bg-green-50 hover:text-green-700 [&::-webkit-details-marker]:hidden">
+                {text.devices}
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className="h-3.5 w-3.5 transition-transform duration-200 group-open:rotate-180"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m5 7.5 5 5 5-5" />
+                </svg>
+              </summary>
+
+              <div className="absolute left-1/2 top-full z-20 mt-2 w-56 -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_18px_45px_-18px_rgba(15,23,42,0.35)]">
+                <Link
+                  href={devicesHref}
+                  className="flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                >
+                  {text.allDevices}
+                </Link>
+
+                <Link
+                  href={myDevicesHref}
+                  className="mt-1 flex items-center justify-between gap-3 rounded-xl bg-green-50 px-3 py-2.5 text-sm font-bold text-green-900 transition hover:bg-green-100"
+                >
+                  <span className="flex items-center gap-2">
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      className="h-4 w-4"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 3.5h10v13l-5-3-5 3v-13Z" />
+                    </svg>
+                    {text.myDevices}
+                  </span>
+
+                  <span className="rounded-full border border-green-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-green-700">
+                    {text.local}
+                  </span>
+                </Link>
+              </div>
+            </details>
 
             <a
               href={howItWorksHref}
@@ -276,13 +328,42 @@ export default function Header({
                 {text.calculator}
               </a>
 
-              <a
-                href={devicesHref}
-                onClick={closeMenu}
-                className="rounded-xl px-3 py-3 text-base font-semibold text-slate-700 transition hover:bg-green-50 hover:text-green-700"
-              >
-                {text.devices}
-              </a>
+              <div className="rounded-xl bg-slate-50 p-2">
+                <p className="flex items-center gap-1.5 px-2 pb-1 pt-1 text-xs font-bold uppercase tracking-[0.08em] text-slate-500">
+                  {text.devices}
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="h-3.5 w-3.5"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m5 7.5 5 5 5-5" />
+                  </svg>
+                </p>
+
+                <a
+                  href={devicesHref}
+                  onClick={closeMenu}
+                  className="block rounded-lg px-3 py-2.5 text-base font-semibold text-slate-700 transition hover:bg-white hover:text-green-700"
+                >
+                  {text.allDevices}
+                </a>
+
+                <a
+                  href={myDevicesHref}
+                  onClick={closeMenu}
+                  className="flex items-center justify-between gap-3 rounded-lg bg-green-50 px-3 py-2.5 text-base font-bold text-green-900 transition hover:bg-green-100"
+                >
+                  <span>{text.myDevices}</span>
+                  <span className="rounded-full border border-green-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-green-700">
+                    {text.local}
+                  </span>
+                </a>
+              </div>
 
               <a
                 href={howItWorksHref}

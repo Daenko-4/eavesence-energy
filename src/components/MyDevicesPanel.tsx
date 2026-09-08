@@ -44,6 +44,10 @@ const copy = {
     storedLocally:
       "Die Daten bleiben ausschließlich in diesem Browser. Wenn du Browserdaten löschst oder das Gerät wechselst, sind sie nicht mehr verfügbar.",
     usesPerWeek: "Nutzungen/Woche",
+    savedDevice: "gespeichertes Gerät",
+    savedDevices: "gespeicherte Geräte",
+    showList: "Liste anzeigen",
+    hideList: "Liste ausblenden",
     fallbackDevice: "Gerät",
   },
   en: {
@@ -68,6 +72,10 @@ const copy = {
     storedLocally:
       "The data stays exclusively in this browser. If you clear browser data or switch devices, it will no longer be available.",
     usesPerWeek: "Uses/week",
+    savedDevice: "saved device",
+    savedDevices: "saved devices",
+    showList: "Show list",
+    hideList: "Hide list",
     fallbackDevice: "Device",
   },
 } as const;
@@ -338,8 +346,39 @@ export default function MyDevicesPanel({
             {text.empty}
           </p>
         </div>
-      ) : (
-        <div className="mt-5 space-y-3">
+      ) : savedDevices.length > 0 ? (
+        <details className="group mt-5">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl border border-green-200 bg-white px-4 py-3.5 text-sm font-bold text-slate-900 shadow-sm transition hover:border-green-300 hover:bg-green-50 [&::-webkit-details-marker]:hidden">
+            <span>
+              {savedDevices.length}{" "}
+              {savedDevices.length === 1
+                ? text.savedDevice
+                : text.savedDevices}
+            </span>
+
+            <span className="flex shrink-0 items-center gap-2 text-green-800">
+              <span className="group-open:hidden">
+                {text.showList}
+              </span>
+              <span className="hidden group-open:inline">
+                {text.hideList}
+              </span>
+              <svg
+                viewBox="0 0 20 20"
+                fill="none"
+                className="h-4 w-4 transition-transform duration-200 group-open:rotate-180"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m5 7.5 5 5 5-5" />
+              </svg>
+            </span>
+          </summary>
+
+          <div className="mt-3 space-y-3">
           {savedDevices.map((item) => (
             <div
               key={item.id}
@@ -397,8 +436,9 @@ export default function MyDevicesPanel({
               </div>
             </div>
           ))}
-        </div>
-      )}
+          </div>
+        </details>
+      ) : null}
 
       <div className="mt-5 flex flex-col gap-3 border-t border-green-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-2xl text-xs leading-5 text-slate-500">
