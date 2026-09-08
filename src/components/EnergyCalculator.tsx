@@ -168,6 +168,25 @@ const calculatorText = {
       viewResult: "Ergebnis ansehen",
     },
 
+    comparison: {
+      open: "Mit einem anderen Gerät vergleichen",
+      close: "Vergleich schließen",
+      title: "Geräte vergleichen",
+      description:
+        "Vergleiche deine aktuelle Berechnung mit den typischen Werten eines zweiten Geräts.",
+      current: "Aktuelle Berechnung",
+      alternative: "Vergleichsgerät",
+      select: "Zweites Gerät",
+      uses: "Nutzungen pro Woche",
+      yearlyCost: "Kosten pro Jahr",
+      yearlyConsumption: "Verbrauch pro Jahr",
+      perUse: "Kosten pro Nutzung",
+      lowerBy: "Günstiger pro Jahr",
+      same: "Beide Varianten kosten ungefähr gleich viel.",
+      typicalNote:
+        "Das Vergleichsgerät verwendet die hinterlegten typischen Verbrauchswerte.",
+    },
+
     savingTip: {
       title: "💡 Spartipp",
       custom:
@@ -293,6 +312,25 @@ const calculatorText = {
       scenarioText: "Fewer uses per week",
       savings: "Potential savings per year",
       viewResult: "View result",
+    },
+
+    comparison: {
+      open: "Compare with another device",
+      close: "Close comparison",
+      title: "Compare devices",
+      description:
+        "Compare your current calculation with the typical values of a second device.",
+      current: "Current calculation",
+      alternative: "Comparison device",
+      select: "Second device",
+      uses: "Uses per week",
+      yearlyCost: "Cost per year",
+      yearlyConsumption: "Consumption per year",
+      perUse: "Cost per use",
+      lowerBy: "Lower per year",
+      same: "Both options cost approximately the same.",
+      typicalNote:
+        "The comparison device uses the stored typical consumption values.",
     },
 
     savingTip: {
@@ -498,6 +536,14 @@ export default function EnergyCalculator({
   const [recentDevices, setRecentDevices] = useState<string[]>([]);
   const [reductionPercent, setReductionPercent] = useState(20);
   const [resultVisible, setResultVisible] = useState(false);
+  const initialComparisonDevice =
+    devices.find((item) => item.name !== initialDeviceData.name) ?? devices[0];
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [comparisonDeviceName, setComparisonDeviceName] = useState(
+    initialComparisonDevice.name
+  );
+  const [comparisonUsesPerWeek, setComparisonUsesPerWeek] =
+    useState<NumericInput>(initialComparisonDevice.typicalUsesPerWeek ?? 1);
 
   const [
     activeSavedDeviceId,
@@ -701,6 +747,14 @@ export default function EnergyCalculator({
     loadDeviceDefaults(name);
     setActiveSavedDeviceId(null);
 
+    if (name === comparisonDeviceName) {
+      const alternative = devices.find((item) => item.name !== name);
+      if (alternative) {
+        setComparisonDeviceName(alternative.name);
+        setComparisonUsesPerWeek(alternative.typicalUsesPerWeek ?? 1);
+      }
+    }
+
     if (name !== CUSTOM_DEVICE) {
       setRecentDevices((current) => {
         const next = [
@@ -716,6 +770,14 @@ export default function EnergyCalculator({
     }
   }
 
+  function handleComparisonDeviceChange(name: string) {
+    const comparisonDevice = devices.find((item) => item.name === name);
+    if (!comparisonDevice) return;
+
+    setComparisonDeviceName(name);
+    setComparisonUsesPerWeek(comparisonDevice.typicalUsesPerWeek ?? 1);
+  }
+
   function handleOpenSavedDevice(item: SavedDevice) {
     setDevice(item.device);
     setCustomDeviceName(item.customDeviceName);
@@ -728,6 +790,16 @@ export default function EnergyCalculator({
     setEstimatedKwhPerUse(item.estimatedKwhPerUse);
     setMeasuredKwhPerUse(item.measuredKwhPerUse);
     setActiveSavedDeviceId(item.id);
+
+    if (item.device === comparisonDeviceName) {
+      const alternative = devices.find(
+        (candidate) => candidate.name !== item.device
+      );
+      if (alternative) {
+        setComparisonDeviceName(alternative.name);
+        setComparisonUsesPerWeek(alternative.typicalUsesPerWeek ?? 1);
+      }
+    }
     window.localStorage.setItem(
       CURRENCY_STORAGE_KEY,
       item.currency
@@ -908,6 +980,24 @@ export default function EnergyCalculator({
   const scenarioYearlyCost =
     yearlyCost * (1 - reductionPercent / 100);
   const scenarioSavings = yearlyCost - scenarioYearlyCost;
+
+  const comparisonDevice =
+    devices.find((item) => item.name === comparisonDeviceName) ?? devices[0];
+  const localizedComparisonDevice = getLocalizedDevice(
+    comparisonDevice,
+    activeLocale
+  );
+  const comparisonKwhPerUse =
+    comparisonDevice.calculationType === "consumption"
+      ? comparisonDevice.kwhPerUse ?? 0
+      : ((comparisonDevice.watts ?? 0) / 1000) *
+        ((comparisonDevice.typicalMinutes ?? 0) / 60);
+  const comparisonUsesValue = numericValue(comparisonUsesPerWeek);
+  const comparisonYearlyKwh = comparisonKwhPerUse * comparisonUsesValue * 52;
+  const comparisonYearlyCost = comparisonYearlyKwh * priceValue;
+  const comparisonCostPerUse = comparisonKwhPerUse * priceValue;
+  const comparisonDifference = Math.abs(yearlyCost - comparisonYearlyCost);
+  const currentIsCheaper = yearlyCost < comparisonYearlyCost;
 
   const warnings: string[] = [];
 
@@ -1689,6 +1779,163 @@ export default function EnergyCalculator({
             <span>0%</span>
             <span>50%</span>
           </div>
+        </div>
+      )}
+
+      {calculationIsValid && (
+        <div className="mt-6">
+          <button
+            type="button"
+            onClick={() => setComparisonOpen((open) => !open)}
+            aria-expanded={comparisonOpen}
+            className="flex w-full items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left font-bold text-slate-900 shadow-sm transition hover:border-green-300 hover:bg-green-50/50 hover:shadow-md"
+          >
+            <span>
+              {comparisonOpen
+                ? text.comparison.close
+                : text.comparison.open}
+            </span>
+            <span
+              aria-hidden="true"
+              className={`text-xl text-green-700 transition-transform ${
+                comparisonOpen ? "rotate-45" : ""
+              }`}
+            >
+              +
+            </span>
+          </button>
+
+          {comparisonOpen && (
+            <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-5 sm:p-6">
+              <h3 className="text-xl font-extrabold text-slate-950">
+                {text.comparison.title}
+              </h3>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                {text.comparison.description}
+              </p>
+
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    {text.comparison.select}
+                  </label>
+                  <select
+                    value={comparisonDeviceName}
+                    onChange={(event) =>
+                      handleComparisonDeviceChange(event.target.value)
+                    }
+                    className={fieldClassName}
+                  >
+                    {devices
+                      .filter((item) => item.name !== device)
+                      .map((item) => (
+                        <option key={item.name} value={item.name}>
+                          {getLocalizedDevice(item, activeLocale).name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    {text.comparison.uses}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={comparisonUsesPerWeek}
+                    onChange={(event) =>
+                      setComparisonUsesPerWeek(
+                        parseNumericInput(event.target.value)
+                      )
+                    }
+                    className={fieldClassName}
+                  />
+                </div>
+              </div>
+
+              <p className="mt-3 text-xs leading-5 text-slate-500">
+                {text.comparison.typicalNote}
+              </p>
+
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                {[
+                  {
+                    key: "current",
+                    eyebrow: text.comparison.current,
+                    name: displayDeviceName,
+                    yearly: yearlyCost,
+                    kwh: yearlyKwh,
+                    perUse: costPerUse,
+                    cheaper: currentIsCheaper,
+                  },
+                  {
+                    key: "alternative",
+                    eyebrow: text.comparison.alternative,
+                    name: localizedComparisonDevice.name,
+                    yearly: comparisonYearlyCost,
+                    kwh: comparisonYearlyKwh,
+                    perUse: comparisonCostPerUse,
+                    cheaper: !currentIsCheaper,
+                  },
+                ].map((option) => (
+                  <div
+                    key={option.key}
+                    className={`rounded-xl border bg-white p-4 ${
+                      option.cheaper && comparisonDifference >= 0.01
+                        ? "border-green-300 ring-2 ring-green-100"
+                        : "border-slate-200"
+                    }`}
+                  >
+                    <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-400">
+                      {option.eyebrow}
+                    </p>
+                    <p className="mt-1 truncate font-bold text-slate-950">
+                      {option.name}
+                    </p>
+                    <p className="mt-4 text-2xl font-extrabold text-green-800">
+                      {formatMoney(option.yearly, activeLocale, currency)}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {text.comparison.yearlyCost}
+                    </p>
+                    <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 text-sm">
+                      <div>
+                        <p className="text-xs text-slate-500">
+                          {text.comparison.yearlyConsumption}
+                        </p>
+                        <p className="mt-1 font-semibold text-slate-900">
+                          {formatKwh(option.kwh, activeLocale)} kWh
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">
+                          {text.comparison.perUse}
+                        </p>
+                        <p className="mt-1 font-semibold text-slate-900">
+                          {formatMoney(option.perUse, activeLocale, currency)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-xl bg-green-950 px-4 py-3 text-center text-sm font-semibold text-white">
+                {comparisonDifference < 0.01
+                  ? text.comparison.same
+                  : `${
+                      currentIsCheaper
+                        ? displayDeviceName
+                        : localizedComparisonDevice.name
+                    }: ${formatMoney(
+                      comparisonDifference,
+                      activeLocale,
+                      currency
+                    )} ${text.comparison.lowerBy.toLocaleLowerCase()}`}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
