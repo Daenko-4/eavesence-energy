@@ -243,7 +243,7 @@ export default function MyDevicesPanel({
   return (
     <div
       id="meine-geraete"
-      className="mt-6 rounded-2xl border border-green-100 bg-[#f5f9f5] p-5 sm:p-6"
+      className="mt-6 scroll-mt-[120px] rounded-2xl border border-green-100 bg-[#f5f9f5] p-5 sm:p-6"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
