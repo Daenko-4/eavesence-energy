@@ -95,7 +95,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
           <div>
             <Image
-              src="/brand/eavesence-wordmark-balanced-v2.png"
+              src="/brand/eavesence-wordmark-approved-final.png"
               alt="EAVESENCE Energy"
               width={206}
               height={44}

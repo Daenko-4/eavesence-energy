@@ -31,7 +31,7 @@ export const metadata: Metadata = {
       "Calculate the electricity costs of everyday household devices – per use, week, month and year.",
     images: [
       {
-        url: "/brand/eavesence-og-balanced-v2.png",
+        url: "/brand/eavesence-og-approved-final.png",
         width: 1200,
         height: 630,
         alt: "EAVESENCE Energy",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
       "EAVESENCE Energy – Calculate electricity costs easily",
     description:
       "Calculate the electricity costs of household devices for free.",
-    images: ["/brand/eavesence-og-balanced-v2.png"],
+    images: ["/brand/eavesence-og-approved-final.png"],
   },
 };
 
