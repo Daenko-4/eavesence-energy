@@ -245,7 +245,7 @@ export default function Header({
                 </svg>
               </summary>
 
-              <div className="absolute left-1/2 top-full z-20 mt-1 flex w-32 -translate-x-1/2 flex-col items-stretch gap-0.5 bg-white px-3 py-2">
+              <div className="absolute left-1/2 top-full z-50 mt-3 flex w-36 -translate-x-1/2 flex-col items-stretch gap-0.5 rounded-xl border border-slate-200/80 bg-white p-1.5 shadow-[0_12px_30px_rgba(15,23,42,0.14)]">
                 <Link
                   href={devicesHref}
                   onClick={(event) =>
@@ -253,7 +253,7 @@ export default function Header({
                       .closest("details")
                       ?.removeAttribute("open")
                   }
-                  className="px-1 py-1.5 text-left text-xs font-semibold whitespace-nowrap text-slate-600 transition hover:text-slate-950"
+                  className="rounded-lg px-2.5 py-2 text-left text-xs font-semibold whitespace-nowrap text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
                 >
                   {text.allDevices}
                 </Link>
@@ -265,20 +265,8 @@ export default function Header({
                       .closest("details")
                       ?.removeAttribute("open")
                   }
-                  className="flex items-center gap-1.5 px-1 py-1.5 text-left text-xs font-bold whitespace-nowrap text-green-800 transition hover:text-green-950"
+                  className="rounded-lg px-2.5 py-2 text-left text-xs font-bold whitespace-nowrap text-green-800 transition hover:bg-green-50 hover:text-green-950"
                 >
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    className="h-3.5 w-3.5"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 3.5h10v13l-5-3-5 3v-13Z" />
-                  </svg>
                   {text.myDevices}
                 </Link>
               </div>
