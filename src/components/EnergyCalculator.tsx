@@ -66,8 +66,6 @@ function isCurrencyCode(value: string): value is CurrencyCode {
 
 type EnergyCalculatorProps = {
   initialDevice?: string;
-  controlledMode?: Mode;
-  onModeChange?: (mode: Mode) => void;
   locale?: Locale;
   detailPage?: boolean;
 };
@@ -81,12 +79,11 @@ const calculatorText = {
     },
 
     modes: {
-      estimate: "Typische Verbrauchswerte",
-      exact: "Eigene Verbrauchswerte",
-      estimateDescription:
-        "EAVESENCE verwendet Orientierungswerte, die du an deine Nutzung anpassen kannst.",
-      exactDescription:
-        "Nutze einen gemessenen oder anderweitig bekannten Verbrauch in kWh pro Nutzung.",
+      title: "Typische Startwerte",
+      description:
+        "Die Werte dienen als Orientierung. Passe sie an dein Gerät und deine tatsächliche Nutzung an.",
+      useMeasured: "Gemessenen Verbrauch verwenden",
+      useTypical: "Leistung und Laufzeit verwenden",
     },
 
     device: {
@@ -156,8 +153,8 @@ const calculatorText = {
 
     result: {
       costsYou: "kostet dich",
-      estimate: "Schätzung",
-      ownValue: "Eigener Verbrauchswert",
+      estimate: "Berechnung",
+      ownValue: "Messwert",
       perYear: "pro Jahr",
       perUse: "Pro Nutzung",
       perWeek: "Pro Woche",
@@ -237,12 +234,11 @@ const calculatorText = {
     },
 
     modes: {
-      estimate: "Typical consumption",
-      exact: "Your consumption",
-      estimateDescription:
-        "EAVESENCE uses typical values that you can adjust to match your usage.",
-      exactDescription:
-        "Use a measured or otherwise known electricity consumption in kWh per use.",
+      title: "Typical starting values",
+      description:
+        "These values are provided as a guide. Adjust them to match your device and actual usage.",
+      useMeasured: "Use measured consumption",
+      useTypical: "Use power and runtime",
     },
 
     device: {
@@ -312,8 +308,8 @@ const calculatorText = {
 
     result: {
       costsYou: "costs you",
-      estimate: "Estimate",
-      ownValue: "Your consumption value",
+      estimate: "Calculation",
+      ownValue: "Measured value",
       perYear: "per year",
       perUse: "Per use",
       perWeek: "Per week",
@@ -438,54 +434,8 @@ function formatKwh(value: number, locale: Locale) {
   return formatNumber(value, locale, 1, 1);
 }
 
-function LeafIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-5 w-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M20 4C12 4 6 8 5 16c4.5.6 8.2-.7 11-3.5C18.2 10.3 19.4 7.4 20 4Z" />
-      <path d="M5 20c2.3-5.2 5.8-9 11-11.5" />
-    </svg>
-  );
-}
-
-function CalculatorIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-5 w-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="5" y="3" width="14" height="18" rx="2" />
-      <path d="M8 7h8" />
-      <path d="M8 11h2" />
-      <path d="M12 11h2" />
-      <path d="M16 11h1" />
-      <path d="M8 15h2" />
-      <path d="M12 15h2" />
-      <path d="M16 15h1" />
-      <path d="M8 18h2" />
-      <path d="M12 18h5" />
-    </svg>
-  );
-}
-
 export default function EnergyCalculator({
   initialDevice = "Wasserkocher",
-  controlledMode,
-  onModeChange,
   locale,
   detailPage = false,
 }: EnergyCalculatorProps) {
@@ -504,20 +454,6 @@ export default function EnergyCalculator({
 
   const text = calculatorText[activeLocale];
 
-  const mobileModeLabels =
-    activeLocale === "de"
-      ? {
-          estimateFirst: "Typische",
-          estimateSecond: "Verbrauchswerte",
-          exactFirst: "Eigene",
-          exactSecond: "Verbrauchswerte",
-        }
-      : {
-          estimateFirst: "Typical",
-          estimateSecond: "consumption",
-          exactFirst: "Your",
-          exactSecond: "consumption",
-        };
 
   const initialDeviceData =
     devices.find((item) => item.name === initialDevice) ??
@@ -537,15 +473,8 @@ export default function EnergyCalculator({
       : (initialWatts / 1000) *
         (initialMinutes / 60);
 
-  const [internalMode, setInternalMode] =
+  const [mode, setMode] =
     useState<Mode>("estimate");
-
-  const mode = controlledMode ?? internalMode;
-
-  function changeMode(newMode: Mode) {
-    setInternalMode(newMode);
-    onModeChange?.(newMode);
-  }
 
   /*
     Intern verwenden wir weiterhin die deutschen Gerätenamen als stabile
@@ -768,6 +697,7 @@ export default function EnergyCalculator({
 
   function handleDeviceChange(name: string) {
     setDevice(name);
+    setMode("estimate");
     setDeviceSearch("");
     loadDeviceDefaults(name);
     setActiveSavedDeviceId(null);
@@ -804,16 +734,31 @@ export default function EnergyCalculator({
   }
 
   function handleOpenSavedDevice(item: SavedDevice) {
+    const savedSourceDevice = devices.find(
+      (candidate) => candidate.name === item.device
+    );
+    const canUseMeasuredMode =
+      item.device === CUSTOM_DEVICE ||
+      savedSourceDevice?.calculationType === "power";
+
     setDevice(item.device);
     setCustomDeviceName(item.customDeviceName);
-    changeMode(item.mode);
+    setMode(
+      item.mode === "exact" && canUseMeasuredMode
+        ? "exact"
+        : "estimate"
+    );
     setCurrency(item.currency);
     setPrice(item.price);
     setWatts(item.watts);
     setMinutesPerUse(item.minutesPerUse);
     setUsesPerWeek(item.usesPerWeek);
     setScenarioUsesPerWeek(Math.max(0, item.usesPerWeek - 1));
-    setEstimatedKwhPerUse(item.estimatedKwhPerUse);
+    setEstimatedKwhPerUse(
+      item.mode === "exact" && !canUseMeasuredMode
+        ? item.measuredKwhPerUse
+        : item.estimatedKwhPerUse
+    );
     setMeasuredKwhPerUse(item.measuredKwhPerUse);
     setActiveSavedDeviceId(item.id);
 
@@ -1088,78 +1033,13 @@ export default function EnergyCalculator({
 
   return (
     <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-8">
-      {/* Mode switch */}
-      <div className="mb-8">
-        <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1.5">
-          <button
-            type="button"
-            onClick={() =>
-              changeMode("estimate")
-            }
-            className={`relative flex min-h-[68px] items-center justify-center rounded-lg px-2 py-3 text-sm font-black transition duration-200 active:scale-[0.99] sm:min-h-0 sm:px-3 ${
-              mode === "estimate"
-                ? "bg-green-100 text-green-950 shadow-sm"
-                : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
-            }`}
-          >
-            <span className="flex flex-col items-center justify-center text-center leading-tight sm:hidden">
-              <span className="flex items-center justify-center gap-1.5">
-                <span className="shrink-0">
-                  <LeafIcon />
-                </span>
-                <span>{mobileModeLabels.estimateFirst}</span>
-              </span>
-              <span className="mt-1 block">
-                {mobileModeLabels.estimateSecond}
-              </span>
-            </span>
-
-            <span className="hidden items-center justify-center gap-2 text-center sm:flex">
-              <span className="shrink-0">
-                <LeafIcon />
-              </span>
-              <span>{text.modes.estimate}</span>
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              changeMode("exact")
-            }
-            className={`relative flex min-h-[68px] items-center justify-center rounded-lg px-2 py-3 text-sm font-black transition duration-200 active:scale-[0.99] sm:min-h-0 sm:px-3 ${
-              mode === "exact"
-                ? "bg-green-100 text-green-950 shadow-sm"
-                : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
-            }`}
-          >
-            <span className="flex flex-col items-center justify-center text-center leading-tight sm:hidden">
-              <span className="flex items-center justify-center gap-1.5">
-                <span className="shrink-0">
-                  <CalculatorIcon />
-                </span>
-                <span>{mobileModeLabels.exactFirst}</span>
-              </span>
-              <span className="mt-1 block">
-                {mobileModeLabels.exactSecond}
-              </span>
-            </span>
-
-            <span className="hidden items-center justify-center gap-2 text-center sm:flex">
-              <span className="shrink-0">
-                <CalculatorIcon />
-              </span>
-              <span>{text.modes.exact}</span>
-            </span>
-          </button>
-        </div>
-
-        <p className="mt-4 text-sm leading-6 text-slate-500">
-          {mode === "estimate"
-            ? text.modes
-                .estimateDescription
-            : text.modes
-                .exactDescription}
+      {/* Editable starting values */}
+      <div className="mb-8 rounded-xl border border-green-100 bg-green-50/60 px-4 py-3.5">
+        <p className="text-sm font-bold text-slate-900">
+          {text.modes.title}
+        </p>
+        <p className="mt-1 text-sm leading-6 text-slate-600">
+          {text.modes.description}
         </p>
       </div>
 
@@ -1342,6 +1222,36 @@ export default function EnergyCalculator({
       <p className="mb-4 text-xs font-bold uppercase tracking-[0.14em] text-green-700">
         2 · {text.steps.usage}
       </p>
+      {isPowerDevice && (
+        <button
+          type="button"
+          onClick={() =>
+            setMode((current) =>
+              current === "exact" ? "estimate" : "exact"
+            )
+          }
+          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-green-950"
+        >
+          <svg
+            viewBox="0 0 20 20"
+            fill="none"
+            className="h-4 w-4"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 6h12" />
+            <path d="m13 3 3 3-3 3" />
+            <path d="M16 14H4" />
+            <path d="m7 11-3 3 3 3" />
+          </svg>
+          {mode === "exact"
+            ? text.modes.useTypical
+            : text.modes.useMeasured}
+        </button>
+      )}
       <div className="grid gap-6 sm:grid-cols-2">
         {mode === "estimate" &&
           isPowerDevice && (

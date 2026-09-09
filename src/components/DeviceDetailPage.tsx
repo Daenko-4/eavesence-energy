@@ -84,10 +84,10 @@ const pageText = {
 
     moreAccurate: "Noch genauer?",
     moreAccurateText1:
-      "Verwende im Rechner den Modus",
-    exactMode: "„Eigene Werte“",
+      "Passe die vorgeschlagenen Werte an dein Gerät an. Je nach Gerät kannst du",
+    exactMode: "den kWh-Wert direkt eintragen",
     moreAccurateText2:
-      "und gib einen eigenen Messwert in kWh pro Nutzung ein.",
+      "oder „Gemessenen Verbrauch verwenden“ auswählen.",
 
     moreFrom: "Mehr aus",
     relatedDevices: "Verwandte Geräte",
@@ -163,10 +163,10 @@ const pageText = {
 
     moreAccurate: "Want a more accurate result?",
     moreAccurateText1:
-      "Use the calculator mode",
-    exactMode: "“Your own values”",
+      "Adjust the suggested values to match your device. Depending on the device, you can",
+    exactMode: "enter the kWh value directly",
     moreAccurateText2:
-      "and enter your own measured consumption in kWh per use.",
+      "or select “Use measured consumption”.",
 
     moreFrom: "More from",
     relatedDevices: "Related devices",

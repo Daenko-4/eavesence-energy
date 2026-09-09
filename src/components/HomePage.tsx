@@ -1,13 +1,9 @@
 "use client";
 
-import { useState } from "react";
-
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import type { Locale } from "@/i18n/config";
-
-type CalculatorMode = "estimate" | "exact";
 
 type IconName =
   | "kitchen"
@@ -215,9 +211,9 @@ const content = {
             "Mit typischen Verbrauchswerten erhältst du eine gute Orientierung. Am genauesten wird das Ergebnis, wenn du einen gemessenen oder bekannten Verbrauch sowie deinen tatsächlichen Strompreis einträgst.",
         },
         {
-          question: "Welchen Berechnungsmodus soll ich verwenden?",
+          question: "Kann ich eigene Messwerte verwenden?",
           answer:
-            "„Typische Verbrauchswerte“ eignet sich für einen schnellen Überblick. Wähle „Eigene Verbrauchswerte“, wenn du den Verbrauch pro Nutzung kennst oder selbst gemessen hast.",
+            "Ja. Alle vorgeschlagenen Werte sind bearbeitbar. Bei leistungsbasierten Geräten kannst du zusätzlich „Gemessenen Verbrauch verwenden“ auswählen und einen kWh-Wert pro Nutzung eintragen.",
         },
         {
           question: "Was zeigen „Was wäre, wenn?“ und der Gerätevergleich?",
@@ -439,9 +435,9 @@ const content = {
             "Typical consumption values provide a useful estimate. For the most accurate result, enter a measured or known consumption value together with your actual electricity price.",
         },
         {
-          question: "Which calculation mode should I use?",
+          question: "Can I use my own measured values?",
           answer:
-            "Use “Typical consumption” for a quick overview. Choose “Your consumption” when you know the consumption per use or have measured it yourself.",
+            "Yes. Every suggested value can be edited. For power-based devices, you can also choose “Use measured consumption” and enter a kWh value per use.",
         },
         {
           question: "What do “What if?” and device comparison show?",
@@ -654,14 +650,9 @@ function Icon({
 export default function HomePage({
   locale = "de",
 }: HomePageProps) {
-  const [calculatorMode, setCalculatorMode] =
-    useState<CalculatorMode>("estimate");
-
   const text = content[locale];
 
-  function openCalculator(mode: CalculatorMode) {
-    setCalculatorMode(mode);
-
+  function openCalculator() {
     window.requestAnimationFrame(() => {
       document.getElementById("rechner")?.scrollIntoView({
         behavior: "smooth",
@@ -705,7 +696,7 @@ export default function HomePage({
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
-                  onClick={() => openCalculator("estimate")}
+                  onClick={openCalculator}
                   className="inline-flex items-center justify-center gap-3 rounded-xl bg-green-700 px-6 py-3.5 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-green-800 hover:shadow-md"
                 >
                   {text.hero.calculate}
@@ -820,8 +811,6 @@ export default function HomePage({
 
             <div className="mt-8">
               <EnergyCalculator
-                controlledMode={calculatorMode}
-                onModeChange={setCalculatorMode}
                 locale={locale}
               />
             </div>
