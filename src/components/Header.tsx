@@ -200,6 +200,19 @@ export default function Header({
     }
   }
 
+  function handleDevicesOverviewClick(
+    event: MouseEvent<HTMLAnchorElement>,
+  ) {
+    devicesMenuRef.current?.removeAttribute("open");
+
+    if (pathname !== devicesHref) {
+      return;
+    }
+
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white">
       <div className="mx-auto max-w-6xl px-5 sm:px-6">
@@ -249,12 +262,8 @@ export default function Header({
               <div className="hidden flex-col items-center justify-center gap-0.5 group-open:flex">
                 <Link
                   href={devicesHref}
-                  onClick={(event) =>
-                    event.currentTarget
-                      .closest("details")
-                      ?.removeAttribute("open")
-                  }
-                  className="whitespace-nowrap text-xs font-normal leading-5 text-slate-600 transition hover:text-green-800"
+                  onClick={handleDevicesOverviewClick}
+                  className="whitespace-nowrap text-sm font-normal leading-5 text-slate-600 transition hover:text-green-800"
                 >
                   {text.allDevices}
                 </Link>
@@ -266,7 +275,7 @@ export default function Header({
                       .closest("details")
                       ?.removeAttribute("open")
                   }
-                  className="whitespace-nowrap text-xs font-normal leading-5 text-slate-600 transition hover:text-green-800"
+                  className="whitespace-nowrap text-sm font-normal leading-5 text-slate-600 transition hover:text-green-800"
                 >
                   {text.myDevices}
                 </Link>
