@@ -36,6 +36,7 @@ const navigation = {
     homeLabel: "EAVESENCE Startseite",
     openNavigation: "Navigation öffnen",
     closeNavigation: "Navigation schließen",
+    closeDevices: "Geräteauswahl schließen",
     slogan: "Die versteckten Kosten des Alltags sichtbar machen.",
   },
 
@@ -51,6 +52,7 @@ const navigation = {
     homeLabel: "EAVESENCE home",
     openNavigation: "Open navigation",
     closeNavigation: "Close navigation",
+    closeDevices: "Close device links",
     slogan: "Making the hidden costs of everyday living visible.",
   },
 } as const;
@@ -241,7 +243,7 @@ export default function Header({
 
             <details
               ref={devicesMenuRef}
-              className="group mx-auto w-[118px]"
+              className="group relative mx-auto w-[118px]"
             >
               <summary className="flex cursor-pointer list-none items-center justify-center gap-1.5 whitespace-nowrap py-2 transition hover:text-green-700 group-open:hidden [&::-webkit-details-marker]:hidden">
                 {text.devices}
@@ -263,7 +265,7 @@ export default function Header({
                 <Link
                   href={devicesHref}
                   onClick={handleDevicesOverviewClick}
-                  className="whitespace-nowrap text-sm font-normal leading-5 text-slate-600 transition hover:text-green-800"
+                  className="whitespace-nowrap text-[13px] font-bold leading-5 text-slate-600 transition hover:text-green-800"
                 >
                   {text.allDevices}
                 </Link>
@@ -275,10 +277,21 @@ export default function Header({
                       .closest("details")
                       ?.removeAttribute("open")
                   }
-                  className="whitespace-nowrap text-sm font-normal leading-5 text-slate-600 transition hover:text-green-800"
+                  className="whitespace-nowrap text-[13px] font-bold leading-5 text-slate-600 transition hover:text-green-800"
                 >
                   {text.myDevices}
                 </Link>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    devicesMenuRef.current?.removeAttribute("open")
+                  }
+                  aria-label={text.closeDevices}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 text-base font-normal leading-none text-slate-400 transition hover:text-slate-800"
+                >
+                  ×
+                </button>
               </div>
             </details>
 
