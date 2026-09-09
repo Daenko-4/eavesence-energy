@@ -497,14 +497,14 @@ export default function MyDevicesPanel({
               <svg
                 viewBox="0 0 20 20"
                 fill="none"
-                className="h-4 w-4 transition-transform duration-200 group-open:rotate-180"
+                className="h-4 w-4 transition-transform duration-200 group-open:rotate-90"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 aria-hidden="true"
               >
-                <path d="m5 7.5 5 5 5-5" />
+                <path d="m7.5 5 5 5-5 5" />
               </svg>
             </span>
           </summary>

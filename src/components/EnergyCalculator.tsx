@@ -1231,7 +1231,18 @@ export default function EnergyCalculator({
               <path d="m13 13 4 4" />
             </svg>
             {text.device.search}
-            <span className="transition-transform group-open:rotate-180">⌄</span>
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              className="h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-90"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m7.5 5 5 5-5 5" />
+            </svg>
           </summary>
           <div className="mt-3 rounded-xl bg-slate-50 p-3">
             <input
@@ -1744,7 +1755,12 @@ export default function EnergyCalculator({
             <details className="group mt-5 rounded-xl border border-white/10 bg-black/10">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-semibold text-green-50 [&::-webkit-details-marker]:hidden">
                 {text.result.details}
-                <span className="text-lg transition-transform group-open:rotate-45">+</span>
+                <span
+                  aria-hidden="true"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none transition-transform duration-200 group-open:rotate-45"
+                >
+                  +
+                </span>
               </summary>
               <div className="border-t border-white/10 px-4 py-3">
                 <p className="text-xs font-bold uppercase tracking-[0.1em] text-green-200/80">
@@ -1811,7 +1827,12 @@ export default function EnergyCalculator({
         <details className="group mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-green-800 [&::-webkit-details-marker]:hidden">
             {text.result.scenario}
-            <span className="text-lg text-green-700 transition-transform group-open:rotate-45">+</span>
+            <span
+              aria-hidden="true"
+              className="flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none text-green-700 transition-transform duration-200 group-open:rotate-45"
+            >
+              +
+            </span>
           </summary>
           <div className="border-t border-slate-100 bg-green-50/40 p-4 sm:p-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -1858,7 +1879,7 @@ export default function EnergyCalculator({
             </span>
             <span
               aria-hidden="true"
-              className={`text-xl text-green-700 transition-transform ${
+              className={`flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none text-green-700 transition-transform duration-200 ${
                 comparisonOpen ? "rotate-45" : ""
               }`}
             >
@@ -2053,7 +2074,18 @@ export default function EnergyCalculator({
       <details className="group mt-4 border-b border-slate-200 pb-4">
         <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-slate-800 [&::-webkit-details-marker]:hidden">
           {text.accuracy.title}
-          <span className="transition-transform group-open:rotate-180">⌄</span>
+          <svg
+            viewBox="0 0 20 20"
+            fill="none"
+            className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-open:rotate-180"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m5 12.5 5-5 5 5" />
+          </svg>
         </summary>
         <p className="mt-3 max-w-3xl text-xs leading-5 text-slate-500">
           {mode === "estimate"

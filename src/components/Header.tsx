@@ -245,12 +245,12 @@ export default function Header({
               ref={devicesMenuRef}
               className="group relative mx-auto w-[118px]"
             >
-              <summary className="grid w-full cursor-pointer list-none grid-cols-[1fr_auto_1fr] items-center whitespace-nowrap py-2 transition hover:text-green-700 group-open:hidden [&::-webkit-details-marker]:hidden">
-                <span className="col-start-2">{text.devices}</span>
+              <summary className="flex w-full cursor-pointer list-none items-center justify-center whitespace-nowrap py-2 transition hover:text-green-700 group-open:hidden [&::-webkit-details-marker]:hidden">
+                <span>{text.devices}</span>
                 <svg
                   viewBox="0 0 20 20"
                   fill="none"
-                  className="col-start-3 ml-1.5 h-3.5 w-3.5"
+                  className="absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
@@ -261,8 +261,8 @@ export default function Header({
                 </svg>
               </summary>
 
-              <div className="hidden w-full grid-cols-[1fr_auto_1fr] items-center group-open:grid">
-                <div className="col-start-2 flex flex-col items-center justify-center gap-0.5">
+              <div className="hidden w-full flex-col items-center justify-center gap-0.5 group-open:flex">
+                <div className="flex flex-col items-center justify-center gap-0.5">
                   <Link
                     href={devicesHref}
                     onClick={handleDevicesOverviewClick}
@@ -290,7 +290,7 @@ export default function Header({
                     devicesMenuRef.current?.removeAttribute("open")
                   }
                   aria-label={text.closeDevices}
-                  className="col-start-3 ml-1.5 text-base font-normal leading-none text-slate-400 transition hover:text-slate-800"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-base font-normal leading-none text-slate-400 transition hover:text-slate-800"
                 >
                   ×
                 </button>

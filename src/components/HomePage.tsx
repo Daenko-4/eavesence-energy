@@ -941,7 +941,10 @@ export default function HomePage({
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-slate-900">
                     {faq.question}
 
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-lg text-slate-400 transition group-open:rotate-45 group-open:bg-green-50 group-open:text-green-700">
+                    <span
+                      aria-hidden="true"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lg leading-none text-slate-400 transition duration-200 group-open:rotate-45 group-open:bg-green-50 group-open:text-green-700"
+                    >
                       +
                     </span>
                   </summary>
