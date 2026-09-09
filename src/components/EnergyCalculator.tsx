@@ -196,6 +196,7 @@ const calculatorText = {
     },
 
     accuracy: {
+      title: "Hinweis zur Genauigkeit",
       consumptionEstimate:
         "Die Berechnung nutzt einen anpassbaren Orientierungswert für den Verbrauch pro Nutzung. Der tatsächliche Verbrauch kann je nach Gerät, Programm und Nutzung abweichen.",
       powerEstimate:
@@ -342,6 +343,7 @@ const calculatorText = {
     },
 
     accuracy: {
+      title: "Accuracy note",
       consumptionEstimate:
         "The calculation uses an adjustable typical value for electricity consumption per use. Actual consumption may vary depending on the device, program and usage.",
       powerEstimate:
@@ -744,6 +746,7 @@ export default function EnergyCalculator({
 
   function handleDeviceChange(name: string) {
     setDevice(name);
+    setDeviceSearch("");
     loadDeviceDefaults(name);
     setActiveSavedDeviceId(null);
 
@@ -1057,7 +1060,7 @@ export default function EnergyCalculator({
     );
 
   return (
-    <section className="rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_20px_60px_-32px_rgba(15,23,42,0.25)] sm:p-8">
+    <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-8">
       {/* Mode switch */}
       <div className="mb-8">
         <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1.5">
@@ -1139,41 +1142,6 @@ export default function EnergyCalculator({
           1 · {text.device.label}
         </p>
         <label className="mb-2 block text-sm font-semibold text-slate-700">
-          {text.device.search}
-        </label>
-
-        <input
-          type="search"
-          value={deviceSearch}
-          onChange={(event) => setDeviceSearch(event.target.value)}
-          placeholder={text.device.searchPlaceholder}
-          className={fieldClassName}
-        />
-
-        {recentDevices.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-slate-400">
-              {text.device.recent}:
-            </span>
-            {recentDevices.map((name) => {
-              const recentDevice = devices.find((item) => item.name === name);
-              if (!recentDevice) return null;
-
-              return (
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() => handleDeviceChange(name)}
-                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-green-200 hover:bg-green-50 hover:text-green-800"
-                >
-                  {getLocalizedDevice(recentDevice, activeLocale).name}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        <label className="mb-2 mt-4 block text-sm font-semibold text-slate-700">
           {text.device.label}
         </label>
 
@@ -1238,11 +1206,54 @@ export default function EnergyCalculator({
           </optgroup>
         </select>
 
-        {normalizedDeviceSearch && visibleDevices.length === 0 && (
-          <p className="mt-2 text-sm text-slate-500">
-            {text.device.noResults}
-          </p>
-        )}
+        <details className="group mt-3">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-green-950 [&::-webkit-details-marker]:hidden">
+            <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+              <circle cx="8.5" cy="8.5" r="5.5" />
+              <path d="m13 13 4 4" />
+            </svg>
+            {text.device.search}
+            <span className="transition-transform group-open:rotate-180">⌄</span>
+          </summary>
+          <div className="mt-3 rounded-xl bg-slate-50 p-3">
+            <input
+              type="search"
+              value={deviceSearch}
+              onChange={(event) => setDeviceSearch(event.target.value)}
+              placeholder={text.device.searchPlaceholder}
+              className={fieldClassName}
+            />
+
+            {normalizedDeviceSearch && visibleDevices.length === 0 && (
+              <p className="mt-2 text-sm text-slate-500">
+                {text.device.noResults}
+              </p>
+            )}
+
+            {recentDevices.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-slate-400">
+                  {text.device.recent}:
+                </span>
+                {recentDevices.map((name) => {
+                  const recentDevice = devices.find((item) => item.name === name);
+                  if (!recentDevice) return null;
+
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => handleDeviceChange(name)}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-green-200 hover:text-green-800"
+                    >
+                      {getLocalizedDevice(recentDevice, activeLocale).name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </details>
       </div>
 
       {/* Custom device */}
@@ -1748,47 +1759,48 @@ export default function EnergyCalculator({
       </div>
 
       {calculationIsValid && (
-        <div className="mt-6 rounded-2xl border border-green-100 bg-green-50/60 p-5 sm:p-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-green-700">
-                {text.result.scenario}
-              </p>
-              <p className="mt-1 font-bold text-slate-950">
+        <details className="group mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-green-800 [&::-webkit-details-marker]:hidden">
+            {text.result.scenario}
+            <span className="text-lg text-green-700 transition-transform group-open:rotate-45">+</span>
+          </summary>
+          <div className="border-t border-slate-100 bg-green-50/40 p-4 sm:p-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <p className="font-semibold text-slate-950">
                 {text.result.scenarioText}: {reductionPercent}%
               </p>
+              <div className="sm:text-right">
+                <p className="text-xs text-slate-500">{text.result.savings}</p>
+                <p className="mt-1 text-lg font-extrabold text-green-800">
+                  {formatMoney(scenarioSavings, activeLocale, currency)}
+                </p>
+              </div>
             </div>
-            <div className="sm:text-right">
-              <p className="text-xs text-slate-500">{text.result.savings}</p>
-              <p className="mt-1 text-xl font-extrabold text-green-800">
-                {formatMoney(scenarioSavings, activeLocale, currency)}
-              </p>
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="5"
+              value={reductionPercent}
+              onChange={(event) => setReductionPercent(Number(event.target.value))}
+              className="mt-4 w-full accent-green-700"
+              aria-label={text.result.scenarioText}
+            />
+            <div className="mt-2 flex justify-between text-xs text-slate-400">
+              <span>0%</span>
+              <span>50%</span>
             </div>
           </div>
-          <input
-            type="range"
-            min="0"
-            max="50"
-            step="5"
-            value={reductionPercent}
-            onChange={(event) => setReductionPercent(Number(event.target.value))}
-            className="mt-5 w-full accent-green-700"
-            aria-label={text.result.scenarioText}
-          />
-          <div className="mt-2 flex justify-between text-xs text-slate-400">
-            <span>0%</span>
-            <span>50%</span>
-          </div>
-        </div>
+        </details>
       )}
 
       {calculationIsValid && (
-        <div className="mt-6">
+        <div className="mt-3">
           <button
             type="button"
             onClick={() => setComparisonOpen((open) => !open)}
             aria-expanded={comparisonOpen}
-            className="flex w-full items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left font-bold text-slate-900 shadow-sm transition hover:border-green-300 hover:bg-green-50/50 hover:shadow-md"
+            className="flex w-full items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left text-sm font-semibold text-slate-700 transition hover:border-green-300 hover:bg-slate-50 hover:text-green-800"
           >
             <span>
               {comparisonOpen
@@ -1988,17 +2000,16 @@ export default function EnergyCalculator({
       )}
 
       {/* Saving tip */}
-      <div className="mt-6 rounded-2xl bg-amber-50/80 px-5 py-5 sm:px-6 sm:py-6">
-        <div className="mx-auto max-w-2xl">
-          <div className="flex items-center justify-center gap-3">
+      <div className="mt-8 border-l-2 border-amber-300 bg-amber-50/60 px-4 py-3.5">
+        <div className="flex items-start gap-3">
             <span
               aria-hidden="true"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700"
+              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700"
             >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
-                className="h-5 w-5"
+                className="h-4 w-4"
                 stroke="currentColor"
                 strokeWidth="1.9"
                 strokeLinecap="round"
@@ -2015,34 +2026,37 @@ export default function EnergyCalculator({
               </svg>
             </span>
 
-            <p className="text-lg font-bold text-slate-900">
-              {text.savingTip.title.replace("💡 ", "")}
-            </p>
-          </div>
-
-          <p className="mt-4 text-center text-sm leading-6 text-slate-600">
-            {localizedTip}
-          </p>
+            <div>
+              <p className="text-sm font-bold text-slate-900">
+                {text.savingTip.title.replace("💡 ", "")}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                {localizedTip}
+              </p>
+            </div>
         </div>
       </div>
 
       {/* Accuracy */}
-      <div className="mt-6 rounded-2xl border border-slate-100 bg-[#f7faf7] p-4">
-        <p className="text-sm leading-6 text-slate-500">
+      <details className="group mt-4 border-b border-slate-200 pb-4">
+        <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-slate-800 [&::-webkit-details-marker]:hidden">
+          {text.accuracy.title}
+          <span className="transition-transform group-open:rotate-180">⌄</span>
+        </summary>
+        <p className="mt-3 max-w-3xl text-xs leading-5 text-slate-500">
           {mode === "estimate"
             ? isConsumptionDevice
-              ? text.accuracy
-                  .consumptionEstimate
-              : text.accuracy
-                  .powerEstimate
+              ? text.accuracy.consumptionEstimate
+              : text.accuracy.powerEstimate
             : text.accuracy.exact}
         </p>
-      </div>
+      </details>
 
       {/* Feedback */}
-      <div className="mt-6 rounded-2xl border border-green-100 bg-gradient-to-br from-white to-[#f1f6f1] p-5 shadow-sm sm:p-6">
-        <div className="max-w-2xl">
-          <p className="text-lg font-bold tracking-tight text-slate-900">
+      <div className="mt-6 border-t border-slate-200 pt-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-2xl">
+          <p className="text-base font-bold tracking-tight text-slate-900">
             {text.feedback.title.replace("💬 ", "")}
           </p>
 
@@ -2050,17 +2064,19 @@ export default function EnergyCalculator({
             {text.feedback.text}
           </p>
 
+          </div>
+
           <a
             href={`mailto:${FEEDBACK_EMAIL}?subject=${feedbackSubject}`}
-            className="mt-5 inline-flex min-h-10 items-center justify-center rounded-full bg-green-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-green-800 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+            className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-green-200 bg-white px-4 py-2 text-xs font-bold text-green-800 transition hover:border-green-400 hover:bg-green-50"
           >
             {text.feedback.button}
           </a>
 
-          <p className="mt-5 border-t border-green-100 pt-4 text-xs leading-5 text-slate-500">
-            {text.feedback.note}
-          </p>
         </div>
+        <p className="mt-3 text-[11px] leading-5 text-slate-400">
+          {text.feedback.note}
+        </p>
       </div>
 
     </section>

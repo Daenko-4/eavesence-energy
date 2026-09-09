@@ -322,7 +322,7 @@ export default function MyDevicesPanel({
   return (
     <div
       id="meine-geraete"
-      className="mt-6 scroll-mt-[120px] rounded-2xl border border-green-100 bg-[#f5f9f5] p-5 sm:p-6"
+      className="mt-10 scroll-mt-[120px] border-t border-slate-200 pt-8"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -355,7 +355,7 @@ export default function MyDevicesPanel({
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
             {text.description}
           </p>
-          <span className="mt-3 inline-flex rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-green-800 ring-1 ring-green-100">
+          <span className="mt-3 inline-flex rounded-full bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-800">
             ✓ {text.privateBadge}
           </span>
         </div>
@@ -388,7 +388,7 @@ export default function MyDevicesPanel({
           {totals.map((total) => (
             <div
               key={total.currency}
-              className="rounded-xl border border-green-100 bg-white p-4"
+              className="rounded-xl border border-slate-200 bg-white p-4"
             >
               <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">
                 {total.currency}
@@ -449,7 +449,7 @@ export default function MyDevicesPanel({
         </div>
       ) : savedDevices.length > 0 ? (
         <details className="group mt-5">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl border border-green-200 bg-white px-4 py-3.5 text-sm font-bold text-slate-900 shadow-sm transition hover:border-green-300 hover:bg-green-50 [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-bold text-slate-900 transition hover:border-green-300 hover:bg-green-50 [&::-webkit-details-marker]:hidden">
             <span>
               {savedDevices.length}{" "}
               {savedDevices.length === 1
@@ -556,7 +556,7 @@ export default function MyDevicesPanel({
         </details>
       ) : null}
 
-      <div className="mt-5 border-t border-green-100 pt-4">
+      <div className="mt-5 border-t border-slate-200 pt-4">
         <p className="max-w-2xl text-xs leading-5 text-slate-500">
           {text.storedLocally}
         </p>

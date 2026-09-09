@@ -797,38 +797,8 @@ export default function HomePage({
           </div>
         </section>
 
-        {/* Categories */}
-        <section className="px-5 py-8 sm:px-6">
-          <div className="mx-auto max-w-5xl">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              {text.categories.map((category) => (
-                <a
-                  key={category.name}
-                  href={category.href}
-                  className="group flex min-h-28 flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-white px-3 py-4 text-center shadow-[0_10px_35px_-20px_rgba(15,23,42,0.3)] transition hover:-translate-y-1 hover:border-green-200 hover:shadow-md"
-                >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-green-50 text-green-700 transition group-hover:bg-green-100">
-                    <Icon
-                      name={category.icon}
-                      className="h-5 w-5"
-                    />
-                  </span>
-
-                  <span className="mt-3 text-base font-semibold text-slate-900">
-                    {category.name}
-                  </span>
-
-                  <span className="mt-1 text-sm text-green-700 transition group-hover:translate-x-1">
-                    →
-                  </span>
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Calculator */}
-        <section className="px-5 py-14 sm:px-6 sm:py-20">
+        <section className="px-5 py-12 sm:px-6 sm:py-16">
           <div
             id="rechner"
             className="mx-auto max-w-5xl scroll-mt-[76px] sm:scroll-mt-[84px]"
