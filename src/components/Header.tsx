@@ -21,6 +21,8 @@ import {
 
 type HeaderProps = {
   locale?: Locale;
+  calculatorHrefOverride?: string;
+  languageHrefOverride?: string;
 };
 
 const navigation = {
@@ -75,6 +77,8 @@ function EAVESENCELogo() {
 
 export default function Header({
   locale = "de",
+  calculatorHrefOverride,
+  languageHrefOverride,
 }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sloganVisible, setSloganVisible] = useState(true);
@@ -86,7 +90,8 @@ export default function Header({
 
   const homeHref = getHomeHref(locale);
   const isHomePage = pathname === homeHref;
-  const calculatorHref = getCalculatorHref(locale);
+  const calculatorHref =
+    calculatorHrefOverride ?? getCalculatorHref(locale);
   const devicesHref = getDevicesHref(locale);
   const isSloganPage = isHomePage || pathname === devicesHref;
   const myDevicesHref = homeHref + "#meine-geraete";
@@ -96,7 +101,11 @@ export default function Header({
   const otherLocale: Locale =
     locale === "de" ? "en" : "de";
 
-  const languageHref = getHomeHref(otherLocale);
+  const languageHref =
+    languageHrefOverride ??
+    (pathname === devicesHref
+      ? getDevicesHref(otherLocale)
+      : getHomeHref(otherLocale));
 
   useEffect(() => {
     if (!isSloganPage) {

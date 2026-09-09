@@ -5,7 +5,11 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import type { Device } from "@/data/devices";
 import { devices } from "@/data/devices";
-import type { Locale } from "@/i18n/config";
+import {
+  getDevicesHref,
+  getHomeHref,
+  type Locale,
+} from "@/i18n/config";
 import {
   getLocalizedCategory,
   getLocalizedDevice,
@@ -252,13 +256,12 @@ export default function DeviceDetailPage({
       locale
     );
 
-  const devicesHref =
+  const devicesHref = getDevicesHref(locale);
+  const homeHref = getHomeHref(locale);
+  const languageHref =
     locale === "de"
-      ? "/geraete"
-      : "/en/devices";
-
-  const homeHref =
-    locale === "de" ? "/" : "/en";
+      ? `/en/devices/${getLocalizedDevice(device, "en").slug}`
+      : `/geraete/${device.slug}`;
 
   const kwhPerUse =
     getTypicalKwhPerUse(device);
@@ -293,7 +296,11 @@ export default function DeviceDetailPage({
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Header locale={locale} />
+      <Header
+        locale={locale}
+        calculatorHrefOverride="#rechner"
+        languageHrefOverride={languageHref}
+      />
 
       <main>
         {/* Hero */}
@@ -698,27 +705,6 @@ export default function DeviceDetailPage({
           </section>
         )}
 
-        {/* Back to library */}
-        <section className="px-5 pb-16 sm:px-6 sm:pb-20">
-          <div className="mx-auto flex max-w-5xl flex-col gap-5 rounded-2xl border border-slate-200 bg-slate-100 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-bold text-slate-900">
-                {text.anotherDevice}
-              </p>
-
-              <p className="mt-1 text-sm leading-6 text-slate-600">
-                {text.libraryText}
-              </p>
-            </div>
-
-            <Link
-              href={devicesHref}
-              className="shrink-0 rounded-xl bg-slate-900 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-700 active:scale-[0.98]"
-            >
-              {text.allDevices}
-            </Link>
-          </div>
-        </section>
       </main>
 
       <Footer locale={locale} />

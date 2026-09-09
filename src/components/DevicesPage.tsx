@@ -1,9 +1,15 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { devices } from "@/data/devices";
-import type { Locale } from "@/i18n/config";
+import {
+  getCalculatorHref,
+  type Locale,
+} from "@/i18n/config";
 import {
   getLocalizedCategory,
   getLocalizedDevice,
@@ -55,8 +61,10 @@ const pageText = {
     singularDevice: "Gerät",
     pluralDevices: "Geräte",
 
-    cardText:
-      "Stromverbrauch und Kosten berechnen",
+    searchLabel: "Geräte durchsuchen",
+    searchPlaceholder: "z. B. Waschmaschine oder Laptop",
+    noResults: "Kein passendes Gerät gefunden.",
+    perUse: "pro Nutzung",
 
     ctaTitle: "Dein Gerät ist nicht dabei?",
 
@@ -78,8 +86,10 @@ const pageText = {
     singularDevice: "device",
     pluralDevices: "devices",
 
-    cardText:
-      "Calculate electricity use and cost",
+    searchLabel: "Search devices",
+    searchPlaceholder: "e.g. washing machine or laptop",
+    noResults: "No matching device found.",
+    perUse: "per use",
 
     ctaTitle: "Can't find your device?",
 
@@ -254,11 +264,25 @@ export default function DevicesPage({
   locale = "de",
 }: DevicesPageProps) {
   const text = pageText[locale];
+  const [searchQuery, setSearchQuery] = useState("");
+  const normalizedSearch = searchQuery
+    .trim()
+    .toLocaleLowerCase(locale === "de" ? "de-DE" : "en-GB");
+  const visibleDevices = devices.filter((device) => {
+    if (!normalizedSearch) return true;
+
+    const localizedDevice = getLocalizedDevice(device, locale);
+    const localizedCategory = getLocalizedCategory(device.category, locale);
+
+    return `${localizedDevice.name} ${localizedCategory}`
+      .toLocaleLowerCase(locale === "de" ? "de-DE" : "en-GB")
+      .includes(normalizedSearch);
+  });
 
   const categories = categoryOrder
     .map((category) => ({
       category,
-      devices: devices.filter(
+      devices: visibleDevices.filter(
         (device) =>
           device.category === category
       ),
@@ -268,10 +292,7 @@ export default function DevicesPage({
         group.devices.length > 0
     );
 
-  const calculatorHref =
-    locale === "de"
-      ? "/#rechner"
-      : "/en#rechner";
+  const calculatorHref = getCalculatorHref(locale);
 
   return (
     <div className="min-h-screen bg-[#f8faf8] text-slate-950">
@@ -301,7 +322,33 @@ export default function DevicesPage({
               {text.description}
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <label className="mt-8 block max-w-xl">
+              <span className="sr-only">{text.searchLabel}</span>
+              <span className="relative block">
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="8.5" cy="8.5" r="5.5" />
+                  <path d="m13 13 4 4" />
+                </svg>
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder={text.searchPlaceholder}
+                  className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-12 pr-4 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-green-400 focus:ring-4 focus:ring-green-100"
+                />
+              </span>
+            </label>
+
+            {categories.length > 0 && (
+            <div className="mt-6 flex flex-wrap gap-3">
               {categories.map(
                 ({ category }) => (
                   <a
@@ -326,12 +373,14 @@ export default function DevicesPage({
                 )
               )}
             </div>
+            )}
           </div>
         </section>
 
         {/* Devices */}
         <section className="px-5 py-14 sm:px-6 sm:py-20">
           <div className="mx-auto max-w-6xl">
+            {categories.length > 0 ? (
             <div className="space-y-16">
               {categories.map(
                 ({
@@ -390,6 +439,14 @@ export default function DevicesPage({
                               ? `/geraete/${device.slug}`
                               : `/en/devices/${localizedDevice.slug}`;
 
+                          const typicalValue =
+                            device.calculationType === "power"
+                              ? `${device.watts ?? 0} W`
+                              : `${(device.kwhPerUse ?? 0).toLocaleString(
+                                  locale === "de" ? "de-DE" : "en-GB",
+                                  { maximumFractionDigits: 2 }
+                                )} kWh ${text.perUse}`;
+
                           return (
                             <Link
                               key={
@@ -415,9 +472,7 @@ export default function DevicesPage({
                               </h3>
 
                               <p className="mt-2 text-sm leading-6 text-slate-500">
-                                {
-                                  text.cardText
-                                }
+                                {typicalValue}
                               </p>
                             </Link>
                           );
@@ -428,6 +483,13 @@ export default function DevicesPage({
                 )
               )}
             </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+                <p className="font-semibold text-slate-700">
+                  {text.noResults}
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
