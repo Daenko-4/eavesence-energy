@@ -86,6 +86,7 @@ export default function Header({
   const isHomePage = pathname === homeHref;
   const calculatorHref = getCalculatorHref(locale);
   const devicesHref = getDevicesHref(locale);
+  const isSloganPage = isHomePage || pathname === devicesHref;
   const myDevicesHref = homeHref + "#meine-geraete";
   const howItWorksHref = getHowItWorksHref(locale);
   const faqHref = getFaqHref(locale);
@@ -96,7 +97,7 @@ export default function Header({
   const languageHref = getHomeHref(otherLocale);
 
   useEffect(() => {
-    if (!isHomePage) {
+    if (!isSloganPage) {
       return;
     }
 
@@ -121,7 +122,7 @@ export default function Header({
     });
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isHomePage]);
+  }, [isSloganPage]);
 
   useEffect(() => {
     function closeDevicesMenuOnOutsideClick(
@@ -438,7 +439,7 @@ export default function Header({
         )}
       </div>
 
-      {isHomePage && (
+      {isSloganPage && (
         <div
           className={`grid bg-[#f8faf8] text-center transition-[grid-template-rows,opacity,transform] duration-300 ease-out ${
             sloganVisible

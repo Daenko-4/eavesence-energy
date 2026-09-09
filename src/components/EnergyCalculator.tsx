@@ -1826,13 +1826,24 @@ export default function EnergyCalculator({
                     }
                     className={fieldClassName}
                   >
-                    {devices
-                      .filter((item) => item.name !== device)
-                      .map((item) => (
-                        <option key={item.name} value={item.name}>
-                          {getLocalizedDevice(item, activeLocale).name}
-                        </option>
-                      ))}
+                    {categories.map((category) => (
+                      <optgroup
+                        key={category}
+                        label={getLocalizedCategory(category, activeLocale)}
+                      >
+                        {devices
+                          .filter(
+                            (item) =>
+                              item.category === category &&
+                              item.name !== device
+                          )
+                          .map((item) => (
+                            <option key={item.name} value={item.name}>
+                              {getLocalizedDevice(item, activeLocale).name}
+                            </option>
+                          ))}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
                 <div>

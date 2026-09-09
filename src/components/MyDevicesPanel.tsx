@@ -556,12 +556,12 @@ export default function MyDevicesPanel({
         </details>
       ) : null}
 
-      <div className="mt-5 flex flex-col gap-3 border-t border-green-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-5 border-t border-green-100 pt-4">
         <p className="max-w-2xl text-xs leading-5 text-slate-500">
           {text.storedLocally}
         </p>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="mt-4 flex flex-col items-start gap-3">
           <input
             ref={importInputRef}
             type="file"
@@ -569,30 +569,43 @@ export default function MyDevicesPanel({
             onChange={importDevices}
             className="hidden"
           />
-          <button
-            type="button"
-            onClick={() => importInputRef.current?.click()}
-            className="text-xs font-semibold text-green-800 underline decoration-green-200 underline-offset-4"
-          >
-            {text.import}
-          </button>
-          {savedDevices.length > 0 && (
-            <>
+          <div className="flex flex-wrap gap-2.5">
+            <button
+              type="button"
+              onClick={() => importInputRef.current?.click()}
+              className="group inline-flex min-h-10 items-center gap-2 rounded-xl border border-green-200 bg-white px-3.5 py-2 text-xs font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-green-500 hover:bg-green-700 hover:text-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+            >
+              <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M10 13V3" />
+                <path d="m6.5 6.5 3.5-3.5 3.5 3.5" />
+                <path d="M4 11v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4" />
+              </svg>
+              {text.import}
+            </button>
+            {savedDevices.length > 0 && (
               <button
                 type="button"
                 onClick={exportDevices}
-                className="text-xs font-semibold text-green-800 underline decoration-green-200 underline-offset-4"
+                className="group inline-flex min-h-10 items-center gap-2 rounded-xl border border-green-200 bg-white px-3.5 py-2 text-xs font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-green-500 hover:bg-green-700 hover:text-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
               >
+                <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M10 3v10" />
+                  <path d="m6.5 9.5 3.5 3.5 3.5-3.5" />
+                  <path d="M4 11v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4" />
+                </svg>
                 {text.export}
               </button>
+            )}
+          </div>
+
+          {savedDevices.length > 0 && (
               <button
                 type="button"
                 onClick={removeAllDevices}
-                className="text-xs font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 transition hover:text-red-700"
+                className="px-1 py-1 text-[11px] font-medium text-slate-400 transition hover:text-red-600 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
               >
                 {text.removeAll}
               </button>
-            </>
           )}
         </div>
       </div>
