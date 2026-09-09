@@ -228,14 +228,14 @@ export default function Header({
 
             <details
               ref={devicesMenuRef}
-              className="group relative mx-auto w-fit"
+              className="group mx-auto w-[118px]"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-2 transition hover:bg-green-50 hover:text-green-700 [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-center gap-1.5 whitespace-nowrap py-2 transition hover:text-green-700 group-open:hidden [&::-webkit-details-marker]:hidden">
                 {text.devices}
                 <svg
                   viewBox="0 0 20 20"
                   fill="none"
-                  className="h-3.5 w-3.5 transition-transform duration-200 group-open:rotate-180"
+                  className="h-3.5 w-3.5"
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
@@ -246,7 +246,7 @@ export default function Header({
                 </svg>
               </summary>
 
-              <div className="absolute left-0 top-full z-50 mt-3 flex w-28 flex-col items-stretch gap-0.5 rounded-xl border border-slate-200/80 bg-white p-1 shadow-[0_12px_30px_rgba(15,23,42,0.14)]">
+              <div className="hidden flex-col items-center justify-center gap-0.5 group-open:flex">
                 <Link
                   href={devicesHref}
                   onClick={(event) =>
@@ -254,7 +254,7 @@ export default function Header({
                       .closest("details")
                       ?.removeAttribute("open")
                   }
-                  className="rounded-lg px-1 py-2 text-left text-xs font-normal whitespace-nowrap text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                  className="whitespace-nowrap text-xs font-normal leading-5 text-slate-600 transition hover:text-green-800"
                 >
                   {text.allDevices}
                 </Link>
@@ -266,7 +266,7 @@ export default function Header({
                       .closest("details")
                       ?.removeAttribute("open")
                   }
-                  className="rounded-lg px-1 py-2 text-left text-xs font-normal whitespace-nowrap text-green-800 transition hover:bg-green-50 hover:text-green-950"
+                  className="whitespace-nowrap text-xs font-normal leading-5 text-slate-600 transition hover:text-green-800"
                 >
                   {text.myDevices}
                 </Link>

@@ -520,6 +520,7 @@ export default function DeviceDetailPage({
             <EnergyCalculator
               initialDevice={device.name}
               locale={locale}
+              detailPage
             />
           </div>
         </section>
@@ -594,18 +595,7 @@ export default function DeviceDetailPage({
               </div>
 
               <div>
-                <div className="rounded-2xl bg-blue-50 p-6 ring-1 ring-blue-100 sm:p-8">
-                  <p className="text-lg font-bold text-slate-900">
-                    {text.savingTip}{" "}
-                    {localizedDevice.name}
-                  </p>
-
-                  <p className="mt-4 leading-8 text-slate-600">
-                    {localizedDevice.tip}
-                  </p>
-                </div>
-
-                <div className="mt-5 rounded-2xl border border-slate-200 p-6 sm:p-8">
+                <div className="rounded-2xl border border-slate-200 p-6 sm:p-8">
                   <p className="font-bold text-slate-900">
                     {text.moreAccurate}
                   </p>

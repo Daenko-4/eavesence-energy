@@ -19,6 +19,7 @@ type MyDevicesPanelProps = {
   activeSavedDeviceId: string | null;
   onActiveSavedDeviceChange: (id: string | null) => void;
   onOpen: (device: SavedDevice) => void;
+  compact?: boolean;
 };
 
 const copy = {
@@ -156,6 +157,7 @@ export default function MyDevicesPanel({
   activeSavedDeviceId,
   onActiveSavedDeviceChange,
   onOpen,
+  compact = false,
 }: MyDevicesPanelProps) {
   const text = copy[locale];
   const [savedDevices, setSavedDevices] = useState<SavedDevice[]>([]);
@@ -318,6 +320,34 @@ export default function MyDevicesPanel({
     }
     return b.updatedAt.localeCompare(a.updatedAt);
   });
+
+  if (compact) {
+    return (
+      <div className="mt-6 border-t border-slate-200 pt-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-bold text-slate-950">{text.title}</h3>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+              {text.description}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={saveCurrentDevice}
+            disabled={!canSave}
+            className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl bg-green-700 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none active:scale-[0.98]"
+          >
+            {activeSavedDeviceId ? text.update : text.save}
+          </button>
+        </div>
+        {notice && (
+          <p role="status" className="mt-3 text-sm font-semibold text-green-800">
+            {notice}
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div

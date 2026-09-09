@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { devices } from "@/data/devices";
-import type { Locale } from "@/i18n/config";
+import { getDevicesHref, type Locale } from "@/i18n/config";
 import {
   getLocalizedCategory,
   getLocalizedDevice,
@@ -69,6 +69,7 @@ type EnergyCalculatorProps = {
   controlledMode?: Mode;
   onModeChange?: (mode: Mode) => void;
   locale?: Locale;
+  detailPage?: boolean;
 };
 
 const calculatorText = {
@@ -94,6 +95,7 @@ const calculatorText = {
       customPlaceholder: "z. B. Ventilator",
       customHint:
         "Optional – der Name erscheint später in deinem Ergebnis.",
+      change: "Anderes Gerät wählen",
     },
 
     fields: {
@@ -241,6 +243,7 @@ const calculatorText = {
       customPlaceholder: "e.g. Fan",
       customHint:
         "Optional – the name will appear in your result.",
+      change: "Choose another device",
     },
 
     fields: {
@@ -468,6 +471,7 @@ export default function EnergyCalculator({
   controlledMode,
   onModeChange,
   locale,
+  detailPage = false,
 }: EnergyCalculatorProps) {
   const pathname = usePathname();
 
@@ -1141,11 +1145,25 @@ export default function EnergyCalculator({
         <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-green-700">
           1 · {text.device.label}
         </p>
-        <label className="mb-2 block text-sm font-semibold text-slate-700">
-          {text.device.label}
-        </label>
+        {detailPage ? (
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-[#fbfcfb] px-4 py-3.5">
+            <span className="font-semibold text-slate-900">
+              {displayDeviceName}
+            </span>
+            <a
+              href={getDevicesHref(activeLocale)}
+              className="shrink-0 text-sm font-semibold text-green-800 transition hover:text-green-950"
+            >
+              {text.device.change}
+            </a>
+          </div>
+        ) : (
+          <>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              {text.device.label}
+            </label>
 
-        <select
+            <select
           value={device}
           onChange={(event) =>
             handleDeviceChange(
@@ -1204,9 +1222,9 @@ export default function EnergyCalculator({
               {text.device.custom}
             </option>
           </optgroup>
-        </select>
+            </select>
 
-        <details className="group mt-3">
+            <details className="group mt-3">
           <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-green-950 [&::-webkit-details-marker]:hidden">
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
               <circle cx="8.5" cy="8.5" r="5.5" />
@@ -1253,7 +1271,9 @@ export default function EnergyCalculator({
               </div>
             )}
           </div>
-        </details>
+            </details>
+          </>
+        )}
       </div>
 
       {/* Custom device */}
@@ -1758,6 +1778,35 @@ export default function EnergyCalculator({
         )}
       </div>
 
+      {/* Saving tip */}
+      <div className="mt-5 border-l-2 border-amber-300 bg-amber-50/60 px-4 py-3.5">
+        <div className="flex items-start gap-3">
+          <span
+            aria-hidden="true"
+            className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700"
+          >
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18h6" />
+              <path d="M10 22h4" />
+              <path d="M8.6 15.5c-1.4-1.1-2.3-2.8-2.3-4.7a5.7 5.7 0 1 1 11.4 0c0 1.9-.9 3.6-2.3 4.7-.9.7-1.4 1.5-1.4 2.5h-4c0-1-.5-1.8-1.4-2.5Z" />
+              <path d="M12 2V1" />
+              <path d="m4.9 4.9-.8-.8" />
+              <path d="M3 11H2" />
+              <path d="m19.1 4.9.8-.8" />
+              <path d="M21 11h1" />
+            </svg>
+          </span>
+          <div>
+            <p className="text-sm font-bold text-slate-900">
+              {text.savingTip.title.replace("💡 ", "")}
+            </p>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              {localizedTip}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {calculationIsValid && (
         <details className="group mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-green-800 [&::-webkit-details-marker]:hidden">
@@ -1968,6 +2017,7 @@ export default function EnergyCalculator({
         activeSavedDeviceId={activeSavedDeviceId}
         onActiveSavedDeviceChange={setActiveSavedDeviceId}
         onOpen={handleOpenSavedDevice}
+        compact={detailPage}
         currentDevice={{
           device,
           customDeviceName,
@@ -1998,44 +2048,6 @@ export default function EnergyCalculator({
           <span className="text-sm font-bold">{text.result.viewResult} ↑</span>
         </button>
       )}
-
-      {/* Saving tip */}
-      <div className="mt-8 border-l-2 border-amber-300 bg-amber-50/60 px-4 py-3.5">
-        <div className="flex items-start gap-3">
-            <span
-              aria-hidden="true"
-              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-4 w-4"
-                stroke="currentColor"
-                strokeWidth="1.9"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 18h6" />
-                <path d="M10 22h4" />
-                <path d="M8.6 15.5c-1.4-1.1-2.3-2.8-2.3-4.7a5.7 5.7 0 1 1 11.4 0c0 1.9-.9 3.6-2.3 4.7-.9.7-1.4 1.5-1.4 2.5h-4c0-1-.5-1.8-1.4-2.5Z" />
-                <path d="M12 2V1" />
-                <path d="m4.9 4.9-.8-.8" />
-                <path d="M3 11H2" />
-                <path d="m19.1 4.9.8-.8" />
-                <path d="M21 11h1" />
-              </svg>
-            </span>
-
-            <div>
-              <p className="text-sm font-bold text-slate-900">
-                {text.savingTip.title.replace("💡 ", "")}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
-                {localizedTip}
-              </p>
-            </div>
-        </div>
-      </div>
 
       {/* Accuracy */}
       <details className="group mt-4 border-b border-slate-200 pb-4">

@@ -825,35 +825,6 @@ export default function HomePage({
           </div>
         </section>
 
-        {/* Benefits */}
-        <section className="px-5 pb-14 sm:px-6 sm:pb-20">
-          <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
-            {text.benefits.map((benefit) => (
-              <div
-                key={benefit.title}
-                className="flex items-start gap-4"
-              >
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-700">
-                  <Icon
-                    name={benefit.icon}
-                    className="h-7 w-7"
-                  />
-                </span>
-
-                <div>
-                  <h3 className="font-bold text-slate-950">
-                    {benefit.title}
-                  </h3>
-
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
-                    {benefit.text}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* How it works */}
         <section
           id="so-funktionierts"
@@ -897,79 +868,6 @@ export default function HomePage({
                   </p>
                 </div>
               ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Two ways */}
-        <section className="px-5 py-16 sm:px-6 sm:py-20">
-          <div className="mx-auto max-w-6xl rounded-[2rem] bg-gradient-to-br from-green-950 via-green-900 to-emerald-950 p-7 text-white sm:p-10">
-            <p className="text-sm font-bold uppercase tracking-[0.16em] text-green-200">
-              {text.twoWays.label}
-            </p>
-
-            <h2 className="mt-3 text-3xl font-extrabold tracking-tight">
-              {text.twoWays.title}
-            </h2>
-
-            <p className="mt-4 max-w-3xl leading-7 text-green-50/75">
-              {text.twoWays.text}
-            </p>
-
-            <div className="mt-8 grid gap-5 md:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => openCalculator("estimate")}
-                className="group rounded-2xl border border-white/10 bg-white/10 p-6 text-left transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.15] focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2 focus:ring-offset-green-950"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-xl transition group-hover:bg-white/15">
-                  ⚡
-                </div>
-
-                <div className="mt-4 flex items-center justify-between gap-4">
-                  <h3 className="text-xl font-bold">
-                    {text.twoWays.estimate.title}
-                  </h3>
-
-                  <span
-                    aria-hidden="true"
-                    className="text-xl text-green-200 transition group-hover:translate-x-1 group-hover:text-white"
-                  >
-                    →
-                  </span>
-                </div>
-
-                <p className="mt-2 leading-7 text-green-50/80">
-                  {text.twoWays.estimate.text}
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => openCalculator("exact")}
-                className="group rounded-2xl border border-white/10 bg-white/10 p-6 text-left transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.15] focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2 focus:ring-offset-green-950"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-xl transition group-hover:bg-white/15">
-                  🎯
-                </div>
-
-                <div className="mt-4 flex items-center justify-between gap-4">
-                  <h3 className="text-xl font-bold">
-                    {text.twoWays.exact.title}
-                  </h3>
-
-                  <span
-                    aria-hidden="true"
-                    className="text-xl text-green-200 transition group-hover:translate-x-1 group-hover:text-white"
-                  >
-                    →
-                  </span>
-                </div>
-
-                <p className="mt-2 leading-7 text-green-50/80">
-                  {text.twoWays.exact.text}
-                </p>
-              </button>
             </div>
           </div>
         </section>
@@ -1057,31 +955,6 @@ export default function HomePage({
           </div>
         </section>
 
-        {/* Closing CTA */}
-        <section className="px-5 py-16 sm:px-6 sm:py-20">
-          <div className="mx-auto max-w-5xl rounded-[2rem] border border-green-100 bg-gradient-to-br from-green-50 via-white to-green-50 p-8 text-center shadow-[0_20px_60px_-35px_rgba(21,128,61,0.35)] sm:p-12">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl">
-              🌿
-            </div>
-
-            <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-slate-950">
-              {text.closing.title}
-            </h2>
-
-            <p className="mx-auto mt-4 max-w-2xl leading-7 text-slate-600">
-              {text.closing.text}
-            </p>
-
-            <button
-              type="button"
-              onClick={() => openCalculator("estimate")}
-              className="mt-7 inline-flex items-center gap-3 rounded-xl bg-green-700 px-6 py-3.5 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-green-800 hover:shadow-md"
-            >
-              {text.closing.button}
-              <span>→</span>
-            </button>
-          </div>
-        </section>
       </main>
 
       <Footer locale={locale} />
