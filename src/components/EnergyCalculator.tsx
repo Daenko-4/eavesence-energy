@@ -82,8 +82,8 @@ const calculatorText = {
       title: "Typische Startwerte",
       description:
         "Die Werte dienen als Orientierung. Passe sie an dein Gerät und deine tatsächliche Nutzung an.",
-      useMeasured: "Gemessenen Verbrauch verwenden",
-      useTypical: "Leistung und Laufzeit verwenden",
+      useMeasured: "Gemessenen Verbrauch eingeben",
+      useTypical: "Aus Leistung und Laufzeit berechnen",
     },
 
     device: {
@@ -237,8 +237,8 @@ const calculatorText = {
       title: "Typical starting values",
       description:
         "These values are provided as a guide. Adjust them to match your device and actual usage.",
-      useMeasured: "Use measured consumption",
-      useTypical: "Use power and runtime",
+      useMeasured: "Enter measured consumption",
+      useTypical: "Calculate from power and runtime",
     },
 
     device: {
