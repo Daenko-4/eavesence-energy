@@ -205,36 +205,39 @@ const content = {
     },
 
     faq: {
-      label: "Häufige Fragen",
-      title: "Fragen zu EAVESENCE",
+      label: "Gut zu wissen",
+      title: "Antworten rund um deinen Rechner",
 
       items: [
         {
-          question: "Wie genau ist der Stromkosten-Rechner?",
+          question: "Wie genau ist meine Berechnung?",
           answer:
-            "Im Modus „Gerät auswählen“ arbeitet EAVESENCE mit Orientierungswerten und deinen Angaben zur Nutzung. Das Ergebnis ist deshalb eine Schätzung. Unter „Eigene Werte“ kannst du einen selbst gemessenen oder bekannten Verbrauch pro Nutzung eintragen.",
+            "Mit typischen Verbrauchswerten erhältst du eine gute Orientierung. Am genauesten wird das Ergebnis, wenn du einen gemessenen oder bekannten Verbrauch sowie deinen tatsächlichen Strompreis einträgst.",
         },
         {
-          question: "Wo finde ich die Leistung meines Geräts?",
+          question: "Welchen Berechnungsmodus soll ich verwenden?",
           answer:
-            "Die Leistung in Watt findest du häufig auf dem Typenschild, auf dem Netzteil oder in der Bedienungsanleitung des Geräts.",
+            "„Typische Verbrauchswerte“ eignet sich für einen schnellen Überblick. Wähle „Eigene Verbrauchswerte“, wenn du den Verbrauch pro Nutzung kennst oder selbst gemessen hast.",
         },
         {
-          question: "Wo finde ich meinen Strompreis?",
+          question: "Was zeigen „Was wäre, wenn?“ und der Gerätevergleich?",
           answer:
-            "Für die Berechnung brauchst du deinen Arbeitspreis in Euro pro Kilowattstunde. Diesen findest du in der Regel auf deiner Stromrechnung oder in deinem Stromtarif.",
+            "Mit „Was wäre, wenn?“ siehst du, wie sich weniger Nutzungen auf deine Jahreskosten auswirken. Der Vergleich stellt dein Ergebnis einem anderen Gerät mit typischen Verbrauchswerten gegenüber.",
         },
         {
-          question:
-            "Warum können die tatsächlichen Kosten abweichen?",
+          question: "Wie funktioniert „Meine Geräte“?",
           answer:
-            "Programme, Temperatur, Alter des Geräts und die tatsächliche Nutzung können den Verbrauch beeinflussen.",
+            "Du kannst Berechnungen ohne Konto lokal in deinem Browser speichern, öffnen und aktualisieren. Die Daten werden nicht an EAVESENCE übertragen. Für einen Browser- oder Gerätewechsel kannst du eine Sicherung exportieren.",
         },
         {
-          question:
-            "Kann ich auch ein Gerät berechnen, das nicht in der Liste steht?",
+          question: "Wo finde ich Verbrauch und Strompreis?",
           answer:
-            "Ja. Wähle „Eigenes Gerät“ und trage Leistung und Nutzung selbst ein.",
+            "Leistung oder Verbrauch findest du häufig auf dem Typenschild, dem Energielabel, in der Anleitung oder über ein Strommessgerät. Deinen Preis pro Kilowattstunde findest du auf der Stromrechnung oder in deinem Tarif.",
+        },
+        {
+          question: "Kann ich eigene Geräte und andere Währungen verwenden?",
+          answer:
+            "Ja. Wähle „Eigenes Gerät“ und trage Verbrauch und Nutzung selbst ein. Strompreis und Ergebnis kannst du außerdem in einer der verfügbaren Währungen anzeigen lassen.",
         },
       ],
     },
@@ -426,39 +429,39 @@ const content = {
     },
 
     faq: {
-      label: "Frequently asked questions",
-      title: "Questions about EAVESENCE",
+      label: "Good to know",
+      title: "Answers about your calculator",
 
       items: [
         {
-          question:
-            "How accurate is the electricity cost calculator?",
+          question: "How accurate is my calculation?",
           answer:
-            "In the “Choose a device” mode, EAVESENCE uses typical consumption values together with your usage details, so the result is an estimate. Under “Your own values”, you can enter a measured or known electricity consumption per use.",
+            "Typical consumption values provide a useful estimate. For the most accurate result, enter a measured or known consumption value together with your actual electricity price.",
         },
         {
-          question:
-            "Where can I find the power rating of my device?",
+          question: "Which calculation mode should I use?",
           answer:
-            "The power rating in watts is often shown on the device label, power adapter or in the instruction manual.",
+            "Use “Typical consumption” for a quick overview. Choose “Your consumption” when you know the consumption per use or have measured it yourself.",
         },
         {
-          question:
-            "Where can I find my electricity price?",
+          question: "What do “What if?” and device comparison show?",
           answer:
-            "For the calculation, you need your electricity price per kilowatt-hour. You can usually find it on your electricity bill or in your tariff information.",
+            "“What if?” shows how fewer weekly uses could change your yearly cost. Device comparison places your result next to another device using its typical consumption values.",
         },
         {
-          question:
-            "Why can the actual electricity cost be different?",
+          question: "How does “My devices” work?",
           answer:
-            "Programs, temperature settings, the age of the device and your actual usage can all affect electricity consumption.",
+            "You can save, reopen and update calculations locally in your browser without an account. EAVESENCE does not receive this data. Export a backup if you want to change browsers or devices.",
         },
         {
-          question:
-            "Can I calculate a device that is not in the list?",
+          question: "Where can I find consumption and electricity price?",
           answer:
-            "Yes. Choose “Custom device” and enter the power rating and usage yourself.",
+            "Power or consumption is often listed on the device label, energy label or in the manual, and can also be measured with an electricity meter. Your price per kilowatt-hour is shown on your bill or tariff.",
+        },
+        {
+          question: "Can I use custom devices and other currencies?",
+          answer:
+            "Yes. Choose “Custom device” and enter its consumption and usage yourself. You can also display the electricity price and results in any of the available currencies.",
         },
       ],
     },

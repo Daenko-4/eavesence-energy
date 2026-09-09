@@ -74,6 +74,12 @@ type EnergyCalculatorProps = {
 
 const calculatorText = {
   de: {
+    steps: {
+      device: "Gerät auswählen",
+      usage: "Nutzung anpassen",
+      result: "Ergebnis ansehen",
+    },
+
     modes: {
       estimate: "Typische Verbrauchswerte",
       exact: "Eigene Verbrauchswerte",
@@ -224,6 +230,12 @@ const calculatorText = {
   },
 
   en: {
+    steps: {
+      device: "Choose a device",
+      usage: "Adjust usage",
+      result: "View your result",
+    },
+
     modes: {
       estimate: "Typical consumption",
       exact: "Your consumption",
@@ -1154,7 +1166,7 @@ export default function EnergyCalculator({
       {/* Device */}
       <div className="mb-8">
         <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-green-700">
-          1 · {text.device.label}
+          1 · {detailPage ? text.device.label : text.steps.device}
         </p>
         {detailPage ? (
           <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-[#fbfcfb] px-4 py-3.5">
@@ -1170,7 +1182,7 @@ export default function EnergyCalculator({
           </div>
         ) : (
           <>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
+            <label className="sr-only">
               {text.device.label}
             </label>
 
@@ -1328,7 +1340,7 @@ export default function EnergyCalculator({
 
       {/* Inputs */}
       <p className="mb-4 text-xs font-bold uppercase tracking-[0.14em] text-green-700">
-        2 · {activeLocale === "de" ? "Nutzung" : "Usage"}
+        2 · {text.steps.usage}
       </p>
       <div className="grid gap-6 sm:grid-cols-2">
         {mode === "estimate" &&
@@ -1663,7 +1675,7 @@ export default function EnergyCalculator({
         {calculationIsValid ? (
           <>
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.14em] text-green-200">
-              3 · {text.result.title}
+              3 · {text.steps.result}
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-sm font-medium text-green-100/80">
@@ -1787,8 +1799,8 @@ export default function EnergyCalculator({
           </>
         ) : (
           <>
-            <p className="text-sm font-medium text-green-100/80">
-              {text.result.title}
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-green-200">
+              3 · {text.steps.result}
             </p>
 
             <p className="mt-3 text-2xl font-bold">
@@ -1806,7 +1818,7 @@ export default function EnergyCalculator({
       </div>
 
       {/* Saving tip */}
-      <div className="mt-5 border-l-2 border-amber-300 bg-amber-50/60 px-4 py-3.5">
+      <div className="mt-5 rounded-xl border border-amber-200/80 bg-amber-50/70 px-4 py-3.5">
         <div className="flex items-start gap-3">
           <span
             aria-hidden="true"
