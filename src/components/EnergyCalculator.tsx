@@ -165,8 +165,10 @@ const calculatorText = {
       details: "So wurde das berechnet",
       formula: "Berechnungsgrundlage",
       scenario: "Was wäre, wenn?",
-      scenarioText: "Weniger Nutzungen pro Woche",
-      savings: "Mögliche Ersparnis pro Jahr",
+      scenarioText: "Alternative Nutzung",
+      currentUses: "Aktuell",
+      newYearlyCost: "Neue Jahreskosten",
+      savings: "Du sparst pro Jahr",
       viewResult: "Ergebnis ansehen",
     },
 
@@ -313,8 +315,10 @@ const calculatorText = {
       details: "How this was calculated",
       formula: "Calculation basis",
       scenario: "What if?",
-      scenarioText: "Fewer uses per week",
-      savings: "Potential savings per year",
+      scenarioText: "Alternative use",
+      currentUses: "Current use",
+      newYearlyCost: "New yearly cost",
+      savings: "You save per year",
       viewResult: "View result",
     },
 
@@ -540,7 +544,8 @@ export default function EnergyCalculator({
   );
   const [deviceSearch, setDeviceSearch] = useState("");
   const [recentDevices, setRecentDevices] = useState<string[]>([]);
-  const [reductionPercent, setReductionPercent] = useState(20);
+  const [scenarioUsesPerWeek, setScenarioUsesPerWeek] =
+    useState<NumericInput>(Math.max(0, initialUses - 1));
   const [resultVisible, setResultVisible] = useState(false);
   const initialComparisonDevice =
     devices.find((item) => item.name !== initialDeviceData.name) ?? devices[0];
@@ -700,6 +705,7 @@ export default function EnergyCalculator({
       setWatts(0);
       setMinutesPerUse(0);
       setUsesPerWeek(1);
+      setScenarioUsesPerWeek(0);
       setEstimatedKwhPerUse(0);
       setMeasuredKwhPerUse(0);
       return;
@@ -719,9 +725,9 @@ export default function EnergyCalculator({
       selected.typicalMinutes ?? 0
     );
 
-    setUsesPerWeek(
-      selected.typicalUsesPerWeek ?? 1
-    );
+    const selectedUses = selected.typicalUsesPerWeek ?? 1;
+    setUsesPerWeek(selectedUses);
+    setScenarioUsesPerWeek(Math.max(0, selectedUses - 1));
 
     setEstimatedKwhPerUse(
       selected.kwhPerUse ?? 0
@@ -794,6 +800,7 @@ export default function EnergyCalculator({
     setWatts(item.watts);
     setMinutesPerUse(item.minutesPerUse);
     setUsesPerWeek(item.usesPerWeek);
+    setScenarioUsesPerWeek(Math.max(0, item.usesPerWeek - 1));
     setEstimatedKwhPerUse(item.estimatedKwhPerUse);
     setMeasuredKwhPerUse(item.measuredKwhPerUse);
     setActiveSavedDeviceId(item.id);
@@ -984,8 +991,12 @@ export default function EnergyCalculator({
   const costPerUse =
     actualKwhPerUse * priceValue;
 
+  const scenarioUsesPerWeekValue = Math.min(
+    numericValue(scenarioUsesPerWeek),
+    usesPerWeekValue
+  );
   const scenarioYearlyCost =
-    yearlyCost * (1 - reductionPercent / 100);
+    actualKwhPerUse * scenarioUsesPerWeekValue * 52 * priceValue;
   const scenarioSavings = yearlyCost - scenarioYearlyCost;
 
   const comparisonDevice =
@@ -1579,13 +1590,13 @@ export default function EnergyCalculator({
                 event.currentTarget.blur();
               }
             }}
-            onChange={(event) =>
-              setUsesPerWeek(
-                parseNumericInput(
-                  event.target.value
-                )
-              )
-            }
+            onChange={(event) => {
+              const nextUses = parseNumericInput(event.target.value);
+              setUsesPerWeek(nextUses);
+              setScenarioUsesPerWeek(
+                Math.max(0, numericValue(nextUses) - 1)
+              );
+            }}
             className={fieldClassName}
           />
 
@@ -1835,30 +1846,47 @@ export default function EnergyCalculator({
             </span>
           </summary>
           <div className="border-t border-slate-100 bg-green-50/40 p-4 sm:p-5">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <p className="font-semibold text-slate-950">
-                {text.result.scenarioText}: {reductionPercent}%
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-slate-600">
+                {text.result.currentUses}: {formatNumber(usesPerWeekValue, activeLocale, 0, 1)} {text.fields.usesPerWeek.toLocaleLowerCase()}
               </p>
-              <div className="sm:text-right">
-                <p className="text-xs text-slate-500">{text.result.savings}</p>
-                <p className="mt-1 text-lg font-extrabold text-green-800">
-                  {formatMoney(scenarioSavings, activeLocale, currency)}
-                </p>
-              </div>
+              <p className="font-semibold text-slate-950">
+                {text.result.scenarioText}: {formatNumber(scenarioUsesPerWeekValue, activeLocale, 0, 1)} {text.fields.usesPerWeek.toLocaleLowerCase()}
+              </p>
             </div>
             <input
               type="range"
               min="0"
-              max="50"
-              step="5"
-              value={reductionPercent}
-              onChange={(event) => setReductionPercent(Number(event.target.value))}
+              max={usesPerWeekValue}
+              step={usesPerWeekValue <= 10 ? 0.5 : 1}
+              value={scenarioUsesPerWeekValue}
+              onChange={(event) =>
+                setScenarioUsesPerWeek(Number(event.target.value))
+              }
               className="mt-4 w-full accent-green-700"
               aria-label={text.result.scenarioText}
             />
             <div className="mt-2 flex justify-between text-xs text-slate-400">
-              <span>0%</span>
-              <span>50%</span>
+              <span>0</span>
+              <span>{formatNumber(usesPerWeekValue, activeLocale, 0, 1)}</span>
+            </div>
+            <div className="mt-4 grid gap-3 border-t border-green-100 pt-4 sm:grid-cols-2">
+              <div>
+                <p className="text-xs text-slate-500">
+                  {text.result.newYearlyCost}
+                </p>
+                <p className="mt-1 text-lg font-extrabold text-slate-950">
+                  {formatMoney(scenarioYearlyCost, activeLocale, currency)}
+                </p>
+              </div>
+              <div className="sm:text-right">
+                <p className="text-xs text-slate-500">
+                  {text.result.savings}
+                </p>
+                <p className="mt-1 text-lg font-extrabold text-green-800">
+                  {formatMoney(scenarioSavings, activeLocale, currency)}
+                </p>
+              </div>
             </div>
           </div>
         </details>

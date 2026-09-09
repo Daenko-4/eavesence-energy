@@ -247,18 +247,6 @@ export default function Header({
             >
               <summary className="flex w-full cursor-pointer list-none items-center justify-center whitespace-nowrap py-2 transition hover:text-green-700 group-open:hidden [&::-webkit-details-marker]:hidden">
                 <span>{text.devices}</span>
-                <svg
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  className="absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m7.5 5 5 5-5 5" />
-                </svg>
               </summary>
 
               <div className="hidden w-full flex-col items-center justify-center gap-0.5 group-open:flex">
@@ -290,11 +278,30 @@ export default function Header({
                     devicesMenuRef.current?.removeAttribute("open")
                   }
                   aria-label={text.closeDevices}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-base font-normal leading-none text-slate-400 transition hover:text-slate-800"
+                  className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2"
                 >
-                  ×
+                  <span className="sr-only">{text.closeDevices}</span>
                 </button>
               </div>
+
+              <svg
+                viewBox="0 0 20 20"
+                fill="none"
+                className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500 transition-colors duration-200 group-hover:text-green-700 group-open:text-slate-400"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m5 4 6 6-6 6" />
+                <path
+                  d="m17 4-6 6 6 6"
+                  pathLength="1"
+                  strokeDasharray="1"
+                  className="[stroke-dashoffset:1] transition-[stroke-dashoffset] duration-200 group-open:[stroke-dashoffset:0]"
+                />
+              </svg>
             </details>
 
             <a
