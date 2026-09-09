@@ -573,9 +573,9 @@ export default function MyDevicesPanel({
             <button
               type="button"
               onClick={() => importInputRef.current?.click()}
-              className="group inline-flex min-h-10 items-center gap-2 rounded-xl border border-green-200 bg-white px-3.5 py-2 text-xs font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-green-500 hover:bg-green-700 hover:text-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+              className="group inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-green-500 hover:bg-green-700 hover:text-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
             >
-              <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M10 13V3" />
                 <path d="m6.5 6.5 3.5-3.5 3.5 3.5" />
                 <path d="M4 11v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4" />
@@ -586,9 +586,9 @@ export default function MyDevicesPanel({
               <button
                 type="button"
                 onClick={exportDevices}
-                className="group inline-flex min-h-10 items-center gap-2 rounded-xl border border-green-200 bg-white px-3.5 py-2 text-xs font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-green-500 hover:bg-green-700 hover:text-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+                className="group inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-green-500 hover:bg-green-700 hover:text-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
               >
-                <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M10 3v10" />
                   <path d="m6.5 9.5 3.5 3.5 3.5-3.5" />
                   <path d="M4 11v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4" />
