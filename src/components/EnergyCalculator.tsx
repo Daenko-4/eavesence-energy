@@ -2077,14 +2077,14 @@ export default function EnergyCalculator({
           <svg
             viewBox="0 0 20 20"
             fill="none"
-            className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-open:rotate-180"
+            className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-open:rotate-90"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden="true"
           >
-            <path d="m5 12.5 5-5 5 5" />
+            <path d="m7.5 5 5 5-5 5" />
           </svg>
         </summary>
         <p className="mt-3 max-w-3xl text-xs leading-5 text-slate-500">
