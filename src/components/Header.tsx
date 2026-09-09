@@ -245,42 +245,44 @@ export default function Header({
               ref={devicesMenuRef}
               className="group relative mx-auto w-[118px]"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-center gap-1.5 whitespace-nowrap py-2 transition hover:text-green-700 group-open:hidden [&::-webkit-details-marker]:hidden">
-                {text.devices}
+              <summary className="grid w-full cursor-pointer list-none grid-cols-[1fr_auto_1fr] items-center whitespace-nowrap py-2 transition hover:text-green-700 group-open:hidden [&::-webkit-details-marker]:hidden">
+                <span className="col-start-2">{text.devices}</span>
                 <svg
                   viewBox="0 0 20 20"
                   fill="none"
-                  className="h-3.5 w-3.5"
+                  className="col-start-3 ml-1.5 h-3.5 w-3.5"
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   aria-hidden="true"
                 >
-                  <path d="m5 7.5 5 5 5-5" />
+                  <path d="m7.5 5 5 5-5 5" />
                 </svg>
               </summary>
 
-              <div className="hidden flex-col items-center justify-center gap-0.5 group-open:flex">
-                <Link
-                  href={devicesHref}
-                  onClick={handleDevicesOverviewClick}
-                  className="whitespace-nowrap text-[13px] font-bold leading-5 text-slate-600 transition hover:text-green-800"
-                >
-                  {text.allDevices}
-                </Link>
+              <div className="hidden w-full grid-cols-[1fr_auto_1fr] items-center group-open:grid">
+                <div className="col-start-2 flex flex-col items-center justify-center gap-0.5">
+                  <Link
+                    href={devicesHref}
+                    onClick={handleDevicesOverviewClick}
+                    className="whitespace-nowrap text-[13px] font-bold leading-5 text-slate-600 transition hover:text-green-800"
+                  >
+                    {text.allDevices}
+                  </Link>
 
-                <Link
-                  href={myDevicesHref}
-                  onClick={(event) =>
-                    event.currentTarget
-                      .closest("details")
-                      ?.removeAttribute("open")
-                  }
-                  className="whitespace-nowrap text-[13px] font-bold leading-5 text-slate-600 transition hover:text-green-800"
-                >
-                  {text.myDevices}
-                </Link>
+                  <Link
+                    href={myDevicesHref}
+                    onClick={(event) =>
+                      event.currentTarget
+                        .closest("details")
+                        ?.removeAttribute("open")
+                    }
+                    className="whitespace-nowrap text-[13px] font-bold leading-5 text-slate-600 transition hover:text-green-800"
+                  >
+                    {text.myDevices}
+                  </Link>
+                </div>
 
                 <button
                   type="button"
@@ -288,7 +290,7 @@ export default function Header({
                     devicesMenuRef.current?.removeAttribute("open")
                   }
                   aria-label={text.closeDevices}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 text-base font-normal leading-none text-slate-400 transition hover:text-slate-800"
+                  className="col-start-3 ml-1.5 text-base font-normal leading-none text-slate-400 transition hover:text-slate-800"
                 >
                   ×
                 </button>
