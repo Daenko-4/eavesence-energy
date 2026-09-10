@@ -3,6 +3,7 @@ import Link from "next/link";
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { getDeviceSeoContent } from "@/data/deviceSeoContent";
 import type { Device } from "@/data/devices";
 import { devices } from "@/data/devices";
 import {
@@ -21,6 +22,11 @@ type DeviceDetailPageProps = {
 };
 
 const DEFAULT_ELECTRICITY_PRICE = 0.35;
+const SITE_URL = "https://eavesence.com";
+
+function serializeJsonLd(data: object) {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
 
 const pageText = {
   de: {
@@ -87,7 +93,11 @@ const pageText = {
       "Passe die vorgeschlagenen Werte an dein Gerät an. Je nach Gerät kannst du",
     exactMode: "den kWh-Wert direkt eintragen",
     moreAccurateText2:
-      "oder „Gemessenen Verbrauch verwenden“ auswählen.",
+      "oder „Gemessenen Verbrauch eingeben“ auswählen.",
+
+    guide: "Praxis-Ratgeber",
+    scenarioUses: "Nutzungen pro Woche",
+    scenarioCost: "Stromkosten pro Jahr",
 
     moreFrom: "Mehr aus",
     relatedDevices: "Verwandte Geräte",
@@ -166,7 +176,11 @@ const pageText = {
       "Adjust the suggested values to match your device. Depending on the device, you can",
     exactMode: "enter the kWh value directly",
     moreAccurateText2:
-      "or select “Use measured consumption”.",
+      "or select “Enter measured consumption”.",
+
+    guide: "Practical guide",
+    scenarioUses: "Uses per week",
+    scenarioCost: "Electricity cost per year",
 
     moreFrom: "More from",
     relatedDevices: "Related devices",
@@ -262,6 +276,56 @@ export default function DeviceDetailPage({
     locale === "de"
       ? `/en/devices/${getLocalizedDevice(device, "en").slug}`
       : `/geraete/${device.slug}`;
+  const devicePath =
+    locale === "de"
+      ? `/geraete/${device.slug}`
+      : `/en/devices/${localizedDevice.slug}`;
+  const seoContent = getDeviceSeoContent(
+    device.name,
+    locale
+  );
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "EAVESENCE Energy",
+        item: `${SITE_URL}${homeHref}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: text.devices,
+        item: `${SITE_URL}${devicesHref}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: localizedDevice.name,
+        item: `${SITE_URL}${devicePath}`,
+      },
+    ],
+  };
+
+  const faqJsonLd = seoContent
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: seoContent.faqs.map(
+          (faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: faq.answer,
+            },
+          })
+        ),
+      }
+    : null;
 
   const kwhPerUse =
     getTypicalKwhPerUse(device);
@@ -295,7 +359,29 @@ export default function DeviceDetailPage({
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div
+      lang={locale}
+      className="min-h-screen bg-slate-50 text-slate-900"
+    >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(
+            breadcrumbJsonLd
+          ),
+        }}
+      />
+
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html:
+              serializeJsonLd(faqJsonLd),
+          }}
+        />
+      )}
+
       <Header
         locale={locale}
         calculatorHrefOverride="#rechner"
@@ -623,6 +709,181 @@ export default function DeviceDetailPage({
             </div>
           </div>
         </section>
+
+        {seoContent && (
+          <section className="border-t border-slate-200 bg-slate-50 px-5 py-16 sm:px-6 sm:py-20">
+            <div className="mx-auto max-w-5xl">
+              <p className="text-sm font-bold uppercase tracking-wider text-blue-600">
+                {text.guide}
+              </p>
+
+              <h2 className="mt-3 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">
+                {seoContent.introTitle}
+              </h2>
+
+              <div className="mt-6 max-w-4xl space-y-4 text-lg leading-8 text-slate-600">
+                {seoContent.intro.map(
+                  (paragraph) => (
+                    <p key={paragraph}>
+                      {paragraph}
+                    </p>
+                  )
+                )}
+              </div>
+
+              <div className="mt-12">
+                <h3 className="text-2xl font-bold tracking-tight">
+                  {seoContent.scenariosTitle}
+                </h3>
+
+                <p className="mt-3 max-w-3xl leading-7 text-slate-600">
+                  {seoContent.scenariosIntro}
+                </p>
+
+                <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                  {seoContent.scenarios.map(
+                    (scenario) => {
+                      const scenarioYearlyCost =
+                        kwhPerUse *
+                        scenario.usesPerWeek *
+                        52 *
+                        DEFAULT_ELECTRICITY_PRICE;
+
+                      return (
+                        <div
+                          key={scenario.label}
+                          className="rounded-2xl border border-slate-200 bg-white p-5"
+                        >
+                          <p className="font-bold text-slate-900">
+                            {scenario.label}
+                          </p>
+
+                          <p className="mt-1 text-sm leading-6 text-slate-500">
+                            {scenario.note}
+                          </p>
+
+                          <p className="mt-5 text-2xl font-extrabold text-green-800">
+                            {formatEuro(
+                              scenarioYearlyCost,
+                              locale
+                            )}
+                          </p>
+
+                          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            {text.scenarioCost}
+                          </p>
+
+                          <p className="mt-4 text-sm text-slate-600">
+                            {formatNumber(
+                              scenario.usesPerWeek,
+                              locale,
+                              0,
+                              1
+                            )}{" "}
+                            {text.scenarioUses}
+                          </p>
+                        </div>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-12 grid gap-6 lg:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+                  <h3 className="text-2xl font-bold tracking-tight">
+                    {seoContent.valuesTitle}
+                  </h3>
+
+                  <p className="mt-4 leading-7 text-slate-600">
+                    {seoContent.valuesText}
+                  </p>
+                </div>
+
+                {seoContent.comparison && (
+                  <div className="rounded-2xl border border-green-200 bg-green-50 p-6 sm:p-8">
+                    <h3 className="text-2xl font-bold tracking-tight text-green-950">
+                      {
+                        seoContent.comparison
+                          .title
+                      }
+                    </h3>
+
+                    <p className="mt-4 leading-7 text-green-950/75">
+                      {
+                        seoContent.comparison
+                          .text
+                      }
+                    </p>
+
+                    <Link
+                      href={
+                        seoContent.comparison
+                          .href
+                      }
+                      className="mt-6 inline-flex font-bold text-green-800 transition hover:text-green-950"
+                    >
+                      {
+                        seoContent.comparison
+                          .linkLabel
+                      }
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-12">
+                <h3 className="text-2xl font-bold tracking-tight">
+                  {seoContent.faqTitle}
+                </h3>
+
+                <div className="mt-5 space-y-3">
+                  {seoContent.faqs.map((faq) => (
+                    <details
+                      key={faq.question}
+                      className="group rounded-xl border border-slate-200 bg-white p-5"
+                    >
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
+                        {faq.question}
+                        <span
+                          aria-hidden="true"
+                          className="text-lg text-slate-400 transition group-open:rotate-45"
+                        >
+                          +
+                        </span>
+                      </summary>
+
+                      <p className="mt-4 max-w-4xl leading-7 text-slate-600">
+                        {faq.answer}
+                      </p>
+                    </details>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-10 border-t border-slate-200 pt-6">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+                  {seoContent.sourcesTitle}
+                </h3>
+
+                <ul className="mt-3 space-y-2 text-sm">
+                  {seoContent.sources.map(
+                    (source) => (
+                      <li key={source.href}>
+                        <a
+                          href={source.href}
+                          className="font-semibold text-blue-600 underline decoration-blue-200 underline-offset-4 transition hover:text-blue-800"
+                        >
+                          {source.label}
+                        </a>
+                      </li>
+                    )
+                  )}
+                </ul>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Related devices */}
         {relatedDevices.length > 0 && (

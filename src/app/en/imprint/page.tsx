@@ -18,7 +18,10 @@ export const metadata: Metadata = {
 
 export default function ImprintPage() {
   return (
-    <div className="min-h-screen bg-[#f8faf8] text-slate-950">
+    <div
+      lang="en"
+      className="min-h-screen bg-[#f8faf8] text-slate-950"
+    >
       <Header locale="en" />
 
       <main className="px-5 py-14 sm:px-6 sm:py-20">

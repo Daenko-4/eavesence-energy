@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import HomePage from "@/components/HomePage";
+import WebApplicationStructuredData from "@/components/WebApplicationStructuredData";
 
 export const metadata: Metadata = {
   title: {
@@ -19,5 +20,10 @@ export const metadata: Metadata = {
 };
 
 export default function GermanPage() {
-  return <HomePage locale="de" />;
+  return (
+    <>
+      <WebApplicationStructuredData locale="de" />
+      <HomePage locale="de" />
+    </>
+  );
 }

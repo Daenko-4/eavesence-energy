@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import DeviceDetailPage from "@/components/DeviceDetailPage";
+import { getDeviceSeoContent } from "@/data/deviceSeoContent";
 import { devices } from "@/data/devices";
 import {
   findDeviceByLocalizedSlug,
@@ -41,12 +42,21 @@ export async function generateMetadata({
 
   const localizedDevice =
     getLocalizedDevice(device, "en");
+  const seoContent = getDeviceSeoContent(
+    device.name,
+    "en"
+  );
+  const title =
+    seoContent?.metaTitle ??
+    `${localizedDevice.name} electricity cost calculator`;
+  const description =
+    seoContent?.metaDescription ??
+    localizedDevice.description;
 
   return {
-    title: `${localizedDevice.name} electricity cost calculator`,
+    title,
 
-    description:
-      localizedDevice.description,
+    description,
 
     alternates: {
       canonical: `/en/devices/${localizedDevice.slug}`,
@@ -55,6 +65,20 @@ export async function generateMetadata({
         en: `/en/devices/${localizedDevice.slug}`,
         "x-default": `/geraete/${device.slug}`,
       },
+    },
+
+    openGraph: {
+      type: "website",
+      locale: "en_GB",
+      url: `/en/devices/${localizedDevice.slug}`,
+      title,
+      description,
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
     },
   };
 }

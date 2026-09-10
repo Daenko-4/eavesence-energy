@@ -213,7 +213,7 @@ const content = {
         {
           question: "Kann ich eigene Messwerte verwenden?",
           answer:
-            "Ja. Alle vorgeschlagenen Werte sind bearbeitbar. Bei leistungsbasierten Geräten kannst du zusätzlich „Gemessenen Verbrauch verwenden“ auswählen und einen kWh-Wert pro Nutzung eintragen.",
+            "Ja. Alle vorgeschlagenen Werte sind bearbeitbar. Bei leistungsbasierten Geräten kannst du zusätzlich „Gemessenen Verbrauch eingeben“ auswählen und einen kWh-Wert pro Nutzung eintragen.",
         },
         {
           question: "Was zeigen „Was wäre, wenn?“ und der Gerätevergleich?",
@@ -437,7 +437,7 @@ const content = {
         {
           question: "Can I use my own measured values?",
           answer:
-            "Yes. Every suggested value can be edited. For power-based devices, you can also choose “Use measured consumption” and enter a kWh value per use.",
+            "Yes. Every suggested value can be edited. For power-based devices, you can also choose “Enter measured consumption” and enter a kWh value per use.",
         },
         {
           question: "What do “What if?” and device comparison show?",
@@ -662,7 +662,10 @@ export default function HomePage({
   }
 
   return (
-    <div className="min-h-screen bg-[#f8faf8] text-slate-950">
+    <div
+      lang={locale}
+      className="min-h-screen bg-[#f8faf8] text-slate-950"
+    >
       <Header locale={locale} />
 
       <main>

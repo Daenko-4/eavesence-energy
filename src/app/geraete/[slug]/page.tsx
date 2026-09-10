@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import DeviceDetailPage from "@/components/DeviceDetailPage";
+import { getDeviceSeoContent } from "@/data/deviceSeoContent";
 import { devices } from "@/data/devices";
 import { getLocalizedDeviceSlug } from "@/i18n/devices";
 
@@ -32,11 +33,21 @@ export async function generateMetadata({
 
   const englishSlug =
     getLocalizedDeviceSlug(device, "en");
+  const seoContent = getDeviceSeoContent(
+    device.name,
+    "de"
+  );
+  const title =
+    seoContent?.metaTitle ??
+    `${device.name} Stromkosten berechnen`;
+  const description =
+    seoContent?.metaDescription ??
+    device.description;
 
   return {
-    title: `${device.name} Stromkosten berechnen`,
+    title,
 
-    description: device.description,
+    description,
 
     alternates: {
       canonical: `/geraete/${device.slug}`,
@@ -45,6 +56,20 @@ export async function generateMetadata({
         en: `/en/devices/${englishSlug}`,
         "x-default": `/geraete/${device.slug}`,
       },
+    },
+
+    openGraph: {
+      type: "website",
+      locale: "de_AT",
+      url: `/geraete/${device.slug}`,
+      title,
+      description,
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
     },
   };
 }

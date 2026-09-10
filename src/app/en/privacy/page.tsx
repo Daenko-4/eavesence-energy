@@ -22,7 +22,10 @@ export default function PrivacyPage() {
     <>
       <Header locale="en" />
 
-      <main className="mx-auto max-w-3xl px-5 py-16 sm:px-6">
+      <main
+        lang="en"
+        className="mx-auto max-w-3xl px-5 py-16 sm:px-6"
+      >
         <Link
           href="/en"
           className="text-sm font-semibold text-green-600 hover:text-green-700"

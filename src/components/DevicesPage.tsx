@@ -295,7 +295,10 @@ export default function DevicesPage({
   const calculatorHref = getCalculatorHref(locale);
 
   return (
-    <div className="min-h-screen bg-[#f8faf8] text-slate-950">
+    <div
+      lang={locale}
+      className="min-h-screen bg-[#f8faf8] text-slate-950"
+    >
       <Header locale={locale} />
 
       <main>
