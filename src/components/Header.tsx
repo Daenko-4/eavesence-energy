@@ -30,7 +30,9 @@ const navigation = {
     calculator: "Rechner",
     devices: "Geräte",
     allDevices: "Alle Geräte",
+    allDevicesDescription: "Übersicht und Suche",
     myDevices: "Meine Geräte",
+    myDevicesDescription: "Gespeicherte Berechnungen",
     local: "Lokal",
     howItWorks: "So funktioniert's",
     faq: "FAQ",
@@ -46,7 +48,9 @@ const navigation = {
     calculator: "Calculator",
     devices: "Devices",
     allDevices: "All devices",
+    allDevicesDescription: "Browse and search",
     myDevices: "My devices",
+    myDevicesDescription: "Saved calculations",
     local: "Local",
     howItWorks: "How it works",
     faq: "FAQ",
@@ -81,8 +85,13 @@ export default function Header({
   languageHrefOverride,
 }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [devicesMenuOpen, setDevicesMenuOpen] = useState(false);
   const [sloganVisible, setSloganVisible] = useState(true);
-  const devicesMenuRef = useRef<HTMLDetailsElement>(null);
+  const devicesMenuRef = useRef<HTMLDivElement>(null);
+  const devicesMenuTriggerRef = useRef<HTMLButtonElement>(null);
+  const devicesHoverTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   const pathname = usePathname();
 
@@ -142,11 +151,11 @@ export default function Header({
       const devicesMenu = devicesMenuRef.current;
 
       if (
-        devicesMenu?.open &&
         event.target instanceof Node &&
+        devicesMenu &&
         !devicesMenu.contains(event.target)
       ) {
-        devicesMenu.removeAttribute("open");
+        setDevicesMenuOpen(false);
       }
     }
 
@@ -154,7 +163,8 @@ export default function Header({
       event: KeyboardEvent,
     ) {
       if (event.key === "Escape") {
-        devicesMenuRef.current?.removeAttribute("open");
+        setDevicesMenuOpen(false);
+        devicesMenuTriggerRef.current?.focus();
       }
     }
 
@@ -179,8 +189,47 @@ export default function Header({
     };
   }, []);
 
+  useEffect(
+    () => () => {
+      if (devicesHoverTimeoutRef.current) {
+        clearTimeout(devicesHoverTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  function openDevicesMenu() {
+    if (devicesHoverTimeoutRef.current) {
+      clearTimeout(devicesHoverTimeoutRef.current);
+      devicesHoverTimeoutRef.current = null;
+    }
+
+    setDevicesMenuOpen(true);
+  }
+
+  function closeDevicesMenu() {
+    if (devicesHoverTimeoutRef.current) {
+      clearTimeout(devicesHoverTimeoutRef.current);
+      devicesHoverTimeoutRef.current = null;
+    }
+
+    setDevicesMenuOpen(false);
+  }
+
+  function scheduleDevicesMenuClose() {
+    if (devicesHoverTimeoutRef.current) {
+      clearTimeout(devicesHoverTimeoutRef.current);
+    }
+
+    devicesHoverTimeoutRef.current = setTimeout(
+      closeDevicesMenu,
+      150,
+    );
+  }
+
   function closeMenu() {
     setMenuOpen(false);
+    closeDevicesMenu();
   }
 
   function handleLogoClick(
@@ -214,7 +263,7 @@ export default function Header({
   function handleDevicesOverviewClick(
     event: MouseEvent<HTMLAnchorElement>,
   ) {
-    devicesMenuRef.current?.removeAttribute("open");
+    closeDevicesMenu();
 
     if (pathname !== devicesHref) {
       return;
@@ -242,7 +291,7 @@ export default function Header({
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden items-center text-[15px] font-semibold text-slate-700 md:grid md:grid-cols-[92px_118px_128px_48px] md:gap-3">
+          <nav className="hidden items-center text-[15px] font-semibold text-slate-700 md:grid md:grid-cols-[92px_104px_128px_48px] md:gap-3">
             <a
               href={calculatorHref}
               className="flex justify-center whitespace-nowrap transition hover:text-green-700"
@@ -250,79 +299,92 @@ export default function Header({
               {text.calculator}
             </a>
 
-            <details
+            <div
               ref={devicesMenuRef}
-              className="group relative mx-auto w-[118px]"
+              className="relative mx-auto flex h-full w-[104px] items-center justify-center"
+              onMouseEnter={openDevicesMenu}
+              onMouseLeave={scheduleDevicesMenuClose}
+              onFocusCapture={openDevicesMenu}
+              onBlurCapture={(event) => {
+                if (
+                  event.relatedTarget instanceof Node &&
+                  event.currentTarget.contains(event.relatedTarget)
+                ) {
+                  return;
+                }
+
+                scheduleDevicesMenuClose();
+              }}
             >
-              <summary className="flex w-full cursor-pointer list-none items-center justify-center whitespace-nowrap py-2 transition hover:text-green-700 group-open:hidden [&::-webkit-details-marker]:hidden">
+              <button
+                ref={devicesMenuTriggerRef}
+                type="button"
+                aria-expanded={devicesMenuOpen}
+                aria-controls="devices-navigation-menu"
+                onClick={() =>
+                  devicesMenuOpen
+                    ? closeDevicesMenu()
+                    : openDevicesMenu()
+                }
+                className="group flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors duration-150 hover:text-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/30"
+              >
                 <span>{text.devices}</span>
                 <svg
                   viewBox="0 0 20 20"
                   fill="none"
-                  className="pointer-events-none absolute right-[-7px] top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500 transition-colors duration-200 group-hover:text-green-700"
+                  className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-[170ms] ease-out motion-reduce:transition-none group-hover:text-green-700 ${
+                    devicesMenuOpen ? "rotate-180" : ""
+                  }`}
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   aria-hidden="true"
                 >
-                  <path d="m5 4 6 6-6 6" />
+                  <path d="m5 7.5 5 5 5-5" />
                 </svg>
-              </summary>
+              </button>
 
-              <div className="hidden w-full flex-col items-center justify-center gap-0.5 group-open:flex">
-                <div className="flex flex-col items-center justify-center gap-0.5">
+              <div
+                id="devices-navigation-menu"
+                aria-hidden={!devicesMenuOpen}
+                className="absolute left-1/2 top-full z-50 w-[252px] -translate-x-1/2 pt-2"
+              >
+                <div
+                  className={`origin-top rounded-2xl border border-slate-200/90 bg-white p-2 shadow-[0_18px_45px_rgba(15,23,42,0.14),0_2px_8px_rgba(15,23,42,0.06)] transition-[opacity,transform,visibility] ease-out motion-reduce:transition-none ${
+                    devicesMenuOpen
+                      ? "visible translate-y-0 scale-100 opacity-100 duration-[170ms]"
+                      : "invisible pointer-events-none -translate-y-1.5 scale-[0.98] opacity-0 duration-[120ms]"
+                  }`}
+                >
                   <Link
                     href={devicesHref}
                     onClick={handleDevicesOverviewClick}
-                    className="whitespace-nowrap text-[13px] font-bold leading-5 text-slate-600 transition hover:text-green-800"
+                    className="group/item block rounded-xl px-3 py-2.5 transition-colors duration-150 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
                   >
-                    {text.allDevices}
+                    <span className="block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
+                      {text.allDevices}
+                    </span>
+                    <span className="mt-0.5 block text-xs font-medium text-slate-500">
+                      {text.allDevicesDescription}
+                    </span>
                   </Link>
 
                   <Link
                     href={myDevicesHref}
-                    onClick={(event) =>
-                      event.currentTarget
-                        .closest("details")
-                        ?.removeAttribute("open")
-                    }
-                    className="whitespace-nowrap text-[13px] font-bold leading-5 text-slate-600 transition hover:text-green-800"
+                    onClick={closeDevicesMenu}
+                    className="group/item block rounded-xl px-3 py-2.5 transition-colors duration-150 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
                   >
-                    {text.myDevices}
+                    <span className="block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
+                      {text.myDevices}
+                    </span>
+                    <span className="mt-0.5 block text-xs font-medium text-slate-500">
+                      {text.myDevicesDescription}
+                    </span>
                   </Link>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    devicesMenuRef.current?.removeAttribute("open")
-                  }
-                  aria-label={text.closeDevices}
-                  className="absolute -right-4 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-slate-400 transition-colors duration-200 hover:text-slate-700"
-                >
-                  <span className="sr-only">{text.closeDevices}</span>
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    className="h-3.5 w-3.5"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m5 4 6 6-6 6" />
-                    <path
-                      d="m17 4-6 6 6 6"
-                      pathLength="1"
-                      strokeDasharray="1"
-                      className="[stroke-dashoffset:1] transition-[stroke-dashoffset] duration-200 group-open:[stroke-dashoffset:0]"
-                    />
-                  </svg>
-                </button>
               </div>
-            </details>
+            </div>
 
             <a
               href={howItWorksHref}
