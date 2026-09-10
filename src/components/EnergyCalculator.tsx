@@ -153,8 +153,6 @@ const calculatorText = {
 
     result: {
       costsYou: "kostet dich",
-      estimate: "Berechnung",
-      ownValue: "Messwert",
       perYear: "pro Jahr",
       perUse: "Pro Nutzung",
       perWeek: "Pro Woche",
@@ -308,8 +306,6 @@ const calculatorText = {
 
     result: {
       costsYou: "costs you",
-      estimate: "Calculation",
-      ownValue: "Measured value",
       perYear: "per year",
       perUse: "Per use",
       perWeek: "Per week",
@@ -1587,19 +1583,10 @@ export default function EnergyCalculator({
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.14em] text-green-200">
               3 · {text.steps.result}
             </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-medium text-green-100/80">
-                {displayDeviceName}{" "}
-                {text.result.costsYou}
-              </p>
-
-              <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-xs font-semibold text-green-50">
-                {mode === "estimate"
-                  ? text.result.estimate
-                  : text.result
-                      .ownValue}
-              </span>
-            </div>
+            <p className="text-sm font-medium text-green-100/80">
+              {displayDeviceName}{" "}
+              {text.result.costsYou}
+            </p>
 
             <div className="mt-3">
               <span className="text-4xl font-extrabold tracking-tight sm:text-5xl">
