@@ -10,9 +10,12 @@ EAVESENCE Energy ist ein kostenloser, zweisprachiger Stromkosten-Rechner für ty
 
 ## Funktionen
 
-- Stromkosten-Rechner mit typischen oder eigenen Verbrauchswerten
+- Stromkosten-Rechner mit frei bearbeitbaren Startwerten und optionalem Messwert
 - Gerätebibliothek mit deutsch- und englischsprachigen Detailseiten
 - Berechnung für leistungs- und verbrauchsbasierte Geräte
+- Nutzungsszenarien und direkter Gerätevergleich
+- Lokale Geräteliste mit Import und Export – ohne Benutzerkonto
+- Mehrere europäische Währungen
 - Responsive Oberfläche für Desktop und Mobilgeräte
 - SEO-Metadaten, Sitemap und Robots-Konfiguration
 - Kein Benutzerkonto und kein eigenes Analytics-Tracking
