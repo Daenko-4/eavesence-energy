@@ -25,6 +25,8 @@ type HeaderProps = {
   languageHrefOverride?: string;
 };
 
+type HomeSection = "calculator" | "howItWorks" | "faq";
+
 const navigation = {
   de: {
     calculator: "Rechner",
@@ -84,6 +86,8 @@ export default function Header({
 }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [devicesMenuOpen, setDevicesMenuOpen] = useState(false);
+  const [activeHomeSection, setActiveHomeSection] =
+    useState<HomeSection>("calculator");
   const devicesMenuRef = useRef<HTMLDivElement>(null);
   const devicesMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const devicesHoverTimeoutRef = useRef<ReturnType<
@@ -102,6 +106,15 @@ export default function Header({
   const myDevicesHref = homeHref + "#meine-geraete";
   const howItWorksHref = getHowItWorksHref(locale);
   const faqHref = getFaqHref(locale);
+  const isDevicesPage =
+    pathname === devicesHref ||
+    pathname.startsWith(`${devicesHref}/`);
+
+  const activeNavigation = isDevicesPage
+    ? "devices"
+    : isHomePage
+      ? activeHomeSection
+      : null;
 
   const otherLocale: Locale =
     locale === "de" ? "en" : "de";
@@ -165,6 +178,70 @@ export default function Header({
     },
     [],
   );
+
+  useEffect(() => {
+    if (!isHomePage) {
+      return;
+    }
+
+    let animationFrame = 0;
+
+    function updateActiveSection() {
+      animationFrame = 0;
+
+      const sections: Array<{
+        id: string;
+        navigation: HomeSection;
+      }> = [
+        { id: "rechner", navigation: "calculator" },
+        { id: "so-funktionierts", navigation: "howItWorks" },
+        { id: "faq", navigation: "faq" },
+      ];
+
+      const activationLine = 112;
+      let nextSection: HomeSection = "calculator";
+
+      for (const section of sections) {
+        const element = document.getElementById(section.id);
+
+        if (
+          element &&
+          element.getBoundingClientRect().top <= activationLine
+        ) {
+          nextSection = section.navigation;
+        }
+      }
+
+      setActiveHomeSection(nextSection);
+    }
+
+    function scheduleUpdate() {
+      if (animationFrame) {
+        return;
+      }
+
+      animationFrame = window.requestAnimationFrame(
+        updateActiveSection,
+      );
+    }
+
+    updateActiveSection();
+    window.addEventListener("scroll", scheduleUpdate, {
+      passive: true,
+    });
+    window.addEventListener("resize", scheduleUpdate);
+    window.addEventListener("hashchange", scheduleUpdate);
+
+    return () => {
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+      window.removeEventListener("hashchange", scheduleUpdate);
+    };
+  }, [isHomePage]);
 
   function openDevicesMenu() {
     if (devicesHoverTimeoutRef.current) {
@@ -262,13 +339,20 @@ export default function Header({
           <nav className="hidden items-center text-[15px] font-semibold text-slate-700 md:grid md:grid-cols-[92px_104px_128px_48px] md:gap-3">
             <a
               href={calculatorHref}
+              aria-current={
+                activeNavigation === "calculator"
+                  ? "location"
+                  : undefined
+              }
               className={`relative flex justify-center whitespace-nowrap py-2 transition hover:text-green-700 ${
-                isHomePage ? "text-[#07111f]" : ""
+                activeNavigation === "calculator"
+                  ? "text-[#07111f]"
+                  : ""
               }`}
             >
               {text.calculator}
-              {isHomePage && (
-                <span className="absolute inset-x-4 -bottom-[14px] h-0.5 rounded-full bg-[#00a557]" />
+              {activeNavigation === "calculator" && (
+                <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-[#00a557]" />
               )}
             </a>
 
@@ -299,9 +383,18 @@ export default function Header({
                     ? closeDevicesMenu()
                     : openDevicesMenu()
                 }
-                className="group flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors duration-150 hover:text-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/30"
+                className={`group flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors duration-150 hover:text-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/30 ${
+                  activeNavigation === "devices"
+                    ? "text-[#07111f]"
+                    : ""
+                }`}
               >
-                <span>{text.devices}</span>
+                <span className="relative">
+                  {text.devices}
+                  {activeNavigation === "devices" && (
+                    <span className="absolute inset-x-0 -bottom-2 h-0.5 rounded-full bg-[#00a557]" />
+                  )}
+                </span>
                 <svg
                   viewBox="0 0 20 20"
                   fill="none"
@@ -361,16 +454,40 @@ export default function Header({
 
             <a
               href={howItWorksHref}
-              className="flex justify-center whitespace-nowrap transition hover:text-green-700"
+              aria-current={
+                activeNavigation === "howItWorks"
+                  ? "location"
+                  : undefined
+              }
+              className={`relative flex justify-center whitespace-nowrap py-2 transition hover:text-green-700 ${
+                activeNavigation === "howItWorks"
+                  ? "text-[#07111f]"
+                  : ""
+              }`}
             >
               {text.howItWorks}
+              {activeNavigation === "howItWorks" && (
+                <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-[#00a557]" />
+              )}
             </a>
 
             <a
               href={faqHref}
-              className="flex justify-center whitespace-nowrap transition hover:text-green-700"
+              aria-current={
+                activeNavigation === "faq"
+                  ? "location"
+                  : undefined
+              }
+              className={`relative flex justify-center whitespace-nowrap py-2 transition hover:text-green-700 ${
+                activeNavigation === "faq"
+                  ? "text-[#07111f]"
+                  : ""
+              }`}
             >
               {text.faq}
+              {activeNavigation === "faq" && (
+                <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[#00a557]" />
+              )}
             </a>
           </nav>
 

@@ -681,25 +681,25 @@ export default function HomePage({
       <Header locale={locale} />
 
       <main className="overflow-hidden">
-        <section className="relative px-5 pb-10 pt-12 sm:px-6 sm:pb-12 sm:pt-16 lg:pt-20">
+        <section className="relative px-5 pb-9 pt-10 sm:px-6 sm:pb-10 sm:pt-12 lg:pt-16">
           <div className="pointer-events-none absolute inset-x-0 top-28 h-[720px] bg-[radial-gradient(ellipse_at_center,rgba(0,198,106,0.16),rgba(232,255,243,0.08)_35%,transparent_72%)]" />
 
           <div
             id="rechner"
             className="relative mx-auto max-w-7xl scroll-mt-[76px] sm:scroll-mt-[84px]"
           >
-            <h1 className="text-balance text-center text-[clamp(2.35rem,5.1vw,4.7rem)] font-extrabold leading-[0.98] tracking-[-0.065em] text-[#07111f] lg:whitespace-nowrap">
+            <h1 className="text-balance text-center text-[clamp(1.9rem,4.1vw,3.75rem)] font-extrabold leading-[1.02] tracking-[-0.06em] text-[#07111f] lg:whitespace-nowrap">
               {hero.calculate} {hero.understand}{" "}
               <span className="bg-gradient-to-r from-[#007a3d] to-[#00b863] bg-clip-text text-transparent">
                 {hero.save}
               </span>
             </h1>
 
-            <p className="mt-4 text-center text-lg font-medium tracking-[-0.02em] text-slate-600 sm:text-xl">
+            <p className="mt-3 text-center text-base font-medium tracking-[-0.02em] text-slate-600">
               {hero.subtitle}
             </p>
 
-            <div className="mt-9 sm:mt-11">
+            <div className="mx-auto mt-7 max-w-[64rem] sm:mt-8">
               <EnergyCalculator locale={locale} homePresentation />
             </div>
 
