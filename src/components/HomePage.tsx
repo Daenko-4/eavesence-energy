@@ -699,7 +699,7 @@ export default function HomePage({
               {hero.subtitle}
             </p>
 
-            <div className="mx-auto mt-7 max-w-[64rem] sm:mt-8">
+            <div className="mx-auto mt-7 max-w-7xl sm:mt-8">
               <EnergyCalculator locale={locale} homePresentation />
             </div>
 

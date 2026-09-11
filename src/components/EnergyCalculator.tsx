@@ -1027,6 +1027,9 @@ export default function EnergyCalculator({
     `w-full rounded-xl border border-white/15 bg-white/[0.055] px-4 ${homePresentation ? "py-3" : "py-3.5"} text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/70 focus:bg-white/[0.08] focus:ring-4 focus:ring-emerald-500/10`;
   const secondaryFieldClassName =
     "w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-green-400 focus:ring-4 focus:ring-green-100";
+  const fieldHintClassName = homePresentation
+    ? "hidden"
+    : "mt-2 text-sm leading-6 text-slate-500";
 
   const feedbackSubject =
     encodeURIComponent(
@@ -1035,15 +1038,15 @@ export default function EnergyCalculator({
 
   return (
     <section>
-      <div className={`grid rounded-[1.65rem] border border-white/10 bg-[linear-gradient(135deg,#142323_0%,#0d1819_58%,#081314_100%)] text-white shadow-[0_28px_80px_-42px_rgba(3,31,20,0.72)] lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] ${
+      <div className={`grid rounded-[1.65rem] border border-white/10 bg-[linear-gradient(135deg,#142323_0%,#0d1819_58%,#081314_100%)] text-white shadow-[0_28px_80px_-42px_rgba(3,31,20,0.72)] lg:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] ${
         homePresentation
-          ? "gap-4 p-4 sm:p-5 lg:gap-5 lg:p-5"
+          ? "gap-4 p-4 sm:p-5 lg:gap-6 lg:p-5"
           : "gap-5 p-4 sm:p-6 lg:gap-8 lg:p-7"
       }`}>
         <div className="calculator-form min-w-0 px-1 py-1 sm:px-2">
 
       {/* Device */}
-      <div className={homePresentation ? "mb-5" : "mb-6"}>
+      <div className={homePresentation ? "mb-4" : "mb-6"}>
         <p className="mb-3 text-sm font-semibold text-slate-200">
           {text.device.label}
         </p>
@@ -1126,7 +1129,7 @@ export default function EnergyCalculator({
           </optgroup>
             </select>
 
-            <details className="group mt-3">
+            <details className={`group ${homePresentation ? "mt-2" : "mt-3"}`}>
           <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-green-950 [&::-webkit-details-marker]:hidden">
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
               <circle cx="8.5" cy="8.5" r="5.5" />
@@ -1227,7 +1230,7 @@ export default function EnergyCalculator({
               current === "exact" ? "estimate" : "exact"
             )
           }
-          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 transition hover:text-emerald-200"
+          className={`${homePresentation ? "mb-3" : "mb-5"} inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 transition hover:text-emerald-200`}
         >
           <svg
             viewBox="0 0 20 20"
@@ -1249,7 +1252,7 @@ export default function EnergyCalculator({
             : text.modes.useMeasured}
         </button>
       )}
-      <div className={`grid sm:grid-cols-2 ${homePresentation ? "gap-4" : "gap-5"}`}>
+      <div className={`grid sm:grid-cols-2 ${homePresentation ? "gap-3" : "gap-5"}`}>
         {mode === "estimate" &&
           isPowerDevice && (
             <>
@@ -1282,7 +1285,7 @@ export default function EnergyCalculator({
                   </span>
                 </div>
 
-                <p className="mt-2 text-sm leading-6 text-slate-500">
+                <p className={fieldHintClassName}>
                   {isCustomDevice
                     ? text.hints
                         .customPower
@@ -1321,7 +1324,7 @@ export default function EnergyCalculator({
                   }
                 />
 
-                <p className="mt-2 text-sm leading-6 text-slate-500">
+                <p className={fieldHintClassName}>
                   {isCustomDevice
                     ? text.hints
                         .customMinutes
@@ -1368,7 +1371,7 @@ export default function EnergyCalculator({
                 </span>
               </div>
 
-              <p className="mt-2 text-sm leading-6 text-slate-500">
+              <p className={fieldHintClassName}>
                 {
                   text.hints
                     .estimatedConsumption
@@ -1412,7 +1415,7 @@ export default function EnergyCalculator({
               </span>
             </div>
 
-            <p className="mt-2 text-sm leading-6 text-slate-500">
+            <p className={fieldHintClassName}>
               {
                 text.hints
                   .measuredConsumption
@@ -1422,7 +1425,7 @@ export default function EnergyCalculator({
         )}
 
         {/* Electricity price */}
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
+        <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_8rem]">
           <div>
           <label className="mb-2 block text-sm font-semibold text-slate-700">
             {
@@ -1455,7 +1458,7 @@ export default function EnergyCalculator({
             </span>
           </div>
 
-          <p className="mt-2 text-sm leading-6 text-slate-500">
+          <p className={fieldHintClassName}>
             {
               text.hints
                 .electricityPrice
@@ -1519,13 +1522,13 @@ export default function EnergyCalculator({
             className={fieldClassName}
           />
 
-          <p className="mt-2 text-sm leading-6 text-slate-500">
+          <p className={fieldHintClassName}>
             {text.hints.usesPerWeek}
           </p>
         </div>
       </div>
 
-      <div className={`${homePresentation ? "mt-5" : "mt-6"} flex flex-col gap-3 sm:flex-row sm:items-center`}>
+      <div className={`${homePresentation ? "mt-4" : "mt-6"} flex flex-col gap-3 sm:flex-row sm:items-center`}>
         <button
           type="button"
           onClick={() =>
@@ -1592,7 +1595,7 @@ export default function EnergyCalculator({
         ref={resultRef}
         className={`flex flex-col justify-center rounded-[1.45rem] border border-[#e1e6dc] bg-[#f7f8f2] text-[#07111f] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_12px_32px_-28px_rgba(7,17,31,0.34)] ${
           homePresentation
-            ? "min-h-[336px] p-6 sm:p-7"
+            ? "min-h-[300px] p-6 sm:p-7"
             : "min-h-[420px] p-6 sm:p-8 lg:p-10"
         }`}
       >
@@ -1602,7 +1605,7 @@ export default function EnergyCalculator({
               {activeLocale === "de" ? "Deine Jahreskosten" : "Your yearly cost"}
             </p>
 
-            <div className="mt-5">
+            <div className={homePresentation ? "mt-3" : "mt-5"}>
               <span className={`${homePresentation ? "text-[clamp(2.9rem,5.6vw,5.6rem)]" : "text-[clamp(3.6rem,7vw,7rem)]"} font-extrabold leading-none tracking-[-0.075em] tabular-nums`}>
                 {formatMoney(
                   yearlyCost,
@@ -1612,7 +1615,7 @@ export default function EnergyCalculator({
               </span>
             </div>
 
-            <div className={`${homePresentation ? "mt-5 pt-5" : "mt-7 pt-6"} grid grid-cols-2 divide-x divide-[#dce4d7] border-t border-[#dce4d7]`}>
+            <div className={`${homePresentation ? "mt-4 pt-4" : "mt-7 pt-6"} grid grid-cols-2 divide-x divide-[#dce4d7] border-t border-[#dce4d7]`}>
               <div className="flex items-center gap-3 pr-4">
                 <span className={`${homePresentation ? "h-9 w-9" : "h-11 w-11"} flex shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[#008c4a]`} aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1643,7 +1646,7 @@ export default function EnergyCalculator({
               </div>
             </div>
 
-            <details className={`group border-t border-[#dce4d7] pt-4 ${homePresentation ? "mt-5" : "mt-6"}`}>
+            <details className={`group border-t border-[#dce4d7] pt-4 ${homePresentation ? "mt-4" : "mt-6"}`}>
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-[#007a3d] [&::-webkit-details-marker]:hidden">
                 {text.result.details}
                 <span
