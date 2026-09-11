@@ -68,6 +68,7 @@ type EnergyCalculatorProps = {
   initialDevice?: string;
   locale?: Locale;
   detailPage?: boolean;
+  homePresentation?: boolean;
 };
 
 const calculatorText = {
@@ -220,6 +221,7 @@ const calculatorText = {
       subject: "Feedback zu EAVESENCE Energy",
     },
 
+    calculate: "Kosten berechnen",
     reset: "Werte zurücksetzen",
     fallbackDevice: "Gerät",
   },
@@ -373,6 +375,7 @@ const calculatorText = {
       subject: "Feedback about EAVESENCE Energy",
     },
 
+    calculate: "Calculate costs",
     reset: "Reset values",
     fallbackDevice: "Device",
   },
@@ -434,6 +437,7 @@ export default function EnergyCalculator({
   initialDevice = "Wasserkocher",
   locale,
   detailPage = false,
+  homePresentation = false,
 }: EnergyCalculatorProps) {
   const pathname = usePathname();
 
@@ -1020,7 +1024,9 @@ export default function EnergyCalculator({
         text.savingTip.fallback;
 
   const fieldClassName =
-    "w-full rounded-xl border border-slate-200 bg-[#fbfcfb] px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-green-400 focus:bg-white focus:ring-4 focus:ring-green-100";
+    "w-full rounded-xl border border-white/15 bg-white/[0.055] px-4 py-3.5 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/70 focus:bg-white/[0.08] focus:ring-4 focus:ring-emerald-500/10";
+  const secondaryFieldClassName =
+    "w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-green-400 focus:ring-4 focus:ring-green-100";
 
   const feedbackSubject =
     encodeURIComponent(
@@ -1028,21 +1034,14 @@ export default function EnergyCalculator({
     );
 
   return (
-    <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-8">
-      {/* Editable starting values */}
-      <div className="mb-8 rounded-xl border border-green-100 bg-green-50/60 px-4 py-3.5">
-        <p className="text-sm font-bold text-slate-900">
-          {text.modes.title}
-        </p>
-        <p className="mt-1 text-sm leading-6 text-slate-600">
-          {text.modes.description}
-        </p>
-      </div>
+    <section>
+      <div className="grid gap-5 rounded-[1.65rem] border border-white/10 bg-[linear-gradient(135deg,#142323_0%,#0d1819_58%,#081314_100%)] p-4 text-white shadow-[0_28px_80px_-42px_rgba(3,31,20,0.72)] sm:p-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)] lg:gap-8 lg:p-7">
+        <div className="calculator-form min-w-0 px-1 py-1 sm:px-2">
 
       {/* Device */}
-      <div className="mb-8">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-green-700">
-          1 · {detailPage ? text.device.label : text.steps.device}
+      <div className="mb-6">
+        <p className="mb-3 text-sm font-semibold text-slate-200">
+          {text.device.label}
         </p>
         {detailPage ? (
           <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-[#fbfcfb] px-4 py-3.5">
@@ -1215,9 +1214,7 @@ export default function EnergyCalculator({
       )}
 
       {/* Inputs */}
-      <p className="mb-4 text-xs font-bold uppercase tracking-[0.14em] text-green-700">
-        2 · {text.steps.usage}
-      </p>
+      <p className="sr-only">{text.steps.usage}</p>
       {isPowerDevice && (
         <button
           type="button"
@@ -1226,7 +1223,7 @@ export default function EnergyCalculator({
               current === "exact" ? "estimate" : "exact"
             )
           }
-          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-green-950"
+          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 transition hover:text-emerald-200"
         >
           <svg
             viewBox="0 0 20 20"
@@ -1248,7 +1245,7 @@ export default function EnergyCalculator({
             : text.modes.useMeasured}
         </button>
       )}
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2">
         {mode === "estimate" &&
           isPowerDevice && (
             <>
@@ -1524,12 +1521,24 @@ export default function EnergyCalculator({
         </div>
       </div>
 
-      {/* Reset */}
-      <div className="mt-5 flex justify-end">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <button
+          type="button"
+          onClick={() =>
+            resultRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            })
+          }
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-3 rounded-xl border border-emerald-300/40 bg-[linear-gradient(180deg,#13cc78_0%,#00a95d_100%)] px-5 font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.32),0_12px_30px_-18px_rgba(0,207,116,0.9)] transition hover:-translate-y-0.5 hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] active:translate-y-0"
+        >
+          {text.calculate} <span aria-hidden="true">→</span>
+        </button>
+
         <button
           type="button"
           onClick={handleReset}
-          className="group inline-flex items-center gap-2 rounded-xl border border-green-200 bg-green-50/80 px-4 py-2.5 text-sm font-semibold text-green-800 shadow-sm transition hover:-translate-y-0.5 hover:border-green-300 hover:bg-green-100 hover:shadow-md active:translate-y-0 active:scale-[0.97]"
+          className="group inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-400 transition hover:bg-white/[0.06] hover:text-white active:scale-[0.98]"
         >
           <span
             aria-hidden="true"
@@ -1572,121 +1581,75 @@ export default function EnergyCalculator({
           </ul>
         </div>
       )}
+        </div>
 
       {/* Result */}
       <div
         ref={resultRef}
-        className="mt-8 rounded-2xl bg-gradient-to-br from-green-950 via-green-900 to-emerald-950 p-6 text-white shadow-lg shadow-green-950/10 sm:p-8"
+        className="flex min-h-[420px] flex-col justify-center rounded-[1.45rem] border border-emerald-200/80 bg-[radial-gradient(circle_at_72%_20%,rgba(255,255,255,0.92),transparent_32%),linear-gradient(145deg,#f4fff9_0%,#e4fff1_100%)] p-6 text-[#07111f] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_18px_45px_-30px_rgba(0,96,53,0.55)] sm:p-8 lg:p-10"
       >
         {calculationIsValid ? (
           <>
-            <p className="mb-4 text-xs font-bold uppercase tracking-[0.14em] text-green-200">
-              3 · {text.steps.result}
-            </p>
-            <p className="text-sm font-medium text-green-100/80">
-              {displayDeviceName}{" "}
-              {text.result.costsYou}
+            <p className="text-lg font-bold tracking-[-0.025em] text-[#07111f] sm:text-xl">
+              {activeLocale === "de" ? "Deine Jahreskosten" : "Your yearly cost"}
             </p>
 
-            <div className="mt-3">
-              <span className="text-4xl font-extrabold tracking-tight sm:text-5xl">
+            <div className="mt-5">
+              <span className="text-[clamp(3.6rem,7vw,7rem)] font-extrabold leading-none tracking-[-0.075em] tabular-nums">
                 {formatMoney(
                   yearlyCost,
                   activeLocale,
                   currency
                 )}
               </span>
-
-              <span className="ml-2 text-green-100/80">
-                {text.result.perYear}
-              </span>
             </div>
 
-            <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-sm text-green-100/75">
-                  {
-                    text.result
-                      .perUse
-                  }
-                </p>
-
-                <p className="mt-1 text-xl font-semibold">
-                  {formatMoney(
-                    costPerUse,
-                    activeLocale,
-                    currency
-                  )}
-                </p>
+            <div className="mt-7 grid grid-cols-2 divide-x divide-emerald-200 border-t border-emerald-200 pt-6">
+              <div className="flex items-center gap-3 pr-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[#008c4a]" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="5" width="16" height="15" rx="2" />
+                    <path d="M8 3v4M16 3v4M4 9h16" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="text-lg font-extrabold tabular-nums sm:text-xl">
+                    {formatMoney(monthlyCost, activeLocale, currency)}
+                  </p>
+                  <p className="text-sm text-slate-600">{text.result.perMonth}</p>
+                </div>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-sm text-green-100/75">
-                  {
-                    text.result
-                      .perWeek
-                  }
-                </p>
-
-                <p className="mt-1 text-xl font-semibold">
-                  {formatMoney(
-                    weeklyCost,
-                    activeLocale,
-                    currency
-                  )}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-sm text-green-100/75">
-                  {
-                    text.result
-                      .perMonth
-                  }
-                </p>
-
-                <p className="mt-1 text-xl font-semibold">
-                  {formatMoney(
-                    monthlyCost,
-                    activeLocale,
-                    currency
-                  )}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-sm text-green-100/75">
-                  {
-                    text.result
-                      .consumptionPerYear
-                  }
-                </p>
-
-                <p className="mt-1 text-xl font-semibold">
-                  {formatKwh(
-                    yearlyKwh,
-                    activeLocale
-                  )}{" "}
-                  kWh
-                </p>
+              <div className="flex items-center gap-3 pl-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[#008c4a]" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 20v-5M10 20V9M15 20v-8M20 20V4" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="text-lg font-extrabold tabular-nums sm:text-xl">
+                    {formatMoney(weeklyCost, activeLocale, currency)}
+                  </p>
+                  <p className="text-sm text-slate-600">{text.result.perWeek}</p>
+                </div>
               </div>
             </div>
 
-            <details className="group mt-5 rounded-xl border border-white/10 bg-black/10">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-semibold text-green-50 [&::-webkit-details-marker]:hidden">
+            <details className="group mt-6 border-t border-emerald-200 pt-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-[#007a3d] [&::-webkit-details-marker]:hidden">
                 {text.result.details}
                 <span
                   aria-hidden="true"
-                  className="flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none transition-transform duration-200 group-open:rotate-45"
+                  className="text-lg leading-none transition-transform duration-150 group-open:rotate-45"
                 >
                   +
                 </span>
               </summary>
-              <div className="border-t border-white/10 px-4 py-3">
-                <p className="text-xs font-bold uppercase tracking-[0.1em] text-green-200/80">
+              <div className="pt-3">
+                <p className="text-xs font-bold uppercase tracking-[0.1em] text-emerald-700">
                   {text.result.formula}
                 </p>
-                <p className="mt-2 break-words text-sm leading-6 text-green-50/85">
+                <p className="mt-2 break-words text-sm leading-6 text-slate-600">
                   {mode === "estimate" && isPowerDevice
                     ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
                     : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`}
@@ -1696,15 +1659,14 @@ export default function EnergyCalculator({
           </>
         ) : (
           <>
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-green-200">
-              3 · {text.steps.result}
+            <p className="text-lg font-bold tracking-[-0.025em]">
+              {activeLocale === "de" ? "Deine Jahreskosten" : "Your yearly cost"}
             </p>
-
-            <p className="mt-3 text-2xl font-bold">
+            <p className="mt-5 text-2xl font-bold">
               {text.result.waiting}
             </p>
 
-            <p className="mt-2 text-sm leading-6 text-green-100/80">
+            <p className="mt-2 text-sm leading-6 text-slate-600">
               {
                 text.result
                   .waitingText
@@ -1713,8 +1675,25 @@ export default function EnergyCalculator({
           </>
         )}
       </div>
+      </div>
+
+      <a
+        href="#meine-geraete"
+        className="mx-auto mt-5 flex w-fit items-center gap-3 rounded-full px-3 py-2 text-sm font-bold text-[#07111f] transition hover:bg-emerald-50 hover:text-[#007a3d]"
+      >
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-[#008c4a]" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M7 4h10a1 1 0 0 1 1 1v16l-6-4-6 4V5a1 1 0 0 1 1-1Z" />
+          </svg>
+        </span>
+        {activeLocale === "de"
+          ? "Geräte speichern und Gesamtkosten vergleichen"
+          : "Save devices and compare total costs"}
+        <span className="text-[#008c4a]" aria-hidden="true">→</span>
+      </a>
 
       {/* Saving tip */}
+      {!homePresentation && (
       <div className="mt-5 rounded-xl border border-amber-200/80 bg-amber-50/70 px-4 py-3.5">
         <div className="flex items-start gap-3">
           <span
@@ -1742,8 +1721,9 @@ export default function EnergyCalculator({
           </div>
         </div>
       </div>
+      )}
 
-      {calculationIsValid && (
+      {!homePresentation && calculationIsValid && (
         <details className="group mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-green-800 [&::-webkit-details-marker]:hidden">
             {text.result.scenario}
@@ -1801,7 +1781,7 @@ export default function EnergyCalculator({
         </details>
       )}
 
-      {calculationIsValid && (
+      {!homePresentation && calculationIsValid && (
         <div className="mt-3">
           <button
             type="button"
@@ -1843,7 +1823,7 @@ export default function EnergyCalculator({
                     onChange={(event) =>
                       handleComparisonDeviceChange(event.target.value)
                     }
-                    className={fieldClassName}
+                    className={secondaryFieldClassName}
                   >
                     {categories.map((category) => (
                       <optgroup
@@ -1879,7 +1859,7 @@ export default function EnergyCalculator({
                         parseNumericInput(event.target.value)
                       )
                     }
-                    className={fieldClassName}
+                    className={secondaryFieldClassName}
                   />
                 </div>
               </div>
@@ -1975,7 +1955,7 @@ export default function EnergyCalculator({
         activeSavedDeviceId={activeSavedDeviceId}
         onActiveSavedDeviceChange={setActiveSavedDeviceId}
         onOpen={handleOpenSavedDevice}
-        compact={detailPage}
+        compact={detailPage || homePresentation}
         currentDevice={{
           device,
           customDeviceName,
@@ -2008,6 +1988,7 @@ export default function EnergyCalculator({
       )}
 
       {/* Accuracy */}
+      {!homePresentation && (
       <details className="group mt-4 border-b border-slate-200 pb-4">
         <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-slate-800 [&::-webkit-details-marker]:hidden">
           {text.accuracy.title}
@@ -2032,8 +2013,10 @@ export default function EnergyCalculator({
             : text.accuracy.exact}
         </p>
       </details>
+      )}
 
       {/* Feedback */}
+      {!homePresentation && (
       <div className="mt-6 border-t border-slate-200 pt-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="max-w-2xl">
@@ -2059,6 +2042,7 @@ export default function EnergyCalculator({
           {text.feedback.note}
         </p>
       </div>
+      )}
 
     </section>
   );

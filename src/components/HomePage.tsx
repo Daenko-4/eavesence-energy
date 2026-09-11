@@ -651,300 +651,179 @@ export default function HomePage({
   locale = "de",
 }: HomePageProps) {
   const text = content[locale];
+  const hero =
+    locale === "de"
+      ? {
+          calculate: "Rechnen.",
+          understand: "Verstehen.",
+          save: "Sparen.",
+          subtitle: "Berechne, was deine Geräte wirklich kosten.",
+          devicesTitle: "Berechne die Kosten deiner Geräte",
+          allDevices: "Alle Geräte ansehen",
+        }
+      : {
+          calculate: "Calculate.",
+          understand: "Understand.",
+          save: "Save.",
+          subtitle: "See what your devices really cost.",
+          devicesTitle: "Calculate the cost of your devices",
+          allDevices: "View all devices",
+        };
 
-  function openCalculator() {
-    window.requestAnimationFrame(() => {
-      document.getElementById("rechner")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
-  }
+  const devicesHref =
+    locale === "de" ? "/geraete" : "/en/devices";
 
   return (
     <div
       lang={locale}
-      className="min-h-screen bg-[#f8faf8] text-slate-950"
+      className="min-h-screen bg-[#fafbf8] text-[#07111f]"
     >
       <Header locale={locale} />
 
-      <main>
-        {/* Hero */}
-        <section className="relative overflow-hidden bg-white">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(34,197,94,0.10),transparent_36%),radial-gradient(circle_at_5%_10%,rgba(34,197,94,0.07),transparent_28%)]" />
+      <main className="overflow-hidden">
+        <section className="relative px-5 pb-10 pt-12 sm:px-6 sm:pb-12 sm:pt-16 lg:pt-20">
+          <div className="pointer-events-none absolute inset-x-0 top-28 h-[720px] bg-[radial-gradient(ellipse_at_center,rgba(0,198,106,0.16),rgba(232,255,243,0.08)_35%,transparent_72%)]" />
 
-          <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-24">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-sm font-medium text-green-800">
-                <span>🌿</span>
-                {text.hero.badge}
-              </div>
-
-              <h1 className="mt-7 max-w-3xl text-5xl font-extrabold tracking-[-0.055em] text-slate-950 sm:text-6xl">
-                {text.hero.titleFirst}
-                <br />
-                <span className="text-green-700">
-                  {text.hero.titleHighlight}
-                </span>
-              </h1>
-
-              <h2 className="mt-6 max-w-2xl text-2xl font-bold tracking-tight text-slate-900">
-                {text.hero.subtitle}
-              </h2>
-
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-                {text.hero.text}
-              </p>
-
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={openCalculator}
-                  className="inline-flex items-center justify-center gap-3 rounded-xl bg-green-700 px-6 py-3.5 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-green-800 hover:shadow-md"
-                >
-                  {text.hero.calculate}
-                  <span>→</span>
-                </button>
-
-                <a
-                  href={
-                    locale === "de"
-                      ? "/geraete"
-                      : "/en/devices"
-                  }
-                  className="inline-flex items-center justify-center rounded-xl px-5 py-3.5 font-semibold text-slate-700 transition hover:bg-green-50 hover:text-green-800"
-                >
-                  {text.hero.discoverDevices}
-                </a>
-              </div>
-
-              <div className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-500">
-                {text.hero.features.map((item) => (
-                  <span
-                    key={item}
-                    className="flex items-center gap-2"
-                  >
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">
-                      ✓
-                    </span>
-
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Hero Visual */}
-            <div className="relative hidden min-h-[540px] lg:block">
-              <div className="absolute inset-0 rounded-[3rem] border border-green-100 bg-gradient-to-br from-green-50 via-white to-emerald-50 shadow-[0_30px_80px_-45px_rgba(21,128,61,0.35)]" />
-
-              <div className="absolute left-10 top-9 rounded-full bg-white px-4 py-2 text-sm font-semibold text-green-700 shadow-sm">
-                {text.hero.visualBadge}
-              </div>
-
-              <div className="absolute inset-x-10 top-[105px]">
-                <h3 className="text-3xl font-extrabold tracking-[-0.04em] text-slate-950">
-                  {text.hero.visualTitleFirst}
-                  <br />
-                  <span className="text-green-700">
-                    {text.hero.visualTitleHighlight}
-                  </span>
-                </h3>
-
-                <p className="mt-4 max-w-sm text-sm leading-6 text-slate-600">
-                  {text.hero.visualText}
-                </p>
-              </div>
-
-              <div className="absolute inset-x-10 bottom-8 space-y-3">
-                {text.hero.examples.map((example) => (
-                  <div
-                    key={example.name}
-                    className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_12px_35px_-25px_rgba(15,23,42,0.35)]"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-xl">
-                        {example.icon}
-                      </div>
-
-                      <div>
-                        <p className="font-bold text-slate-950">
-                          {example.name}
-                        </p>
-
-                        <p className="text-sm text-slate-500">
-                          {example.usage}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <p className="text-lg font-extrabold text-green-700">
-                        {example.cost}
-                      </p>
-
-                      <p className="text-xs text-slate-400">
-                        {example.label}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Calculator */}
-        <section className="px-5 py-12 sm:px-6 sm:py-16">
           <div
             id="rechner"
-            className="mx-auto max-w-5xl scroll-mt-[76px] sm:scroll-mt-[84px]"
+            className="relative mx-auto max-w-7xl scroll-mt-[76px] sm:scroll-mt-[84px]"
           >
-            <p className="text-sm font-bold uppercase tracking-[0.16em] text-green-700">
-              {text.calculator.label}
+            <h1 className="text-balance text-center text-[clamp(2.35rem,5.1vw,4.7rem)] font-extrabold leading-[0.98] tracking-[-0.065em] text-[#07111f] lg:whitespace-nowrap">
+              {hero.calculate} {hero.understand}{" "}
+              <span className="bg-gradient-to-r from-[#007a3d] to-[#00b863] bg-clip-text text-transparent">
+                {hero.save}
+              </span>
+            </h1>
+
+            <p className="mt-4 text-center text-lg font-medium tracking-[-0.02em] text-slate-600 sm:text-xl">
+              {hero.subtitle}
             </p>
 
-            <h2 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-slate-950">
-              {text.calculator.title}
-            </h2>
-
-            <p className="mt-3 text-lg text-slate-600">
-              {text.calculator.text}
-            </p>
-
-            <div className="mt-8">
-              <EnergyCalculator
-                locale={locale}
-              />
+            <div className="mt-9 sm:mt-11">
+              <EnergyCalculator locale={locale} homePresentation />
             </div>
-          </div>
-        </section>
 
-        {/* How it works */}
-        <section
-          id="so-funktionierts"
-          className="scroll-mt-24 border-y border-slate-200/70 bg-white px-5 py-16 sm:px-6 sm:py-20"
-        >
-          <div className="mx-auto max-w-6xl">
-            <p className="text-sm font-bold uppercase tracking-[0.16em] text-green-700">
-              {text.howItWorks.label}
-            </p>
-
-            <h2 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-slate-950">
-              {text.howItWorks.title}
-            </h2>
-
-            <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-              {text.howItWorks.text}
-            </p>
-
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {text.howItWorks.steps.map((step) => (
+            <div className="mt-8 grid border-y border-slate-200/80 py-5 sm:grid-cols-3 sm:divide-x sm:divide-slate-200">
+              {text.hero.features.map((item, index) => (
                 <div
-                  key={step.number}
-                  className="rounded-2xl border border-slate-200 bg-[#fbfcfb] p-6"
+                  key={item}
+                  className="flex items-center justify-center gap-3 px-5 py-2 text-sm font-semibold text-slate-700"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-green-50 text-sm font-bold text-green-700">
-                      {step.number}
-                    </span>
-
-                    <span className="text-green-700">
-                      <Icon name={step.icon} />
-                    </span>
-                  </div>
-
-                  <h3 className="mt-5 text-lg font-bold text-slate-950">
-                    {step.title}
-                  </h3>
-
-                  <p className="mt-2 leading-7 text-slate-600">
-                    {step.text}
-                  </p>
+                  <span className="text-[#008c4a]">
+                    <Icon
+                      name={index === 0 ? "gift" : index === 1 ? "settings" : "laptop"}
+                      className="h-5 w-5"
+                    />
+                  </span>
+                  {item}
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* About EAVESENCE */}
-        <section
-          id="about"
-          className="scroll-mt-[120px] px-5 pb-16 sm:px-6 sm:pb-20"
-        >
-          <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[2rem] border border-green-100 bg-white shadow-[0_24px_70px_-45px_rgba(15,23,42,0.35)] lg:grid-cols-[0.8fr_1.2fr]">
-            <div className="flex items-center bg-gradient-to-br from-green-950 via-green-900 to-emerald-900 p-8 text-white sm:p-10">
-              <div>
-                <p className="text-sm font-bold uppercase tracking-[0.16em] text-green-200">
-                  {text.about.label}
-                </p>
-
-                <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
-                  {text.about.title}
-                </h2>
-              </div>
+        <section className="px-5 py-10 sm:px-6 sm:py-12">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
+                {hero.devicesTitle}
+              </h2>
+              <a
+                href={devicesHref}
+                className="inline-flex items-center gap-2 text-sm font-bold text-[#008c4a] transition hover:text-[#006f3a]"
+              >
+                {hero.allDevices} <span aria-hidden="true">→</span>
+              </a>
             </div>
 
-            <div className="p-8 sm:p-10">
-              <p className="text-lg leading-8 text-slate-700">
-                {text.about.text}
-              </p>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {text.about.parts.map((part) => (
-                  <div
-                    key={part.term}
-                    className="rounded-2xl border border-slate-200 bg-[#f8faf8] p-4"
-                  >
-                    <p className="font-extrabold text-green-700">
-                      {part.term}
-                    </p>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
-                      {part.meaning}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <p className="mt-6 border-t border-green-100 pt-5 font-semibold leading-7 text-slate-700">
-                {text.about.closing}
-              </p>
+            <div className="mt-7 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-3 lg:grid-cols-6">
+              {text.categories.map((category) => (
+                <a
+                  key={category.name}
+                  href={category.href}
+                  className="group flex min-h-24 items-center gap-3 border-b border-r border-slate-200/70 px-4 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50/50 hover:text-[#007a3d] sm:px-5 lg:border-b-0"
+                >
+                  <span className="text-[#008c4a] transition-transform duration-200 group-hover:-translate-y-0.5">
+                    <Icon name={category.icon} className="h-6 w-6" />
+                  </span>
+                  {category.name}
+                </a>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* FAQ */}
+        <section
+          id="so-funktionierts"
+          className="scroll-mt-24 px-5 py-10 sm:px-6 sm:py-12"
+        >
+          <div className="mx-auto max-w-7xl border-y border-slate-200/80 py-9">
+            <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
+              {text.howItWorks.label}
+            </h2>
+
+            <div className="mt-7 grid gap-7 md:grid-cols-3 md:divide-x md:divide-slate-200">
+              {text.howItWorks.steps.map((step) => (
+                <div
+                  key={step.number}
+                  className="flex gap-4 md:px-7 md:first:pl-0 md:last:pr-0"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-sm font-extrabold text-[#007a3d]">
+                    {Number(step.number)}
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-[#07111f]">{step.title}</h3>
+                    <p className="mt-1 max-w-sm text-sm leading-6 text-slate-600">
+                      {step.text}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="about"
+          className="scroll-mt-[120px] px-5 py-10 sm:px-6 sm:py-12"
+        >
+          <div className="mx-auto max-w-7xl border-b border-slate-200/80 pb-10">
+            <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
+              {text.about.label}
+            </h2>
+            <p className="mt-3 max-w-4xl text-base leading-7 text-slate-600">
+              {text.about.text} {text.about.closing}
+            </p>
+          </div>
+        </section>
+
         <section
           id="faq"
-          className="scroll-mt-24 border-t border-slate-200 bg-white px-5 py-16 sm:px-6 sm:py-20"
+          className="scroll-mt-24 px-5 pb-16 pt-6 sm:px-6 sm:pb-20"
         >
-          <div className="mx-auto max-w-4xl">
-            <p className="text-sm font-bold uppercase tracking-[0.16em] text-green-700">
-              {text.faq.label}
-            </p>
-
-            <h2 className="mt-3 text-4xl font-extrabold tracking-tight text-slate-950">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
               {text.faq.title}
             </h2>
 
-            <div className="mt-10 divide-y divide-slate-200 border-y border-slate-200">
+            <div className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
               {text.faq.items.map((faq) => (
                 <details
                   key={faq.question}
-                  className="group py-5"
+                  className="group"
                 >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-slate-900">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-semibold text-[#07111f] transition hover:text-[#007a3d] [&::-webkit-details-marker]:hidden">
                     {faq.question}
 
                     <span
                       aria-hidden="true"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lg leading-none text-slate-400 transition duration-200 group-open:rotate-45 group-open:bg-green-50 group-open:text-green-700"
+                      className="text-lg font-light text-slate-500 transition-transform duration-150 group-open:rotate-45 group-open:text-[#008c4a]"
                     >
                       +
                     </span>
                   </summary>
 
-                  <p className="mt-4 leading-7 text-slate-600">
+                  <p className="max-w-4xl pb-5 pr-10 text-sm leading-6 text-slate-600">
                     {faq.answer}
                   </p>
                 </details>

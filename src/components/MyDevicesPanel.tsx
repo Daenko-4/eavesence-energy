@@ -323,7 +323,10 @@ export default function MyDevicesPanel({
 
   if (compact) {
     return (
-      <div className="mt-6 border-t border-slate-200 pt-5">
+      <section
+        id="meine-geraete"
+        className="mt-7 scroll-mt-[96px] border-t border-slate-200 pt-6"
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="font-bold text-slate-950">{text.title}</h3>
@@ -345,7 +348,117 @@ export default function MyDevicesPanel({
             {notice}
           </p>
         )}
-      </div>
+
+        <input
+          ref={importInputRef}
+          type="file"
+          accept="application/json,.json"
+          onChange={importDevices}
+          className="hidden"
+        />
+
+        {savedDevices.length > 0 ? (
+          <details className="group mt-4 border-y border-slate-200">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:text-green-800 [&::-webkit-details-marker]:hidden">
+              <span>
+                {savedDevices.length}{" "}
+                {savedDevices.length === 1
+                  ? text.savedDevice
+                  : text.savedDevices}
+              </span>
+              <span className="flex items-center gap-2 text-green-800">
+                <span className="group-open:hidden">{text.showList}</span>
+                <span className="hidden group-open:inline">{text.hideList}</span>
+                <span aria-hidden="true" className="transition-transform group-open:rotate-45">+</span>
+              </span>
+            </summary>
+
+            <div className="border-t border-slate-200 pb-4 pt-3">
+              {totals.map((total) => (
+                <div
+                  key={total.currency}
+                  className="flex flex-wrap items-center justify-between gap-3 py-2 text-sm"
+                >
+                  <span className="font-semibold text-slate-600">
+                    {total.count} · {total.currency}
+                  </span>
+                  <span className="font-bold text-slate-950">
+                    {formatMoney(total.yearlyCost, locale, total.currency)} {text.perYear}
+                  </span>
+                </div>
+              ))}
+
+              <div className="mt-2 divide-y divide-slate-100 border-y border-slate-100">
+                {sortedDevices.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-950">
+                        {getDeviceName(item)}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {formatMoney(item.monthlyCost, locale, item.currency)} {text.perMonth}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onOpen(item)}
+                        className="rounded-lg border border-green-200 px-3 py-1.5 text-xs font-bold text-green-800 transition hover:bg-green-50"
+                      >
+                        {text.open}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeDevice(item.id)}
+                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-red-200 hover:text-red-700"
+                      >
+                        {text.remove}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={exportDevices}
+                  className="text-xs font-semibold text-green-800 transition hover:text-green-950"
+                >
+                  {text.export}
+                </button>
+                <span className="text-slate-300">·</span>
+                <button
+                  type="button"
+                  onClick={() => importInputRef.current?.click()}
+                  className="text-xs font-semibold text-green-800 transition hover:text-green-950"
+                >
+                  {text.import}
+                </button>
+                <span className="text-slate-300">·</span>
+                <button
+                  type="button"
+                  onClick={removeAllDevices}
+                  className="text-xs font-semibold text-slate-500 transition hover:text-red-700"
+                >
+                  {text.removeAll}
+                </button>
+              </div>
+            </div>
+          </details>
+        ) : (
+          <button
+            type="button"
+            onClick={() => importInputRef.current?.click()}
+            className="mt-3 text-xs font-semibold text-green-800 transition hover:text-green-950"
+          >
+            {text.import}
+          </button>
+        )}
+      </section>
     );
   }
 

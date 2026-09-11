@@ -85,39 +85,31 @@ export default function Footer({ locale = "de" }: FooterProps) {
   const calculatorHref = getCalculatorHref(locale);
   const devicesHref = getDevicesHref(locale);
   const faqHref = getFaqHref(locale);
+  const howItWorksHref = `${getHomeHref(locale)}#so-funktionierts`;
   const aboutHref = `${getHomeHref(locale)}#about`;
   const imprintHref = getImprintHref(locale);
   const privacyHref = getPrivacyHref(locale);
 
   return (
-    <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-6">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
-          <div>
+    <footer className="border-t border-slate-200/80 bg-[#fafbf8]">
+      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6">
+        <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
             <Image
               src="/brand/eavesence-wordmark-approved-final.png"
               alt="EAVESENCE Energy"
               width={206}
               height={44}
-              className="h-auto w-[205px]"
+              className="h-auto w-[164px]"
               unoptimized
             />
 
-            <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
+            <p className="max-w-md text-sm leading-6 text-slate-500">
               {text.description}
-            </p>
-
-            <p className="mt-3 text-xs leading-5 text-slate-400">
-              {text.privateProject}
             </p>
           </div>
 
-          <div>
-            <p className="text-sm font-bold text-slate-900">
-              EAVESENCE
-            </p>
-
-            <div className="mt-3 flex flex-col gap-2 text-sm text-slate-500">
+          <nav className="flex flex-wrap gap-x-5 gap-y-3 text-sm font-medium text-slate-500">
               <Link
                 href={calculatorHref}
                 onClick={(event) =>
@@ -139,6 +131,16 @@ export default function Footer({ locale = "de" }: FooterProps) {
               </Link>
 
               <Link
+                href={howItWorksHref}
+                onClick={(event) =>
+                  handleInternalNavigation(event, howItWorksHref)
+                }
+                className="transition hover:text-slate-900"
+              >
+                {locale === "de" ? "So funktioniert's" : "How it works"}
+              </Link>
+
+              <Link
                 href={faqHref}
                 onClick={(event) =>
                   handleInternalNavigation(event, faqHref)
@@ -157,15 +159,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
               >
                 {text.about}
               </Link>
-            </div>
-          </div>
 
-          <div>
-            <p className="text-sm font-bold text-slate-900">
-              {text.legal}
-            </p>
-
-            <div className="mt-3 flex flex-col gap-2 text-sm text-slate-500">
               <Link
                 href={imprintHref}
                 onClick={(event) =>
@@ -185,12 +179,12 @@ export default function Footer({ locale = "de" }: FooterProps) {
               >
                 {text.privacy}
               </Link>
-            </div>
-          </div>
+          </nav>
         </div>
 
-        <div className="mt-8 border-t border-slate-200 pt-6 text-sm text-slate-400">
-          © {new Date().getFullYear()} EAVESENCE Energy
+        <div className="mt-7 flex flex-col gap-1 border-t border-slate-200/80 pt-5 text-xs leading-5 text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <span>© {new Date().getFullYear()} EAVESENCE Energy</span>
+          <span>{text.privateProject}</span>
         </div>
       </div>
     </footer>

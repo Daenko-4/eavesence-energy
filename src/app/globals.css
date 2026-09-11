@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8faf8;
-  --foreground: #0f172a;
+  --background: #fafbf8;
+  --foreground: #07111f;
 
   --brand-green: #15803d;
   --brand-green-dark: #166534;
@@ -39,6 +39,34 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.calculator-form label {
+  color: #dce6e4;
+}
+
+.calculator-form .text-slate-500 {
+  color: #9aa9a7;
+}
+
+.calculator-form select {
+  color-scheme: dark;
+}
+
+.calculator-form select option,
+.calculator-form select optgroup {
+  background: #ffffff;
+  color: #07111f;
+}
+
+.calculator-form input[type="number"] {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 button,

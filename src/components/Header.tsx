@@ -84,7 +84,6 @@ export default function Header({
 }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [devicesMenuOpen, setDevicesMenuOpen] = useState(false);
-  const [sloganVisible, setSloganVisible] = useState(true);
   const devicesMenuRef = useRef<HTMLDivElement>(null);
   const devicesMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const devicesHoverTimeoutRef = useRef<ReturnType<
@@ -100,7 +99,6 @@ export default function Header({
   const calculatorHref =
     calculatorHrefOverride ?? getCalculatorHref(locale);
   const devicesHref = getDevicesHref(locale);
-  const isSloganPage = isHomePage || pathname === devicesHref;
   const myDevicesHref = homeHref + "#meine-geraete";
   const howItWorksHref = getHowItWorksHref(locale);
   const faqHref = getFaqHref(locale);
@@ -113,34 +111,6 @@ export default function Header({
     (pathname === devicesHref
       ? getDevicesHref(otherLocale)
       : getHomeHref(otherLocale));
-
-  useEffect(() => {
-    if (!isSloganPage) {
-      return;
-    }
-
-    function handleScroll() {
-      const scrollPosition = window.scrollY;
-
-      setSloganVisible((currentlyVisible) => {
-        if (scrollPosition > 64) {
-          return false;
-        }
-
-        if (scrollPosition < 4) {
-          return true;
-        }
-
-        return currentlyVisible;
-      });
-    }
-
-    window.addEventListener("scroll", handleScroll, {
-      passive: true,
-    });
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isSloganPage]);
 
   useEffect(() => {
     function closeDevicesMenuOnOutsideClick(
@@ -272,9 +242,9 @@ export default function Header({
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white">
-      <div className="mx-auto max-w-6xl px-5 sm:px-6">
-        <div className="flex min-h-[72px] items-center justify-between gap-4">
+    <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6">
+        <div className="flex min-h-[68px] items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex shrink-0 items-center">
             <Link
@@ -292,9 +262,14 @@ export default function Header({
           <nav className="hidden items-center text-[15px] font-semibold text-slate-700 md:grid md:grid-cols-[92px_104px_128px_48px] md:gap-3">
             <a
               href={calculatorHref}
-              className="flex justify-center whitespace-nowrap transition hover:text-green-700"
+              className={`relative flex justify-center whitespace-nowrap py-2 transition hover:text-green-700 ${
+                isHomePage ? "text-[#07111f]" : ""
+              }`}
             >
               {text.calculator}
+              {isHomePage && (
+                <span className="absolute inset-x-4 -bottom-[14px] h-0.5 rounded-full bg-[#00a557]" />
+              )}
             </a>
 
             <div
@@ -405,7 +380,7 @@ export default function Header({
             <Link
               href={languageHref}
               onClick={closeMenu}
-              className="group relative flex h-[34px] w-[82px] items-center overflow-hidden rounded-full border border-slate-300 bg-white shadow-[inset_0_1px_2px_rgba(15,23,42,0.05),0_2px_6px_rgba(15,23,42,0.08)] transition duration-200 hover:border-green-300 hover:shadow-[inset_0_1px_2px_rgba(15,23,42,0.05),0_3px_8px_rgba(15,23,42,0.12)] active:scale-[0.98]"
+              className="group relative flex h-[34px] w-[82px] items-center overflow-hidden rounded-full border border-slate-300/80 bg-white transition duration-200 hover:border-green-300 active:scale-[0.98]"
               aria-label={
                 locale === "de"
                   ? "Switch to English"
@@ -415,7 +390,7 @@ export default function Header({
               {/* Active language knob */}
               <span
                 aria-hidden="true"
-                className={`absolute top-[2px] h-[28px] w-[38px] rounded-full border border-green-200 bg-green-50 shadow-[0_2px_5px_rgba(15,23,42,0.15),inset_0_1px_1px_rgba(255,255,255,0.95)] transition-all duration-300 ease-out ${
+                className={`absolute top-[2px] h-[28px] w-[38px] rounded-full bg-[#dcfce8] transition-all duration-200 ease-out ${
                   locale === "de"
                     ? "left-[2px]"
                     : "left-[41px]"
@@ -535,23 +510,6 @@ export default function Header({
         )}
       </div>
 
-      {isSloganPage && (
-        <div
-          className={`grid bg-[#f8faf8] text-center transition-[grid-template-rows,opacity,transform] duration-300 ease-out ${
-            sloganVisible
-              ? "grid-rows-[1fr] border-t border-slate-100 opacity-100"
-              : "-translate-y-1 grid-rows-[0fr] opacity-0"
-          }`}
-        >
-          <div className="overflow-hidden">
-            <div className="mx-auto max-w-6xl px-5 sm:px-6">
-              <p className="py-2 text-left text-xs font-semibold italic tracking-[0.01em] text-green-800 sm:text-[13px]">
-                {text.slogan}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 }
