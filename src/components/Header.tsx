@@ -346,7 +346,7 @@ export default function Header({
               <div
                 id="devices-navigation-menu"
                 aria-hidden={!devicesMenuOpen}
-                className="absolute left-1/2 top-full z-50 w-[224px] -translate-x-1/2 pt-2"
+                className="absolute left-1/2 top-full z-50 ml-[-10px] w-[208px] -translate-x-1/2 pt-2"
               >
                 <div
                   className={`origin-top rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-[0_18px_45px_rgba(15,23,42,0.14),0_2px_8px_rgba(15,23,42,0.06)] transition-[opacity,transform,visibility] ease-out motion-reduce:transition-none ${
