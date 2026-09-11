@@ -36,7 +36,6 @@ const navigation = {
     local: "Lokal",
     howItWorks: "So funktioniert's",
     faq: "FAQ",
-    calculate: "Berechnen",
     homeLabel: "EAVESENCE Startseite",
     openNavigation: "Navigation öffnen",
     closeNavigation: "Navigation schließen",
@@ -54,7 +53,6 @@ const navigation = {
     local: "Local",
     howItWorks: "How it works",
     faq: "FAQ",
-    calculate: "Calculate",
     homeLabel: "EAVESENCE home",
     openNavigation: "Open navigation",
     closeNavigation: "Close navigation",
@@ -348,10 +346,10 @@ export default function Header({
               <div
                 id="devices-navigation-menu"
                 aria-hidden={!devicesMenuOpen}
-                className="absolute left-1/2 top-full z-50 w-[252px] -translate-x-1/2 pt-2"
+                className="absolute left-1/2 top-full z-50 w-[224px] -translate-x-1/2 pt-2"
               >
                 <div
-                  className={`origin-top rounded-2xl border border-slate-200/90 bg-white p-2 shadow-[0_18px_45px_rgba(15,23,42,0.14),0_2px_8px_rgba(15,23,42,0.06)] transition-[opacity,transform,visibility] ease-out motion-reduce:transition-none ${
+                  className={`origin-top rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-[0_18px_45px_rgba(15,23,42,0.14),0_2px_8px_rgba(15,23,42,0.06)] transition-[opacity,transform,visibility] ease-out motion-reduce:transition-none ${
                     devicesMenuOpen
                       ? "visible translate-y-0 scale-100 opacity-100 duration-[170ms]"
                       : "invisible pointer-events-none -translate-y-1.5 scale-[0.98] opacity-0 duration-[120ms]"
@@ -360,7 +358,7 @@ export default function Header({
                   <Link
                     href={devicesHref}
                     onClick={handleDevicesOverviewClick}
-                    className="group/item block rounded-xl px-3 py-2.5 transition-colors duration-150 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
+                    className="group/item block rounded-xl px-3 py-2 text-center transition-colors duration-150 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
                   >
                     <span className="block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
                       {text.allDevices}
@@ -373,7 +371,7 @@ export default function Header({
                   <Link
                     href={myDevicesHref}
                     onClick={closeDevicesMenu}
-                    className="group/item block rounded-xl px-3 py-2.5 transition-colors duration-150 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
+                    className="group/item block rounded-xl px-3 py-2 text-center transition-colors duration-150 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
                   >
                     <span className="block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
                       {text.myDevices}
@@ -402,12 +400,12 @@ export default function Header({
           </nav>
 
           {/* Right Side */}
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2 md:w-[187px] md:justify-end">
             {/* Language switch */}
             <Link
               href={languageHref}
               onClick={closeMenu}
-              className="group relative -left-2 flex h-[34px] w-[82px] items-center overflow-hidden rounded-full border border-slate-300 bg-white shadow-[inset_0_1px_2px_rgba(15,23,42,0.05),0_2px_6px_rgba(15,23,42,0.08)] transition duration-200 hover:border-green-300 hover:shadow-[inset_0_1px_2px_rgba(15,23,42,0.05),0_3px_8px_rgba(15,23,42,0.12)] active:scale-[0.98]"
+              className="group relative flex h-[34px] w-[82px] items-center overflow-hidden rounded-full border border-slate-300 bg-white shadow-[inset_0_1px_2px_rgba(15,23,42,0.05),0_2px_6px_rgba(15,23,42,0.08)] transition duration-200 hover:border-green-300 hover:shadow-[inset_0_1px_2px_rgba(15,23,42,0.05),0_3px_8px_rgba(15,23,42,0.12)] active:scale-[0.98]"
               aria-label={
                 locale === "de"
                   ? "Switch to English"
@@ -446,14 +444,6 @@ export default function Header({
                 EN
               </span>
             </Link>
-
-            <a
-              href={calculatorHref}
-              onClick={closeMenu}
-              className="hidden h-[34px] min-w-[96px] items-center justify-center rounded-full bg-green-700 px-4 text-sm font-semibold text-white shadow-[0_2px_6px_rgba(21,128,61,0.22)] transition duration-200 hover:-translate-y-px hover:bg-green-800 hover:shadow-[0_4px_10px_rgba(21,128,61,0.28)] active:translate-y-0 active:scale-[0.98] sm:inline-flex"
-            >
-              {text.calculate}
-            </a>
 
             <button
               type="button"
@@ -540,13 +530,6 @@ export default function Header({
                 {text.faq}
               </a>
 
-              <a
-                href={calculatorHref}
-                onClick={closeMenu}
-                className="mt-2 rounded-xl bg-green-700 px-3 py-3 text-center text-base font-semibold text-white transition hover:bg-green-800"
-              >
-                {text.calculate}
-              </a>
             </div>
           </nav>
         )}
