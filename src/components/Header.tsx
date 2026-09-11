@@ -25,7 +25,11 @@ type HeaderProps = {
   languageHrefOverride?: string;
 };
 
-type HomeSection = "calculator" | "howItWorks" | "faq";
+type HomeSection =
+  | "calculator"
+  | "devices"
+  | "howItWorks"
+  | "faq";
 
 const navigation = {
   de: {
@@ -194,6 +198,7 @@ export default function Header({
         navigation: HomeSection;
       }> = [
         { id: "rechner", navigation: "calculator" },
+        { id: "meine-geraete", navigation: "devices" },
         { id: "so-funktionierts", navigation: "howItWorks" },
         { id: "faq", navigation: "faq" },
       ];
@@ -210,6 +215,17 @@ export default function Header({
         ) {
           nextSection = section.navigation;
         }
+      }
+
+      const pageIsAtBottom =
+        window.scrollY + window.innerHeight >=
+        document.documentElement.scrollHeight - 24;
+
+      if (
+        pageIsAtBottom &&
+        document.getElementById("faq")
+      ) {
+        nextSection = "faq";
       }
 
       setActiveHomeSection(nextSection);
