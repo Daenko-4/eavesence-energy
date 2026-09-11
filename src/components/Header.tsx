@@ -221,7 +221,7 @@ export default function Header({
 
     devicesHoverTimeoutRef.current = setTimeout(
       closeDevicesMenu,
-      150,
+      50,
     );
   }
 
@@ -330,7 +330,7 @@ export default function Header({
                 <svg
                   viewBox="0 0 20 20"
                   fill="none"
-                  className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-[170ms] ease-out motion-reduce:transition-none group-hover:text-green-700 ${
+                  className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-[90ms] ease-out motion-reduce:transition-none group-hover:text-green-700 ${
                     devicesMenuOpen ? "rotate-180" : ""
                   }`}
                   stroke="currentColor"
@@ -346,19 +346,19 @@ export default function Header({
               <div
                 id="devices-navigation-menu"
                 aria-hidden={!devicesMenuOpen}
-                className="absolute left-1/2 top-full z-50 ml-[-10px] w-[208px] -translate-x-1/2 pt-2"
+                className="absolute left-1/2 top-full z-50 w-[196px] -translate-x-1/2 pt-2"
               >
                 <div
                   className={`origin-top rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-[0_18px_45px_rgba(15,23,42,0.14),0_2px_8px_rgba(15,23,42,0.06)] transition-[opacity,transform,visibility] ease-out motion-reduce:transition-none ${
                     devicesMenuOpen
-                      ? "visible translate-y-0 scale-100 opacity-100 duration-[170ms]"
-                      : "invisible pointer-events-none -translate-y-1.5 scale-[0.98] opacity-0 duration-[120ms]"
+                      ? "visible translate-y-0 opacity-100 duration-[90ms]"
+                      : "invisible pointer-events-none -translate-y-0.5 opacity-0 duration-[70ms]"
                   }`}
                 >
                   <Link
                     href={devicesHref}
                     onClick={handleDevicesOverviewClick}
-                    className="group/item block rounded-xl px-3 py-2 text-center transition-colors duration-150 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
+                    className="group/item flex flex-col items-center rounded-xl px-2 py-2 text-center transition-colors duration-100 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
                   >
                     <span className="block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
                       {text.allDevices}
@@ -371,7 +371,7 @@ export default function Header({
                   <Link
                     href={myDevicesHref}
                     onClick={closeDevicesMenu}
-                    className="group/item block rounded-xl px-3 py-2 text-center transition-colors duration-150 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
+                    className="group/item flex flex-col items-center rounded-xl px-2 py-2 text-center transition-colors duration-100 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
                   >
                     <span className="block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
                       {text.myDevices}
