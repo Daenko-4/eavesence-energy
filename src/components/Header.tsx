@@ -360,10 +360,10 @@ export default function Header({
                     onClick={handleDevicesOverviewClick}
                     className="group/item flex flex-col items-center rounded-xl px-2 py-2 text-center transition-colors duration-100 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
                   >
-                    <span className="block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
+                    <span className="relative -left-[10px] block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
                       {text.allDevices}
                     </span>
-                    <span className="mt-0.5 block text-xs font-medium text-slate-500">
+                    <span className="relative -left-[10px] mt-0.5 block text-xs font-medium text-slate-500">
                       {text.allDevicesDescription}
                     </span>
                   </Link>
@@ -373,10 +373,10 @@ export default function Header({
                     onClick={closeDevicesMenu}
                     className="group/item flex flex-col items-center rounded-xl px-2 py-2 text-center transition-colors duration-100 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
                   >
-                    <span className="block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
+                    <span className="relative -left-[10px] block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
                       {text.myDevices}
                     </span>
-                    <span className="mt-0.5 block text-xs font-medium text-slate-500">
+                    <span className="relative -left-[10px] mt-0.5 block text-xs font-medium text-slate-500">
                       {text.myDevicesDescription}
                     </span>
                   </Link>
