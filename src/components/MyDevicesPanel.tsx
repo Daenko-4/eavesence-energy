@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
+import DeviceCategoryIcon from "@/components/DeviceCategoryIcon";
 import { devices } from "@/data/devices";
 import type { Locale } from "@/i18n/config";
 import { getLocalizedDevice } from "@/i18n/devices";
@@ -40,6 +41,7 @@ const copy = {
     perYear: "pro Jahr",
     open: "Bearbeiten",
     remove: "Löschen",
+    removeConfirm: "Möchtest du „{device}“ wirklich löschen?",
     removeAll: "Alle lokalen Geräte löschen",
     removeAllConfirm:
       "Möchtest du wirklich alle lokal gespeicherten Geräte löschen?",
@@ -81,6 +83,7 @@ const copy = {
     perYear: "per year",
     open: "Edit",
     remove: "Delete",
+    removeConfirm: "Do you really want to delete “{device}”?",
     removeAll: "Delete all local devices",
     removeAllConfirm:
       "Do you really want to delete all locally saved devices?",
@@ -215,6 +218,17 @@ export default function MyDevicesPanel({
   }
 
   function removeDevice(id: string) {
+    const device = savedDevices.find((item) => item.id === id);
+
+    if (
+      device &&
+      !window.confirm(
+        text.removeConfirm.replace("{device}", getDeviceName(device)),
+      )
+    ) {
+      return;
+    }
+
     const nextDevices = savedDevices.filter((item) => item.id !== id);
     persist(nextDevices);
 
@@ -287,6 +301,17 @@ export default function MyDevicesPanel({
       : item.device;
   }
 
+  function getDeviceCategory(item: SavedDevice) {
+    if (item.device === "__custom_device__") {
+      return "custom";
+    }
+
+    return (
+      devices.find((candidate) => candidate.name === item.device)?.category ??
+      "custom"
+    );
+  }
+
   const totals = currencyOrder
     .map((currency) => {
       const matchingDevices = savedDevices.filter(
@@ -342,7 +367,7 @@ export default function MyDevicesPanel({
             type="button"
             onClick={saveCurrentDevice}
             disabled={!canSave}
-            className="inline-flex min-h-9 shrink-0 items-center justify-center self-start rounded-lg bg-green-700 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-300 active:scale-[0.98] sm:self-auto"
+            className="inline-flex min-h-9 shrink-0 items-center justify-center self-start rounded-lg border border-[#b8efcc] bg-[#dcfce8] px-3.5 py-1.5 text-xs font-bold text-[#065f3b] transition hover:bg-[#c9f7d9] disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300 disabled:text-white active:scale-[0.98] sm:self-auto"
           >
             {activeSavedDeviceId ? text.update : text.save}
           </button>
@@ -413,13 +438,18 @@ export default function MyDevicesPanel({
                     key={item.id}
                     className="flex flex-col gap-2 py-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-5"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-base font-bold tracking-tight text-slate-950">
-                        {getDeviceName(item)}
-                      </p>
-                      <p className="mt-0.5 text-xs text-slate-500">
-                        {formatMoney(item.monthlyCost, locale, item.currency)} {text.perMonth}
-                      </p>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-700">
+                        <DeviceCategoryIcon category={getDeviceCategory(item)} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-base font-bold tracking-tight text-slate-950">
+                          {getDeviceName(item)}
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          {formatMoney(item.monthlyCost, locale, item.currency)} {text.perMonth}
+                        </p>
+                      </div>
                     </div>
                     <p className="text-sm font-semibold tabular-nums text-slate-700 sm:text-right">
                       {formatMoney(item.yearlyCost, locale, item.currency)}
@@ -431,7 +461,7 @@ export default function MyDevicesPanel({
                       <button
                         type="button"
                         onClick={() => onOpen(item)}
-                        className="min-h-8 rounded-md px-2 py-1 text-xs font-bold text-green-800 transition hover:bg-green-50"
+                        className="min-h-8 rounded-md px-2 py-1 text-xs font-bold text-green-800 transition hover:bg-[#dcfce8]"
                       >
                         {text.open}
                       </button>
@@ -452,21 +482,21 @@ export default function MyDevicesPanel({
                 <button
                   type="button"
                   onClick={exportDevices}
-                  className="text-xs font-semibold text-green-800 transition hover:text-green-950"
+                  className="text-[11px] font-bold text-green-800 transition hover:text-green-950"
                 >
                   {text.export}
                 </button>
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
-                  className="text-xs font-semibold text-green-800 transition hover:text-green-950"
+                  className="text-[11px] font-bold text-green-800 transition hover:text-green-950"
                 >
                   {text.import}
                 </button>
                 <button
                   type="button"
                   onClick={removeAllDevices}
-                  className="text-xs font-semibold text-slate-500 transition hover:text-red-700"
+                  className="text-[11px] font-bold text-slate-500 transition hover:text-red-700"
                 >
                   {text.removeAll}
                 </button>
@@ -531,7 +561,7 @@ export default function MyDevicesPanel({
           type="button"
           onClick={saveCurrentDevice}
           disabled={!canSave}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-green-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-green-800 hover:shadow-md disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none active:scale-[0.98]"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-4 py-2.5 text-sm font-bold text-[#065f3b] shadow-sm transition hover:bg-[#c9f7d9] hover:shadow-md disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300 disabled:text-white disabled:shadow-none active:scale-[0.98]"
         >
           {activeSavedDeviceId ? text.update : text.save}
         </button>
@@ -673,8 +703,12 @@ export default function MyDevicesPanel({
               }
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <p className="truncate font-bold text-slate-950">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-700">
+                    <DeviceCategoryIcon category={getDeviceCategory(item)} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-bold text-slate-950">
                     {getDeviceName(item)}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
@@ -694,7 +728,8 @@ export default function MyDevicesPanel({
                   <p className="mt-1 text-xs text-slate-400">
                     {formatUses(item.usesPerWeek, locale)}{" "}
                     {text.usesPerWeek}
-                  </p>
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex shrink-0 gap-2">
@@ -704,7 +739,7 @@ export default function MyDevicesPanel({
                       onOpen(item);
                       setNotice("");
                     }}
-                    className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-semibold text-green-800 transition hover:bg-green-100"
+                    className="rounded-lg border border-[#b8efcc] bg-[#dcfce8] px-3 py-2 text-sm font-semibold text-[#065f3b] transition hover:bg-[#c9f7d9]"
                   >
                     {text.open}
                   </button>
@@ -740,7 +775,7 @@ export default function MyDevicesPanel({
             <button
               type="button"
               onClick={() => importInputRef.current?.click()}
-              className="group inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-green-500 hover:bg-green-700 hover:text-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+              className="group inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b8efcc] hover:bg-[#dcfce8] hover:text-[#065f3b] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dcfce8] focus-visible:ring-offset-2"
             >
               <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M10 13V3" />
@@ -753,7 +788,7 @@ export default function MyDevicesPanel({
               <button
                 type="button"
                 onClick={exportDevices}
-                className="group inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-green-500 hover:bg-green-700 hover:text-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+                className="group inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b8efcc] hover:bg-[#dcfce8] hover:text-[#065f3b] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dcfce8] focus-visible:ring-offset-2"
               >
                 <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M10 3v10" />

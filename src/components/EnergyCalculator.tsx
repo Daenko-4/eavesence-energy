@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import DeviceCategoryIcon from "@/components/DeviceCategoryIcon";
 import { devices } from "@/data/devices";
 import { getDevicesHref, type Locale } from "@/i18n/config";
 import {
@@ -1052,8 +1053,13 @@ export default function EnergyCalculator({
         </p>
         {detailPage ? (
           <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-[#fbfcfb] px-4 py-3.5">
-            <span className="font-semibold text-slate-900">
-              {displayDeviceName}
+            <span className="flex min-w-0 items-center gap-3 font-semibold text-slate-900">
+              <span className="shrink-0 text-green-700">
+                <DeviceCategoryIcon
+                  category={selectedDevice?.category ?? "custom"}
+                />
+              </span>
+              <span className="truncate">{displayDeviceName}</span>
             </span>
             <a
               href={getDevicesHref(activeLocale)}
@@ -1068,15 +1074,21 @@ export default function EnergyCalculator({
               {text.device.label}
             </label>
 
-            <select
-          value={device}
-          onChange={(event) =>
-            handleDeviceChange(
-              event.target.value
-            )
-          }
-          className={fieldClassName}
-        >
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 z-10 flex -translate-y-1/2 text-emerald-400">
+                <DeviceCategoryIcon
+                  category={selectedDevice?.category ?? "custom"}
+                />
+              </span>
+              <select
+                value={device}
+                onChange={(event) =>
+                  handleDeviceChange(
+                    event.target.value
+                  )
+                }
+                className={`${fieldClassName} pl-11`}
+              >
           {categories
             .filter((category) =>
               visibleDevices.some((item) => item.category === category)
@@ -1127,7 +1139,8 @@ export default function EnergyCalculator({
               {text.device.custom}
             </option>
           </optgroup>
-            </select>
+              </select>
+            </div>
 
             <details className={`group ${homePresentation ? "mt-2" : "mt-3"}`}>
           <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-green-950 [&::-webkit-details-marker]:hidden">
@@ -1537,7 +1550,7 @@ export default function EnergyCalculator({
               block: "center",
             })
           }
-          className="inline-flex min-h-12 flex-1 items-center justify-center gap-3 rounded-xl border border-emerald-300/40 bg-[linear-gradient(180deg,#13cc78_0%,#00a95d_100%)] px-5 font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.32),0_12px_30px_-18px_rgba(0,207,116,0.9)] transition hover:-translate-y-0.5 hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] active:translate-y-0"
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-3 rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-5 font-bold text-[#065f3b] shadow-[0_10px_28px_-20px_rgba(0,122,61,0.65)] transition hover:-translate-y-0.5 hover:bg-[#c9f7d9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dcfce8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] active:translate-y-0"
         >
           {text.calculate} <span aria-hidden="true">→</span>
         </button>
@@ -1593,7 +1606,7 @@ export default function EnergyCalculator({
       {/* Result */}
       <div
         ref={resultRef}
-        className={`flex flex-col justify-center rounded-[1.45rem] border border-[#e1e6dc] bg-[#f7f8f2] text-[#07111f] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_12px_32px_-28px_rgba(7,17,31,0.34)] ${
+        className={`flex min-w-0 flex-col justify-center rounded-[1.45rem] border border-[#e1e6dc] bg-[#f7f8f2] text-[#07111f] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_12px_32px_-28px_rgba(7,17,31,0.34)] ${
           homePresentation
             ? "min-h-[300px] p-6 sm:p-7"
             : "min-h-[420px] p-6 sm:p-8 lg:p-10"
@@ -1606,7 +1619,7 @@ export default function EnergyCalculator({
             </p>
 
             <div className={homePresentation ? "mt-3" : "mt-5"}>
-              <span className={`${homePresentation ? "text-[clamp(2.9rem,5.6vw,5.6rem)]" : "text-[clamp(3.6rem,7vw,7rem)]"} font-extrabold leading-none tracking-[-0.075em] tabular-nums`}>
+              <span className={`${homePresentation ? "text-[clamp(2.35rem,4.4vw,4.5rem)]" : "text-[clamp(2.8rem,5.5vw,5.5rem)]"} block max-w-full whitespace-normal font-extrabold leading-[0.95] tracking-[-0.055em] tabular-nums [overflow-wrap:anywhere]`}>
                 {formatMoney(
                   yearlyCost,
                   activeLocale,
@@ -1988,10 +2001,10 @@ export default function EnergyCalculator({
         <button
           type="button"
           onClick={() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })}
-          className="fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-2xl bg-green-950 px-4 py-3 text-left text-white shadow-2xl sm:hidden"
+          className="fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-2xl border border-[#b8efcc] bg-[#dcfce8] px-4 py-3 text-left text-[#064e3b] shadow-2xl sm:hidden"
         >
           <span>
-            <span className="block text-xs text-green-100/75">{text.result.perYear}</span>
+            <span className="block text-xs text-green-900/65">{text.result.perYear}</span>
             <span className="font-extrabold">{formatMoney(yearlyCost, activeLocale, currency)}</span>
           </span>
           <span className="text-sm font-bold">{text.result.viewResult} ↑</span>

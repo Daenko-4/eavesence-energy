@@ -513,7 +513,7 @@ export default function DevicesPage({
 
             <Link
               href={calculatorHref}
-              className="mt-7 inline-flex items-center gap-3 rounded-xl bg-green-700 px-6 py-3.5 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-green-800 hover:shadow-md active:scale-[0.98]"
+              className="mt-7 inline-flex items-center gap-3 rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-6 py-3.5 font-semibold text-[#065f3b] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9f7d9] hover:shadow-md active:scale-[0.98]"
             >
               {text.ctaButton}
               <span>→</span>

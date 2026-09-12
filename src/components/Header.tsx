@@ -192,6 +192,7 @@ export default function Header({
     }
 
     let animationFrame = 0;
+    let resizeObserver: ResizeObserver | null = null;
 
     function updateActiveSection() {
       animationFrame = 0;
@@ -206,16 +207,23 @@ export default function Header({
         { id: "faq", navigation: "faq" },
       ];
 
-      const activationLine = 112;
       let nextSection: HomeSection = "calculator";
 
       for (const section of sections) {
         const element = document.getElementById(section.id);
 
-        if (
-          element &&
-          element.getBoundingClientRect().top <= activationLine
-        ) {
+        if (!element) {
+          continue;
+        }
+
+        const scrollMarginTop = Number.parseFloat(
+          window.getComputedStyle(element).scrollMarginTop,
+        );
+        const activationLine = Number.isFinite(scrollMarginTop)
+          ? scrollMarginTop + 1
+          : 97;
+
+        if (element.getBoundingClientRect().top <= activationLine) {
           nextSection = section.navigation;
         }
       }
@@ -250,15 +258,41 @@ export default function Header({
     });
     window.addEventListener("resize", scheduleUpdate);
     window.addEventListener("hashchange", scheduleUpdate);
+    window.addEventListener("scrollend", scheduleUpdate);
+    window.addEventListener("pageshow", scheduleUpdate);
+
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(scheduleUpdate);
+      resizeObserver.observe(document.body);
+
+      for (const id of [
+        "rechner",
+        "meine-geraete",
+        "so-funktionierts",
+        "faq",
+      ]) {
+        const element = document.getElementById(id);
+
+        if (element) {
+          resizeObserver.observe(element);
+        }
+      }
+    }
+
+    const settledFrame = window.requestAnimationFrame(scheduleUpdate);
 
     return () => {
       if (animationFrame) {
         window.cancelAnimationFrame(animationFrame);
       }
+      window.cancelAnimationFrame(settledFrame);
+      resizeObserver?.disconnect();
 
       window.removeEventListener("scroll", scheduleUpdate);
       window.removeEventListener("resize", scheduleUpdate);
       window.removeEventListener("hashchange", scheduleUpdate);
+      window.removeEventListener("scrollend", scheduleUpdate);
+      window.removeEventListener("pageshow", scheduleUpdate);
     };
   }, [isHomePage]);
 
@@ -390,7 +424,7 @@ export default function Header({
             >
               {text.calculator}
               {activeNavigation === "calculator" && (
-                <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-[#00a557]" />
+                <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-full bg-[#dcfce8] shadow-[0_0_0_1px_rgba(0,122,61,0.28)]" />
               )}
             </a>
 
@@ -417,6 +451,12 @@ export default function Header({
                 aria-expanded={devicesMenuOpen}
                 aria-controls="devices-navigation-menu"
                 onClick={togglePinnedDevicesMenu}
+                onPointerEnter={openDevicesMenu}
+                onPointerMove={() => {
+                  if (!devicesMenuOpen) {
+                    openDevicesMenu();
+                  }
+                }}
                 className={`group flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors duration-150 hover:text-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/30 ${
                   activeNavigation === "devices"
                     ? "text-[#07111f]"
@@ -426,7 +466,7 @@ export default function Header({
                 <span className="relative">
                   {text.devices}
                   {activeNavigation === "devices" && (
-                    <span className="absolute inset-x-0 -bottom-2 h-0.5 rounded-full bg-[#00a557]" />
+                    <span className="absolute inset-x-0 -bottom-2 h-[3px] rounded-full bg-[#dcfce8] shadow-[0_0_0_1px_rgba(0,122,61,0.28)]" />
                   )}
                 </span>
                 <svg
@@ -460,7 +500,7 @@ export default function Header({
                   <Link
                     href={devicesHref}
                     onClick={handleDevicesOverviewClick}
-                    className="group/item flex flex-col items-center rounded-xl px-2 py-2 text-center transition-colors duration-100 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
+                    className="group/item flex flex-col items-center rounded-xl px-2 py-2 text-center transition-colors duration-100 hover:bg-[#dcfce8] focus-visible:bg-[#dcfce8] focus-visible:outline-none"
                   >
                     <span className="relative -left-[10px] block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
                       {text.allDevices}
@@ -473,7 +513,7 @@ export default function Header({
                   <Link
                     href={myDevicesHref}
                     onClick={closeDevicesMenu}
-                    className="group/item flex flex-col items-center rounded-xl px-2 py-2 text-center transition-colors duration-100 hover:bg-green-50 focus-visible:bg-green-50 focus-visible:outline-none"
+                    className="group/item flex flex-col items-center rounded-xl px-2 py-2 text-center transition-colors duration-100 hover:bg-[#dcfce8] focus-visible:bg-[#dcfce8] focus-visible:outline-none"
                   >
                     <span className="relative -left-[10px] block text-sm font-bold text-slate-800 transition-colors group-hover/item:text-green-800">
                       {text.myDevices}
@@ -501,7 +541,7 @@ export default function Header({
             >
               {text.howItWorks}
               {activeNavigation === "howItWorks" && (
-                <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-[#00a557]" />
+                <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-full bg-[#dcfce8] shadow-[0_0_0_1px_rgba(0,122,61,0.28)]" />
               )}
             </a>
 
@@ -520,7 +560,7 @@ export default function Header({
             >
               {text.faq}
               {activeNavigation === "faq" && (
-                <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[#00a557]" />
+                <span className="absolute inset-x-2 bottom-0 h-[3px] rounded-full bg-[#dcfce8] shadow-[0_0_0_1px_rgba(0,122,61,0.28)]" />
               )}
             </a>
           </nav>
@@ -631,7 +671,7 @@ export default function Header({
                 <a
                   href={myDevicesHref}
                   onClick={closeMenu}
-                  className="flex items-center justify-between gap-3 rounded-lg bg-green-50 px-3 py-2.5 text-base font-bold text-green-900 transition hover:bg-green-100"
+                  className="flex items-center justify-between gap-3 rounded-lg bg-[#dcfce8] px-3 py-2.5 text-base font-bold text-green-900 transition hover:bg-[#c9f7d9]"
                 >
                   <span>{text.myDevices}</span>
                   <span className="rounded-full border border-green-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-green-700">
