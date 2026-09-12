@@ -1143,7 +1143,7 @@ export default function EnergyCalculator({
             </div>
 
             <details className={`group ${homePresentation ? "mt-2" : "mt-3"}`}>
-          <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-green-950 [&::-webkit-details-marker]:hidden">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-white [&::-webkit-details-marker]:hidden">
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
               <circle cx="8.5" cy="8.5" r="5.5" />
               <path d="m13 13 4 4" />
@@ -1243,7 +1243,7 @@ export default function EnergyCalculator({
               current === "exact" ? "estimate" : "exact"
             )
           }
-          className={`${homePresentation ? "mb-3" : "mb-5"} inline-flex items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-green-950`}
+          className={`${homePresentation ? "mb-3" : "mb-5"} inline-flex items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-white`}
         >
           <svg
             viewBox="0 0 20 20"

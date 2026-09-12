@@ -424,7 +424,7 @@ export default function Header({
             >
               {text.calculator}
               {activeNavigation === "calculator" && (
-                <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-full bg-[#dcfce8] shadow-[0_0_0_1px_rgba(0,122,61,0.28)]" />
+                <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-[#00a557]" />
               )}
             </a>
 
@@ -466,7 +466,7 @@ export default function Header({
                 <span className="relative">
                   {text.devices}
                   {activeNavigation === "devices" && (
-                    <span className="absolute inset-x-0 -bottom-2 h-[3px] rounded-full bg-[#dcfce8] shadow-[0_0_0_1px_rgba(0,122,61,0.28)]" />
+                    <span className="absolute inset-x-0 -bottom-2 h-0.5 rounded-full bg-[#00a557]" />
                   )}
                 </span>
                 <svg
@@ -541,7 +541,7 @@ export default function Header({
             >
               {text.howItWorks}
               {activeNavigation === "howItWorks" && (
-                <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-full bg-[#dcfce8] shadow-[0_0_0_1px_rgba(0,122,61,0.28)]" />
+                <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-[#00a557]" />
               )}
             </a>
 
@@ -560,7 +560,7 @@ export default function Header({
             >
               {text.faq}
               {activeNavigation === "faq" && (
-                <span className="absolute inset-x-2 bottom-0 h-[3px] rounded-full bg-[#dcfce8] shadow-[0_0_0_1px_rgba(0,122,61,0.28)]" />
+                <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[#00a557]" />
               )}
             </a>
           </nav>
