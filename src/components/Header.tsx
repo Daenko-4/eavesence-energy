@@ -325,7 +325,7 @@ export default function Header({
               onClick={handleLogoClick}
               onMouseEnter={openDesktopNavigation}
               onFocus={openDesktopNavigation}
-              className={`absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-2.5 transition-[left,transform] duration-[420ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
+              className={`absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-2.5 transition-[left,transform] duration-[520ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
                 desktopNavigationOpen
                   ? "left-0 translate-x-0"
                   : "left-1/2 -translate-x-1/2"
@@ -334,7 +334,7 @@ export default function Header({
             >
               <BrandMark className="h-8 w-8 shrink-0" />
               <span
-                className={`overflow-hidden whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-[max-width,opacity,transform,filter] duration-[420ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
+                className={`overflow-hidden whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-[max-width,opacity,transform,filter] duration-[520ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
                   desktopNavigationOpen
                     ? "max-w-0 -translate-x-3 scale-x-75 opacity-0 blur-[5px]"
                     : "max-w-[190px] translate-x-0 scale-x-100 opacity-100 blur-0"
@@ -357,7 +357,7 @@ export default function Header({
                 setPreviewNavigation(null);
               }}
               aria-label={text.openNavigation}
-              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,transform,filter,visibility] duration-[280ms] ease-out motion-reduce:transition-none ${
+              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,transform,filter,visibility] duration-[340ms] ease-out motion-reduce:transition-none ${
                 desktopNavigationOpen
                   ? "visible translate-x-0 opacity-100 blur-0 delay-100"
                   : "invisible pointer-events-none translate-x-4 opacity-0 blur-[3px] delay-0"
@@ -381,7 +381,7 @@ export default function Header({
               <span
                 ref={activeIndicatorRef}
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[var(--brand-green)] opacity-0 transition-[width,transform,opacity] duration-[220ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[var(--brand-green-mint)] opacity-0 transition-[width,transform,opacity] duration-[220ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
               />
             </nav>
           </div>

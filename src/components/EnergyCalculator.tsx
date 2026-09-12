@@ -1054,7 +1054,7 @@ export default function EnergyCalculator({
 
       {/* Device */}
       <div className={homePresentation ? "mb-4" : "mb-6"}>
-        <p className="mb-3 text-sm font-semibold tracking-[-0.01em] text-[#edf3ef]">
+        <p className="mb-3 pl-3.5 text-sm font-semibold tracking-[-0.01em] text-[#edf3ef]">
           {text.device.label}
         </p>
         {detailPage ? (
@@ -1276,7 +1276,7 @@ export default function EnergyCalculator({
           isPowerDevice && (
             <>
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
                   {text.fields.power}
                 </label>
 
@@ -1314,7 +1314,7 @@ export default function EnergyCalculator({
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
                   {
                     text.fields
                       .minutesPerUse
@@ -1357,7 +1357,7 @@ export default function EnergyCalculator({
         {mode === "estimate" &&
           isConsumptionDevice && (
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
+              <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
                 {
                   text.fields
                     .consumptionPerUse
@@ -1401,7 +1401,7 @@ export default function EnergyCalculator({
 
         {mode === "exact" && (
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
+            <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
               {
                 text.fields
                   .actualConsumptionPerUse
@@ -1446,7 +1446,7 @@ export default function EnergyCalculator({
         {/* Electricity price */}
         <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_8rem]">
           <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
             {
               text.fields
                 .electricityPrice
@@ -1486,7 +1486,7 @@ export default function EnergyCalculator({
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
+            <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
               {text.fields.currency}
             </label>
 
@@ -1506,7 +1506,7 @@ export default function EnergyCalculator({
 
         {/* Uses */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
             {
               text.fields
                 .usesPerWeek
@@ -1566,7 +1566,7 @@ export default function EnergyCalculator({
           type="button"
           onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
           disabled={!calculationIsValid}
-          className="calculator-save-action ml-auto inline-flex min-h-8 items-center justify-center gap-1 rounded-md border border-[var(--brand-green)] bg-[var(--brand-green)] px-2.5 py-1 text-[var(--brand-off-white)] shadow-[0_8px_20px_-16px_rgba(0,122,61,0.8)] transition hover:-translate-y-0.5 hover:bg-[var(--brand-green-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0"
+          className="calculator-save-action ml-auto inline-flex min-h-8 items-center justify-center gap-1 rounded-md border border-[var(--brand-green-mint)] bg-[var(--brand-green-mint)] px-2.5 py-1 text-[var(--brand-green)] shadow-[0_8px_20px_-16px_rgba(114,220,163,0.65)] transition hover:-translate-y-0.5 hover:border-[#62d797] hover:bg-[#62d797] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0"
         >
           {activeSavedDeviceId ? text.saveChanges : text.calculate}
           <span aria-hidden="true">+</span>

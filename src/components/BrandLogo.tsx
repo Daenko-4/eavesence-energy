@@ -17,14 +17,15 @@ export function BrandMark({
       fill="none"
       aria-hidden="true"
     >
-      <rect x="1" y="1" width="10" height="10" rx="2.4" fill="#10283a" />
-      <rect x="13" y="1" width="10" height="10" rx="2.4" fill="#10283a" />
-      <rect x="25" y="1" width="10" height="10" rx="2.4" fill="#087a45" />
-      <rect x="1" y="13" width="10" height="10" rx="2.4" fill="#10283a" />
-      <rect x="13" y="13" width="10" height="10" rx="2.4" fill="#10283a" />
-      <rect x="1" y="25" width="10" height="10" rx="2.4" fill="#10283a" />
-      <rect x="13" y="25" width="10" height="10" rx="2.4" fill="#10283a" />
-      <rect x="25" y="25" width="10" height="10" rx="2.4" fill="#10283a" />
+      <path d="M1 4 4 1h8v8l-3 3H1Z" fill="#10283a" />
+      <path d="m13 4 3-3h8v8l-3 3h-8Z" fill="#10283a" />
+      <path d="m25 4 3-3h7v8l-3 3h-7Z" fill="#087a45" />
+      <path d="m1 16 3-3h8v8l-3 3H1Z" fill="#10283a" />
+      <path d="m13 16 3-3h8v8l-3 3h-8Z" fill="#10283a" />
+      <path d="m25 16 3-3h5v8l-3 3h-5Z" fill="#087a45" />
+      <path d="m1 28 3-3h8v8l-3 3H1Z" fill="#10283a" />
+      <path d="m13 28 3-3h8v8l-3 3h-8Z" fill="#10283a" />
+      <path d="m25 28 3-3h7v8l-3 3h-7Z" fill="#72dca3" />
     </svg>
   );
 }

@@ -514,7 +514,7 @@ function MyDevicesPanel(
                 ))}
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <div className="mt-3 flex flex-wrap items-start gap-x-3 gap-y-2">
                 <button
                   type="button"
                   onClick={exportDevices}
@@ -556,9 +556,20 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={removeAllDevices}
-                  className="saved-device-utility-action text-slate-400 transition hover:text-red-700"
+                  className="group relative pb-1 saved-device-utility-action text-slate-400 transition hover:text-red-700"
                 >
                   {text.removeAll}
+                  <svg
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    className="pointer-events-none absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-1 opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m3 3 6 6M9 3 3 9" />
+                  </svg>
                 </button>
               </div>
             </div>
