@@ -35,9 +35,10 @@ const copy = {
       "Noch keine Geräte gespeichert. Berechne ein Gerät und füge es hier hinzu.",
     monthlyTotal: "Gesamtkosten pro Monat",
     yearlyTotal: "Gesamtkosten pro Jahr",
+    total: "Gesamtsumme",
     perMonth: "pro Monat",
     perYear: "pro Jahr",
-    open: "Öffnen",
+    open: "Bearbeiten",
     remove: "Löschen",
     removeAll: "Alle lokalen Geräte löschen",
     removeAllConfirm:
@@ -75,9 +76,10 @@ const copy = {
       "No devices saved yet. Calculate a device and add it here.",
     monthlyTotal: "Total cost per month",
     yearlyTotal: "Total cost per year",
+    total: "Total",
     perMonth: "per month",
     perYear: "per year",
-    open: "Open",
+    open: "Edit",
     remove: "Delete",
     removeAll: "Delete all local devices",
     removeAllConfirm:
@@ -327,9 +329,11 @@ export default function MyDevicesPanel({
         id="meine-geraete"
         className="mt-7 scroll-mt-[96px] border-t border-slate-200 pt-6"
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="font-bold text-slate-950">{text.title}</h3>
+            <h3 className="text-lg font-bold tracking-tight text-slate-950">
+              {text.title}
+            </h3>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
               {text.description}
             </p>
@@ -338,7 +342,7 @@ export default function MyDevicesPanel({
             type="button"
             onClick={saveCurrentDevice}
             disabled={!canSave}
-            className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl bg-green-700 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none active:scale-[0.98]"
+            className="inline-flex min-h-9 shrink-0 items-center justify-center self-start rounded-lg bg-green-700 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-300 active:scale-[0.98] sm:self-auto"
           >
             {activeSavedDeviceId ? text.update : text.save}
           </button>
@@ -359,7 +363,7 @@ export default function MyDevicesPanel({
 
         {savedDevices.length > 0 ? (
           <details className="group mt-4 border-y border-slate-200">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:text-green-800 [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3 text-sm font-semibold text-slate-700 transition hover:text-green-800 [&::-webkit-details-marker]:hidden">
               <span>
                 {savedDevices.length}{" "}
                 {savedDevices.length === 1
@@ -373,47 +377,69 @@ export default function MyDevicesPanel({
               </span>
             </summary>
 
-            <div className="border-t border-slate-200 pb-4 pt-3">
-              {totals.map((total) => (
-                <div
-                  key={total.currency}
-                  className="flex flex-wrap items-center justify-between gap-3 py-2 text-sm"
-                >
-                  <span className="font-semibold text-slate-600">
-                    {total.count} · {total.currency}
-                  </span>
-                  <span className="font-bold text-slate-950">
-                    {formatMoney(total.yearlyCost, locale, total.currency)} {text.perYear}
-                  </span>
-                </div>
-              ))}
+            <div className="border-t border-slate-200 pb-3 pt-3">
+              <div className="overflow-hidden rounded-xl bg-[#f6f7f2] px-4">
+                {totals.map((total, index) => (
+                  <div
+                    key={total.currency}
+                    className={
+                      "flex items-center justify-between gap-4 py-3 " +
+                      (index > 0 ? "border-t border-slate-200/80" : "")
+                    }
+                  >
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className="text-sm font-semibold text-slate-700">
+                        {text.total}
+                      </span>
+                      <span className="rounded-md bg-white px-2 py-0.5 text-[10px] font-bold tracking-wide text-slate-500 ring-1 ring-inset ring-slate-200">
+                        {total.currency}
+                      </span>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className="text-base font-bold tabular-nums text-slate-950">
+                        {formatMoney(total.yearlyCost, locale, total.currency)}
+                      </span>
+                      <span className="ml-1.5 text-xs text-slate-500">
+                        {text.perYear}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-              <div className="mt-2 divide-y divide-slate-100 border-y border-slate-100">
+              <div className="mt-3 divide-y divide-slate-100 border-y border-slate-100">
                 {sortedDevices.map((item) => (
                   <div
                     key={item.id}
-                    className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-2 py-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-5"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-slate-950">
+                      <p className="truncate text-base font-bold tracking-tight text-slate-950">
                         {getDeviceName(item)}
                       </p>
                       <p className="mt-0.5 text-xs text-slate-500">
                         {formatMoney(item.monthlyCost, locale, item.currency)} {text.perMonth}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <p className="text-sm font-semibold tabular-nums text-slate-700 sm:text-right">
+                      {formatMoney(item.yearlyCost, locale, item.currency)}
+                      <span className="ml-1 text-xs font-normal text-slate-500">
+                        {text.perYear}
+                      </span>
+                    </p>
+                    <div className="flex items-center gap-1 sm:justify-end">
                       <button
                         type="button"
                         onClick={() => onOpen(item)}
-                        className="rounded-lg border border-green-200 px-3 py-1.5 text-xs font-bold text-green-800 transition hover:bg-green-50"
+                        className="min-h-8 rounded-md px-2 py-1 text-xs font-bold text-green-800 transition hover:bg-green-50"
                       >
                         {text.open}
                       </button>
+                      <span aria-hidden="true" className="h-4 w-px bg-slate-200" />
                       <button
                         type="button"
                         onClick={() => removeDevice(item.id)}
-                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-red-200 hover:text-red-700"
+                        className="min-h-8 rounded-md px-2 py-1 text-xs font-semibold text-slate-500 transition hover:bg-red-50 hover:text-red-700"
                       >
                         {text.remove}
                       </button>
@@ -422,7 +448,7 @@ export default function MyDevicesPanel({
                 ))}
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-slate-100 pt-3">
                 <button
                   type="button"
                   onClick={exportDevices}
@@ -430,7 +456,6 @@ export default function MyDevicesPanel({
                 >
                   {text.export}
                 </button>
-                <span className="text-slate-300">·</span>
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
@@ -438,7 +463,6 @@ export default function MyDevicesPanel({
                 >
                   {text.import}
                 </button>
-                <span className="text-slate-300">·</span>
                 <button
                   type="button"
                   onClick={removeAllDevices}
