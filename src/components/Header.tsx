@@ -99,6 +99,9 @@ export default function Header({
   const closeNavigationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const logoInteractionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const suppressPointerOpenRef = useRef(false);
   const headerRef = useRef<HTMLElement>(null);
   const desktopNavigationRef = useRef<HTMLElement>(null);
@@ -133,6 +136,9 @@ export default function Header({
     return () => {
       if (closeNavigationTimeoutRef.current) {
         clearTimeout(closeNavigationTimeoutRef.current);
+      }
+      if (logoInteractionTimeoutRef.current) {
+        clearTimeout(logoInteractionTimeoutRef.current);
       }
     };
   }, []);
@@ -251,6 +257,10 @@ export default function Header({
 
   function handleDesktopNavigationMouseLeave() {
     suppressPointerOpenRef.current = false;
+    if (logoInteractionTimeoutRef.current) {
+      clearTimeout(logoInteractionTimeoutRef.current);
+      logoInteractionTimeoutRef.current = null;
+    }
     scheduleDesktopNavigationClose();
   }
 
@@ -270,6 +280,13 @@ export default function Header({
 
   function handleLogoClick(event: MouseEvent<HTMLAnchorElement>) {
     suppressPointerOpenRef.current = true;
+    if (logoInteractionTimeoutRef.current) {
+      clearTimeout(logoInteractionTimeoutRef.current);
+    }
+    logoInteractionTimeoutRef.current = setTimeout(() => {
+      suppressPointerOpenRef.current = false;
+      logoInteractionTimeoutRef.current = null;
+    }, 560);
     closeMenu();
     setDesktopNavigationOpen(false);
     setPreviewNavigation(null);
