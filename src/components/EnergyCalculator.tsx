@@ -1547,21 +1547,11 @@ export default function EnergyCalculator({
         </div>
       </div>
 
-      <div className={`${homePresentation ? "mt-4" : "mt-6"} flex flex-col gap-3 sm:flex-row sm:items-center`}>
-        <button
-          type="button"
-          onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
-          disabled={!calculationIsValid}
-          className="inline-flex min-h-10 self-start items-center justify-center gap-2 rounded-lg border border-[#14945a] bg-[#087a45] px-4 py-2 text-sm font-bold text-white shadow-[0_10px_24px_-18px_rgba(0,122,61,0.8)] transition hover:-translate-y-0.5 hover:bg-[#06683b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65d89b] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0"
-        >
-          {activeSavedDeviceId ? text.saveChanges : text.calculate}
-          <span aria-hidden="true">+</span>
-        </button>
-
+      <div className={`${homePresentation ? "mt-3" : "mt-5"} flex items-center justify-between gap-4`}>
         <button
           type="button"
           onClick={handleReset}
-          className="group inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-400 transition hover:bg-white/[0.06] hover:text-white active:scale-[0.98]"
+          className="group inline-flex items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-white active:scale-[0.98]"
         >
           <span
             aria-hidden="true"
@@ -1570,6 +1560,16 @@ export default function EnergyCalculator({
             ↻
           </span>
           {text.reset}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
+          disabled={!calculationIsValid}
+          className="ml-auto inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-[#14945a] bg-[#087a45] px-3 py-1.5 text-xs font-bold text-white shadow-[0_8px_20px_-16px_rgba(0,122,61,0.8)] transition hover:-translate-y-0.5 hover:bg-[#06683b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65d89b] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0"
+        >
+          {activeSavedDeviceId ? text.saveChanges : text.calculate}
+          <span aria-hidden="true">+</span>
         </button>
       </div>
 

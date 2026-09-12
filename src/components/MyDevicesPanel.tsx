@@ -424,7 +424,7 @@ function MyDevicesPanel(
                   <div
                     key={total.currency}
                     className={
-                      "flex items-center justify-between gap-4 py-3 " +
+                      "flex items-center justify-between gap-4 py-2.5 " +
                       (index > 0 ? "border-t border-slate-200/80" : "")
                     }
                   >
@@ -448,14 +448,14 @@ function MyDevicesPanel(
                 ))}
               </div>
 
-              <div className="mt-3 divide-y divide-slate-100 border-y border-slate-100">
+              <div className="mt-2 divide-y divide-slate-100 border-y border-slate-100">
                 {sortedDevices.map((item) => (
                   <div
                     key={item.id}
-                    className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-3"
+                    className="grid gap-1.5 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(280px,0.85fr)] sm:items-center sm:gap-5"
                   >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-700">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-700">
                         <DeviceCategoryIcon category={getDeviceCategory(item)} />
                       </span>
                       <div className="min-w-0">
@@ -467,22 +467,18 @@ function MyDevicesPanel(
                         </p>
                       </div>
                     </div>
-                    <span
-                      aria-hidden="true"
-                      className="hidden h-px min-w-8 flex-1 bg-gradient-to-r from-slate-200 via-slate-200 to-slate-100 sm:block"
-                    />
-                    <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:gap-0.5">
-                      <p className="text-base font-bold tabular-nums text-slate-900 sm:text-right">
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="text-lg font-extrabold tabular-nums text-slate-950">
                         {formatMoney(item.yearlyCost, locale, item.currency)}
                         <span className="ml-1 text-[11px] font-normal text-slate-500">
                           {text.perYear}
                         </span>
                       </p>
-                      <div className="flex items-center gap-0.5">
+                      <div className="flex shrink-0 items-center gap-0.5 opacity-75 transition hover:opacity-100">
                         <button
                           type="button"
                           onClick={() => onOpen(item)}
-                          className="min-h-5 rounded px-1 py-0.5 text-[9px] font-semibold text-green-700/80 transition hover:bg-[#dcfce8] hover:text-green-900"
+                          className="rounded px-0.5 py-1 text-[8px] font-semibold leading-none text-green-700 transition hover:bg-[#dcfce8] hover:text-green-900"
                         >
                           {text.open}
                         </button>
@@ -490,7 +486,7 @@ function MyDevicesPanel(
                         <button
                           type="button"
                           onClick={() => removeDevice(item.id)}
-                          className="min-h-5 rounded px-1 py-0.5 text-[9px] font-medium text-slate-400 transition hover:bg-red-50 hover:text-red-700"
+                          className="rounded px-0.5 py-1 text-[8px] font-medium leading-none text-slate-400 transition hover:bg-red-50 hover:text-red-700"
                         >
                           {text.remove}
                         </button>
