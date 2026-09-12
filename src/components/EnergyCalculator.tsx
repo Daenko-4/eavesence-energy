@@ -15,7 +15,9 @@ import type {
   SavedDeviceCurrency,
 } from "@/lib/savedDevices";
 
-import MyDevicesPanel from "./MyDevicesPanel";
+import MyDevicesPanel, {
+  type MyDevicesPanelHandle,
+} from "./MyDevicesPanel";
 
 const CUSTOM_DEVICE = "__custom_device__";
 
@@ -222,7 +224,8 @@ const calculatorText = {
       subject: "Feedback zu EAVESENCE Energy",
     },
 
-    calculate: "Kosten berechnen",
+    calculate: "Berechnung speichern",
+    saveChanges: "Änderungen speichern",
     reset: "Werte zurücksetzen",
     fallbackDevice: "Gerät",
   },
@@ -376,7 +379,8 @@ const calculatorText = {
       subject: "Feedback about EAVESENCE Energy",
     },
 
-    calculate: "Calculate costs",
+    calculate: "Save calculation",
+    saveChanges: "Save changes",
     reset: "Reset values",
     fallbackDevice: "Device",
   },
@@ -803,6 +807,8 @@ export default function EnergyCalculator({
 
   const resultRef =
     useRef<HTMLDivElement>(null);
+  const myDevicesPanelRef =
+    useRef<MyDevicesPanelHandle>(null);
 
   useEffect(() => {
     const resultElement = resultRef.current;
@@ -1544,15 +1550,12 @@ export default function EnergyCalculator({
       <div className={`${homePresentation ? "mt-4" : "mt-6"} flex flex-col gap-3 sm:flex-row sm:items-center`}>
         <button
           type="button"
-          onClick={() =>
-            resultRef.current?.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            })
-          }
-          className="inline-flex min-h-12 flex-1 items-center justify-center gap-3 rounded-xl border border-[#14945a] bg-[#087a45] px-5 font-bold text-white shadow-[0_12px_30px_-18px_rgba(0,122,61,0.8)] transition hover:-translate-y-0.5 hover:bg-[#06683b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65d89b] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] active:translate-y-0"
+          onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
+          disabled={!calculationIsValid}
+          className="inline-flex min-h-10 self-start items-center justify-center gap-2 rounded-lg border border-[#14945a] bg-[#087a45] px-4 py-2 text-sm font-bold text-white shadow-[0_10px_24px_-18px_rgba(0,122,61,0.8)] transition hover:-translate-y-0.5 hover:bg-[#06683b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65d89b] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0"
         >
-          {text.calculate} <span aria-hidden="true">→</span>
+          {activeSavedDeviceId ? text.saveChanges : text.calculate}
+          <span aria-hidden="true">+</span>
         </button>
 
         <button
@@ -1711,8 +1714,8 @@ export default function EnergyCalculator({
           </svg>
         </span>
         {activeLocale === "de"
-          ? "Geräte speichern und Gesamtkosten vergleichen"
-          : "Save devices and compare total costs"}
+          ? "Gesamtkosten vergleichen"
+          : "Compare total costs"}
         <span className="text-[#008c4a]" aria-hidden="true">→</span>
       </a>
 
@@ -1974,6 +1977,7 @@ export default function EnergyCalculator({
       )}
 
       <MyDevicesPanel
+        ref={myDevicesPanelRef}
         locale={activeLocale}
         canSave={calculationIsValid}
         activeSavedDeviceId={activeSavedDeviceId}

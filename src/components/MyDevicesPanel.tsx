@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
 
 import DeviceCategoryIcon from "@/components/DeviceCategoryIcon";
 import { devices } from "@/data/devices";
@@ -21,6 +28,10 @@ type MyDevicesPanelProps = {
   onActiveSavedDeviceChange: (id: string | null) => void;
   onOpen: (device: SavedDevice) => void;
   compact?: boolean;
+};
+
+export type MyDevicesPanelHandle = {
+  saveCurrentDevice: () => void;
 };
 
 const copy = {
@@ -155,29 +166,34 @@ function createId() {
   return String(Date.now()) + "-" + Math.random().toString(16).slice(2);
 }
 
-export default function MyDevicesPanel({
-  locale,
-  currentDevice,
-  canSave,
-  activeSavedDeviceId,
-  onActiveSavedDeviceChange,
-  onOpen,
-  compact = false,
-}: MyDevicesPanelProps) {
+const MyDevicesPanel = forwardRef<MyDevicesPanelHandle, MyDevicesPanelProps>(
+function MyDevicesPanel(
+  {
+    locale,
+    currentDevice,
+    canSave,
+    activeSavedDeviceId,
+    onActiveSavedDeviceChange,
+    onOpen,
+    compact = false,
+  },
+  ref,
+) {
   const text = copy[locale];
   const [savedDevices, setSavedDevices] = useState<SavedDevice[]>([]);
   const [notice, setNotice] = useState("");
   const [storageReady, setStorageReady] = useState(false);
   const [sortBy, setSortBy] = useState<"newest" | "cost" | "name">("newest");
+  const [listOpen, setListOpen] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      setSavedDevices(
-        readSavedDevices(
-          window.localStorage.getItem(SAVED_DEVICES_STORAGE_KEY)
-        )
+      const storedDevices = readSavedDevices(
+        window.localStorage.getItem(SAVED_DEVICES_STORAGE_KEY)
       );
+      setSavedDevices(storedDevices);
+      setListOpen(storedDevices.length > 0);
       setStorageReady(true);
     });
 
@@ -211,6 +227,7 @@ export default function MyDevicesPanel({
       : [nextDevice, ...savedDevices];
 
     persist(nextDevices);
+    setListOpen(true);
     onActiveSavedDeviceChange(id);
     setNotice(
       activeSavedDeviceId ? text.updated : text.saved
@@ -280,6 +297,7 @@ export default function MyDevicesPanel({
       }
 
       persist(imported);
+      setListOpen(imported.length > 0);
       onActiveSavedDeviceChange(null);
       setNotice(text.imported);
     } catch {
@@ -311,6 +329,8 @@ export default function MyDevicesPanel({
       "custom"
     );
   }
+
+  useImperativeHandle(ref, () => ({ saveCurrentDevice }));
 
   const totals = currencyOrder
     .map((currency) => {
@@ -354,7 +374,7 @@ export default function MyDevicesPanel({
         id="meine-geraete"
         className="mt-7 scroll-mt-[96px] border-t border-slate-200 pt-6"
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
           <div>
             <h3 className="text-lg font-bold tracking-tight text-slate-950">
               {text.title}
@@ -363,14 +383,6 @@ export default function MyDevicesPanel({
               {text.description}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={saveCurrentDevice}
-            disabled={!canSave}
-            className="inline-flex min-h-9 shrink-0 items-center justify-center self-start rounded-lg border border-[#b8efcc] bg-[#dcfce8] px-3.5 py-1.5 text-xs font-bold text-[#065f3b] transition hover:bg-[#c9f7d9] disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300 disabled:text-white active:scale-[0.98] sm:self-auto"
-          >
-            {activeSavedDeviceId ? text.update : text.save}
-          </button>
         </div>
         {notice && (
           <p role="status" className="mt-3 text-sm font-semibold text-green-800">
@@ -387,7 +399,11 @@ export default function MyDevicesPanel({
         />
 
         {savedDevices.length > 0 ? (
-          <details className="group mt-4 border-y border-slate-200">
+          <details
+            open={listOpen}
+            onToggle={(event) => setListOpen(event.currentTarget.open)}
+            className="group mt-4 border-y border-slate-200"
+          >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3 text-sm font-semibold text-slate-700 transition hover:text-green-800 [&::-webkit-details-marker]:hidden">
               <span>
                 {savedDevices.length}{" "}
@@ -456,9 +472,9 @@ export default function MyDevicesPanel({
                       className="hidden h-px min-w-8 flex-1 bg-gradient-to-r from-slate-200 via-slate-200 to-slate-100 sm:block"
                     />
                     <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:gap-0.5">
-                      <p className="text-sm font-semibold tabular-nums text-slate-700 sm:text-right">
+                      <p className="text-base font-bold tabular-nums text-slate-900 sm:text-right">
                         {formatMoney(item.yearlyCost, locale, item.currency)}
-                        <span className="ml-1 text-xs font-normal text-slate-500">
+                        <span className="ml-1 text-[11px] font-normal text-slate-500">
                           {text.perYear}
                         </span>
                       </p>
@@ -466,7 +482,7 @@ export default function MyDevicesPanel({
                         <button
                           type="button"
                           onClick={() => onOpen(item)}
-                          className="min-h-6 rounded px-1.5 py-0.5 text-[10px] font-bold text-green-800 transition hover:bg-[#dcfce8]"
+                          className="min-h-5 rounded px-1 py-0.5 text-[9px] font-semibold text-green-700/80 transition hover:bg-[#dcfce8] hover:text-green-900"
                         >
                           {text.open}
                         </button>
@@ -474,7 +490,7 @@ export default function MyDevicesPanel({
                         <button
                           type="button"
                           onClick={() => removeDevice(item.id)}
-                          className="min-h-6 rounded px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 transition hover:bg-red-50 hover:text-red-700"
+                          className="min-h-5 rounded px-1 py-0.5 text-[9px] font-medium text-slate-400 transition hover:bg-red-50 hover:text-red-700"
                         >
                           {text.remove}
                         </button>
@@ -527,7 +543,7 @@ export default function MyDevicesPanel({
       id="meine-geraete"
       className="mt-10 scroll-mt-[120px] border-t border-slate-200 pt-8"
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div>
         <div>
           <div className="flex items-center gap-3">
             <span
@@ -563,14 +579,6 @@ export default function MyDevicesPanel({
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={saveCurrentDevice}
-          disabled={!canSave}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-4 py-2.5 text-sm font-bold text-[#065f3b] shadow-sm transition hover:bg-[#c9f7d9] hover:shadow-md disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300 disabled:text-white disabled:shadow-none active:scale-[0.98]"
-        >
-          {activeSavedDeviceId ? text.update : text.save}
-        </button>
       </div>
 
       {notice && (
@@ -651,7 +659,11 @@ export default function MyDevicesPanel({
           </p>
         </div>
       ) : savedDevices.length > 0 ? (
-        <details className="group mt-5">
+        <details
+          open={listOpen}
+          onToggle={(event) => setListOpen(event.currentTarget.open)}
+          className="group mt-5"
+        >
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-bold text-slate-900 transition hover:border-green-300 hover:bg-green-50 [&::-webkit-details-marker]:hidden">
             <span>
               {savedDevices.length}{" "}
@@ -820,4 +832,6 @@ export default function MyDevicesPanel({
       </div>
     </div>
   );
-}
+});
+
+export default MyDevicesPanel;
