@@ -8,22 +8,22 @@
     </linearGradient>
   </defs>
   <rect width="1200" height="630" rx="40" fill="url(#background)"/>
-  <circle cx="1030" cy="90" r="170" fill="#15803d" opacity=".06"/>
-  <circle cx="1110" cy="580" r="250" fill="#15803d" opacity=".05"/>
+  <circle cx="1030" cy="90" r="170" fill="#087a45" opacity=".06"/>
+  <circle cx="1110" cy="580" r="250" fill="#087a45" opacity=".05"/>
   <g transform="translate(78 113) scale(2.15)">
     <path d="M91 20H31C21 20 16 25 16 35V77C16 87 21 92 31 92H91" fill="none" stroke="#0f172a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M17 66C37 39 61 33 91 39C73 62 50 72 23 72C17 72 14 69 17 66Z" fill="#15803d"/>
+    <path d="M17 66C37 39 61 33 91 39C73 62 50 72 23 72C17 72 14 69 17 66Z" fill="#087a45"/>
     <path d="M25 66C45 57 64 47 82 41" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
   </g>
   <g transform="translate(374 127) scale(1.18)">
     <g transform="translate(4 7)">
       <path d="M88 13H28C18 13 13 18 13 28V70C13 80 18 85 28 85H88" fill="none" stroke="#0f172a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M14 59C34 32 58 26 88 32C70 55 47 65 20 65C14 65 11 62 14 59Z" fill="#15803d"/>
+      <path d="M14 59C34 32 58 26 88 32C70 55 47 65 20 65C14 65 11 62 14 59Z" fill="#087a45"/>
       <path d="M22 59C42 50 61 40 79 34" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
       <path d="M88 85C94 85 98 80 101 74" fill="none" stroke="#0f172a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
     <text x="96" y="92" fill="#0f172a" font-family="Arial Rounded MT Bold, Arial, Helvetica, sans-serif" font-size="79" font-weight="700" letter-spacing="-1.2">AVESENCE</text>
-    <text x="376" y="133" text-anchor="middle" fill="#15803d" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" letter-spacing="13">ENERGY</text>
+    <text x="376" y="133" text-anchor="middle" fill="#087a45" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" letter-spacing="13">ENERGY</text>
   </g>
   <text x="85" y="510" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="43" font-weight="600">Stromkosten einfach verstehen.</text>
   <text x="87" y="557" fill="#64748b" font-family="Arial, Helvetica, sans-serif" font-size="25">Einfach · verständlich · kostenlos</text>

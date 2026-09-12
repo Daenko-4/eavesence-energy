@@ -76,7 +76,7 @@ function NavigationLink({
       onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
-      className={`group relative flex h-10 items-center whitespace-nowrap px-1 text-[13px] font-semibold transition-colors duration-150 hover:text-[#087a45] ${
+      className={`group relative flex h-10 items-center whitespace-nowrap px-1 text-[13px] font-semibold transition-colors duration-150 hover:text-[var(--brand-green)] ${
         active ? "text-[#07111f]" : "text-slate-600"
       }`}
     >
@@ -259,6 +259,12 @@ export default function Header({
 
   function handleLogoClick(event: MouseEvent<HTMLAnchorElement>) {
     closeMenu();
+    setDesktopNavigationOpen(false);
+    setPreviewNavigation(null);
+    if (closeNavigationTimeoutRef.current) {
+      clearTimeout(closeNavigationTimeoutRef.current);
+      closeNavigationTimeoutRef.current = null;
+    }
     if (pathname !== homeHref) return;
 
     event.preventDefault();
@@ -278,7 +284,7 @@ export default function Header({
           <button
             type="button"
             onClick={() => setMenuOpen((current) => !current)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-green-200 hover:bg-green-50 hover:text-green-700 lg:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] lg:hidden"
             aria-label={menuOpen ? text.closeNavigation : text.openNavigation}
             aria-expanded={menuOpen}
           >
@@ -375,7 +381,7 @@ export default function Header({
               <span
                 ref={activeIndicatorRef}
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[#18a957] opacity-0 transition-[width,transform,opacity] duration-[220ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[var(--brand-green)] opacity-0 transition-[width,transform,opacity] duration-[220ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
               />
             </nav>
           </div>
@@ -394,10 +400,10 @@ export default function Header({
                 locale === "de" ? "left-[2px]" : "left-[38px]"
               }`}
             />
-            <span className={`relative z-10 flex w-1/2 items-center justify-center text-[10px] font-bold uppercase tracking-[0.03em] ${locale === "de" ? "text-green-700" : "text-slate-400"}`}>
+            <span className={`relative z-10 flex w-1/2 items-center justify-center text-[10px] font-bold uppercase tracking-[0.03em] ${locale === "de" ? "text-[var(--brand-green)]" : "text-slate-400"}`}>
               DE
             </span>
-            <span className={`relative z-10 flex w-1/2 items-center justify-center text-[10px] font-bold uppercase tracking-[0.03em] ${locale === "en" ? "text-green-700" : "text-slate-400"}`}>
+            <span className={`relative z-10 flex w-1/2 items-center justify-center text-[10px] font-bold uppercase tracking-[0.03em] ${locale === "en" ? "text-[var(--brand-green)]" : "text-slate-400"}`}>
               EN
             </span>
           </Link>
@@ -417,7 +423,7 @@ export default function Header({
                   key={href}
                   href={href}
                   onClick={closeMenu}
-                  className="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-green-50 hover:text-green-800"
+                  className="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
                 >
                   {label}
                 </a>

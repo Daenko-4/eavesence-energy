@@ -28,13 +28,13 @@ export default function DatenschutzPage() {
       >
         <Link
           href="/"
-          className="text-sm font-semibold text-green-600 hover:text-green-700"
+          className="text-sm font-semibold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]"
         >
           ← Zurück zu EAVESENCE Energy
         </Link>
 
         <div className="mt-8">
-          <p className="text-sm font-semibold uppercase tracking-wider text-green-600">
+          <p className="text-sm font-semibold uppercase tracking-wider text-[var(--brand-green)]">
             Rechtliches
           </p>
 
@@ -62,7 +62,7 @@ export default function DatenschutzPage() {
                 E-Mail:{" "}
                 <a
                   href="mailto:parkwaydrive@gmx.at"
-                  className="font-medium text-green-600 hover:text-green-700"
+                  className="font-medium text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]"
                 >
                   parkwaydrive@gmx.at
                 </a>

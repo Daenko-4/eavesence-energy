@@ -688,7 +688,7 @@ export default function HomePage({
           >
             <h1 className="text-balance text-center text-[clamp(1.9rem,4.1vw,3.75rem)] font-extrabold leading-[1.02] tracking-[-0.06em] text-[#07111f] lg:whitespace-nowrap">
               {hero.calculate} {hero.understand}{" "}
-              <span className="bg-gradient-to-r from-[#007a3d] to-[#00b863] bg-clip-text text-transparent">
+              <span className="text-[var(--brand-green)]">
                 {hero.save}
               </span>
             </h1>
@@ -707,7 +707,7 @@ export default function HomePage({
                   key={item}
                   className="flex items-center justify-center gap-3 px-5 py-2 text-sm font-semibold text-slate-700"
                 >
-                  <span className="text-[#008c4a]">
+                  <span className="text-[var(--brand-green)]">
                     <Icon
                       name={index === 0 ? "free" : index === 1 ? "settings" : "laptop"}
                       className="h-5 w-5"
@@ -728,7 +728,7 @@ export default function HomePage({
               </h2>
               <a
                 href={devicesHref}
-                className="inline-flex items-center gap-2 text-sm font-bold text-[#008c4a] transition hover:text-[#006f3a]"
+                className="inline-flex items-center gap-2 text-sm font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
               >
                 {hero.allDevices} <span aria-hidden="true">→</span>
               </a>
@@ -739,9 +739,9 @@ export default function HomePage({
                 <a
                   key={category.name}
                   href={category.href}
-                  className="group flex min-h-24 items-center gap-3 border-b border-r border-slate-200/70 px-4 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50/50 hover:text-[#007a3d] sm:px-5 lg:border-b-0 lg:last:border-r-0"
+                  className="group flex min-h-24 items-center gap-3 border-b border-r border-slate-200/70 px-4 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50/50 hover:text-[var(--brand-green)] sm:px-5 lg:border-b-0 lg:last:border-r-0"
                 >
-                  <span className="text-[#008c4a] transition-transform duration-200 group-hover:-translate-y-0.5">
+                  <span className="text-[var(--brand-green)] transition-transform duration-200 group-hover:-translate-y-0.5">
                     <Icon name={category.icon} className="h-6 w-6" />
                   </span>
                   {category.name}
@@ -766,7 +766,7 @@ export default function HomePage({
                   key={step.number}
                   className="flex gap-4 md:px-7 md:first:pl-0 md:last:pr-0"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-sm font-extrabold text-[#007a3d]">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-sm font-extrabold text-[var(--brand-green)]">
                     {Number(step.number)}
                   </span>
                   <div>
@@ -810,12 +810,12 @@ export default function HomePage({
                   key={faq.question}
                   className="group"
                 >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-semibold text-[#07111f] transition hover:text-[#007a3d] [&::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-semibold text-[#07111f] transition hover:text-[var(--brand-green)] [&::-webkit-details-marker]:hidden">
                     {faq.question}
 
                     <span
                       aria-hidden="true"
-                      className="text-lg font-light text-slate-500 transition-transform duration-150 group-open:rotate-45 group-open:text-[#008c4a]"
+                      className="text-lg font-light text-slate-500 transition-transform duration-150 group-open:rotate-45 group-open:text-[var(--brand-green)]"
                     >
                       +
                     </span>

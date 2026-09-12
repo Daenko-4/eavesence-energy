@@ -19,7 +19,7 @@ export function BrandMark({
     >
       <rect x="1" y="1" width="10" height="10" rx="2.4" fill="#10283a" />
       <rect x="13" y="1" width="10" height="10" rx="2.4" fill="#10283a" />
-      <rect x="25" y="1" width="10" height="10" rx="2.4" fill="#18a957" />
+      <rect x="25" y="1" width="10" height="10" rx="2.4" fill="#087a45" />
       <rect x="1" y="13" width="10" height="10" rx="2.4" fill="#10283a" />
       <rect x="13" y="13" width="10" height="10" rx="2.4" fill="#10283a" />
       <rect x="1" y="25" width="10" height="10" rx="2.4" fill="#10283a" />

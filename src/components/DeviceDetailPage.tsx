@@ -762,7 +762,7 @@ export default function DeviceDetailPage({
                             {scenario.note}
                           </p>
 
-                          <p className="mt-5 text-2xl font-extrabold text-green-800">
+                          <p className="mt-5 text-2xl font-extrabold text-[var(--brand-green)]">
                             {formatEuro(
                               scenarioYearlyCost,
                               locale
@@ -802,14 +802,14 @@ export default function DeviceDetailPage({
 
                 {seoContent.comparison && (
                   <div className="rounded-2xl border border-green-200 bg-green-50 p-6 sm:p-8">
-                    <h3 className="text-2xl font-bold tracking-tight text-green-950">
+                    <h3 className="text-2xl font-bold tracking-tight text-[var(--brand-green-dark)]">
                       {
                         seoContent.comparison
                           .title
                       }
                     </h3>
 
-                    <p className="mt-4 leading-7 text-green-950/75">
+                    <p className="mt-4 leading-7 text-[color:var(--brand-green-dark)]/75">
                       {
                         seoContent.comparison
                           .text
@@ -821,7 +821,7 @@ export default function DeviceDetailPage({
                         seoContent.comparison
                           .href
                       }
-                      className="mt-6 inline-flex font-bold text-green-800 transition hover:text-green-950"
+                      className="mt-6 inline-flex font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                     >
                       {
                         seoContent.comparison

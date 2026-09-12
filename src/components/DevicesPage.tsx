@@ -307,7 +307,7 @@ export default function DevicesPage({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(34,197,94,0.10),transparent_35%),radial-gradient(circle_at_5%_5%,rgba(34,197,94,0.06),transparent_25%)]" />
 
           <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-20">
-            <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-sm font-medium text-green-800">
+            <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-sm font-medium text-[var(--brand-green)]">
               <span>🌿</span>
               {text.badge}
             </div>
@@ -316,7 +316,7 @@ export default function DevicesPage({
               {text.heroFirst}
               <br />
 
-              <span className="text-green-700">
+              <span className="text-[var(--brand-green)]">
                 {text.heroHighlight}
               </span>
             </h1>
@@ -360,9 +360,9 @@ export default function DevicesPage({
                       category,
                       locale
                     )}`}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-green-200 hover:bg-green-50 hover:text-green-700 active:scale-[0.98]"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] active:scale-[0.98]"
                   >
-                    <span className="text-green-700">
+                    <span className="text-[var(--brand-green)]">
                       <CategoryIcon
                         category={category}
                       />
@@ -400,7 +400,7 @@ export default function DevicesPage({
                     className="scroll-mt-28"
                   >
                     <div className="flex items-center gap-4">
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-700">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-50 text-[var(--brand-green)]">
                         <CategoryIcon
                           category={
                             category
@@ -463,12 +463,12 @@ export default function DevicesPage({
                                   ⚡
                                 </div>
 
-                                <span className="text-xl text-green-600 transition group-hover:translate-x-1">
+                                <span className="text-xl text-[var(--brand-green)] transition group-hover:translate-x-1">
                                   →
                                 </span>
                               </div>
 
-                              <h3 className="mt-5 text-lg font-bold text-slate-950 transition group-hover:text-green-700">
+                              <h3 className="mt-5 text-lg font-bold text-slate-950 transition group-hover:text-[var(--brand-green-dark)]">
                                 {
                                   localizedDevice.name
                                 }
@@ -513,7 +513,7 @@ export default function DevicesPage({
 
             <Link
               href={calculatorHref}
-              className="mt-7 inline-flex items-center gap-3 rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-6 py-3.5 font-semibold text-[#065f3b] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9f7d9] hover:shadow-md active:scale-[0.98]"
+              className="mt-7 inline-flex items-center gap-3 rounded-xl border border-[var(--brand-green)] bg-[var(--brand-green)] px-6 py-3.5 font-semibold text-[var(--brand-off-white)] shadow-sm transition hover:-translate-y-0.5 hover:bg-[var(--brand-green-dark)] hover:shadow-md active:scale-[0.98]"
             >
               {text.ctaButton}
               <span>→</span>

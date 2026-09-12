@@ -384,7 +384,7 @@ function MyDevicesPanel(
             </p>
           </div>
           {savedDevices.length > 0 && (
-            <span className="w-fit rounded-full bg-[#ddf8e9] px-3 py-1 text-[11px] font-bold text-[#087a45]">
+            <span className="w-fit rounded-full bg-[#ddf8e9] px-3 py-1 text-[11px] font-bold text-[var(--brand-green)]">
               {savedDevices.length}{" "}
               {savedDevices.length === 1
                 ? text.savedDevice
@@ -393,7 +393,7 @@ function MyDevicesPanel(
           )}
         </div>
         {notice && (
-          <p role="status" className="mt-3 text-xs font-semibold text-green-800">
+          <p role="status" className="mt-3 text-xs font-semibold text-[var(--brand-green)]">
             {notice}
           </p>
         )}
@@ -412,7 +412,7 @@ function MyDevicesPanel(
             onToggle={(event) => setListOpen(event.currentTarget.open)}
             className="group mt-3"
           >
-            <summary className="flex cursor-pointer list-none justify-end py-1 text-[11px] font-bold text-slate-500 transition hover:text-green-800 [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none justify-end py-1 text-[11px] font-bold text-slate-500 transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
               <span className="flex items-center gap-1.5">
                 <span className="group-open:hidden">{text.showList}</span>
                 <span className="hidden group-open:inline">{text.hideList}</span>
@@ -439,7 +439,7 @@ function MyDevicesPanel(
                     className="flex items-center justify-between gap-5 rounded-2xl bg-[#e7f7ed] px-4 py-3.5 sm:px-5"
                   >
                     <div className="min-w-0">
-                      <span className="block text-[11px] font-bold uppercase tracking-[0.08em] text-[#087a45]">
+                      <span className="block text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--brand-green)]">
                         {text.total}
                       </span>
                       <span className="mt-0.5 block text-[10px] font-semibold tracking-[0.08em] text-slate-500">
@@ -465,7 +465,7 @@ function MyDevicesPanel(
                     className="grid gap-2 py-3 sm:grid-cols-[minmax(220px,1fr)_140px_165px_auto] sm:items-center sm:gap-4"
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-700">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-50 text-[var(--brand-green)]">
                         <DeviceCategoryIcon category={getDeviceCategory(item)} />
                       </span>
                       <div className="min-w-0">
@@ -490,7 +490,7 @@ function MyDevicesPanel(
                         <button
                           type="button"
                           onClick={() => onOpen(item)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#ddf8e9] hover:text-[#087a45]"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#ddf8e9] hover:text-[var(--brand-green)]"
                           aria-label={`${text.open}: ${getDeviceName(item)}`}
                           title={text.open}
                         >
@@ -518,7 +518,7 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={exportDevices}
-                  className="group relative pb-1 saved-device-utility-action text-green-800 transition hover:text-green-950"
+                  className="group relative pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                 >
                   {text.export}
                   <svg
@@ -537,7 +537,7 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
-                  className="group relative pb-1 saved-device-utility-action text-green-800 transition hover:text-green-950"
+                  className="group relative pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                 >
                   {text.import}
                   <svg
@@ -567,7 +567,7 @@ function MyDevicesPanel(
           <button
             type="button"
             onClick={() => importInputRef.current?.click()}
-            className="group relative mt-3 pb-1 saved-device-utility-action text-green-800 transition hover:text-green-950"
+            className="group relative mt-3 pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
           >
             {text.import}
             <svg
@@ -598,7 +598,7 @@ function MyDevicesPanel(
           <div className="flex items-center gap-3">
             <span
               aria-hidden="true"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-800"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-[var(--brand-green)]"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -624,7 +624,7 @@ function MyDevicesPanel(
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
             {text.description}
           </p>
-          <span className="mt-3 inline-flex rounded-full bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-800">
+          <span className="mt-3 inline-flex rounded-full bg-green-50 px-3 py-1.5 text-xs font-semibold text-[var(--brand-green)]">
             ✓ {text.privateBadge}
           </span>
         </div>
@@ -634,7 +634,7 @@ function MyDevicesPanel(
       {notice && (
         <p
           role="status"
-          className="mt-4 rounded-xl border border-green-200 bg-white px-4 py-3 text-sm font-semibold text-green-800"
+          className="mt-4 rounded-xl border border-green-200 bg-white px-4 py-3 text-sm font-semibold text-[var(--brand-green)]"
         >
           {notice}
         </p>
@@ -642,7 +642,7 @@ function MyDevicesPanel(
 
       {totals.length > 0 && (
         <div className="mt-5">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-green-700">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
             {text.dashboard}
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -722,7 +722,7 @@ function MyDevicesPanel(
                 : text.savedDevices}
             </span>
 
-            <span className="flex shrink-0 items-center gap-2 text-green-800">
+            <span className="flex shrink-0 items-center gap-2 text-[var(--brand-green)]">
               <span className="group-open:hidden">
                 {text.showList}
               </span>
@@ -772,7 +772,7 @@ function MyDevicesPanel(
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-700">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-[var(--brand-green)]">
                     <DeviceCategoryIcon category={getDeviceCategory(item)} />
                   </span>
                   <div className="min-w-0">
@@ -807,7 +807,7 @@ function MyDevicesPanel(
                       onOpen(item);
                       setNotice("");
                     }}
-                    className="min-h-7 rounded px-2 py-1 text-[11px] font-bold text-green-800 transition hover:bg-[#dcfce8]"
+                    className="min-h-7 rounded px-2 py-1 text-[11px] font-bold text-[var(--brand-green)] transition hover:bg-[#dcfce8]"
                   >
                     {text.open}
                   </button>
@@ -844,7 +844,7 @@ function MyDevicesPanel(
             <button
               type="button"
               onClick={() => importInputRef.current?.click()}
-              className="group inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b8efcc] hover:bg-[#dcfce8] hover:text-[#065f3b] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dcfce8] focus-visible:ring-offset-2"
+              className="group inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-[var(--brand-green)] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b8efcc] hover:bg-[#dcfce8] hover:text-[var(--brand-green)] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dcfce8] focus-visible:ring-offset-2"
             >
               <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M10 13V3" />
@@ -857,7 +857,7 @@ function MyDevicesPanel(
               <button
                 type="button"
                 onClick={exportDevices}
-                className="group inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-green-800 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b8efcc] hover:bg-[#dcfce8] hover:text-[#065f3b] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dcfce8] focus-visible:ring-offset-2"
+                className="group inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-[var(--brand-green)] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b8efcc] hover:bg-[#dcfce8] hover:text-[var(--brand-green)] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dcfce8] focus-visible:ring-offset-2"
               >
                 <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M10 3v10" />

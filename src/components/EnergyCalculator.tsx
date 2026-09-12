@@ -1031,7 +1031,7 @@ export default function EnergyCalculator({
         text.savingTip.fallback;
 
   const fieldClassName =
-    `w-full rounded-xl border border-white/[0.14] bg-[#222c2a] px-4 ${homePresentation ? "py-3" : "py-3.5"} font-medium text-[#f7faf8] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] outline-none transition-[border-color,background-color,box-shadow] placeholder:text-[#7f918b] hover:border-white/[0.22] focus:border-[#72dca3] focus:bg-[#26312f] focus:ring-4 focus:ring-[#34c77b]/10`;
+    `w-full rounded-xl border border-white/[0.14] bg-[#222c2a] px-4 ${homePresentation ? "py-3" : "py-3.5"} font-medium text-[#f7faf8] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] outline-none transition-[border-color,background-color,box-shadow] placeholder:text-[#7f918b] hover:border-white/[0.22] focus:border-[var(--brand-green-mint)] focus:bg-[#26312f] focus:ring-4 focus:ring-[#72dca3]/10`;
   const secondaryFieldClassName =
     "w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-green-400 focus:ring-4 focus:ring-green-100";
   const fieldHintClassName = homePresentation
@@ -1060,7 +1060,7 @@ export default function EnergyCalculator({
         {detailPage ? (
           <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-[#fbfcfb] px-4 py-3.5">
             <span className="flex min-w-0 items-center gap-3 font-semibold text-slate-900">
-              <span className="shrink-0 text-green-700">
+              <span className="shrink-0 text-[var(--brand-green)]">
                 <DeviceCategoryIcon
                   category={selectedDevice?.category ?? "custom"}
                 />
@@ -1069,7 +1069,7 @@ export default function EnergyCalculator({
             </span>
             <a
               href={getDevicesHref(activeLocale)}
-              className="shrink-0 text-sm font-semibold text-green-800 transition hover:text-green-950"
+              className="shrink-0 text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
             >
               {text.device.change}
             </a>
@@ -1081,7 +1081,7 @@ export default function EnergyCalculator({
             </label>
 
             <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 z-10 flex -translate-y-1/2 text-[#72dca3]">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 z-10 flex -translate-y-1/2 text-[var(--brand-green-mint)]">
                 <DeviceCategoryIcon
                   category={selectedDevice?.category ?? "custom"}
                 />
@@ -1149,7 +1149,7 @@ export default function EnergyCalculator({
             </div>
 
             <details className={`group ${homePresentation ? "mt-2" : "mt-3"}`}>
-          <summary className="calculator-secondary-action inline-flex cursor-pointer list-none items-center gap-2 text-[#72dca3] transition hover:text-white [&::-webkit-details-marker]:hidden">
+          <summary className="calculator-secondary-action inline-flex cursor-pointer list-none items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)] [&::-webkit-details-marker]:hidden">
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
               <circle cx="8.5" cy="8.5" r="5.5" />
               <path d="m13 13 4 4" />
@@ -1197,7 +1197,7 @@ export default function EnergyCalculator({
                       key={name}
                       type="button"
                       onClick={() => handleDeviceChange(name)}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-green-200 hover:text-green-800"
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-green-200 hover:text-[var(--brand-green-dark)]"
                     >
                       {getLocalizedDevice(recentDevice, activeLocale).name}
                     </button>
@@ -1249,7 +1249,7 @@ export default function EnergyCalculator({
               current === "exact" ? "estimate" : "exact"
             )
           }
-          className={`${homePresentation ? "mb-3" : "mb-5"} calculator-secondary-action inline-flex items-center gap-2 text-[#72dca3] transition hover:text-white`}
+          className={`${homePresentation ? "mb-3" : "mb-5"} calculator-secondary-action inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)]`}
         >
           <svg
             viewBox="0 0 20 20"
@@ -1453,7 +1453,7 @@ export default function EnergyCalculator({
             }
           </label>
 
-          <div className="flex w-full items-center rounded-xl border border-white/[0.14] bg-[#222c2a] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-[border-color,background-color,box-shadow] hover:border-white/[0.22] focus-within:border-[#72dca3] focus-within:bg-[#26312f] focus-within:ring-4 focus-within:ring-[#34c77b]/10">
+          <div className="flex w-full items-center rounded-xl border border-white/[0.14] bg-[#222c2a] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-[border-color,background-color,box-shadow] hover:border-white/[0.22] focus-within:border-[var(--brand-green-mint)] focus-within:bg-[#26312f] focus-within:ring-4 focus-within:ring-[#72dca3]/10">
             <input
               type="number"
               min="0"
@@ -1551,7 +1551,7 @@ export default function EnergyCalculator({
         <button
           type="button"
           onClick={handleReset}
-          className="calculator-secondary-action group inline-flex items-center gap-2 text-[#72dca3] transition hover:text-white active:scale-[0.98]"
+          className="calculator-secondary-action group inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)] active:scale-[0.98]"
         >
           <span
             aria-hidden="true"
@@ -1566,7 +1566,7 @@ export default function EnergyCalculator({
           type="button"
           onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
           disabled={!calculationIsValid}
-          className="calculator-save-action ml-auto inline-flex min-h-8 items-center justify-center gap-1 rounded-md border border-[#14945a] bg-[#087a45] px-2.5 py-1 text-white shadow-[0_8px_20px_-16px_rgba(0,122,61,0.8)] transition hover:-translate-y-0.5 hover:bg-[#06683b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65d89b] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0"
+          className="calculator-save-action ml-auto inline-flex min-h-8 items-center justify-center gap-1 rounded-md border border-[var(--brand-green)] bg-[var(--brand-green)] px-2.5 py-1 text-[var(--brand-off-white)] shadow-[0_8px_20px_-16px_rgba(0,122,61,0.8)] transition hover:-translate-y-0.5 hover:bg-[var(--brand-green-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0"
         >
           {activeSavedDeviceId ? text.saveChanges : text.calculate}
           <span aria-hidden="true">+</span>
@@ -1633,7 +1633,7 @@ export default function EnergyCalculator({
 
             <div className={`${homePresentation ? "mt-4 pt-4" : "mt-7 pt-6"} grid grid-cols-2 divide-x divide-[#dfe4da] border-t border-[#dfe4da]`}>
               <div className="flex min-w-0 items-center gap-3 pr-4">
-                <span className={`${homePresentation ? "h-9 w-9" : "h-11 w-11"} flex shrink-0 items-center justify-center rounded-full bg-[#dcf5e6] text-[#087a45]`} aria-hidden="true">
+                <span className={`${homePresentation ? "h-9 w-9" : "h-11 w-11"} flex shrink-0 items-center justify-center rounded-full bg-[#dcf5e6] text-[var(--brand-green)]`} aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="4" y="5" width="16" height="15" rx="2" />
                     <path d="M8 3v4M16 3v4M4 9h16" />
@@ -1648,7 +1648,7 @@ export default function EnergyCalculator({
               </div>
 
               <div className="flex min-w-0 items-center gap-3 pl-4">
-                <span className={`${homePresentation ? "h-9 w-9" : "h-11 w-11"} flex shrink-0 items-center justify-center rounded-full bg-[#dcf5e6] text-[#087a45]`} aria-hidden="true">
+                <span className={`${homePresentation ? "h-9 w-9" : "h-11 w-11"} flex shrink-0 items-center justify-center rounded-full bg-[#dcf5e6] text-[var(--brand-green)]`} aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 20v-5M10 20V9M15 20v-8M20 20V4" />
                   </svg>
@@ -1663,7 +1663,7 @@ export default function EnergyCalculator({
             </div>
 
             <details className={`group border-t border-[#dfe4da] pt-4 ${homePresentation ? "mt-4" : "mt-6"}`}>
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-[#087a45] transition hover:text-[#055f37] [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
                 {text.result.details}
                 <span
                   aria-hidden="true"
@@ -1673,7 +1673,7 @@ export default function EnergyCalculator({
                 </span>
               </summary>
               <div className="pt-3">
-                <p className="text-xs font-bold uppercase tracking-[0.1em] text-emerald-700">
+                <p className="text-xs font-bold uppercase tracking-[0.1em] text-[var(--brand-green)]">
                   {text.result.formula}
                 </p>
                 <p className="mt-2 break-words text-sm leading-6 text-slate-600">
@@ -1706,9 +1706,9 @@ export default function EnergyCalculator({
 
       <a
         href="#meine-geraete"
-        className="mx-auto mt-5 flex w-fit items-center gap-3 rounded-full px-3 py-2 text-sm font-bold text-[#07111f] transition hover:bg-emerald-50 hover:text-[#007a3d]"
+        className="mx-auto mt-5 flex w-fit items-center gap-3 rounded-full px-3 py-2 text-sm font-bold text-[#07111f] transition hover:bg-emerald-50 hover:text-[var(--brand-green)]"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-[#008c4a]" aria-hidden="true">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-[var(--brand-green)]" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M7 4h10a1 1 0 0 1 1 1v16l-6-4-6 4V5a1 1 0 0 1 1-1Z" />
           </svg>
@@ -1716,7 +1716,7 @@ export default function EnergyCalculator({
         {activeLocale === "de"
           ? "Gesamtkosten vergleichen"
           : "Compare total costs"}
-        <span className="text-[#008c4a]" aria-hidden="true">→</span>
+        <span className="text-[var(--brand-green)]" aria-hidden="true">→</span>
       </a>
 
       {/* Saving tip */}
@@ -1752,11 +1752,11 @@ export default function EnergyCalculator({
 
       {!homePresentation && calculationIsValid && (
         <details className="group mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-green-800 [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
             {text.result.scenario}
             <span
               aria-hidden="true"
-              className="flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none text-green-700 transition-transform duration-200 group-open:rotate-45"
+              className="flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none text-[var(--brand-green)] transition-transform duration-200 group-open:rotate-45"
             >
               +
             </span>
@@ -1799,7 +1799,7 @@ export default function EnergyCalculator({
                 <p className="text-xs text-slate-500">
                   {text.result.savings}
                 </p>
-                <p className="mt-1 text-lg font-extrabold text-green-800">
+                <p className="mt-1 text-lg font-extrabold text-[var(--brand-green)]">
                   {formatMoney(scenarioSavings, activeLocale, currency)}
                 </p>
               </div>
@@ -1814,7 +1814,7 @@ export default function EnergyCalculator({
             type="button"
             onClick={() => setComparisonOpen((open) => !open)}
             aria-expanded={comparisonOpen}
-            className="flex w-full items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left text-sm font-semibold text-slate-700 transition hover:border-green-300 hover:bg-slate-50 hover:text-green-800"
+            className="flex w-full items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left text-sm font-semibold text-slate-700 transition hover:border-green-300 hover:bg-slate-50 hover:text-[var(--brand-green-dark)]"
           >
             <span>
               {comparisonOpen
@@ -1823,7 +1823,7 @@ export default function EnergyCalculator({
             </span>
             <span
               aria-hidden="true"
-              className={`flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none text-green-700 transition-transform duration-200 ${
+              className={`flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none text-[var(--brand-green)] transition-transform duration-200 ${
                 comparisonOpen ? "rotate-45" : ""
               }`}
             >
@@ -1930,7 +1930,7 @@ export default function EnergyCalculator({
                     <p className="mt-1 truncate font-bold text-slate-950">
                       {option.name}
                     </p>
-                    <p className="mt-4 text-2xl font-extrabold text-green-800">
+                    <p className="mt-4 text-2xl font-extrabold text-[var(--brand-green)]">
                       {formatMoney(option.yearly, activeLocale, currency)}
                     </p>
                     <p className="text-xs text-slate-500">
@@ -1958,7 +1958,7 @@ export default function EnergyCalculator({
                 ))}
               </div>
 
-              <div className="mt-4 rounded-xl bg-green-950 px-4 py-3 text-center text-sm font-semibold text-white">
+              <div className="mt-4 rounded-xl bg-[var(--brand-green)] px-4 py-3 text-center text-sm font-semibold text-[var(--brand-off-white)]">
                 {comparisonDifference < 0.01
                   ? text.comparison.same
                   : `${
@@ -2008,7 +2008,7 @@ export default function EnergyCalculator({
           className="fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-2xl border border-[#b8efcc] bg-[#dcfce8] px-4 py-3 text-left text-[#064e3b] shadow-2xl sm:hidden"
         >
           <span>
-            <span className="block text-xs text-green-900/65">{text.result.perYear}</span>
+            <span className="block text-xs text-[color:var(--brand-green)]/65">{text.result.perYear}</span>
             <span className="font-extrabold">{formatMoney(yearlyCost, activeLocale, currency)}</span>
           </span>
           <span className="text-sm font-bold">{text.result.viewResult} ↑</span>
@@ -2060,7 +2060,7 @@ export default function EnergyCalculator({
 
           <a
             href={`mailto:${FEEDBACK_EMAIL}?subject=${feedbackSubject}`}
-            className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-green-200 bg-white px-4 py-2 text-xs font-bold text-green-800 transition hover:border-green-400 hover:bg-green-50"
+            className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-green-200 bg-white px-4 py-2 text-xs font-bold text-[var(--brand-green)] transition hover:border-green-400 hover:bg-green-50"
           >
             {text.feedback.button}
           </a>
