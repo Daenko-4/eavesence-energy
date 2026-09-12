@@ -60,16 +60,20 @@ function NavigationLink({
   href,
   active,
   navigationKey,
+  onPreview,
   children,
 }: {
   href: string;
   active: boolean;
   navigationKey: NavigationKey;
+  onPreview: (navigationKey: NavigationKey) => void;
   children: ReactNode;
 }) {
   return (
     <a
       href={href}
+      onMouseEnter={() => onPreview(navigationKey)}
+      onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
       className={`group relative flex h-10 items-center whitespace-nowrap px-1 text-[13px] font-semibold transition-colors duration-150 hover:text-[#087a45] ${
@@ -88,6 +92,8 @@ export default function Header({
 }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [desktopNavigationOpen, setDesktopNavigationOpen] = useState(false);
+  const [previewNavigation, setPreviewNavigation] =
+    useState<NavigationKey | null>(null);
   const [activeHomeSection, setActiveHomeSection] =
     useState<NavigationKey>("calculator");
   const closeNavigationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -113,6 +119,7 @@ export default function Header({
     : isHomePage
       ? activeHomeSection
       : null;
+  const indicatedNavigation = previewNavigation ?? activeNavigation;
 
   const otherLocale: Locale = locale === "de" ? "en" : "de";
   const languageHref =
@@ -199,13 +206,13 @@ export default function Header({
       const navigationElement = desktopNavigationRef.current;
       const indicatorElement = activeIndicatorRef.current;
 
-      if (!navigationElement || !indicatorElement || !activeNavigation) {
+      if (!navigationElement || !indicatorElement || !indicatedNavigation) {
         if (indicatorElement) indicatorElement.style.opacity = "0";
         return;
       }
 
       const activeLink = navigationElement.querySelector<HTMLElement>(
-        `[data-navigation-key="${activeNavigation}"]`,
+        `[data-navigation-key="${indicatedNavigation}"]`,
       );
       if (!activeLink) {
         indicatorElement.style.opacity = "0";
@@ -226,7 +233,7 @@ export default function Header({
       window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", positionActiveIndicator);
     };
-  }, [activeNavigation, desktopNavigationOpen]);
+  }, [indicatedNavigation, desktopNavigationOpen]);
 
   function openDesktopNavigation() {
     if (closeNavigationTimeoutRef.current) {
@@ -333,6 +340,16 @@ export default function Header({
 
             <nav
               ref={desktopNavigationRef}
+              onMouseLeave={() => setPreviewNavigation(null)}
+              onBlurCapture={(event) => {
+                if (
+                  event.relatedTarget instanceof Node &&
+                  event.currentTarget.contains(event.relatedTarget)
+                ) {
+                  return;
+                }
+                setPreviewNavigation(null);
+              }}
               aria-label={text.openNavigation}
               className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,transform,filter,visibility] duration-[280ms] ease-out motion-reduce:transition-none ${
                 desktopNavigationOpen
@@ -340,25 +357,25 @@ export default function Header({
                   : "invisible pointer-events-none translate-x-4 opacity-0 blur-[3px] delay-0"
               }`}
             >
-              <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator">
+              <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator" onPreview={setPreviewNavigation}>
                 {text.calculator}
               </NavigationLink>
-              <NavigationLink href={devicesHref} active={activeNavigation === "allDevices"} navigationKey="allDevices">
+              <NavigationLink href={devicesHref} active={activeNavigation === "allDevices"} navigationKey="allDevices" onPreview={setPreviewNavigation}>
                 {text.allDevices}
               </NavigationLink>
-              <NavigationLink href={myDevicesHref} active={activeNavigation === "myDevices"} navigationKey="myDevices">
+              <NavigationLink href={myDevicesHref} active={activeNavigation === "myDevices"} navigationKey="myDevices" onPreview={setPreviewNavigation}>
                 {text.myDevices}
               </NavigationLink>
-              <NavigationLink href={howItWorksHref} active={activeNavigation === "howItWorks"} navigationKey="howItWorks">
+              <NavigationLink href={howItWorksHref} active={activeNavigation === "howItWorks"} navigationKey="howItWorks" onPreview={setPreviewNavigation}>
                 {text.howItWorks}
               </NavigationLink>
-              <NavigationLink href={faqHref} active={activeNavigation === "faq"} navigationKey="faq">
+              <NavigationLink href={faqHref} active={activeNavigation === "faq"} navigationKey="faq" onPreview={setPreviewNavigation}>
                 {text.faq}
               </NavigationLink>
               <span
                 ref={activeIndicatorRef}
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[#18a957] opacity-0 transition-[width,transform,opacity] duration-[360ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[#18a957] opacity-0 transition-[width,transform,opacity] duration-[220ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
               />
             </nav>
           </div>
