@@ -169,7 +169,7 @@ const calculatorText = {
         "EAVESENCE zeigt dir dann Kosten pro Nutzung, Woche, Monat und Jahr.",
       details: "So wurde das berechnet",
       formula: "Berechnungsgrundlage",
-      scenario: "Was wäre, wenn?",
+      scenario: "Nutzung simulieren",
       scenarioText: "Alternative Nutzung",
       currentUses: "Aktuell",
       newYearlyCost: "Neue Jahreskosten",
@@ -178,11 +178,11 @@ const calculatorText = {
     },
 
     comparison: {
-      open: "Mit einem anderen Gerät vergleichen",
+      open: "Mit einem ähnlichen Gerät vergleichen",
       close: "Vergleich schließen",
       title: "Geräte vergleichen",
       description:
-        "Vergleiche deine aktuelle Berechnung mit den typischen Werten eines zweiten Geräts.",
+        "Vergleiche deine aktuelle Berechnung mit den typischen Werten eines Geräts aus derselben Kategorie.",
       current: "Aktuelle Berechnung",
       alternative: "Vergleichsgerät",
       select: "Zweites Gerät",
@@ -324,7 +324,7 @@ const calculatorText = {
         "EAVESENCE will show your costs per use, week, month and year.",
       details: "How this was calculated",
       formula: "Calculation basis",
-      scenario: "What if?",
+      scenario: "Simulate usage",
       scenarioText: "Alternative use",
       currentUses: "Current use",
       newYearlyCost: "New yearly cost",
@@ -333,11 +333,11 @@ const calculatorText = {
     },
 
     comparison: {
-      open: "Compare with another device",
+      open: "Compare with a related device",
       close: "Close comparison",
       title: "Compare devices",
       description:
-        "Compare your current calculation with the typical values of a second device.",
+        "Compare your current calculation with typical values for a device in the same category.",
       current: "Current calculation",
       alternative: "Comparison device",
       select: "Second device",
@@ -496,6 +496,7 @@ export default function EnergyCalculator({
   const initialComparisonDevice =
     devices.find((item) => item.name !== initialDeviceData.name) ?? devices[0];
   const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [calculationDetailsOpen, setCalculationDetailsOpen] = useState(false);
   const [comparisonDeviceName, setComparisonDeviceName] = useState(
     initialComparisonDevice.name
   );
@@ -707,12 +708,15 @@ export default function EnergyCalculator({
     loadDeviceDefaults(name);
     setActiveSavedDeviceId(null);
 
-    if (name === comparisonDeviceName) {
-      const alternative = devices.find((item) => item.name !== name);
-      if (alternative) {
-        setComparisonDeviceName(alternative.name);
-        setComparisonUsesPerWeek(alternative.typicalUsesPerWeek ?? 1);
-      }
+    const selectedForComparison = devices.find((item) => item.name === name);
+    const alternative = devices.find(
+      (item) =>
+        item.name !== name &&
+        (!selectedForComparison || item.category === selectedForComparison.category)
+    );
+    if (alternative) {
+      setComparisonDeviceName(alternative.name);
+      setComparisonUsesPerWeek(alternative.typicalUsesPerWeek ?? 1);
     }
 
     if (name !== CUSTOM_DEVICE) {
@@ -962,9 +966,19 @@ export default function EnergyCalculator({
   const scenarioYearlyCost =
     actualKwhPerUse * scenarioUsesPerWeekValue * 52 * priceValue;
   const scenarioSavings = yearlyCost - scenarioYearlyCost;
+  const supportsUsageScenario =
+    isCustomDevice || (selectedDevice?.typicalMinutes ?? 0) < 1440;
 
+  const comparisonCandidates = devices.filter(
+    (item) =>
+      item.name !== device &&
+      (!selectedDevice || item.category === selectedDevice.category)
+  );
   const comparisonDevice =
-    devices.find((item) => item.name === comparisonDeviceName) ?? devices[0];
+    comparisonCandidates.find((item) => item.name === comparisonDeviceName) ??
+    comparisonCandidates[0] ??
+    devices.find((item) => item.name !== device) ??
+    devices[0];
   const localizedComparisonDevice = getLocalizedDevice(
     comparisonDevice,
     activeLocale
@@ -1696,27 +1710,64 @@ export default function EnergyCalculator({
               </div>
             </div>
 
-            <details className="group absolute inset-x-0 bottom-0 z-10 border-t border-[#dfe4da] bg-[#f6f6f0]/[0.98] px-6 py-4 backdrop-blur-sm sm:px-7 lg:px-10">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[13px] font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
-                {text.result.details}
-                <span
-                  aria-hidden="true"
-                  className="text-lg leading-none transition-transform duration-150 group-open:rotate-45"
-                >
-                  +
-                </span>
-              </summary>
-              <div className="absolute inset-x-0 bottom-full max-h-28 overflow-y-auto border-t border-[#dfe4da] bg-[#f6f6f0] px-6 py-3 shadow-[0_-14px_28px_-24px_rgba(35,48,44,0.45)] sm:px-7 lg:px-10">
-                <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--brand-green)]">
-                  {text.result.formula}
-                </p>
-                <p className="mt-1 break-words text-xs leading-5 text-[#65716d]">
-                  {mode === "estimate" && isPowerDevice
-                    ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
-                    : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`}
-                </p>
+            {supportsUsageScenario && (
+              <div className={`${homePresentation ? "mt-3 pt-3" : "mt-5 pt-4"} border-t border-[#dfe4da]`}>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="font-semibold text-[#52605b]">{text.result.scenario}</span>
+                  <span className="whitespace-nowrap font-bold text-[var(--brand-green)] tabular-nums">
+                    −{formatMoney(scenarioSavings, activeLocale, currency)} {text.result.perYear}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max={usesPerWeekValue}
+                    step={usesPerWeekValue <= 10 ? 0.5 : 1}
+                    value={scenarioUsesPerWeekValue}
+                    onChange={(event) => setScenarioUsesPerWeek(Number(event.target.value))}
+                    className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[var(--brand-green)]"
+                    aria-label={text.result.scenarioText}
+                  />
+                  <span className="min-w-[5.5rem] text-right text-[11px] font-medium text-[#66736e] tabular-nums">
+                    {formatNumber(usesPerWeekValue, activeLocale, 0, 1)} → {formatNumber(scenarioUsesPerWeekValue, activeLocale, 0, 1)} / {activeLocale === "de" ? "Woche" : "week"}
+                  </span>
+                </div>
               </div>
-            </details>
+            )}
+
+            <div className="absolute inset-x-0 bottom-0 z-10 flex h-16 items-center border-t border-[#dfe4da] bg-[#f6f6f0] px-6 sm:px-7 lg:px-10">
+              {calculationDetailsOpen ? (
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--brand-green)]">{text.result.formula}</p>
+                    <p className="mt-0.5 overflow-x-auto whitespace-nowrap text-[11px] leading-4 text-[#65716d] [scrollbar-width:thin]">
+                      {mode === "estimate" && isPowerDevice
+                        ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
+                        : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCalculationDetailsOpen(false)}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-lg text-[var(--brand-green)] transition hover:bg-[#e4f7ec]"
+                    aria-label={activeLocale === "de" ? "Berechnung schließen" : "Close calculation"}
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setCalculationDetailsOpen(true)}
+                  className="flex w-full items-center justify-between gap-4 text-[13px] font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                  aria-expanded="false"
+                >
+                  {text.result.details}
+                  <span aria-hidden="true" className="text-lg leading-none">+</span>
+                </button>
+              )}
+            </div>
           </>
         ) : (
           <>
@@ -1739,12 +1790,11 @@ export default function EnergyCalculator({
       </div>
 
       {/* Saving tip */}
-      {!homePresentation && (
-      <div className="mt-5 rounded-xl border border-amber-200/80 bg-amber-50/70 px-4 py-3.5">
+      <div className={`${homePresentation ? "mt-3" : "mt-4"} rounded-xl bg-[#eaf8ef] px-4 py-3`}>
         <div className="flex items-start gap-3">
           <span
             aria-hidden="true"
-            className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700"
+            className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#d5f2e0] text-[var(--brand-green)]"
           >
             <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18h6" />
@@ -1758,74 +1808,15 @@ export default function EnergyCalculator({
             </svg>
           </span>
           <div>
-            <p className="text-sm font-bold text-slate-900">
+            <p className="text-xs font-bold text-[var(--brand-green)]">
               {text.savingTip.title.replace("💡 ", "")}
             </p>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
+            <p className="mt-0.5 text-[13px] leading-5 text-[#52605b]">
               {localizedTip}
             </p>
           </div>
         </div>
       </div>
-      )}
-
-      {!homePresentation && calculationIsValid && (
-        <details className="group mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
-            {text.result.scenario}
-            <span
-              aria-hidden="true"
-              className="flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none text-[var(--brand-green)] transition-transform duration-200 group-open:rotate-45"
-            >
-              +
-            </span>
-          </summary>
-          <div className="border-t border-slate-100 bg-green-50/40 p-4 sm:p-5">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-slate-600">
-                {text.result.currentUses}: {formatNumber(usesPerWeekValue, activeLocale, 0, 1)} {text.fields.usesPerWeek.toLocaleLowerCase()}
-              </p>
-              <p className="font-semibold text-slate-950">
-                {text.result.scenarioText}: {formatNumber(scenarioUsesPerWeekValue, activeLocale, 0, 1)} {text.fields.usesPerWeek.toLocaleLowerCase()}
-              </p>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max={usesPerWeekValue}
-              step={usesPerWeekValue <= 10 ? 0.5 : 1}
-              value={scenarioUsesPerWeekValue}
-              onChange={(event) =>
-                setScenarioUsesPerWeek(Number(event.target.value))
-              }
-              className="mt-4 w-full accent-green-700"
-              aria-label={text.result.scenarioText}
-            />
-            <div className="mt-2 flex justify-between text-xs text-slate-400">
-              <span>0</span>
-              <span>{formatNumber(usesPerWeekValue, activeLocale, 0, 1)}</span>
-            </div>
-            <div className="mt-4 grid gap-3 border-t border-green-100 pt-4 sm:grid-cols-2">
-              <div>
-                <p className="text-xs text-slate-500">
-                  {text.result.newYearlyCost}
-                </p>
-                <p className="mt-1 text-lg font-extrabold text-slate-950">
-                  {formatMoney(scenarioYearlyCost, activeLocale, currency)}
-                </p>
-              </div>
-              <div className="sm:text-right">
-                <p className="text-xs text-slate-500">
-                  {text.result.savings}
-                </p>
-                <p className="mt-1 text-lg font-extrabold text-[var(--brand-green)]">
-                  {formatMoney(scenarioSavings, activeLocale, currency)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </details>
-      )}
 
       {!homePresentation && calculationIsValid && (
         <div className="mt-3">
@@ -1865,29 +1856,16 @@ export default function EnergyCalculator({
                     {text.comparison.select}
                   </label>
                   <select
-                    value={comparisonDeviceName}
+                    value={comparisonDevice.name}
                     onChange={(event) =>
                       handleComparisonDeviceChange(event.target.value)
                     }
                     className={secondaryFieldClassName}
                   >
-                    {categories.map((category) => (
-                      <optgroup
-                        key={category}
-                        label={getLocalizedCategory(category, activeLocale)}
-                      >
-                        {devices
-                          .filter(
-                            (item) =>
-                              item.category === category &&
-                              item.name !== device
-                          )
-                          .map((item) => (
-                            <option key={item.name} value={item.name}>
-                              {getLocalizedDevice(item, activeLocale).name}
-                            </option>
-                          ))}
-                      </optgroup>
+                    {comparisonCandidates.map((item) => (
+                      <option key={item.name} value={item.name}>
+                        {getLocalizedDevice(item, activeLocale).name}
+                      </option>
                     ))}
                   </select>
                 </div>

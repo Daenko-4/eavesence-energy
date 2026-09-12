@@ -74,7 +74,7 @@ const pageText = {
     ctaText:
       "Kein Problem. Im Stromkosten-Rechner kannst du auch ein eigenes Gerät anlegen und deine Werte selbst eingeben.",
 
-    ctaButton: "Zum Stromkosten-Rechner",
+    ctaButton: "Rechner öffnen",
   },
 
   en: {
@@ -99,7 +99,7 @@ const pageText = {
     ctaText:
       "No problem. You can also add your own device in the electricity cost calculator and enter your own values.",
 
-    ctaButton: "Go to the electricity cost calculator",
+    ctaButton: "Open calculator",
   },
 } as const;
 

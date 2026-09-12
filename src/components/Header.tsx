@@ -418,21 +418,16 @@ export default function Header({
           <Link
             href={languageHref}
             onClick={closeMenu}
-            className="group relative flex h-[34px] w-[76px] items-center overflow-hidden rounded-full border border-slate-300/80 bg-white transition duration-200 hover:border-green-300 active:scale-[0.98]"
+            className="group flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-bold uppercase tracking-[0.04em] transition hover:bg-[#eaf8ef] active:scale-[0.98]"
             aria-label={
               locale === "de" ? "Switch to English" : "Zur deutschen Version wechseln"
             }
           >
-            <span
-              aria-hidden="true"
-              className={`absolute top-[2px] h-[28px] w-[34px] rounded-full bg-[#dcfce8] transition-all duration-200 ease-out ${
-                locale === "de" ? "left-[2px]" : "left-[38px]"
-              }`}
-            />
-            <span className={`relative z-10 flex w-1/2 items-center justify-center text-[10px] font-bold uppercase tracking-[0.03em] ${locale === "de" ? "text-[var(--brand-green)]" : "text-slate-400"}`}>
+            <span className={locale === "de" ? "text-[var(--brand-green)]" : "text-[#8a9591] group-hover:text-[#52605b]"}>
               DE
             </span>
-            <span className={`relative z-10 flex w-1/2 items-center justify-center text-[10px] font-bold uppercase tracking-[0.03em] ${locale === "en" ? "text-[var(--brand-green)]" : "text-slate-400"}`}>
+            <span aria-hidden="true" className="font-medium text-[#bdc5c1]">/</span>
+            <span className={locale === "en" ? "text-[var(--brand-green)]" : "text-[#8a9591] group-hover:text-[#52605b]"}>
               EN
             </span>
           </Link>
