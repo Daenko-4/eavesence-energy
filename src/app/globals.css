@@ -63,6 +63,18 @@ body {
   color-scheme: dark;
 }
 
+.calculator-secondary-action {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+}
+
+.saved-device-utility-action {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  line-height: 1rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

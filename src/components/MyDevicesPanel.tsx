@@ -89,7 +89,7 @@ const copy = {
       "No devices saved yet. Calculate a device and add it here.",
     monthlyTotal: "Total cost per month",
     yearlyTotal: "Total cost per year",
-    total: "Total",
+    total: "Total costs",
     perMonth: "per month",
     perYear: "per year",
     open: "Edit",
@@ -372,20 +372,28 @@ function MyDevicesPanel(
     return (
       <section
         id="meine-geraete"
-        className="mt-7 scroll-mt-[96px] border-t border-slate-200 pt-6"
+        className="mt-8 scroll-mt-[104px] border-t border-slate-200 pt-7"
       >
-        <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h3 className="text-lg font-bold tracking-tight text-slate-950">
+            <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-950 sm:text-2xl">
               {text.title}
-            </h3>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+            </h2>
+            <p className="mt-1 max-w-2xl text-[13px] leading-5 text-slate-500">
               {text.description}
             </p>
           </div>
+          {savedDevices.length > 0 && (
+            <span className="w-fit rounded-full bg-[#ddf8e9] px-3 py-1 text-[11px] font-bold text-[#087a45]">
+              {savedDevices.length}{" "}
+              {savedDevices.length === 1
+                ? text.savedDevice
+                : text.savedDevices}
+            </span>
+          )}
         </div>
         {notice && (
-          <p role="status" className="mt-3 text-sm font-semibold text-green-800">
+          <p role="status" className="mt-3 text-xs font-semibold text-green-800">
             {notice}
           </p>
         )}
@@ -402,45 +410,47 @@ function MyDevicesPanel(
           <details
             open={listOpen}
             onToggle={(event) => setListOpen(event.currentTarget.open)}
-            className="group mt-4 border-y border-slate-200"
+            className="group mt-3"
           >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3 text-sm font-semibold text-slate-700 transition hover:text-green-800 [&::-webkit-details-marker]:hidden">
-              <span>
-                {savedDevices.length}{" "}
-                {savedDevices.length === 1
-                  ? text.savedDevice
-                  : text.savedDevices}
-              </span>
-              <span className="flex items-center gap-2 text-green-800">
+            <summary className="flex cursor-pointer list-none justify-end py-1 text-[11px] font-bold text-slate-500 transition hover:text-green-800 [&::-webkit-details-marker]:hidden">
+              <span className="flex items-center gap-1.5">
                 <span className="group-open:hidden">{text.showList}</span>
                 <span className="hidden group-open:inline">{text.hideList}</span>
-                <span aria-hidden="true" className="transition-transform group-open:rotate-45">+</span>
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className="h-3 w-3 transition-transform group-open:rotate-180"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m5 7.5 5 5 5-5" />
+                </svg>
               </span>
             </summary>
 
-            <div className="border-t border-slate-200 pb-3 pt-3">
-              <div className="overflow-hidden rounded-xl bg-[#f6f7f2] px-4">
-                {totals.map((total, index) => (
+            <div className="pb-2 pt-2">
+              <div className="space-y-2">
+                {totals.map((total) => (
                   <div
                     key={total.currency}
-                    className={
-                      "flex items-center justify-between gap-4 py-2.5 " +
-                      (index > 0 ? "border-t border-slate-200/80" : "")
-                    }
+                    className="flex items-center justify-between gap-5 rounded-2xl bg-[#e7f7ed] px-4 py-3.5 sm:px-5"
                   >
-                    <div className="flex min-w-0 items-center gap-2.5">
-                      <span className="text-sm font-semibold text-slate-700">
+                    <div className="min-w-0">
+                      <span className="block text-[11px] font-bold uppercase tracking-[0.08em] text-[#087a45]">
                         {text.total}
                       </span>
-                      <span className="rounded-md bg-white px-2 py-0.5 text-[10px] font-bold tracking-wide text-slate-500 ring-1 ring-inset ring-slate-200">
+                      <span className="mt-0.5 block text-[10px] font-semibold tracking-[0.08em] text-slate-500">
                         {total.currency}
                       </span>
                     </div>
                     <div className="shrink-0 text-right">
-                      <span className="text-base font-bold tabular-nums text-slate-950">
+                      <span className="block text-xl font-extrabold tracking-[-0.035em] tabular-nums text-[#10283a] sm:text-2xl">
                         {formatMoney(total.yearlyCost, locale, total.currency)}
                       </span>
-                      <span className="ml-1.5 text-xs text-slate-500">
+                      <span className="block text-[11px] text-slate-500">
                         {text.perYear}
                       </span>
                     </div>
@@ -448,11 +458,11 @@ function MyDevicesPanel(
                 ))}
               </div>
 
-              <div className="mt-2 divide-y divide-slate-100 border-y border-slate-100">
+              <div className="mt-3 divide-y divide-slate-200/70 border-y border-slate-200/70">
                 {sortedDevices.map((item) => (
                   <div
                     key={item.id}
-                    className="grid gap-1.5 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(280px,0.85fr)] sm:items-center sm:gap-5"
+                    className="grid gap-2 py-3 sm:grid-cols-[minmax(220px,1fr)_140px_165px_auto] sm:items-center sm:gap-4"
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-700">
@@ -462,59 +472,67 @@ function MyDevicesPanel(
                         <p className="truncate text-base font-bold tracking-tight text-slate-950">
                           {getDeviceName(item)}
                         </p>
-                        <p className="mt-0.5 text-xs text-slate-500">
-                          {formatMoney(item.monthlyCost, locale, item.currency)} {text.perMonth}
-                        </p>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-lg font-extrabold tabular-nums text-slate-950">
+                    <p className="text-xs text-slate-500 sm:text-right">
+                      <span className="block font-bold tabular-nums text-slate-700">
+                        {formatMoney(item.monthlyCost, locale, item.currency)}
+                      </span>
+                      {text.perMonth}
+                    </p>
+                    <p className="text-left text-xs text-slate-500 sm:text-right">
+                      <span className="block text-lg font-extrabold tracking-[-0.025em] tabular-nums text-slate-950">
                         {formatMoney(item.yearlyCost, locale, item.currency)}
-                        <span className="ml-1 text-[11px] font-normal text-slate-500">
-                          {text.perYear}
-                        </span>
-                      </p>
-                      <div className="flex shrink-0 items-center gap-0.5 opacity-75 transition hover:opacity-100">
+                      </span>
+                      {text.perYear}
+                    </p>
+                    <div className="flex shrink-0 items-center gap-1 sm:justify-end">
                         <button
                           type="button"
                           onClick={() => onOpen(item)}
-                          className="rounded px-0.5 py-1 text-[8px] font-semibold leading-none text-green-700 transition hover:bg-[#dcfce8] hover:text-green-900"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#ddf8e9] hover:text-[#087a45]"
+                          aria-label={`${text.open}: ${getDeviceName(item)}`}
+                          title={text.open}
                         >
-                          {text.open}
+                          <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="m13.5 3.5 3 3L7 16l-4 1 1-4 9.5-9.5Z" />
+                          </svg>
                         </button>
-                        <span aria-hidden="true" className="h-3 w-px bg-slate-200" />
                         <button
                           type="button"
                           onClick={() => removeDevice(item.id)}
-                          className="rounded px-0.5 py-1 text-[8px] font-medium leading-none text-slate-400 transition hover:bg-red-50 hover:text-red-700"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 transition hover:bg-red-50 hover:text-red-600"
+                          aria-label={`${text.remove}: ${getDeviceName(item)}`}
+                          title={text.remove}
                         >
-                          {text.remove}
+                          <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M3.5 5.5h13M8 2.8h4M6 5.5l.7 11h6.6l.7-11M8.3 8.5v5M11.7 8.5v5" />
+                          </svg>
                         </button>
-                      </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-slate-100 pt-3">
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                 <button
                   type="button"
                   onClick={exportDevices}
-                  className="text-[11px] font-bold text-green-800 transition hover:text-green-950"
+                  className="saved-device-utility-action text-green-800 transition hover:text-green-950"
                 >
                   {text.export}
                 </button>
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
-                  className="text-[11px] font-bold text-green-800 transition hover:text-green-950"
+                  className="saved-device-utility-action text-green-800 transition hover:text-green-950"
                 >
                   {text.import}
                 </button>
                 <button
                   type="button"
                   onClick={removeAllDevices}
-                  className="text-[11px] font-bold text-slate-500 transition hover:text-red-700"
+                  className="saved-device-utility-action text-slate-400 transition hover:text-red-700"
                 >
                   {text.removeAll}
                 </button>
@@ -525,7 +543,7 @@ function MyDevicesPanel(
           <button
             type="button"
             onClick={() => importInputRef.current?.click()}
-            className="mt-3 text-xs font-semibold text-green-800 transition hover:text-green-950"
+            className="saved-device-utility-action mt-3 text-green-800 transition hover:text-green-950"
           >
             {text.import}
           </button>

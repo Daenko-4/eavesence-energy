@@ -69,7 +69,7 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: "/brand/eavesence-icon-approved-final-512.png",
+    icon: "/brand/eavesence-modular-mark.svg",
   },
 };
 

@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { MouseEvent } from "react";
+
+import BrandLogo from "@/components/BrandLogo";
 
 import {
   getCalculatorHref,
@@ -95,29 +96,26 @@ export default function Footer({ locale = "de" }: FooterProps) {
   const privacyHref = getPrivacyHref(locale);
 
   return (
-    <footer className="border-t border-slate-200/80 bg-[#fafbf8]">
-      <div className="mx-auto max-w-7xl px-5 py-9 sm:px-6">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[minmax(320px,1fr)_auto_auto] lg:gap-14">
+    <footer className="border-t border-slate-200/70 bg-[#fafbf8]">
+      <div className="mx-auto max-w-7xl px-5 py-7 sm:px-6">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-[minmax(300px,1fr)_auto_auto] lg:gap-12">
           <div>
-            <Image
-              src="/brand/eavesence-wordmark-approved-final.png"
-              alt="EAVESENCE Energy"
-              width={206}
-              height={44}
-              className="h-auto w-[172px]"
-              unoptimized
+            <BrandLogo
+              markClassName="h-7 w-7"
+              wordmarkClassName="text-[1rem]"
+              className="inline-flex items-center gap-2"
             />
 
-            <p className="mt-4 max-w-sm text-sm leading-6 text-slate-500">
+            <p className="mt-3 max-w-sm text-[13px] leading-5 text-slate-500">
               {text.description}
             </p>
           </div>
 
           <nav aria-label={text.explore}>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
               {text.explore}
             </p>
-            <div className="grid gap-2.5 text-sm font-medium text-slate-600">
+            <div className="grid gap-1.5 text-[12px] font-medium leading-5 text-slate-500">
               <Link
                 href={calculatorHref}
                 onClick={(event) =>
@@ -161,10 +159,10 @@ export default function Footer({ locale = "de" }: FooterProps) {
           </nav>
 
           <nav aria-label={text.company}>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
               {text.company}
             </p>
-            <div className="grid gap-2.5 text-sm font-medium text-slate-600">
+            <div className="grid gap-1.5 text-[12px] font-medium leading-5 text-slate-500">
               <Link
                 href={aboutHref}
                 onClick={(event) =>
@@ -198,7 +196,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
           </nav>
         </div>
 
-        <div className="mt-8 flex flex-col gap-1 border-t border-slate-200/80 pt-5 text-xs leading-5 text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col gap-1 border-t border-slate-200/70 pt-4 text-[11px] leading-4 text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} EAVESENCE Energy</span>
           <span>{text.privateProject}</span>
         </div>

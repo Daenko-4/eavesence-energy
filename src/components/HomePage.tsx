@@ -183,7 +183,7 @@ const content = {
       label: "Über EAVESENCE",
       title: "Ein Name für bewusstere Entscheidungen",
       text:
-        "EAVESENCE verbindet die Themen unseres Alltags unter einem Dach und macht das Wesentliche leichter verständlich.",
+        "Der Name verbindet „eave“ – den schützenden Dachvorsprung – mit „essence“ und „sense“: das Wesentliche erkennen und besser verstehen.",
       parts: [
         {
           term: "EAVE",
@@ -197,7 +197,7 @@ const content = {
         },
       ],
       closing:
-        "EAVESENCE entwickelt daraus einfache Werkzeuge für klarere Entscheidungen.",
+        "Daraus entstehen einfache Werkzeuge für klare Entscheidungen im Alltag.",
     },
 
     faq: {
@@ -407,7 +407,7 @@ const content = {
       label: "About EAVESENCE",
       title: "A name for smarter everyday decisions",
       text:
-        "EAVESENCE brings the themes of everyday life together under one roof and makes what matters most easier to understand.",
+        "The name combines “eave” – the protective edge of a roof – with “essence” and “sense”: focusing on what matters and making it easier to understand.",
       parts: [
         {
           term: "EAVE",
@@ -421,7 +421,7 @@ const content = {
         },
       ],
       closing:
-        "EAVESENCE turns this idea into simple tools for clearer decisions.",
+        "The result is a set of simple tools for clearer everyday decisions.",
     },
 
     faq: {
