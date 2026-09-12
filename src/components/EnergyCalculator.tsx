@@ -1643,7 +1643,7 @@ export default function EnergyCalculator({
       {/* Result */}
       <div
         ref={resultRef}
-        className={`flex min-w-0 flex-col justify-center rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] text-[#24302d] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] ${
+        className={`relative flex min-w-0 flex-col justify-center overflow-hidden rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] !pb-16 text-[#24302d] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] ${
           homePresentation
             ? "min-h-[280px] p-6 sm:p-7"
             : "min-h-[420px] p-6 sm:p-8 lg:p-10"
@@ -1696,8 +1696,8 @@ export default function EnergyCalculator({
               </div>
             </div>
 
-            <details className={`group border-t border-[#dfe4da] pt-4 ${homePresentation ? "mt-4" : "mt-6"}`}>
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
+            <details className="group absolute inset-x-0 bottom-0 z-10 border-t border-[#dfe4da] bg-[#f6f6f0]/[0.98] px-6 py-4 backdrop-blur-sm sm:px-7 lg:px-10">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[13px] font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
                 {text.result.details}
                 <span
                   aria-hidden="true"
@@ -1706,11 +1706,11 @@ export default function EnergyCalculator({
                   +
                 </span>
               </summary>
-              <div className="pt-3">
-                <p className="text-xs font-bold uppercase tracking-[0.1em] text-[var(--brand-green)]">
+              <div className="absolute inset-x-0 bottom-full max-h-28 overflow-y-auto border-t border-[#dfe4da] bg-[#f6f6f0] px-6 py-3 shadow-[0_-14px_28px_-24px_rgba(35,48,44,0.45)] sm:px-7 lg:px-10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--brand-green)]">
                   {text.result.formula}
                 </p>
-                <p className="mt-2 break-words text-sm leading-6 text-slate-600">
+                <p className="mt-1 break-words text-xs leading-5 text-[#65716d]">
                   {mode === "estimate" && isPowerDevice
                     ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
                     : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`}

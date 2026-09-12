@@ -20,18 +20,18 @@ export default function ImpressumPage() {
   return (
     <div
       lang="de"
-      className="min-h-screen bg-[#f8faf8] text-slate-950"
+      className="min-h-screen bg-[var(--brand-off-white)] text-[#17211f]"
     >
       <Header />
 
-      <main className="px-5 py-14 sm:px-6 sm:py-20">
+      <main className="px-5 py-12 sm:px-6 sm:py-16">
         <div className="mx-auto max-w-3xl">
-          <div className="rounded-[2rem] border border-slate-200/80 bg-white p-6 shadow-[0_20px_60px_-32px_rgba(15,23,42,0.2)] sm:p-10">
-            <p className="text-sm font-bold uppercase tracking-[0.16em] text-[var(--brand-green)]">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
               Rechtliches
             </p>
 
-            <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-slate-950 sm:text-5xl">
+            <h1 className="mt-3 text-4xl font-bold tracking-[-0.04em] text-[#17211f]">
               Impressum
             </h1>
 

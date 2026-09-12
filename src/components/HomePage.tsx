@@ -9,6 +9,7 @@ type IconName =
   | "kitchen"
   | "washer"
   | "home"
+  | "wind"
   | "shower"
   | "monitor"
   | "laptop"
@@ -30,7 +31,7 @@ const content = {
         icon: "kitchen" as IconName,
       },
       {
-        name: "Waschen",
+        name: "Wäschepflege",
         href: "/geraete#waschen",
         icon: "washer" as IconName,
       },
@@ -38,6 +39,11 @@ const content = {
         name: "Haushalt",
         href: "/geraete#haushalt",
         icon: "home" as IconName,
+      },
+      {
+        name: "Raumklima",
+        href: "/geraete#raumklima",
+        icon: "wind" as IconName,
       },
       {
         name: "Bad",
@@ -262,6 +268,11 @@ const content = {
         name: "Household",
         href: "/en/devices#household",
         icon: "home" as IconName,
+      },
+      {
+        name: "Room climate",
+        href: "/en/devices#room-climate",
+        icon: "wind" as IconName,
       },
       {
         name: "Bathroom",
@@ -530,6 +541,12 @@ function Icon({
           <path d="M9 20v-6h6v6" />
         </svg>
       );
+    case "wind":
+      return (
+        <svg viewBox="0 0 24 24" className={className} {...props}>
+          <path d="M4 8h10a3 3 0 1 0-3-3M4 12h15a3 3 0 1 1-3 3M4 16h7" />
+        </svg>
+      );
 
     case "shower":
       return (
@@ -734,7 +751,7 @@ export default function HomePage({
               </a>
             </div>
 
-            <div className="mt-5 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="mt-5 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7">
               {text.categories.map((category) => (
                 <a
                   key={category.name}

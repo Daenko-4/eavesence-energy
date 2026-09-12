@@ -19,6 +19,36 @@ export type Device = {
 
 export const devices: Device[] = [
   {
+    name: "Kühlschrank",
+    slug: "kuehlschrank",
+    category: "Küche",
+    description:
+      "Schätze die laufenden Stromkosten deines Kühlschranks anhand einer typischen mittleren Leistungsaufnahme.",
+    tip: "Stelle etwa 7 °C ein, halte die Türdichtungen sauber und lasse warme Speisen erst abkühlen.",
+    calculationType: "power",
+    watts: 23,
+    typicalMinutes: 1440,
+    typicalUsesPerWeek: 7,
+    dataBasis: "Mittlere Leistung × Dauerbetrieb",
+    dataNote:
+      "Orientierungswert von rund 200 kWh pro Jahr. Kühlgeräte takten automatisch; der Jahresverbrauch auf dem Energielabel ist für dein Modell genauer.",
+  },
+  {
+    name: "Gefrierschrank",
+    slug: "gefrierschrank",
+    category: "Küche",
+    description:
+      "Schätze die jährlichen Stromkosten deines Gefrierschranks oder deiner Gefriertruhe.",
+    tip: "Taue starke Eisschichten ab, prüfe die Dichtung und stelle das Gerät möglichst kühl auf.",
+    calculationType: "power",
+    watts: 26,
+    typicalMinutes: 1440,
+    typicalUsesPerWeek: 7,
+    dataBasis: "Mittlere Leistung × Dauerbetrieb",
+    dataNote:
+      "Orientierungswert von rund 225 kWh pro Jahr. Bauform, Alter, Standort und Energielabel beeinflussen den tatsächlichen Verbrauch deutlich.",
+  },
+  {
     name: "Wasserkocher",
     slug: "wasserkocher",
     category: "Küche",
@@ -121,6 +151,21 @@ export const devices: Device[] = [
     dataNote:
       "Das Energielabel von Elektrobacköfen gibt den Verbrauch pro Standard-Backzyklus an. Das konkrete Gerät und die Betriebsart sind entscheidend.",
   },
+  {
+    name: "Elektroherd / Kochfeld",
+    slug: "elektroherd-kochfeld",
+    category: "Küche",
+    description:
+      "Berechne die ungefähren Stromkosten deines elektrischen Kochfelds pro Kochvorgang und Jahr.",
+    tip: "Nutze passende Topfgrößen, Deckel und Restwärme und erhitze Wasser möglichst gezielt.",
+    calculationType: "power",
+    watts: 1800,
+    typicalMinutes: 30,
+    typicalUsesPerWeek: 7,
+    dataBasis: "Leistung × Kochdauer",
+    dataNote:
+      "Orientierungswert für eine gleichzeitig genutzte Kochzone. Stufe, Kochgeschirr und Anzahl aktiver Zonen verändern den Verbrauch.",
+  },
 
   {
     name: "Staubsauger",
@@ -155,7 +200,7 @@ export const devices: Device[] = [
   {
     name: "Ventilator",
     slug: "ventilator",
-    category: "Haushalt",
+    category: "Raumklima",
     description:
       "Berechne, was ein Ventilator bei längerer täglicher Nutzung ungefähr an Strom kostet.",
     tip: "Schalte den Ventilator aus, wenn sich niemand im Raum befindet.",
@@ -170,7 +215,7 @@ export const devices: Device[] = [
   {
     name: "Mobile Klimaanlage",
     slug: "mobile-klimaanlage",
-    category: "Haushalt",
+    category: "Raumklima",
     description:
       "Berechne die ungefähren Stromkosten einer mobilen Klimaanlage anhand von Leistung und täglicher Laufzeit.",
     tip: "Halte Fenster und Türen während des Betriebs geschlossen und dichte den Abluftschlauch am Fenster möglichst gut ab.",
@@ -185,7 +230,7 @@ export const devices: Device[] = [
   {
     name: "Split-Klimaanlage",
     slug: "split-klimaanlage",
-    category: "Haushalt",
+    category: "Raumklima",
     description:
       "Schätze die Stromkosten einer Split-Klimaanlage bei deiner typischen täglichen Nutzung.",
     tip: "Wähle eine moderate Zieltemperatur, halte Fenster geschlossen und reinige die Filter regelmäßig.",
@@ -200,7 +245,7 @@ export const devices: Device[] = [
   {
     name: "Luftentfeuchter",
     slug: "luftentfeuchter",
-    category: "Haushalt",
+    category: "Raumklima",
     description:
       "Berechne die ungefähren Stromkosten eines Luftentfeuchters pro Nutzung, Monat und Jahr.",
     tip: "Stelle eine sinnvolle Zielfeuchte ein, halte Türen und Fenster geschlossen und reinige den Filter regelmäßig.",
@@ -211,6 +256,21 @@ export const devices: Device[] = [
     dataBasis: "Leistung × Laufzeit",
     dataNote:
       "Orientierungswert für einen Kondensations-Luftentfeuchter. Raumtemperatur, Luftfeuchtigkeit, Gerätegröße und Hygrostatzyklen beeinflussen den tatsächlichen Verbrauch.",
+  },
+  {
+    name: "Heizlüfter",
+    slug: "heizluefter",
+    category: "Raumklima",
+    description:
+      "Berechne, welche Stromkosten ein elektrischer Heizlüfter bei deiner typischen Laufzeit verursacht.",
+    tip: "Nutze Heizlüfter nur gezielt und kurz; für dauerhaftes Heizen sind sie meist kostspielig.",
+    calculationType: "power",
+    watts: 2000,
+    typicalMinutes: 60,
+    typicalUsesPerWeek: 7,
+    dataBasis: "Leistung × Laufzeit",
+    dataNote:
+      "Orientierungswert. Leistungsstufe, Thermostatzyklen, Raumgröße und Dämmung beeinflussen Laufzeit und Kosten.",
   },
 
   {
@@ -247,7 +307,7 @@ export const devices: Device[] = [
   {
     name: "Waschmaschine",
     slug: "waschmaschine",
-    category: "Waschen",
+    category: "Wäschepflege",
     description:
       "Berechne die ungefähren Stromkosten deiner Waschmaschine pro Waschgang, Monat und Jahr.",
     tip: "Nutze niedrige Temperaturen und Eco-Programme und wasche möglichst mit sinnvoll gefüllter Trommel.",
@@ -261,7 +321,7 @@ export const devices: Device[] = [
   {
     name: "Wärmepumpentrockner",
     slug: "waeschetrockner",
-    category: "Waschen",
+    category: "Wäschepflege",
     description:
       "Berechne die ungefähren Stromkosten eines modernen Wärmepumpentrockners.",
     tip: "Schleudere die Wäsche vorher mit hoher Drehzahl und trockne möglichst volle, passende Ladungen.",
@@ -333,6 +393,36 @@ export const devices: Device[] = [
     dataBasis: "Leistung × Laufzeit",
     dataNote:
       "Orientierungswert. Office-PCs und leistungsstarke Gaming-PCs können sich beim Stromverbrauch erheblich unterscheiden.",
+  },
+  {
+    name: "Gaming-PC",
+    slug: "gaming-pc",
+    category: "Büro",
+    description:
+      "Berechne die Stromkosten eines Gaming-PCs anhand von Leistung und deiner typischen Spielzeit.",
+    tip: "Begrenze Bildraten, nutze Energiesparprofile und versetze den PC bei Pausen in den Ruhezustand.",
+    calculationType: "power",
+    watts: 500,
+    typicalMinutes: 180,
+    typicalUsesPerWeek: 5,
+    dataBasis: "Leistung × Laufzeit",
+    dataNote:
+      "Orientierungswert für den PC ohne Monitor. Hardware, Spiel, Auslastung und Leistungsprofil können den Verbrauch stark verändern.",
+  },
+  {
+    name: "WLAN-Router",
+    slug: "wlan-router",
+    category: "Büro",
+    description:
+      "Schätze die laufenden Stromkosten eines WLAN-Routers im Dauerbetrieb.",
+    tip: "Deaktiviere ungenutzte Funknetze oder Zeiträume nur dann, wenn dadurch wichtige Geräte nicht getrennt werden.",
+    calculationType: "power",
+    watts: 10,
+    typicalMinutes: 1440,
+    typicalUsesPerWeek: 7,
+    dataBasis: "Leistung × Dauerbetrieb",
+    dataNote:
+      "Orientierungswert für Router ohne zusätzliche Netzwerkgeräte. Modell, Funkstandard und angeschlossene Funktionen beeinflussen die Leistungsaufnahme.",
   },
   {
     name: "Laptop",

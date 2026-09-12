@@ -21,8 +21,9 @@ type DevicesPageProps = {
 
 const categoryOrder = [
   "Küche",
-  "Waschen",
+  "Wäschepflege",
   "Haushalt",
+  "Raumklima",
   "Bad",
   "Unterhaltung",
   "Büro",
@@ -31,8 +32,9 @@ const categoryOrder = [
 const categoryAnchors = {
   de: {
     Küche: "kueche",
-    Waschen: "waschen",
+    Wäschepflege: "waschen",
     Haushalt: "haushalt",
+    Raumklima: "raumklima",
     Bad: "bad",
     Unterhaltung: "unterhaltung",
     Büro: "buero",
@@ -40,8 +42,9 @@ const categoryAnchors = {
 
   en: {
     Küche: "kitchen",
-    Waschen: "laundry",
+    Wäschepflege: "laundry",
     Haushalt: "household",
+    Raumklima: "room-climate",
     Bad: "bathroom",
     Unterhaltung: "entertainment",
     Büro: "office",
@@ -151,7 +154,7 @@ function CategoryIcon({
         </svg>
       );
 
-    case "Waschen":
+    case "Wäschepflege":
       return (
         <svg
           viewBox="0 0 24 24"
@@ -183,6 +186,20 @@ function CategoryIcon({
           <path d="m3 11 9-8 9 8" />
           <path d="M5 10v10h14V10" />
           <path d="M9 20v-6h6v6" />
+        </svg>
+      );
+
+    case "Raumklima":
+      return (
+        <svg
+          viewBox="0 0 24 24"
+          className="h-6 w-6"
+          {...props}
+          aria-hidden="true"
+        >
+          <path d="M4 8h10a3 3 0 1 0-3-3" />
+          <path d="M4 12h15a3 3 0 1 1-3 3" />
+          <path d="M4 16h7" />
         </svg>
       );
 
@@ -297,35 +314,34 @@ export default function DevicesPage({
   return (
     <div
       lang={locale}
-      className="min-h-screen bg-[#f8faf8] text-slate-950"
+      className="min-h-screen bg-[var(--brand-off-white)] text-[#17211f]"
     >
       <Header locale={locale} />
 
       <main>
         {/* Hero */}
-        <section className="relative overflow-hidden border-b border-slate-200/70 bg-white">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(34,197,94,0.10),transparent_35%),radial-gradient(circle_at_5%_5%,rgba(34,197,94,0.06),transparent_25%)]" />
+        <section className="relative overflow-hidden border-b border-[#dfe5dd] bg-[var(--brand-off-white)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(114,220,163,0.13),transparent_30%)]" />
 
-          <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-20">
-            <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-sm font-medium text-[var(--brand-green)]">
-              <span>🌿</span>
+          <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-6 sm:py-12">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-green-mint)]" />
               {text.badge}
             </div>
 
-            <h1 className="mt-7 max-w-4xl text-4xl font-extrabold tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-6xl">
+            <h1 className="mt-4 max-w-4xl text-3xl font-bold tracking-[-0.045em] text-[#17211f] sm:text-4xl lg:text-5xl">
               {text.heroFirst}
-              <br />
-
-              <span className="text-[var(--brand-green)]">
+              {" "}<span className="text-[var(--brand-green)]">
                 {text.heroHighlight}
               </span>
             </h1>
 
-            <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">
+            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[#65716d]">
               {text.description}
             </p>
 
-            <label className="mt-8 block max-w-xl">
+            <div className="mt-7 grid gap-3 lg:grid-cols-[minmax(0,32rem)_1fr] lg:items-center">
+            <label className="block">
               <span className="sr-only">{text.searchLabel}</span>
               <span className="relative block">
                 <svg
@@ -345,13 +361,13 @@ export default function DevicesPage({
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={text.searchPlaceholder}
-                  className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-12 pr-4 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-green-400 focus:ring-4 focus:ring-green-100"
+                  className="w-full rounded-xl border border-[#cfd8d0] bg-[#fbfcf8] py-3 pl-11 pr-4 text-[15px] font-medium text-[#17211f] outline-none transition placeholder:text-[#89938f] hover:border-[#aebbb1] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20"
                 />
               </span>
             </label>
 
             {categories.length > 0 && (
-            <div className="mt-6 flex flex-wrap gap-3">
+            <nav className="flex flex-wrap gap-x-1 gap-y-1 lg:justify-end" aria-label={text.searchLabel}>
               {categories.map(
                 ({ category }) => (
                   <a
@@ -360,9 +376,9 @@ export default function DevicesPage({
                       category,
                       locale
                     )}`}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] active:scale-[0.98]"
+                    className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-[#52605b] transition hover:bg-[#e5f7ec] hover:text-[var(--brand-green)]"
                   >
-                    <span className="text-[var(--brand-green)]">
+                    <span className="text-[var(--brand-green)] [&>svg]:h-4 [&>svg]:w-4">
                       <CategoryIcon
                         category={category}
                       />
@@ -375,16 +391,17 @@ export default function DevicesPage({
                   </a>
                 )
               )}
-            </div>
+            </nav>
             )}
+            </div>
           </div>
         </section>
 
         {/* Devices */}
-        <section className="px-5 py-14 sm:px-6 sm:py-20">
-          <div className="mx-auto max-w-6xl">
+        <section className="px-5 py-10 sm:px-6 sm:py-12">
+          <div className="mx-auto max-w-7xl">
             {categories.length > 0 ? (
-            <div className="space-y-16">
+            <div className="space-y-11">
               {categories.map(
                 ({
                   category,
@@ -397,10 +414,10 @@ export default function DevicesPage({
                       category,
                       locale
                     )}
-                    className="scroll-mt-28"
+                    className="scroll-mt-24 border-t border-[#dfe5dd] pt-6 first:border-t-0 first:pt-0"
                   >
-                    <div className="flex items-center gap-4">
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-50 text-[var(--brand-green)]">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#e4f7ec] text-[var(--brand-green)] [&>svg]:h-5 [&>svg]:w-5">
                         <CategoryIcon
                           category={
                             category
@@ -409,14 +426,14 @@ export default function DevicesPage({
                       </span>
 
                       <div>
-                        <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">
+                        <h2 className="text-xl font-bold tracking-[-0.025em] text-[#17211f] sm:text-2xl">
                           {getLocalizedCategory(
                             category,
                             locale
                           )}
                         </h2>
 
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-0.5 text-xs text-[#74807b]">
                           {
                             categoryDevices.length
                           }{" "}
@@ -428,7 +445,7 @@ export default function DevicesPage({
                       </div>
                     </div>
 
-                    <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
                       {categoryDevices.map(
                         (device) => {
                           const localizedDevice =
@@ -456,27 +473,16 @@ export default function DevicesPage({
                                 device.slug
                               }
                               href={href}
-                              className="group flex min-h-[150px] flex-col rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_12px_35px_-25px_rgba(15,23,42,0.3)] transition hover:-translate-y-1 hover:border-green-200 hover:shadow-md active:scale-[0.99]"
+                              className="group grid min-h-[92px] grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3 transition hover:border-[#a9d9bb] hover:bg-white active:scale-[0.995]"
                             >
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-xl">
-                                  ⚡
-                                </div>
-
-                                <span className="text-xl text-[var(--brand-green)] transition group-hover:translate-x-1">
-                                  →
-                                </span>
+                              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e4f7ec] text-[var(--brand-green)] [&>svg]:h-5 [&>svg]:w-5">
+                                <CategoryIcon category={device.category} />
                               </div>
-
-                              <h3 className="mt-5 text-lg font-bold text-slate-950 transition group-hover:text-[var(--brand-green-dark)]">
-                                {
-                                  localizedDevice.name
-                                }
-                              </h3>
-
-                              <p className="mt-2 text-sm leading-6 text-slate-500">
-                                {typicalValue}
-                              </p>
+                              <div className="min-w-0">
+                                <h3 className="truncate text-[15px] font-bold text-[#17211f] transition group-hover:text-[var(--brand-green)]">{localizedDevice.name}</h3>
+                                <p className="mt-1 text-xs text-[#74807b]">{typicalValue}</p>
+                              </div>
+                              <span className="text-base text-[var(--brand-green)] transition group-hover:translate-x-0.5">→</span>
                             </Link>
                           );
                         }
@@ -497,23 +503,21 @@ export default function DevicesPage({
         </section>
 
         {/* CTA */}
-        <section className="px-5 pb-16 sm:px-6 sm:pb-20">
-          <div className="mx-auto max-w-5xl rounded-[2rem] border border-green-100 bg-gradient-to-br from-green-50 via-white to-green-50 p-8 text-center shadow-[0_20px_60px_-35px_rgba(21,128,61,0.35)] sm:p-12">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl">
-              🌿
-            </div>
-
-            <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-slate-950">
+        <section className="px-5 pb-12 sm:px-6 sm:pb-14">
+          <div className="mx-auto flex max-w-7xl flex-col gap-5 border-t border-[#dfe5dd] pt-8 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+            <h2 className="text-xl font-bold tracking-[-0.025em] text-[#17211f]">
               {text.ctaTitle}
             </h2>
 
-            <p className="mx-auto mt-4 max-w-2xl leading-7 text-slate-600">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#65716d]">
               {text.ctaText}
             </p>
+            </div>
 
             <Link
               href={calculatorHref}
-              className="mt-7 inline-flex items-center gap-3 rounded-xl border border-[var(--brand-green)] bg-[var(--brand-green)] px-6 py-3.5 font-semibold text-[var(--brand-off-white)] shadow-sm transition hover:-translate-y-0.5 hover:bg-[var(--brand-green-dark)] hover:shadow-md active:scale-[0.98]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[var(--brand-green)] bg-[var(--brand-green)] px-4 py-2.5 text-sm font-semibold text-[var(--brand-off-white)] transition hover:bg-[var(--brand-green-dark)] active:scale-[0.98]"
             >
               {text.ctaButton}
               <span>→</span>

@@ -24,7 +24,7 @@ export default function DeviceCategoryIcon({
     );
   }
 
-  if (category === "Waschen") {
+  if (category === "Wäschepflege") {
     return (
       <svg viewBox="0 0 24 24" className={className} {...props} aria-hidden="true">
         <rect x="5" y="3" width="14" height="18" rx="2" />
@@ -65,6 +65,15 @@ export default function DeviceCategoryIcon({
     return (
       <svg viewBox="0 0 24 24" className={className} {...props} aria-hidden="true">
         <path d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6" />
+      </svg>
+    );
+  }
+
+  if (category === "Raumklima") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} {...props} aria-hidden="true">
+        <path d="M4 8h10a3 3 0 1 0-3-3" />
+        <path d="M4 12h15a3 3 0 1 1-3 3M4 16h7" />
       </svg>
     );
   }

@@ -19,13 +19,17 @@ const categoryTranslations: Record<
     de: "Küche",
     en: "Kitchen",
   },
-  Waschen: {
-    de: "Waschen",
+  Wäschepflege: {
+    de: "Wäschepflege",
     en: "Laundry",
   },
   Haushalt: {
     de: "Haushalt",
     en: "Household",
+  },
+  Raumklima: {
+    de: "Raumklima",
+    en: "Room climate",
   },
   Bad: {
     de: "Bad",
@@ -45,6 +49,35 @@ const deviceTranslations: Record<
   string,
   Partial<Record<Locale, DeviceTranslation>>
 > = {
+  Kühlschrank: {
+    en: {
+      name: "Refrigerator",
+      category: "Kitchen",
+      slug: "refrigerator",
+      description:
+        "Estimate the running electricity cost of your refrigerator using a typical average power draw.",
+      tip:
+        "Set it to about 7 °C, keep the door seals clean and allow hot food to cool before storing it.",
+      dataBasis: "Average power × continuous operation",
+      dataNote:
+        "Estimate based on roughly 200 kWh per year. Refrigerators cycle automatically; the annual figure on your appliance's energy label is more accurate.",
+    },
+  },
+
+  Gefrierschrank: {
+    en: {
+      name: "Freezer",
+      category: "Kitchen",
+      slug: "freezer",
+      description:
+        "Estimate the annual electricity cost of your upright or chest freezer.",
+      tip:
+        "Defrost heavy ice build-up, check the seal and place the appliance in a cool location where possible.",
+      dataBasis: "Average power × continuous operation",
+      dataNote:
+        "Estimate based on roughly 225 kWh per year. Design, age, location and energy label can significantly affect actual consumption.",
+    },
+  },
   Wasserkocher: {
     en: {
       name: "Kettle",
@@ -151,6 +184,21 @@ const deviceTranslations: Record<
     },
   },
 
+  "Elektroherd / Kochfeld": {
+    en: {
+      name: "Electric hob",
+      category: "Kitchen",
+      slug: "electric-hob",
+      description:
+        "Calculate the approximate electricity cost of your electric hob per cooking session and year.",
+      tip:
+        "Match pans to cooking zones, use lids and residual heat, and heat water only as needed.",
+      dataBasis: "Power × cooking time",
+      dataNote:
+        "Typical value for one active cooking zone. Heat setting, cookware and the number of active zones affect consumption.",
+    },
+  },
+
   Staubsauger: {
     en: {
       name: "Vacuum cleaner",
@@ -241,6 +289,21 @@ const deviceTranslations: Record<
     },
   },
 
+  Heizlüfter: {
+    en: {
+      name: "Fan heater",
+      category: "Room climate",
+      slug: "fan-heater",
+      description:
+        "Calculate the electricity cost of an electric fan heater based on your typical runtime.",
+      tip:
+        "Use fan heaters briefly and selectively; they are usually expensive for continuous heating.",
+      dataBasis: "Power × runtime",
+      dataNote:
+        "Typical value. Power setting, thermostat cycles, room size and insulation affect runtime and cost.",
+    },
+  },
+
   Föhn: {
     en: {
       name: "Hair dryer",
@@ -288,8 +351,20 @@ const deviceTranslations: Record<
   },
 
   Wärmepumpentrockner: {
+    de: {
+      name: "Wäschetrockner (Wärmepumpe)",
+      category: "Wäschepflege",
+      slug: "waeschetrockner",
+      description:
+        "Berechne die ungefähren Stromkosten eines modernen Wärmepumpentrockners.",
+      tip:
+        "Schleudere die Wäsche vorher mit hoher Drehzahl und trockne möglichst volle, passende Ladungen.",
+      dataBasis: "EU-Energielabel / Verbrauch pro Trocknungszyklus",
+      dataNote:
+        "Orientierung für moderne Wärmepumpentrockner. Ältere Kondens- oder Ablufttrockner können ein Mehrfaches verbrauchen.",
+    },
     en: {
-      name: "Heat pump dryer",
+      name: "Tumble dryer (heat pump)",
       category: "Laundry",
       slug: "heat-pump-dryer",
       description:
@@ -349,8 +424,20 @@ const deviceTranslations: Record<
   },
 
   "Desktop-PC": {
+    de: {
+      name: "Desktop-PC (Office)",
+      category: "Büro",
+      slug: "desktop-pc",
+      description:
+        "Berechne die ungefähren Stromkosten deines Desktop-PCs anhand deiner täglichen Nutzung.",
+      tip:
+        "Aktiviere Energiesparfunktionen und versetze den Computer bei längeren Pausen in den Ruhezustand.",
+      dataBasis: "Leistung × Laufzeit",
+      dataNote:
+        "Orientierungswert für einen Office-PC. Leistungsstarke Gaming-PCs werden separat berechnet.",
+    },
     en: {
-      name: "Desktop PC",
+      name: "Desktop PC (office)",
       category: "Office",
       slug: "desktop-pc",
       description:
@@ -360,6 +447,36 @@ const deviceTranslations: Record<
       dataBasis: "Power × runtime",
       dataNote:
         "Typical value. Office computers and high-performance gaming PCs can differ substantially in electricity consumption.",
+    },
+  },
+
+  "Gaming-PC": {
+    en: {
+      name: "Gaming PC",
+      category: "Office",
+      slug: "gaming-pc",
+      description:
+        "Calculate the electricity cost of a gaming PC based on its power and your typical playing time.",
+      tip:
+        "Limit frame rates, use efficient power profiles and put the PC to sleep during breaks.",
+      dataBasis: "Power × runtime",
+      dataNote:
+        "Typical value for the PC without a monitor. Hardware, game, load and power profile can significantly change consumption.",
+    },
+  },
+
+  "WLAN-Router": {
+    en: {
+      name: "Wi-Fi router",
+      category: "Office",
+      slug: "wi-fi-router",
+      description:
+        "Estimate the running electricity cost of a Wi-Fi router operating continuously.",
+      tip:
+        "Disable unused networks or schedules only when doing so will not disconnect important devices.",
+      dataBasis: "Power × continuous operation",
+      dataNote:
+        "Typical value for a router without additional network equipment. Model, wireless standard and enabled features affect power consumption.",
     },
   },
 
@@ -408,20 +525,8 @@ export function getLocalizedDevice(
   device: Device,
   locale: Locale
 ) {
-  if (locale === "de") {
-    return {
-      name: device.name,
-      category: device.category,
-      slug: device.slug,
-      description: device.description,
-      tip: device.tip,
-      dataBasis: device.dataBasis,
-      dataNote: device.dataNote,
-    };
-  }
-
   const translated =
-    deviceTranslations[device.name]?.en;
+    deviceTranslations[device.name]?.[locale];
 
   return {
     name: translated?.name ?? device.name,

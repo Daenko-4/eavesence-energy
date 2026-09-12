@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Stromverbrauch von Haushaltsgeräten",
 
   description:
-    "Entdecke typische Haushaltsgeräte und berechne ihre Stromkosten. Von Küche und Waschen bis Büro und Unterhaltung.",
+    "Entdecke typische Haushaltsgeräte und berechne ihre Stromkosten. Von Küche und Wäschepflege bis Raumklima, Büro und Unterhaltung.",
 
   alternates: {
     canonical: "/geraete",

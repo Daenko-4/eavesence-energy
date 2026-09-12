@@ -361,7 +361,7 @@ export default function DeviceDetailPage({
   return (
     <div
       lang={locale}
-      className="min-h-screen bg-slate-50 text-slate-900"
+      className="min-h-screen bg-[var(--brand-off-white)] text-[#17211f]"
     >
       <script
         type="application/ld+json"
@@ -390,12 +390,12 @@ export default function DeviceDetailPage({
 
       <main>
         {/* Hero */}
-        <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto max-w-5xl px-5 py-14 sm:px-6 sm:py-20">
+        <section className="border-b border-[#dfe5dd] bg-[var(--brand-off-white)]">
+          <div className="mx-auto max-w-7xl px-5 py-9 sm:px-6 sm:py-11">
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <Link
                 href={homeHref}
-                className="font-semibold text-blue-600 transition hover:text-blue-800"
+                className="font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
               >
                 EAVESENCE Energy
               </Link>
@@ -406,7 +406,7 @@ export default function DeviceDetailPage({
 
               <Link
                 href={devicesHref}
-                className="font-semibold text-blue-600 transition hover:text-blue-800"
+                className="font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
               >
                 {text.devices}
               </Link>
@@ -420,19 +420,19 @@ export default function DeviceDetailPage({
               </span>
             </div>
 
-            <div className="mt-8">
-              <p className="text-sm font-bold uppercase tracking-wider text-blue-600">
+            <div className="mt-6">
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
                 {localizedCategory} ·{" "}
                 {text.calculator}
               </p>
 
-              <h1 className="mt-3 max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl">
+              <h1 className="mt-3 max-w-4xl text-3xl font-bold tracking-[-0.04em] sm:text-4xl lg:text-5xl">
                 {text.heroTitleBefore}{" "}
                 {localizedDevice.name}{" "}
                 {text.heroTitleAfter}
               </h1>
 
-              <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">
+              <p className="mt-4 max-w-3xl text-[15px] leading-7 text-[#65716d]">
                 {
                   localizedDevice.description
                 }
@@ -442,16 +442,16 @@ export default function DeviceDetailPage({
         </section>
 
         {/* Example calculation */}
-        <section className="px-5 py-12 sm:px-6">
-          <div className="mx-auto max-w-5xl">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+        <section className="px-5 py-8 sm:px-6 sm:py-10">
+          <div className="mx-auto max-w-7xl">
+            <div className="rounded-2xl border border-[#dfe5dd] bg-[#fbfcf8] p-5 sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-wider text-blue-600">
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
                     {text.example}
                   </p>
 
-                  <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
+                  <h2 className="mt-2 text-xl font-bold tracking-[-0.025em] sm:text-2xl">
                     {
                       text.referenceValues
                     }{" "}
@@ -459,41 +459,41 @@ export default function DeviceDetailPage({
                   </h2>
                 </div>
 
-                <span className="w-fit rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
+                <span className="w-fit rounded-lg bg-[#e4f7ec] px-3 py-1.5 text-xs font-bold text-[var(--brand-green)]">
                   {
                     localizedDevice.dataBasis
                   }
                 </span>
               </div>
 
-              <p className="mt-4 max-w-3xl leading-7 text-slate-600">
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-[#65716d]">
                 {
                   text.referenceDescription
                 }
               </p>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-5 grid gap-px overflow-hidden rounded-xl border border-[#dfe5dd] bg-[#dfe5dd] sm:grid-cols-2 lg:grid-cols-4">
                 {device.calculationType ===
                 "power" ? (
                   <>
-                    <div className="rounded-xl bg-slate-50 p-5">
+                    <div className="bg-[#f6f7f2] p-4">
                       <p className="text-sm text-slate-500">
                         {text.power}
                       </p>
 
-                      <p className="mt-1 text-2xl font-bold">
+                      <p className="mt-1 text-xl font-bold">
                         {device.watts} W
                       </p>
                     </div>
 
-                    <div className="rounded-xl bg-slate-50 p-5">
+                    <div className="bg-[#f6f7f2] p-4">
                       <p className="text-sm text-slate-500">
                         {
                           text.durationPerUse
                         }
                       </p>
 
-                      <p className="mt-1 text-2xl font-bold">
+                      <p className="mt-1 text-xl font-bold">
                         {
                           device.typicalMinutes
                         }{" "}
@@ -502,14 +502,14 @@ export default function DeviceDetailPage({
                     </div>
                   </>
                 ) : (
-                  <div className="rounded-xl bg-slate-50 p-5">
+                  <div className="bg-[#f6f7f2] p-4">
                     <p className="text-sm text-slate-500">
                       {
                         text.consumptionPerUse
                       }
                     </p>
 
-                    <p className="mt-1 text-2xl font-bold">
+                    <p className="mt-1 text-xl font-bold">
                       {formatKwh(
                         kwhPerUse,
                         locale
@@ -519,24 +519,24 @@ export default function DeviceDetailPage({
                   </div>
                 )}
 
-                <div className="rounded-xl bg-slate-50 p-5">
+                <div className="bg-[#f6f7f2] p-4">
                   <p className="text-sm text-slate-500">
                     {text.usesPerWeek}
                   </p>
 
-                  <p className="mt-1 text-2xl font-bold">
+                  <p className="mt-1 text-xl font-bold">
                     {typicalUsesPerWeek}
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-slate-900 p-5 text-white">
+                <div className="bg-[#1d2725] p-4 text-[var(--brand-off-white)]">
                   <p className="text-sm text-slate-300">
                     {
                       text.examplePerYear
                     }
                   </p>
 
-                  <p className="mt-1 text-2xl font-bold">
+                  <p className="mt-1 text-xl font-bold text-[var(--brand-green-mint)]">
                     {formatEuro(
                       yearlyCost,
                       locale
@@ -545,7 +545,7 @@ export default function DeviceDetailPage({
                 </div>
               </div>
 
-              <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="mt-4 border-t border-[#dfe5dd] pt-4">
                 <p className="text-sm font-semibold text-slate-900">
                   {text.dataBasis}
                 </p>
@@ -588,22 +588,22 @@ export default function DeviceDetailPage({
         {/* Calculator */}
         <section
           id="rechner"
-          className="px-5 pb-16 pt-4 sm:px-6 sm:pb-20"
+          className="px-5 pb-12 pt-3 sm:px-6 sm:pb-14"
         >
-          <div className="mx-auto max-w-5xl">
-            <div className="mb-8">
-              <p className="text-sm font-bold uppercase tracking-wider text-blue-600">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-5">
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
                 {text.yourValues}
               </p>
 
-              <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+              <h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] sm:text-3xl">
                 {localizedDevice.name}{" "}
                 {
                   text.calculatorTitleAfter
                 }
               </h2>
 
-              <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-[#65716d]">
                 {
                   text.calculatorDescription
                 }
@@ -619,17 +619,17 @@ export default function DeviceDetailPage({
         </section>
 
         {/* Explanation */}
-        <section className="bg-white px-5 py-16 sm:px-6 sm:py-20">
-          <div className="mx-auto max-w-5xl">
-            <div className="grid gap-10 lg:grid-cols-2">
+        <section className="border-y border-[#dfe5dd] bg-[#f9faf5] px-5 py-10 sm:px-6 sm:py-12">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-7 lg:grid-cols-[1.15fr_.85fr]">
               <div>
-                <p className="text-sm font-bold uppercase tracking-wider text-blue-600">
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
                   {
                     text.understandCalculation
                   }
                 </p>
 
-                <h2 className="mt-3 text-3xl font-bold tracking-tight">
+                <h2 className="mt-2 text-2xl font-bold tracking-[-0.025em]">
                   {text.howCalculated}
                 </h2>
 
@@ -688,7 +688,7 @@ export default function DeviceDetailPage({
               </div>
 
               <div>
-                <div className="rounded-2xl border border-slate-200 p-6 sm:p-8">
+                <div className="rounded-xl border border-[#dfe5dd] bg-[var(--brand-off-white)] p-5 sm:p-6">
                   <p className="font-bold text-slate-900">
                     {text.moreAccurate}
                   </p>
@@ -711,17 +711,17 @@ export default function DeviceDetailPage({
         </section>
 
         {seoContent && (
-          <section className="border-t border-slate-200 bg-slate-50 px-5 py-16 sm:px-6 sm:py-20">
-            <div className="mx-auto max-w-5xl">
-              <p className="text-sm font-bold uppercase tracking-wider text-blue-600">
+          <section className="px-5 py-10 sm:px-6 sm:py-12">
+            <div className="mx-auto max-w-7xl">
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
                 {text.guide}
               </p>
 
-              <h2 className="mt-3 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">
+              <h2 className="mt-2 max-w-3xl text-2xl font-bold tracking-[-0.03em] sm:text-3xl">
                 {seoContent.introTitle}
               </h2>
 
-              <div className="mt-6 max-w-4xl space-y-4 text-lg leading-8 text-slate-600">
+              <div className="mt-4 max-w-4xl space-y-3 text-[15px] leading-7 text-[#65716d]">
                 {seoContent.intro.map(
                   (paragraph) => (
                     <p key={paragraph}>
@@ -731,7 +731,7 @@ export default function DeviceDetailPage({
                 )}
               </div>
 
-              <div className="mt-12">
+              <div className="mt-8">
                 <h3 className="text-2xl font-bold tracking-tight">
                   {seoContent.scenariosTitle}
                 </h3>
@@ -740,7 +740,7 @@ export default function DeviceDetailPage({
                   {seoContent.scenariosIntro}
                 </p>
 
-                <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   {seoContent.scenarios.map(
                     (scenario) => {
                       const scenarioYearlyCost =
@@ -752,7 +752,7 @@ export default function DeviceDetailPage({
                       return (
                         <div
                           key={scenario.label}
-                          className="rounded-2xl border border-slate-200 bg-white p-5"
+                          className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"
                         >
                           <p className="font-bold text-slate-900">
                             {scenario.label}
@@ -789,8 +789,8 @@ export default function DeviceDetailPage({
                 </div>
               </div>
 
-              <div className="mt-12 grid gap-6 lg:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+              <div className="mt-8 grid gap-4 lg:grid-cols-2">
+                <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-5 sm:p-6">
                   <h3 className="text-2xl font-bold tracking-tight">
                     {seoContent.valuesTitle}
                   </h3>
@@ -801,7 +801,7 @@ export default function DeviceDetailPage({
                 </div>
 
                 {seoContent.comparison && (
-                  <div className="rounded-2xl border border-green-200 bg-green-50 p-6 sm:p-8">
+                  <div className="rounded-xl border border-[#cce8d7] bg-[#eaf8ef] p-5 sm:p-6">
                     <h3 className="text-2xl font-bold tracking-tight text-[var(--brand-green-dark)]">
                       {
                         seoContent.comparison
@@ -832,7 +832,7 @@ export default function DeviceDetailPage({
                 )}
               </div>
 
-              <div className="mt-12">
+              <div className="mt-8">
                 <h3 className="text-2xl font-bold tracking-tight">
                   {seoContent.faqTitle}
                 </h3>
@@ -841,7 +841,7 @@ export default function DeviceDetailPage({
                   {seoContent.faqs.map((faq) => (
                     <details
                       key={faq.question}
-                      className="group rounded-xl border border-slate-200 bg-white p-5"
+                      className="group rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"
                     >
                       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
                         {faq.question}
@@ -872,7 +872,7 @@ export default function DeviceDetailPage({
                       <li key={source.href}>
                         <a
                           href={source.href}
-                          className="font-semibold text-blue-600 underline decoration-blue-200 underline-offset-4 transition hover:text-blue-800"
+                          className="font-semibold text-[var(--brand-green)] underline decoration-[#a9d9bb] underline-offset-4 transition hover:text-[var(--brand-green-dark)]"
                         >
                           {source.label}
                         </a>
@@ -887,16 +887,16 @@ export default function DeviceDetailPage({
 
         {/* Related devices */}
         {relatedDevices.length > 0 && (
-          <section className="px-5 py-16 sm:px-6 sm:py-20">
-            <div className="mx-auto max-w-5xl">
+          <section className="border-t border-[#dfe5dd] px-5 py-10 sm:px-6 sm:py-12">
+            <div className="mx-auto max-w-7xl">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-wider text-blue-600">
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
                     {text.moreFrom}{" "}
                     {localizedCategory}
                   </p>
 
-                  <h2 className="mt-3 text-3xl font-bold tracking-tight">
+                  <h2 className="mt-2 text-2xl font-bold tracking-[-0.025em]">
                     {
                       text.relatedDevices
                     }
@@ -905,13 +905,13 @@ export default function DeviceDetailPage({
 
                 <Link
                   href={devicesHref}
-                  className="text-sm font-semibold text-blue-600 transition hover:text-blue-800"
+                  className="text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                 >
                   {text.viewAllDevices}
                 </Link>
               </div>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedDevices.map(
                   (relatedDevice) => {
                     const localizedRelated =
@@ -931,9 +931,9 @@ export default function DeviceDetailPage({
                           relatedDevice.slug
                         }
                         href={href}
-                        className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99]"
+                        className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-5 transition hover:border-[#a9d9bb] hover:bg-white active:scale-[0.995]"
                       >
-                        <p className="text-sm font-semibold text-blue-600">
+                        <p className="text-xs font-semibold text-[var(--brand-green)]">
                           {getLocalizedCategory(
                             relatedDevice.category,
                             locale
