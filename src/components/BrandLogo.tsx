@@ -21,11 +21,9 @@ export function BrandMark({
       <rect x="13" y="1" width="10" height="10" rx="2.4" fill="#10283a" />
       <rect x="25" y="1" width="10" height="10" rx="2.4" fill="#18a957" />
       <rect x="1" y="13" width="10" height="10" rx="2.4" fill="#10283a" />
-      <path d="M13 13h10v10H13z" fill="#10283a" />
-      <path d="m13 23 10-10v10H13Z" fill="#ddf8e9" />
-      <rect x="25" y="13" width="10" height="10" rx="2.4" fill="#10283a" />
+      <rect x="13" y="13" width="10" height="10" rx="2.4" fill="#10283a" />
       <rect x="1" y="25" width="10" height="10" rx="2.4" fill="#10283a" />
-      <rect x="13" y="25" width="10" height="10" rx="2.4" fill="#18a957" />
+      <rect x="13" y="25" width="10" height="10" rx="2.4" fill="#10283a" />
       <rect x="25" y="25" width="10" height="10" rx="2.4" fill="#10283a" />
     </svg>
   );
