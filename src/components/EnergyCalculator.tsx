@@ -1243,7 +1243,7 @@ export default function EnergyCalculator({
               current === "exact" ? "estimate" : "exact"
             )
           }
-          className={`${homePresentation ? "mb-3" : "mb-5"} inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 transition hover:text-emerald-200`}
+          className={`${homePresentation ? "mb-3" : "mb-5"} inline-flex items-center gap-2 text-sm font-semibold text-green-800 transition hover:text-green-950`}
         >
           <svg
             viewBox="0 0 20 20"
@@ -1550,7 +1550,7 @@ export default function EnergyCalculator({
               block: "center",
             })
           }
-          className="inline-flex min-h-12 flex-1 items-center justify-center gap-3 rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-5 font-bold text-[#065f3b] shadow-[0_10px_28px_-20px_rgba(0,122,61,0.65)] transition hover:-translate-y-0.5 hover:bg-[#c9f7d9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dcfce8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] active:translate-y-0"
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-3 rounded-xl border border-[#14945a] bg-[#087a45] px-5 font-bold text-white shadow-[0_12px_30px_-18px_rgba(0,122,61,0.8)] transition hover:-translate-y-0.5 hover:bg-[#06683b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65d89b] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] active:translate-y-0"
         >
           {text.calculate} <span aria-hidden="true">→</span>
         </button>

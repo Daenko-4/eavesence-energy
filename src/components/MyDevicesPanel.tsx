@@ -436,7 +436,7 @@ export default function MyDevicesPanel({
                 {sortedDevices.map((item) => (
                   <div
                     key={item.id}
-                    className="flex flex-col gap-2 py-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-5"
+                    className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-3"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-700">
@@ -451,28 +451,34 @@ export default function MyDevicesPanel({
                         </p>
                       </div>
                     </div>
-                    <p className="text-sm font-semibold tabular-nums text-slate-700 sm:text-right">
-                      {formatMoney(item.yearlyCost, locale, item.currency)}
-                      <span className="ml-1 text-xs font-normal text-slate-500">
-                        {text.perYear}
-                      </span>
-                    </p>
-                    <div className="flex items-center gap-1 sm:justify-end">
-                      <button
-                        type="button"
-                        onClick={() => onOpen(item)}
-                        className="min-h-8 rounded-md px-2 py-1 text-xs font-bold text-green-800 transition hover:bg-[#dcfce8]"
-                      >
-                        {text.open}
-                      </button>
-                      <span aria-hidden="true" className="h-4 w-px bg-slate-200" />
-                      <button
-                        type="button"
-                        onClick={() => removeDevice(item.id)}
-                        className="min-h-8 rounded-md px-2 py-1 text-xs font-semibold text-slate-500 transition hover:bg-red-50 hover:text-red-700"
-                      >
-                        {text.remove}
-                      </button>
+                    <span
+                      aria-hidden="true"
+                      className="hidden h-px min-w-8 flex-1 bg-gradient-to-r from-slate-200 via-slate-200 to-slate-100 sm:block"
+                    />
+                    <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:gap-0.5">
+                      <p className="text-sm font-semibold tabular-nums text-slate-700 sm:text-right">
+                        {formatMoney(item.yearlyCost, locale, item.currency)}
+                        <span className="ml-1 text-xs font-normal text-slate-500">
+                          {text.perYear}
+                        </span>
+                      </p>
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => onOpen(item)}
+                          className="min-h-6 rounded px-1.5 py-0.5 text-[10px] font-bold text-green-800 transition hover:bg-[#dcfce8]"
+                        >
+                          {text.open}
+                        </button>
+                        <span aria-hidden="true" className="h-3 w-px bg-slate-200" />
+                        <button
+                          type="button"
+                          onClick={() => removeDevice(item.id)}
+                          className="min-h-6 rounded px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 transition hover:bg-red-50 hover:text-red-700"
+                        >
+                          {text.remove}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -732,21 +738,22 @@ export default function MyDevicesPanel({
                   </div>
                 </div>
 
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 items-center gap-0.5">
                   <button
                     type="button"
                     onClick={() => {
                       onOpen(item);
                       setNotice("");
                     }}
-                    className="rounded-lg border border-[#b8efcc] bg-[#dcfce8] px-3 py-2 text-sm font-semibold text-[#065f3b] transition hover:bg-[#c9f7d9]"
+                    className="min-h-7 rounded px-2 py-1 text-[11px] font-bold text-green-800 transition hover:bg-[#dcfce8]"
                   >
                     {text.open}
                   </button>
+                  <span aria-hidden="true" className="h-3.5 w-px bg-slate-200" />
                   <button
                     type="button"
                     onClick={() => removeDevice(item.id)}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+                    className="min-h-7 rounded px-2 py-1 text-[11px] font-semibold text-slate-400 transition hover:bg-red-50 hover:text-red-700"
                   >
                     {text.remove}
                   </button>
