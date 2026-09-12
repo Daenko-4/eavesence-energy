@@ -1031,9 +1031,11 @@ export default function EnergyCalculator({
         text.savingTip.fallback;
 
   const fieldClassName =
-    `w-full rounded-xl border border-white/[0.14] bg-[#222c2a] px-4 ${homePresentation ? "py-3" : "py-3.5"} font-medium text-[#f7faf8] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] outline-none transition-[border-color,background-color,box-shadow] placeholder:text-[#7f918b] hover:border-white/[0.22] focus:border-[var(--brand-green-mint)] focus:bg-[#26312f] focus:ring-4 focus:ring-[#72dca3]/10`;
+    `w-full rounded-xl border border-white/[0.12] bg-[#202b28] px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[15px] font-semibold text-[#f7faf8] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] outline-none transition-[border-color,background-color,box-shadow] placeholder:text-[#7f918b] hover:border-white/[0.2] focus:border-[var(--brand-green-mint)] focus:bg-[#24312d] focus:ring-2 focus:ring-[#72dca3]/12`;
   const secondaryFieldClassName =
-    "w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-green-400 focus:ring-4 focus:ring-green-100";
+    "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
+  const fieldLabelClassName =
+    "calculator-field-label mb-1.5 block text-[12px] font-semibold leading-5";
   const fieldHintClassName = homePresentation
     ? "hidden"
     : "mt-2 text-sm leading-6 text-slate-500";
@@ -1045,7 +1047,7 @@ export default function EnergyCalculator({
 
   return (
     <section>
-      <div className={`grid rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#202927_0%,#18211f_56%,#121918_100%)] text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.62)] lg:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] ${
+      <div className={`grid rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] lg:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] ${
         homePresentation
           ? "gap-4 p-4 sm:p-5 lg:gap-6 lg:p-5"
           : "gap-5 p-4 sm:p-6 lg:gap-8 lg:p-7"
@@ -1054,7 +1056,7 @@ export default function EnergyCalculator({
 
       {/* Device */}
       <div className={homePresentation ? "mb-4" : "mb-6"}>
-        <p className="mb-3 pl-3.5 text-sm font-semibold tracking-[-0.01em] text-[#edf3ef]">
+        <p className="calculator-field-label mb-1.5 text-[12px] font-semibold leading-5">
           {text.device.label}
         </p>
         {detailPage ? (
@@ -1148,7 +1150,8 @@ export default function EnergyCalculator({
               </select>
             </div>
 
-            <details className={`group ${homePresentation ? "mt-2" : "mt-3"}`}>
+            <div className={`flex flex-wrap items-start gap-x-5 gap-y-2 ${homePresentation ? "mt-2" : "mt-3"}`}>
+            <details className="group min-w-0 open:basis-full">
           <summary className="calculator-secondary-action inline-flex cursor-pointer list-none items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)] [&::-webkit-details-marker]:hidden">
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
               <circle cx="8.5" cy="8.5" r="5.5" />
@@ -1168,7 +1171,7 @@ export default function EnergyCalculator({
               <path d="m7.5 5 5 5-5 5" />
             </svg>
           </summary>
-          <div className="mt-3 rounded-xl bg-slate-50 p-3">
+          <div className="mt-2.5 w-full rounded-xl bg-slate-50 p-3">
             <input
               type="search"
               value={deviceSearch}
@@ -1207,6 +1210,37 @@ export default function EnergyCalculator({
             )}
           </div>
             </details>
+            {isPowerDevice && (
+              <button
+                type="button"
+                onClick={() =>
+                  setMode((current) =>
+                    current === "exact" ? "estimate" : "exact"
+                  )
+                }
+                className="calculator-secondary-action inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)]"
+              >
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className="h-4 w-4"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 6h12" />
+                  <path d="m13 3 3 3-3 3" />
+                  <path d="M16 14H4" />
+                  <path d="m7 11-3 3 3 3" />
+                </svg>
+                {mode === "exact"
+                  ? text.modes.useTypical
+                  : text.modes.useMeasured}
+              </button>
+            )}
+            </div>
           </>
         )}
       </div>
@@ -1214,7 +1248,7 @@ export default function EnergyCalculator({
       {/* Custom device */}
       {isCustomDevice && (
         <div className="mb-8 rounded-2xl border border-white/[0.12] bg-white/[0.035] p-5">
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className={fieldLabelClassName}>
             {text.device.customName}
           </label>
 
@@ -1241,7 +1275,7 @@ export default function EnergyCalculator({
 
       {/* Inputs */}
       <p className="sr-only">{text.steps.usage}</p>
-      {isPowerDevice && (
+      {detailPage && isPowerDevice && (
         <button
           type="button"
           onClick={() =>
@@ -1276,7 +1310,7 @@ export default function EnergyCalculator({
           isPowerDevice && (
             <>
               <div>
-                <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
+                <label className={fieldLabelClassName}>
                   {text.fields.power}
                 </label>
 
@@ -1314,7 +1348,7 @@ export default function EnergyCalculator({
               </div>
 
               <div>
-                <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
+                <label className={fieldLabelClassName}>
                   {
                     text.fields
                       .minutesPerUse
@@ -1357,7 +1391,7 @@ export default function EnergyCalculator({
         {mode === "estimate" &&
           isConsumptionDevice && (
             <div>
-              <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
+              <label className={fieldLabelClassName}>
                 {
                   text.fields
                     .consumptionPerUse
@@ -1401,7 +1435,7 @@ export default function EnergyCalculator({
 
         {mode === "exact" && (
           <div>
-            <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
+            <label className={fieldLabelClassName}>
               {
                 text.fields
                   .actualConsumptionPerUse
@@ -1446,14 +1480,14 @@ export default function EnergyCalculator({
         {/* Electricity price */}
         <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_8rem]">
           <div>
-          <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
+          <label className={fieldLabelClassName}>
             {
               text.fields
                 .electricityPrice
             }
           </label>
 
-          <div className="flex w-full items-center rounded-xl border border-white/[0.14] bg-[#222c2a] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-[border-color,background-color,box-shadow] hover:border-white/[0.22] focus-within:border-[var(--brand-green-mint)] focus-within:bg-[#26312f] focus-within:ring-4 focus-within:ring-[#72dca3]/10">
+          <div className="flex w-full items-center rounded-xl border border-white/[0.12] bg-[#202b28] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-[border-color,background-color,box-shadow] hover:border-white/[0.2] focus-within:border-[var(--brand-green-mint)] focus-within:bg-[#24312d] focus-within:ring-2 focus-within:ring-[#72dca3]/12">
             <input
               type="number"
               min="0"
@@ -1469,7 +1503,7 @@ export default function EnergyCalculator({
                   )
                 )
               }
-              className={`min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-3" : "py-3.5"} font-medium text-[#f7faf8] outline-none tabular-nums`}
+              className={`min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[15px] font-semibold text-[#f7faf8] outline-none tabular-nums`}
             />
 
             <span className="pointer-events-none shrink-0 whitespace-nowrap pr-3 text-xs font-medium text-[#9fb0aa]">
@@ -1486,7 +1520,7 @@ export default function EnergyCalculator({
           </div>
 
           <div>
-            <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
+            <label className={fieldLabelClassName}>
               {text.fields.currency}
             </label>
 
@@ -1506,7 +1540,7 @@ export default function EnergyCalculator({
 
         {/* Uses */}
         <div>
-          <label className="mb-2 block pl-4 text-sm font-semibold text-slate-700">
+          <label className={fieldLabelClassName}>
             {
               text.fields
                 .usesPerWeek
@@ -1611,18 +1645,18 @@ export default function EnergyCalculator({
         ref={resultRef}
         className={`flex min-w-0 flex-col justify-center rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] text-[#24302d] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] ${
           homePresentation
-            ? "min-h-[300px] p-6 sm:p-7"
+            ? "min-h-[280px] p-6 sm:p-7"
             : "min-h-[420px] p-6 sm:p-8 lg:p-10"
         }`}
       >
         {calculationIsValid ? (
           <>
-            <p className={`${homePresentation ? "text-base sm:text-lg" : "text-lg sm:text-xl"} font-semibold tracking-[-0.025em] text-[#33413d]`}>
+            <p className={`${homePresentation ? "text-[15px]" : "text-lg sm:text-xl"} font-semibold tracking-[-0.02em] text-[#44524d]`}>
               {activeLocale === "de" ? "Deine Jahreskosten" : "Your yearly cost"}
             </p>
 
             <div className={homePresentation ? "mt-3" : "mt-5"}>
-              <span className={`${homePresentation ? "text-[clamp(2.35rem,4.2vw,4.25rem)]" : "text-[clamp(2.8rem,5.2vw,5.15rem)]"} block max-w-full whitespace-normal font-bold leading-[0.96] tracking-[-0.05em] text-[#1d2926] tabular-nums [overflow-wrap:anywhere]`}>
+              <span className={`${homePresentation ? "text-[clamp(2rem,3.3vw,3.5rem)]" : "text-[clamp(2.5rem,4.4vw,4.6rem)]"} block max-w-full whitespace-normal font-bold leading-[0.98] tracking-[-0.045em] text-[#1d2926] tabular-nums [overflow-wrap:anywhere]`}>
                 {formatMoney(
                   yearlyCost,
                   activeLocale,
@@ -1703,21 +1737,6 @@ export default function EnergyCalculator({
         )}
       </div>
       </div>
-
-      <a
-        href="#meine-geraete"
-        className="mx-auto mt-5 flex w-fit items-center gap-3 rounded-full px-3 py-2 text-sm font-bold text-[#07111f] transition hover:bg-emerald-50 hover:text-[var(--brand-green)]"
-      >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-[var(--brand-green)]" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M7 4h10a1 1 0 0 1 1 1v16l-6-4-6 4V5a1 1 0 0 1 1-1Z" />
-          </svg>
-        </span>
-        {activeLocale === "de"
-          ? "Gesamtkosten vergleichen"
-          : "Compare total costs"}
-        <span className="text-[var(--brand-green)]" aria-hidden="true">→</span>
-      </a>
 
       {/* Saving tip */}
       {!homePresentation && (

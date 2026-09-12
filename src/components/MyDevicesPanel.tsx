@@ -37,6 +37,7 @@ export type MyDevicesPanelHandle = {
 const copy = {
   de: {
     title: "Meine Geräte",
+    compareTotal: "Gesamtkosten vergleichen",
     description:
       "Speichere deine Berechnung auf diesem Gerät – ohne Konto und ohne Datenübertragung.",
     save: "Gerät speichern",
@@ -79,6 +80,7 @@ const copy = {
   },
   en: {
     title: "My devices",
+    compareTotal: "Compare total costs",
     description:
       "Save your calculation on this device – without an account or data transfer.",
     save: "Save device",
@@ -372,16 +374,44 @@ function MyDevicesPanel(
     return (
       <section
         id="meine-geraete"
-        className="mt-8 scroll-mt-[104px] border-t border-slate-200 pt-7"
+        className="mt-5 scroll-mt-[104px] border-t border-slate-200/80 pt-5"
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-950 sm:text-2xl">
-              {text.title}
-            </h2>
-            <p className="mt-1 max-w-2xl text-[13px] leading-5 text-slate-500">
-              {text.description}
-            </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-950 sm:text-2xl">
+                {text.title}
+              </h2>
+              <span className="text-[11px] font-bold text-[var(--brand-green)]">
+                {text.compareTotal}
+              </span>
+            </div>
+            <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <p className="max-w-2xl text-[12px] leading-5 text-slate-500">
+                {text.description}
+              </p>
+              {savedDevices.length === 0 && (
+                <button
+                  type="button"
+                  onClick={() => importInputRef.current?.click()}
+                  className="group relative w-fit shrink-0 pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                >
+                  {text.import}
+                  <svg
+                    viewBox="0 0 12 8"
+                    fill="none"
+                    className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 translate-y-1 opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m2.5 5.5 3.5-3 3.5 3" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
           {savedDevices.length > 0 && (
             <span className="w-fit rounded-full bg-[#ddf8e9] px-3 py-1 text-[11px] font-bold text-[var(--brand-green)]">
@@ -574,27 +604,7 @@ function MyDevicesPanel(
               </div>
             </div>
           </details>
-        ) : (
-          <button
-            type="button"
-            onClick={() => importInputRef.current?.click()}
-            className="group relative mt-3 pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
-          >
-            {text.import}
-            <svg
-              viewBox="0 0 12 8"
-              fill="none"
-              className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 translate-y-1 opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="m2.5 5.5 3.5-3 3.5 3" />
-            </svg>
-          </button>
-        )}
+        ) : null}
       </section>
     );
   }

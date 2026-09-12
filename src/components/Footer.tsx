@@ -96,9 +96,9 @@ export default function Footer({ locale = "de" }: FooterProps) {
   const privacyHref = getPrivacyHref(locale);
 
   return (
-    <footer className="border-t border-slate-200/70 bg-[#fafbf8]">
-      <div className="mx-auto max-w-7xl px-5 py-7 sm:px-6">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-[minmax(300px,1fr)_auto_auto] lg:gap-12">
+    <footer className="border-t border-slate-200/70 bg-[var(--background)]">
+      <div className="mx-auto max-w-7xl px-5 py-6 sm:px-6">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-[minmax(300px,1fr)_auto_auto] lg:gap-10">
           <div>
             <BrandLogo
               markClassName="h-7 w-7"

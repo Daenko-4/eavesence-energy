@@ -674,13 +674,13 @@ export default function HomePage({
   return (
     <div
       lang={locale}
-      className="min-h-screen bg-[#fafbf8] text-[#07111f]"
+      className="min-h-screen bg-[var(--background)] text-[#07111f]"
     >
       <Header locale={locale} />
 
       <main className="overflow-hidden">
-        <section className="relative px-5 pb-9 pt-10 sm:px-6 sm:pb-10 sm:pt-12 lg:pt-16">
-          <div className="pointer-events-none absolute inset-x-0 top-28 h-[720px] bg-[radial-gradient(ellipse_at_center,rgba(0,198,106,0.16),rgba(232,255,243,0.08)_35%,transparent_72%)]" />
+        <section className="relative px-5 pb-7 pt-10 sm:px-6 sm:pb-8 sm:pt-12 lg:pt-16">
+          <div className="pointer-events-none absolute inset-x-0 top-28 h-[680px] bg-[radial-gradient(ellipse_at_center,rgba(114,220,163,0.17),rgba(232,255,243,0.06)_38%,transparent_72%)]" />
 
           <div
             id="rechner"
@@ -701,16 +701,16 @@ export default function HomePage({
               <EnergyCalculator locale={locale} homePresentation />
             </div>
 
-            <div className="mt-8 grid border-y border-slate-200/80 py-5 sm:grid-cols-3 sm:divide-x sm:divide-slate-200">
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5">
               {text.hero.features.map((item, index) => (
                 <div
                   key={item}
-                  className="flex items-center justify-center gap-3 px-5 py-2 text-sm font-semibold text-slate-700"
+                  className="flex items-center justify-center gap-2 text-[12px] font-semibold text-slate-600"
                 >
                   <span className="text-[var(--brand-green)]">
                     <Icon
                       name={index === 0 ? "free" : index === 1 ? "settings" : "laptop"}
-                      className="h-5 w-5"
+                      className="h-4 w-4"
                     />
                   </span>
                   {item}
@@ -720,7 +720,7 @@ export default function HomePage({
           </div>
         </section>
 
-        <section className="px-5 py-10 sm:px-6 sm:py-12">
+        <section className="px-5 py-8 sm:px-6 sm:py-10">
           <div className="mx-auto max-w-7xl">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
@@ -734,15 +734,15 @@ export default function HomePage({
               </a>
             </div>
 
-            <div className="mt-7 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="mt-5 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-3 lg:grid-cols-6">
               {text.categories.map((category) => (
                 <a
                   key={category.name}
                   href={category.href}
-                  className="group flex min-h-24 items-center gap-3 border-b border-r border-slate-200/70 px-4 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50/50 hover:text-[var(--brand-green)] sm:px-5 lg:border-b-0 lg:last:border-r-0"
+                  className="group flex min-h-[72px] items-center gap-2.5 border-b border-r border-slate-200/70 px-4 text-[13px] font-semibold text-slate-700 transition hover:bg-[#eaf8ef] hover:text-[var(--brand-green)] sm:px-5 lg:border-b-0 lg:last:border-r-0"
                 >
                   <span className="text-[var(--brand-green)] transition-transform duration-200 group-hover:-translate-y-0.5">
-                    <Icon name={category.icon} className="h-6 w-6" />
+                    <Icon name={category.icon} className="h-5 w-5" />
                   </span>
                   {category.name}
                 </a>
@@ -753,14 +753,14 @@ export default function HomePage({
 
         <section
           id="so-funktionierts"
-          className="scroll-mt-24 px-5 py-10 sm:px-6 sm:py-12"
+          className="scroll-mt-24 px-5 py-8 sm:px-6 sm:py-10"
         >
-          <div className="mx-auto max-w-7xl border-y border-slate-200/80 py-9">
+          <div className="mx-auto max-w-7xl border-y border-slate-200/80 py-7">
             <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
               {text.howItWorks.label}
             </h2>
 
-            <div className="mt-7 grid gap-7 md:grid-cols-3 md:divide-x md:divide-slate-200">
+            <div className="mt-6 grid gap-6 md:grid-cols-3 md:divide-x md:divide-slate-200">
               {text.howItWorks.steps.map((step) => (
                 <div
                   key={step.number}
@@ -783,13 +783,13 @@ export default function HomePage({
 
         <section
           id="about"
-          className="scroll-mt-[120px] px-5 py-10 sm:px-6 sm:py-12"
+          className="scroll-mt-[120px] px-5 py-8 sm:px-6 sm:py-10"
         >
-          <div className="mx-auto max-w-7xl border-b border-slate-200/80 pb-10">
-            <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
+          <div className="mx-auto max-w-5xl border-b border-slate-200/80 pb-8">
+            <h2 className="text-xl font-bold tracking-[-0.025em] text-[#07111f] sm:text-2xl">
               {text.about.label}
             </h2>
-            <p className="mt-3 max-w-4xl text-base leading-7 text-slate-600">
+            <p className="mt-3 max-w-4xl text-[15px] leading-7 text-slate-600">
               {text.about.text} {text.about.closing}
             </p>
           </div>
@@ -797,14 +797,14 @@ export default function HomePage({
 
         <section
           id="faq"
-          className="scroll-mt-24 px-5 pb-16 pt-6 sm:px-6 sm:pb-20"
+          className="scroll-mt-24 px-5 pb-14 pt-5 sm:px-6 sm:pb-16"
         >
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-5xl">
             <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
               {text.faq.title}
             </h2>
 
-            <div className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
+            <div className="mt-5 divide-y divide-slate-200 border-y border-slate-200">
               {text.faq.items.map((faq) => (
                 <details
                   key={faq.question}
