@@ -968,6 +968,10 @@ export default function EnergyCalculator({
   const scenarioSavings = yearlyCost - scenarioYearlyCost;
   const supportsUsageScenario =
     isCustomDevice || (selectedDevice?.typicalMinutes ?? 0) < 1440;
+  const calculationFormula =
+    mode === "estimate" && isPowerDevice
+      ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
+      : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`;
 
   const comparisonCandidates = devices.filter(
     (item) =>
@@ -1736,38 +1740,40 @@ export default function EnergyCalculator({
               </div>
             )}
 
-            <div className="absolute inset-x-0 bottom-0 z-10 flex h-16 items-center border-t border-[#dfe4da] bg-[#f6f6f0] px-6 sm:px-7 lg:px-10">
-              {calculationDetailsOpen ? (
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--brand-green)]">{text.result.formula}</p>
-                    <p className="mt-0.5 overflow-x-auto whitespace-nowrap text-[11px] leading-4 text-[#65716d] [scrollbar-width:thin]">
-                      {mode === "estimate" && isPowerDevice
-                        ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
-                        : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setCalculationDetailsOpen(false)}
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-lg text-[var(--brand-green)] transition hover:bg-[#e4f7ec]"
-                    aria-label={activeLocale === "de" ? "Berechnung schließen" : "Close calculation"}
-                  >
-                    ×
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setCalculationDetailsOpen(true)}
-                  className="flex w-full items-center justify-between gap-4 text-[13px] font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
-                  aria-expanded="false"
-                >
-                  {text.result.details}
-                  <span aria-hidden="true" className="text-lg leading-none">+</span>
-                </button>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => setCalculationDetailsOpen((open) => !open)}
+              aria-expanded={calculationDetailsOpen}
+              className="group absolute inset-x-0 bottom-0 z-10 flex h-16 w-full items-center gap-4 border-t border-[#dfe4da] bg-[#f6f6f0] px-6 text-left transition-colors hover:bg-[#f0f3eb] sm:px-7 lg:px-10"
+            >
+              <span className="min-w-0 flex-1">
+                {calculationDetailsOpen ? (
+                  <>
+                    <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--brand-green)]">
+                      {text.result.formula}
+                    </span>
+                    <span
+                      title={calculationFormula}
+                      className="mt-0.5 line-clamp-2 block break-words text-[11px] font-medium leading-4 text-[#65716d]"
+                    >
+                      {calculationFormula}
+                    </span>
+                  </>
+                ) : (
+                  <span className="block text-[13px] font-semibold text-[var(--brand-green)] transition-colors group-hover:text-[var(--brand-green-dark)]">
+                    {text.result.details}
+                  </span>
+                )}
+              </span>
+              <span
+                aria-hidden="true"
+                className={`flex h-7 w-7 shrink-0 origin-center items-center justify-center text-lg leading-none text-[var(--brand-green)] transition-transform duration-[180ms] ${
+                  calculationDetailsOpen ? "rotate-45" : "rotate-0"
+                }`}
+              >
+                +
+              </span>
+            </button>
           </>
         ) : (
           <>
