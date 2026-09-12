@@ -270,7 +270,7 @@ export default function Header({
     }
     closeNavigationTimeoutRef.current = setTimeout(
       () => setDesktopNavigationOpen(false),
-      220,
+      280,
     );
   }
 
@@ -286,7 +286,7 @@ export default function Header({
     logoInteractionTimeoutRef.current = setTimeout(() => {
       suppressPointerOpenRef.current = false;
       logoInteractionTimeoutRef.current = null;
-    }, 560);
+    }, 1100);
     closeMenu();
     setDesktopNavigationOpen(false);
     setPreviewNavigation(null);
@@ -354,19 +354,25 @@ export default function Header({
               onClick={handleLogoClick}
               onMouseEnter={openDesktopNavigationFromPointer}
               onFocus={openDesktopNavigation}
-              className={`absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-2.5 transition-[left,transform] duration-[520ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
+              aria-expanded={desktopNavigationOpen}
+              style={{
+                clipPath: desktopNavigationOpen
+                  ? "inset(0 158px 0 0)"
+                  : "inset(0 0 0 0)",
+              }}
+              className={`absolute top-1/2 z-20 flex w-[190px] -translate-y-1/2 items-center gap-2.5 overflow-hidden transition-[left,transform,clip-path] duration-[900ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none ${
                 desktopNavigationOpen
-                  ? "left-0 translate-x-0"
-                  : "left-1/2 -translate-x-1/2"
+                  ? "left-0 translate-x-0 delay-0"
+                  : "left-1/2 -translate-x-1/2 delay-[120ms]"
               }`}
               aria-label={text.homeLabel}
             >
               <BrandMark className="h-8 w-8 shrink-0" />
               <span
-                className={`overflow-hidden whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-[max-width,opacity,transform,filter] duration-[520ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
+                className={`w-[148px] shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-[opacity,transform] duration-[680ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none ${
                   desktopNavigationOpen
-                    ? "max-w-0 -translate-x-3 scale-x-75 opacity-0 blur-[5px]"
-                    : "max-w-[190px] translate-x-0 scale-x-100 opacity-100 blur-0"
+                    ? "-translate-x-2 opacity-0"
+                    : "translate-x-0 opacity-100 delay-[180ms]"
                 }`}
               >
                 EAVESENCE
@@ -386,10 +392,10 @@ export default function Header({
                 setPreviewNavigation(null);
               }}
               aria-label={text.openNavigation}
-              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,transform,filter,visibility] duration-[340ms] ease-out motion-reduce:transition-none ${
+              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,transform,visibility] duration-[560ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none ${
                 desktopNavigationOpen
-                  ? "visible translate-x-0 opacity-100 blur-0 delay-100"
-                  : "invisible pointer-events-none translate-x-4 opacity-0 blur-[3px] delay-0"
+                  ? "visible translate-x-0 opacity-100 delay-[360ms]"
+                  : "invisible pointer-events-none translate-x-2 opacity-0 delay-0"
               }`}
             >
               <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator" onPreview={setPreviewNavigation}>
@@ -410,7 +416,7 @@ export default function Header({
               <span
                 ref={activeIndicatorRef}
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[var(--brand-green-mint)] opacity-0 transition-[width,transform,opacity] duration-[220ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[var(--brand-green-mint)] opacity-0 transition-[width,transform,opacity] duration-[420ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none"
               />
             </nav>
           </div>
