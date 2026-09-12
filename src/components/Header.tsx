@@ -99,6 +99,7 @@ export default function Header({
   const closeNavigationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const suppressPointerOpenRef = useRef(false);
   const headerRef = useRef<HTMLElement>(null);
   const desktopNavigationRef = useRef<HTMLElement>(null);
   const activeIndicatorRef = useRef<HTMLSpanElement>(null);
@@ -243,6 +244,16 @@ export default function Header({
     setDesktopNavigationOpen(true);
   }
 
+  function openDesktopNavigationFromPointer() {
+    if (suppressPointerOpenRef.current) return;
+    openDesktopNavigation();
+  }
+
+  function handleDesktopNavigationMouseLeave() {
+    suppressPointerOpenRef.current = false;
+    scheduleDesktopNavigationClose();
+  }
+
   function scheduleDesktopNavigationClose() {
     if (closeNavigationTimeoutRef.current) {
       clearTimeout(closeNavigationTimeoutRef.current);
@@ -258,6 +269,7 @@ export default function Header({
   }
 
   function handleLogoClick(event: MouseEvent<HTMLAnchorElement>) {
+    suppressPointerOpenRef.current = true;
     closeMenu();
     setDesktopNavigationOpen(false);
     setPreviewNavigation(null);
@@ -307,7 +319,7 @@ export default function Header({
           <div aria-hidden="true" className="hidden h-10 w-10 lg:block" />
 
           <div
-            onMouseLeave={scheduleDesktopNavigationClose}
+            onMouseLeave={handleDesktopNavigationMouseLeave}
             onFocusCapture={openDesktopNavigation}
             onBlurCapture={(event) => {
               if (
@@ -323,7 +335,7 @@ export default function Header({
             <Link
               href={homeHref}
               onClick={handleLogoClick}
-              onMouseEnter={openDesktopNavigation}
+              onMouseEnter={openDesktopNavigationFromPointer}
               onFocus={openDesktopNavigation}
               className={`absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-2.5 transition-[left,transform] duration-[520ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
                 desktopNavigationOpen
