@@ -59,27 +59,24 @@ const navigation = {
 function NavigationLink({
   href,
   active,
+  navigationKey,
   children,
 }: {
   href: string;
   active: boolean;
+  navigationKey: NavigationKey;
   children: ReactNode;
 }) {
   return (
     <a
       href={href}
       aria-current={active ? "location" : undefined}
+      data-navigation-key={navigationKey}
       className={`group relative flex h-10 items-center whitespace-nowrap px-1 text-[13px] font-semibold transition-colors duration-150 hover:text-[#087a45] ${
         active ? "text-[#07111f]" : "text-slate-600"
       }`}
     >
       {children}
-      <span
-        aria-hidden="true"
-        className={`absolute inset-x-1 bottom-0 h-[2px] origin-left rounded-full bg-[#10283a] transition-transform duration-150 ${
-          active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-        }`}
-      />
     </a>
   );
 }
@@ -97,6 +94,8 @@ export default function Header({
     null,
   );
   const headerRef = useRef<HTMLElement>(null);
+  const desktopNavigationRef = useRef<HTMLElement>(null);
+  const activeIndicatorRef = useRef<HTMLSpanElement>(null);
   const pathname = usePathname();
   const text = navigation[locale];
 
@@ -138,7 +137,9 @@ export default function Header({
 
     function updateActiveSection() {
       animationFrame = 0;
-      const activationLine = (headerRef.current?.offsetHeight ?? 68) + 34;
+      const headerHeight = headerRef.current?.offsetHeight ?? 68;
+      const activationPoint =
+        window.scrollY + headerHeight + Math.min(window.innerHeight * 0.18, 150);
       const sections: Array<{ id: string; navigation: NavigationKey }> = [
         { id: "rechner", navigation: "calculator" },
         { id: "meine-geraete", navigation: "myDevices" },
@@ -149,7 +150,10 @@ export default function Header({
       let nextSection: NavigationKey = "calculator";
       for (const section of sections) {
         const element = document.getElementById(section.id);
-        if (element && element.getBoundingClientRect().top <= activationLine) {
+        const sectionTop = element
+          ? element.getBoundingClientRect().top + window.scrollY
+          : Number.POSITIVE_INFINITY;
+        if (sectionTop <= activationPoint) {
           nextSection = section.navigation;
         }
       }
@@ -190,6 +194,40 @@ export default function Header({
     };
   }, [isHomePage]);
 
+  useEffect(() => {
+    function positionActiveIndicator() {
+      const navigationElement = desktopNavigationRef.current;
+      const indicatorElement = activeIndicatorRef.current;
+
+      if (!navigationElement || !indicatorElement || !activeNavigation) {
+        if (indicatorElement) indicatorElement.style.opacity = "0";
+        return;
+      }
+
+      const activeLink = navigationElement.querySelector<HTMLElement>(
+        `[data-navigation-key="${activeNavigation}"]`,
+      );
+      if (!activeLink) {
+        indicatorElement.style.opacity = "0";
+        return;
+      }
+
+      const navigationRect = navigationElement.getBoundingClientRect();
+      const linkRect = activeLink.getBoundingClientRect();
+      indicatorElement.style.width = `${linkRect.width - 8}px`;
+      indicatorElement.style.transform = `translateX(${linkRect.left - navigationRect.left + 4}px)`;
+      indicatorElement.style.opacity = "1";
+    }
+
+    const frame = window.requestAnimationFrame(positionActiveIndicator);
+    window.addEventListener("resize", positionActiveIndicator);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", positionActiveIndicator);
+    };
+  }, [activeNavigation, desktopNavigationOpen]);
+
   function openDesktopNavigation() {
     if (closeNavigationTimeoutRef.current) {
       clearTimeout(closeNavigationTimeoutRef.current);
@@ -204,7 +242,7 @@ export default function Header({
     }
     closeNavigationTimeoutRef.current = setTimeout(
       () => setDesktopNavigationOpen(false),
-      160,
+      220,
     );
   }
 
@@ -274,7 +312,7 @@ export default function Header({
               onClick={handleLogoClick}
               onMouseEnter={openDesktopNavigation}
               onFocus={openDesktopNavigation}
-              className={`absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-2.5 transition-[left,transform] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
+              className={`absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-2.5 transition-[left,transform] duration-[420ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
                 desktopNavigationOpen
                   ? "left-0 translate-x-0"
                   : "left-1/2 -translate-x-1/2"
@@ -283,7 +321,7 @@ export default function Header({
             >
               <BrandMark className="h-8 w-8 shrink-0" />
               <span
-                className={`overflow-hidden whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-[max-width,opacity,transform,filter] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
+                className={`overflow-hidden whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-[max-width,opacity,transform,filter] duration-[420ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
                   desktopNavigationOpen
                     ? "max-w-0 -translate-x-3 scale-x-75 opacity-0 blur-[5px]"
                     : "max-w-[190px] translate-x-0 scale-x-100 opacity-100 blur-0"
@@ -294,28 +332,34 @@ export default function Header({
             </Link>
 
             <nav
+              ref={desktopNavigationRef}
               aria-label={text.openNavigation}
-              className={`absolute inset-y-0 left-12 right-0 flex items-center justify-end gap-5 transition-[opacity,transform,filter,visibility] duration-200 ease-out motion-reduce:transition-none ${
+              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,transform,filter,visibility] duration-[280ms] ease-out motion-reduce:transition-none ${
                 desktopNavigationOpen
-                  ? "visible translate-x-0 opacity-100 blur-0 delay-75"
+                  ? "visible translate-x-0 opacity-100 blur-0 delay-100"
                   : "invisible pointer-events-none translate-x-4 opacity-0 blur-[3px] delay-0"
               }`}
             >
-              <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"}>
+              <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator">
                 {text.calculator}
               </NavigationLink>
-              <NavigationLink href={devicesHref} active={activeNavigation === "allDevices"}>
+              <NavigationLink href={devicesHref} active={activeNavigation === "allDevices"} navigationKey="allDevices">
                 {text.allDevices}
               </NavigationLink>
-              <NavigationLink href={myDevicesHref} active={activeNavigation === "myDevices"}>
+              <NavigationLink href={myDevicesHref} active={activeNavigation === "myDevices"} navigationKey="myDevices">
                 {text.myDevices}
               </NavigationLink>
-              <NavigationLink href={howItWorksHref} active={activeNavigation === "howItWorks"}>
+              <NavigationLink href={howItWorksHref} active={activeNavigation === "howItWorks"} navigationKey="howItWorks">
                 {text.howItWorks}
               </NavigationLink>
-              <NavigationLink href={faqHref} active={activeNavigation === "faq"}>
+              <NavigationLink href={faqHref} active={activeNavigation === "faq"} navigationKey="faq">
                 {text.faq}
               </NavigationLink>
+              <span
+                ref={activeIndicatorRef}
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[#18a957] opacity-0 transition-[width,transform,opacity] duration-[360ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+              />
             </nav>
           </div>
 

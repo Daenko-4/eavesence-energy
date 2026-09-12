@@ -69,6 +69,12 @@ body {
   line-height: 1.25rem;
 }
 
+.calculator-save-action {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1rem;
+}
+
 .saved-device-utility-action {
   font-size: 0.6875rem;
   font-weight: 650;

@@ -518,16 +518,40 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={exportDevices}
-                  className="saved-device-utility-action text-green-800 transition hover:text-green-950"
+                  className="group relative pb-1 saved-device-utility-action text-green-800 transition hover:text-green-950"
                 >
                   {text.export}
+                  <svg
+                    viewBox="0 0 12 8"
+                    fill="none"
+                    className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 -translate-y-1 opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m2.5 2.5 3.5 3 3.5-3" />
+                  </svg>
                 </button>
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
-                  className="saved-device-utility-action text-green-800 transition hover:text-green-950"
+                  className="group relative pb-1 saved-device-utility-action text-green-800 transition hover:text-green-950"
                 >
                   {text.import}
+                  <svg
+                    viewBox="0 0 12 8"
+                    fill="none"
+                    className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 translate-y-1 opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m2.5 5.5 3.5-3 3.5 3" />
+                  </svg>
                 </button>
                 <button
                   type="button"
@@ -543,9 +567,21 @@ function MyDevicesPanel(
           <button
             type="button"
             onClick={() => importInputRef.current?.click()}
-            className="saved-device-utility-action mt-3 text-green-800 transition hover:text-green-950"
+            className="group relative mt-3 pb-1 saved-device-utility-action text-green-800 transition hover:text-green-950"
           >
             {text.import}
+            <svg
+              viewBox="0 0 12 8"
+              fill="none"
+              className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 translate-y-1 opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m2.5 5.5 3.5-3 3.5 3" />
+            </svg>
           </button>
         )}
       </section>

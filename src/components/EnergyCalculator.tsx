@@ -1174,7 +1174,7 @@ export default function EnergyCalculator({
               value={deviceSearch}
               onChange={(event) => setDeviceSearch(event.target.value)}
               placeholder={text.device.searchPlaceholder}
-              className={fieldClassName}
+              className={`${secondaryFieldClassName} border-slate-300 shadow-[inset_0_1px_2px_rgba(15,23,42,0.035)]`}
             />
 
             {normalizedDeviceSearch && visibleDevices.length === 0 && (
@@ -1566,7 +1566,7 @@ export default function EnergyCalculator({
           type="button"
           onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
           disabled={!calculationIsValid}
-          className="ml-auto inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-[#14945a] bg-[#087a45] px-3 py-1.5 text-xs font-bold text-white shadow-[0_8px_20px_-16px_rgba(0,122,61,0.8)] transition hover:-translate-y-0.5 hover:bg-[#06683b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65d89b] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0"
+          className="calculator-save-action ml-auto inline-flex min-h-8 items-center justify-center gap-1 rounded-md border border-[#14945a] bg-[#087a45] px-2.5 py-1 text-white shadow-[0_8px_20px_-16px_rgba(0,122,61,0.8)] transition hover:-translate-y-0.5 hover:bg-[#06683b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65d89b] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0"
         >
           {activeSavedDeviceId ? text.saveChanges : text.calculate}
           <span aria-hidden="true">+</span>
