@@ -12,7 +12,7 @@ type IconName =
   | "shower"
   | "monitor"
   | "laptop"
-  | "gift"
+  | "free"
   | "chart"
   | "search"
   | "settings";
@@ -580,7 +580,7 @@ function Icon({
         </svg>
       );
 
-    case "gift":
+    case "free":
       return (
         <svg
           viewBox="0 0 24 24"
@@ -588,11 +588,9 @@ function Icon({
           {...props}
           aria-hidden="true"
         >
-          <rect x="3" y="9" width="18" height="12" rx="2" />
-          <path d="M12 9v12" />
-          <path d="M3 13h18" />
-          <path d="M12 9H8.5A2.5 2.5 0 1 1 11 6.5V9" />
-          <path d="M12 9h3.5A2.5 2.5 0 1 0 13 6.5V9" />
+          <rect x="3" y="6" width="18" height="12" rx="3" />
+          <path d="M7 9.5h.01M17 14.5h.01" />
+          <circle cx="12" cy="12" r="2.5" />
         </svg>
       );
 
@@ -711,7 +709,7 @@ export default function HomePage({
                 >
                   <span className="text-[#008c4a]">
                     <Icon
-                      name={index === 0 ? "gift" : index === 1 ? "settings" : "laptop"}
+                      name={index === 0 ? "free" : index === 1 ? "settings" : "laptop"}
                       className="h-5 w-5"
                     />
                   </span>
@@ -741,7 +739,7 @@ export default function HomePage({
                 <a
                   key={category.name}
                   href={category.href}
-                  className="group flex min-h-24 items-center gap-3 border-b border-r border-slate-200/70 px-4 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50/50 hover:text-[#007a3d] sm:px-5 lg:border-b-0"
+                  className="group flex min-h-24 items-center gap-3 border-b border-r border-slate-200/70 px-4 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50/50 hover:text-[#007a3d] sm:px-5 lg:border-b-0 lg:last:border-r-0"
                 >
                   <span className="text-[#008c4a] transition-transform duration-200 group-hover:-translate-y-0.5">
                     <Icon name={category.icon} className="h-6 w-6" />

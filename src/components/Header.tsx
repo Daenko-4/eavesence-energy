@@ -94,6 +94,7 @@ export default function Header({
     useState<HomeSection>("calculator");
   const devicesMenuRef = useRef<HTMLDivElement>(null);
   const devicesMenuTriggerRef = useRef<HTMLButtonElement>(null);
+  const devicesMenuPinnedRef = useRef(false);
   const devicesHoverTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
@@ -140,6 +141,7 @@ export default function Header({
         devicesMenu &&
         !devicesMenu.contains(event.target)
       ) {
+        devicesMenuPinnedRef.current = false;
         setDevicesMenuOpen(false);
       }
     }
@@ -148,6 +150,7 @@ export default function Header({
       event: KeyboardEvent,
     ) {
       if (event.key === "Escape") {
+        devicesMenuPinnedRef.current = false;
         setDevicesMenuOpen(false);
         devicesMenuTriggerRef.current?.focus();
       }
@@ -274,17 +277,36 @@ export default function Header({
       devicesHoverTimeoutRef.current = null;
     }
 
+    devicesMenuPinnedRef.current = false;
     setDevicesMenuOpen(false);
   }
 
+  function togglePinnedDevicesMenu() {
+    if (devicesMenuPinnedRef.current) {
+      closeDevicesMenu();
+      return;
+    }
+
+    devicesMenuPinnedRef.current = true;
+    openDevicesMenu();
+  }
+
   function scheduleDevicesMenuClose() {
+    if (devicesMenuPinnedRef.current) {
+      return;
+    }
+
     if (devicesHoverTimeoutRef.current) {
       clearTimeout(devicesHoverTimeoutRef.current);
     }
 
     devicesHoverTimeoutRef.current = setTimeout(
-      closeDevicesMenu,
-      50,
+      () => {
+        if (!devicesMenuPinnedRef.current) {
+          setDevicesMenuOpen(false);
+        }
+      },
+      120,
     );
   }
 
@@ -335,7 +357,7 @@ export default function Header({
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-[100] border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-5 sm:px-6">
         <div className="flex min-h-[68px] items-center justify-between gap-4">
           {/* Logo */}
@@ -386,7 +408,7 @@ export default function Header({
                   return;
                 }
 
-                scheduleDevicesMenuClose();
+                closeDevicesMenu();
               }}
             >
               <button
@@ -394,11 +416,7 @@ export default function Header({
                 type="button"
                 aria-expanded={devicesMenuOpen}
                 aria-controls="devices-navigation-menu"
-                onClick={() =>
-                  devicesMenuOpen
-                    ? closeDevicesMenu()
-                    : openDevicesMenu()
-                }
+                onClick={togglePinnedDevicesMenu}
                 className={`group flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors duration-150 hover:text-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/30 ${
                   activeNavigation === "devices"
                     ? "text-[#07111f]"
@@ -430,7 +448,7 @@ export default function Header({
               <div
                 id="devices-navigation-menu"
                 aria-hidden={!devicesMenuOpen}
-                className="absolute left-1/2 top-full z-50 w-[196px] -translate-x-1/2 pt-2"
+                className="absolute left-1/2 top-full z-[110] w-[196px] -translate-x-1/2 pt-1"
               >
                 <div
                   className={`origin-top rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-[0_18px_45px_rgba(15,23,42,0.14),0_2px_8px_rgba(15,23,42,0.06)] transition-[opacity,transform,visibility] ease-out motion-reduce:transition-none ${
