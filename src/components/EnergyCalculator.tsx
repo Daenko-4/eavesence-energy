@@ -1006,7 +1006,7 @@ export default function EnergyCalculator({
           ? "gap-4 p-4 sm:p-5 lg:gap-6 lg:p-5"
           : "gap-5 p-4 sm:p-6 lg:gap-8 lg:p-7"
       }`}>
-        <div className="calculator-form min-w-0 px-1 py-1 sm:px-2">
+        <div className="calculator-form flex min-w-0 flex-col justify-center px-1 py-1 sm:px-2">
 
       {/* Device */}
       <div className={homePresentation ? "mb-4" : "mb-6"}>
