@@ -75,6 +75,7 @@ type EnergyCalculatorProps = {
   locale?: Locale;
   detailPage?: boolean;
   homePresentation?: boolean;
+  trustItems?: readonly string[];
 };
 
 const calculatorText = {
@@ -421,6 +422,47 @@ function weeklyUsageToAmount(usesPerWeek: number, period: UsagePeriod) {
   return period === "month" ? (usesPerWeek * 52) / 12 : usesPerWeek;
 }
 
+function TrustSignalIcon({ index }: { index: number }) {
+  const commonProps = {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    className: "h-4 w-4",
+    "aria-hidden": true,
+  };
+
+  if (index === 0) {
+    return (
+      <svg {...commonProps}>
+        <rect x="3" y="6" width="18" height="12" rx="3" />
+        <path d="M7 9.5h.01M17 14.5h.01" />
+        <circle cx="12" cy="12" r="2.5" />
+      </svg>
+    );
+  }
+
+  if (index === 1) {
+    return (
+      <svg {...commonProps}>
+        <path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h7M15 18h5" />
+        <circle cx="16" cy="6" r="2" />
+        <circle cx="8" cy="12" r="2" />
+        <circle cx="13" cy="18" r="2" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...commonProps}>
+      <rect x="5" y="4" width="14" height="11" rx="1.5" />
+      <path d="M3 19h18M5 15l-2 4M19 15l2 4" />
+    </svg>
+  );
+}
+
 function numericValue(value: NumericInput) {
   return value === "" ? 0 : value;
 }
@@ -466,6 +508,7 @@ export default function EnergyCalculator({
   locale,
   detailPage = false,
   homePresentation = false,
+  trustItems = [],
 }: EnergyCalculatorProps) {
   const pathname = usePathname();
 
@@ -1678,19 +1721,25 @@ export default function EnergyCalculator({
               <div
                 role="group"
                 aria-label={text.fields.usagePeriod}
-                className="flex min-w-[8.5rem] items-center justify-end gap-1.5 whitespace-nowrap text-[12px]"
+                className="flex w-36 items-center justify-center gap-1.5 whitespace-nowrap text-[12px]"
               >
                 <button
                   type="button"
                   aria-pressed={usagePeriod === "week"}
                   onClick={() => handleUsagePeriodChange("week")}
-                  className={`px-0.5 py-2 font-semibold transition-colors focus-visible:outline-none focus-visible:text-[var(--brand-green-mint)] ${
+                  className={`relative px-0.5 py-2 font-semibold transition-colors focus-visible:outline-none focus-visible:text-[var(--brand-green-mint)] ${
                     usagePeriod === "week"
                       ? "text-[var(--brand-green-mint)]"
                       : "text-[#8fa09a] hover:text-white"
                   }`}
                 >
                   {text.fields.perWeek}
+                  <span
+                    aria-hidden="true"
+                    className={`absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[var(--brand-green-mint)] transition-opacity ${
+                      usagePeriod === "week" ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
                 </button>
 
                 <span aria-hidden="true" className="text-[#53615d]">/</span>
@@ -1699,13 +1748,19 @@ export default function EnergyCalculator({
                   type="button"
                   aria-pressed={usagePeriod === "month"}
                   onClick={() => handleUsagePeriodChange("month")}
-                  className={`px-0.5 py-2 font-semibold transition-colors focus-visible:outline-none focus-visible:text-[var(--brand-green-mint)] ${
+                  className={`relative px-0.5 py-2 font-semibold transition-colors focus-visible:outline-none focus-visible:text-[var(--brand-green-mint)] ${
                     usagePeriod === "month"
                       ? "text-[var(--brand-green-mint)]"
                       : "text-[#8fa09a] hover:text-white"
                   }`}
                 >
                   {text.fields.month}
+                  <span
+                    aria-hidden="true"
+                    className={`absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[var(--brand-green-mint)] transition-opacity ${
+                      usagePeriod === "month" ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
                 </button>
               </div>
             )}
@@ -1738,7 +1793,7 @@ export default function EnergyCalculator({
           type="button"
           onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
           disabled={!calculationIsValid}
-          className="calculator-save-action ml-auto inline-flex min-h-10 items-center justify-center gap-1 rounded-md border border-[var(--brand-green-mint)] bg-[var(--brand-green-mint)] px-2.5 py-1 text-[var(--brand-green)] shadow-[0_8px_20px_-16px_rgba(114,220,163,0.65)] transition hover:-translate-y-0.5 hover:border-[#62d797] hover:bg-[#62d797] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0 sm:min-h-8"
+          className="calculator-save-action ml-auto inline-flex min-h-10 w-36 items-center justify-center gap-1 rounded-md border border-[var(--brand-green-mint)] bg-[var(--brand-green-mint)] px-2.5 py-1 text-[var(--brand-green)] shadow-[0_8px_20px_-16px_rgba(114,220,163,0.65)] transition hover:-translate-y-0.5 hover:border-[#62d797] hover:bg-[#62d797] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0 sm:min-h-8"
         >
           {activeSavedDeviceId ? text.saveChanges : text.calculate}
           <span aria-hidden="true">+</span>
@@ -1927,8 +1982,24 @@ export default function EnergyCalculator({
       </div>
       </div>
 
+      {homePresentation && trustItems.length > 0 && (
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5">
+          {trustItems.map((item, index) => (
+            <div
+              key={item}
+              className="flex items-center justify-center gap-2 text-[12px] font-semibold text-slate-600"
+            >
+              <span className="text-[var(--brand-green)]" aria-hidden="true">
+                <TrustSignalIcon index={index} />
+              </span>
+              {item}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Saving tip */}
-      <div className={`${homePresentation ? "mt-4" : "mt-5"} px-1 py-2`}>
+      <div className={`${homePresentation ? "mt-10" : "mt-5"} px-1 py-2`}>
         <div className="flex items-start gap-3">
           <span
             aria-hidden="true"
