@@ -1651,7 +1651,7 @@ export default function EnergyCalculator({
             </div>
 
             {supportsUsageScenario && (
-              <div className={`${homePresentation ? "mt-3 pt-3" : "mt-5 pt-4"} border-t border-[#dfe4da]`}>
+              <div className={`${homePresentation ? "mt-3 pt-3" : "mt-5 pt-4"} border-t border-[#dfe4da] pb-4`}>
                 <div className="flex items-start justify-between gap-3 text-xs">
                   <span className="font-semibold text-[#52605b]">{text.result.scenario}</span>
                   <span className="whitespace-nowrap font-bold text-[var(--brand-green)] tabular-nums">
