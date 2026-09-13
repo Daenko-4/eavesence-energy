@@ -81,7 +81,7 @@ function NavigationLink({
       onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
-      className="group relative flex h-full items-center whitespace-nowrap px-1 text-[13px] font-semibold text-[#33413d] transition-colors duration-150 hover:text-[var(--brand-green)]"
+      className="group relative flex h-full items-center whitespace-nowrap px-1 text-[13px] !font-semibold !text-[#52605b] transition-colors duration-150 hover:!text-[var(--brand-green)]"
     >
       {children}
     </a>

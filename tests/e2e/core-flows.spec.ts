@@ -122,6 +122,19 @@ test("header labels keep a fixed horizontal axis while closing", async ({
   await page.goto("/");
   await openDesktopNavigation(page);
 
+  const navigationStyles = await page
+    .locator("[data-navigation-key]")
+    .evaluateAll((links) =>
+      links.map((link) => {
+        const style = getComputedStyle(link);
+        return { color: style.color, fontWeight: style.fontWeight };
+      }),
+    );
+  expect(new Set(navigationStyles.map(({ color }) => color)).size).toBe(1);
+  expect(
+    new Set(navigationStyles.map(({ fontWeight }) => fontWeight)).size,
+  ).toBe(1);
+
   const calculatorLink = page.locator('[data-navigation-key="calculator"]');
   const xBefore = await calculatorLink.evaluate((element) =>
     element.getBoundingClientRect().x,
