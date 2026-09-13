@@ -1742,16 +1742,10 @@ export default function EnergyCalculator({
                   className={`relative px-0.5 py-2 font-semibold transition-colors focus-visible:outline-none focus-visible:text-[var(--brand-green-mint)] ${
                     usagePeriod === "week"
                       ? "text-[var(--brand-green-mint)]"
-                      : "text-[#8fa09a] hover:text-white"
+                      : "text-[#65736e] hover:text-[#aebbb6]"
                   }`}
                 >
                   × {text.fields.week}
-                  <span
-                    aria-hidden="true"
-                    className={`absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[var(--brand-green-mint)] transition-opacity ${
-                      usagePeriod === "week" ? "opacity-100" : "opacity-0"
-                    }`}
-                  />
                 </button>
 
                 <span aria-hidden="true" className="text-[#53615d]">/</span>
@@ -1763,16 +1757,10 @@ export default function EnergyCalculator({
                   className={`relative px-0.5 py-2 font-semibold transition-colors focus-visible:outline-none focus-visible:text-[var(--brand-green-mint)] ${
                     usagePeriod === "month"
                       ? "text-[var(--brand-green-mint)]"
-                      : "text-[#8fa09a] hover:text-white"
+                      : "text-[#65736e] hover:text-[#aebbb6]"
                   }`}
                 >
                   × {text.fields.month}
-                  <span
-                    aria-hidden="true"
-                    className={`absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[var(--brand-green-mint)] transition-opacity ${
-                      usagePeriod === "month" ? "opacity-100" : "opacity-0"
-                    }`}
-                  />
                 </button>
               </div>
             )}
