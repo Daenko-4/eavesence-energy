@@ -746,24 +746,11 @@ export default function HomePage({
             </p>
 
             <div className="mx-auto mt-7 max-w-7xl sm:mt-8">
-              <EnergyCalculator locale={locale} homePresentation />
-            </div>
-
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5">
-              {text.hero.features.map((item, index) => (
-                <div
-                  key={item}
-                  className="flex items-center justify-center gap-2 text-[12px] font-semibold text-slate-600"
-                >
-                  <span className="text-[var(--brand-green)]">
-                    <Icon
-                      name={index === 0 ? "free" : index === 1 ? "settings" : "laptop"}
-                      className="h-4 w-4"
-                    />
-                  </span>
-                  {item}
-                </div>
-              ))}
+              <EnergyCalculator
+                locale={locale}
+                homePresentation
+                trustItems={text.hero.features}
+              />
             </div>
           </div>
         </section>
