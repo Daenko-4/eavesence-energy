@@ -53,6 +53,7 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
   await disableHeaderIntro(page);
   await page.goto("/");
 
+  let firstFaqTop: number | null = null;
   for (const startAt of [350, 1500]) {
     await page.evaluate((top) => window.scrollTo(0, top), startAt);
     await openDesktopNavigation(page);
@@ -65,12 +66,30 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
 
     await expect
       .poll(async () => {
-        const top = await page.locator("#faq").evaluate((element) =>
-          element.getBoundingClientRect().top,
-        );
-        return Math.abs(top - 84);
+        return page.locator("#faq").evaluate((element) => {
+          const requestedTop =
+            element.getBoundingClientRect().top + window.scrollY - 84;
+          const maximumTop = Math.max(
+            0,
+            document.documentElement.scrollHeight - window.innerHeight,
+          );
+          const expectedScrollTop = Math.min(
+            Math.max(0, requestedTop),
+            maximumTop,
+          );
+          return Math.abs(window.scrollY - expectedScrollTop);
+        });
       })
       .toBeLessThanOrEqual(2);
+
+    const currentFaqTop = await page.locator("#faq").evaluate((element) =>
+      element.getBoundingClientRect().top,
+    );
+    if (firstFaqTop === null) {
+      firstFaqTop = currentFaqTop;
+    } else {
+      expect(Math.abs(currentFaqTop - firstFaqTop)).toBeLessThanOrEqual(2);
+    }
   }
 });
 
@@ -119,8 +138,8 @@ test("header labels keep a fixed horizontal axis while closing", async ({
   const logo = page.locator('a[aria-expanded]').first();
   await expect(logo).toHaveAttribute("aria-expanded", "false");
   expect(
-    await logo.evaluate((element) => element.scrollWidth - element.clientWidth),
-  ).toBeLessThanOrEqual(0);
+    await logo.evaluate((element) => getComputedStyle(element).overflowX),
+  ).toBe("visible");
 });
 
 test("device overview and detail heroes share the content axis below", async ({

@@ -81,9 +81,7 @@ function NavigationLink({
       onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
-      className={`group relative flex h-full items-center whitespace-nowrap px-1 text-[13px] font-semibold transition-colors duration-150 hover:text-[var(--brand-green)] ${
-        active ? "text-[#07111f]" : "text-slate-600"
-      }`}
+      className="group relative flex h-full items-center whitespace-nowrap px-1 text-[13px] font-semibold text-[#33413d] transition-colors duration-150 hover:text-[var(--brand-green)]"
     >
       {children}
     </a>
@@ -387,7 +385,16 @@ export default function Header({
 
     window.setTimeout(
       () => {
-        faqElement.scrollIntoView({ behavior: "smooth", block: "start" });
+        const requestedTop =
+          faqElement.getBoundingClientRect().top + window.scrollY - 84;
+        const maximumTop = Math.max(
+          0,
+          document.documentElement.scrollHeight - window.innerHeight,
+        );
+        window.scrollTo({
+          top: Math.min(Math.max(0, requestedTop), maximumTop),
+          behavior: "smooth",
+        });
       },
       faqWasOpen ? 0 : 340,
     );
@@ -488,14 +495,12 @@ export default function Header({
               onFocus={openDesktopNavigation}
               aria-expanded={desktopNavigationOpen}
               style={{
-                clipPath: desktopNavigationOpen
-                  ? "inset(0 173px 0 0)"
-                  : "inset(0 0 0 0)",
                 transform: desktopNavigationOpen
                   ? "translate3d(0, -50%, 0)"
                   : "translate3d(285px, -50%, 0)",
+                width: desktopNavigationOpen ? "2rem" : "205px",
               }}
-              className={`absolute left-0 top-1/2 z-20 flex h-full w-[205px] items-center gap-2.5 overflow-hidden transition-[transform,clip-path] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-transform motion-reduce:transition-none ${
+              className={`absolute left-0 top-1/2 z-20 flex h-full items-center gap-2.5 overflow-visible transition-[transform,width] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-transform motion-reduce:transition-none ${
                 desktopNavigationOpen
                   ? "delay-0"
                   : "delay-[250ms]"
@@ -504,7 +509,7 @@ export default function Header({
             >
               <BrandMark className="h-8 w-8 shrink-0" />
               <span
-                className={`w-[160px] shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
+                className={`shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                   desktopNavigationOpen
                     ? "opacity-0"
                     : "opacity-100 delay-[650ms]"
