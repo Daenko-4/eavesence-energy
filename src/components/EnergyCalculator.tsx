@@ -10,6 +10,10 @@ import {
   getLocalizedCategory,
   getLocalizedDevice,
 } from "@/i18n/devices";
+import {
+  calculateEnergyCosts,
+  calculateUsageScenario,
+} from "@/lib/energyCalculations";
 import type {
   SavedDevice,
   SavedDeviceCurrency,
@@ -871,65 +875,34 @@ export default function EnergyCalculator({
   const measuredKwhPerUseValue =
     numericValue(measuredKwhPerUse);
 
-  const calculatedPowerKwhPerUse =
-    (wattsValue / 1000) *
-    (minutesPerUseValue / 60);
+  const {
+    isValid: calculationIsValid,
+    kwhPerUse: actualKwhPerUse,
+    yearlyKwh,
+    yearlyCost,
+    monthlyCost,
+    weeklyCost,
+    costPerUse,
+  } = calculateEnergyCosts({
+    mode,
+    calculationType: isConsumptionDevice ? "consumption" : "power",
+    electricityPrice: priceValue,
+    watts: wattsValue,
+    minutesPerUse: minutesPerUseValue,
+    usesPerWeek: usesPerWeekValue,
+    estimatedKwhPerUse: estimatedKwhPerUseValue,
+    measuredKwhPerUse: measuredKwhPerUseValue,
+  });
 
-  const estimateKwhPerUse =
-    isConsumptionDevice
-      ? estimatedKwhPerUseValue
-      : calculatedPowerKwhPerUse;
-
-  const actualKwhPerUse =
-    mode === "estimate"
-      ? estimateKwhPerUse
-      : measuredKwhPerUseValue;
-
-  const hasValidPrice =
-    priceValue > 0;
-
-  const hasValidUses =
-    usesPerWeekValue > 0;
-
-  const hasValidConsumption =
-    mode === "exact"
-      ? measuredKwhPerUseValue > 0
-      : isConsumptionDevice
-        ? estimatedKwhPerUseValue > 0
-        : wattsValue > 0 &&
-          minutesPerUseValue > 0;
-
-  const calculationIsValid =
-    hasValidPrice &&
-    hasValidUses &&
-    hasValidConsumption;
-
-  const yearlyKwh =
-    calculationIsValid
-      ? actualKwhPerUse *
-        usesPerWeekValue *
-        52
-      : 0;
-
-  const yearlyCost =
-    yearlyKwh * priceValue;
-
-  const monthlyCost =
-    yearlyCost / 12;
-
-  const weeklyCost =
-    yearlyCost / 52;
-
-  const costPerUse =
-    actualKwhPerUse * priceValue;
-
-  const scenarioUsesPerWeekValue = Math.min(
-    numericValue(scenarioUsesPerWeek),
-    usesPerWeekValue
-  );
-  const scenarioYearlyCost =
-    actualKwhPerUse * scenarioUsesPerWeekValue * 52 * priceValue;
-  const scenarioSavings = yearlyCost - scenarioYearlyCost;
+  const {
+    adjustedUsesPerWeek: scenarioUsesPerWeekValue,
+    savings: scenarioSavings,
+  } = calculateUsageScenario({
+    kwhPerUse: actualKwhPerUse,
+    usesPerWeek: usesPerWeekValue,
+    scenarioUsesPerWeek: numericValue(scenarioUsesPerWeek),
+    electricityPrice: priceValue,
+  });
   const supportsUsageScenario =
     isCustomDevice || (selectedDevice?.typicalMinutes ?? 0) < 1440;
   const calculationFormula =
