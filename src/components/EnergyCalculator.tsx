@@ -125,6 +125,7 @@ const calculatorText = {
       uses: "Nutzungen",
       perWeek: "pro Woche",
       perMonth: "pro Monat",
+      week: "Woche",
       month: "Monat",
       usagePeriod: "Zeitraum der Nutzung",
     },
@@ -286,6 +287,7 @@ const calculatorText = {
       uses: "Uses",
       perWeek: "per week",
       perMonth: "per month",
+      week: "week",
       month: "month",
       usagePeriod: "Usage period",
     },
@@ -1677,7 +1679,13 @@ export default function EnergyCalculator({
               : text.fields.uses}
           </label>
 
-          <div className={isContinuousDevice ? "" : "grid grid-cols-[minmax(0,1fr)_auto] gap-2"}>
+          <div
+            className={
+              isContinuousDevice
+                ? ""
+                : "flex w-full items-center rounded-xl border border-white/[0.12] bg-[#202b28] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-[border-color,background-color,box-shadow] hover:border-white/[0.2] focus-within:border-[var(--brand-green-mint)] focus-within:bg-[#24312d] focus-within:ring-2 focus-within:ring-[#72dca3]/12"
+            }
+          >
             <input
               type="number"
               min="0"
@@ -1714,14 +1722,18 @@ export default function EnergyCalculator({
                   Math.max(0, nextUsesPerWeek - scenarioStep)
                 );
               }}
-              className={fieldClassName}
+              className={
+                isContinuousDevice
+                  ? fieldClassName
+                  : `min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[15px] font-semibold text-[#f7faf8] outline-none`
+              }
             />
 
             {!isContinuousDevice && (
               <div
                 role="group"
                 aria-label={text.fields.usagePeriod}
-                className="flex w-36 items-center justify-center gap-1.5 whitespace-nowrap text-[12px]"
+                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-4 text-[11px]"
               >
                 <button
                   type="button"
@@ -1733,7 +1745,7 @@ export default function EnergyCalculator({
                       : "text-[#8fa09a] hover:text-white"
                   }`}
                 >
-                  {text.fields.perWeek}
+                  × {text.fields.week}
                   <span
                     aria-hidden="true"
                     className={`absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[var(--brand-green-mint)] transition-opacity ${
@@ -1754,7 +1766,7 @@ export default function EnergyCalculator({
                       : "text-[#8fa09a] hover:text-white"
                   }`}
                 >
-                  {text.fields.month}
+                  × {text.fields.month}
                   <span
                     aria-hidden="true"
                     className={`absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[var(--brand-green-mint)] transition-opacity ${
