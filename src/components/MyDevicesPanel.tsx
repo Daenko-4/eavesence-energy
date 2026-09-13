@@ -374,7 +374,7 @@ function MyDevicesPanel(
     return (
       <section
         id="meine-geraete"
-        className="mt-5 scroll-mt-[104px] border-t border-slate-200/80 pt-5"
+        className="mt-9 scroll-mt-[104px] border-t border-slate-200/80 pt-7"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
@@ -394,13 +394,13 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
-                  className="group relative w-fit shrink-0 pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                  className="group/import-empty relative w-fit shrink-0 pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                 >
                   {text.import}
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 translate-y-1 opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100"
+                    className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 translate-y-1 opacity-0 transition duration-150 group-hover/import-empty:translate-y-0 group-hover/import-empty:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -548,13 +548,13 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={exportDevices}
-                  className="group relative pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                  className="group/export relative pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                 >
                   {text.export}
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 -translate-y-1 opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100"
+                    className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 -translate-y-1 opacity-0 transition duration-150 group-hover/export:translate-y-0 group-hover/export:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -567,13 +567,13 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
-                  className="group relative pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                  className="group/import relative pb-1 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                 >
                   {text.import}
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 translate-y-1 opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100"
+                    className="pointer-events-none absolute left-1/2 top-full h-2 w-3 -translate-x-1/2 translate-y-1 opacity-0 transition duration-150 group-hover/import:translate-y-0 group-hover/import:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -586,13 +586,13 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={removeAllDevices}
-                  className="group relative pb-1 saved-device-utility-action text-slate-400 transition hover:text-red-700"
+                  className="group/remove-all relative pb-1 saved-device-utility-action text-slate-400 transition hover:text-red-700"
                 >
                   {text.removeAll}
                   <svg
                     viewBox="0 0 12 12"
                     fill="none"
-                    className="pointer-events-none absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-1 opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100"
+                    className="pointer-events-none absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-1 opacity-0 transition duration-150 group-hover/remove-all:translate-y-0 group-hover/remove-all:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.7"
                     strokeLinecap="round"

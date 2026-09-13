@@ -439,7 +439,7 @@ function formatKwh(value: number, locale: Locale) {
 }
 
 export default function EnergyCalculator({
-  initialDevice = "Wasserkocher",
+  initialDevice = "Kaffeemaschine",
   locale,
   detailPage = false,
   homePresentation = false,
@@ -1796,11 +1796,11 @@ export default function EnergyCalculator({
       </div>
 
       {/* Saving tip */}
-      <div className={`${homePresentation ? "mt-3" : "mt-4"} rounded-xl bg-[#eaf8ef] px-4 py-3`}>
+      <div className={`${homePresentation ? "mt-4" : "mt-5"} px-1 py-2`}>
         <div className="flex items-start gap-3">
           <span
             aria-hidden="true"
-            className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#d5f2e0] text-[var(--brand-green)]"
+            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center text-[var(--brand-green)]"
           >
             <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18h6" />

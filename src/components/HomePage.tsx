@@ -696,7 +696,7 @@ export default function HomePage({
       <Header locale={locale} />
 
       <main className="overflow-hidden">
-        <section className="relative px-5 pb-7 pt-10 sm:px-6 sm:pb-8 sm:pt-12 lg:pt-16">
+        <section className="relative px-5 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-12 lg:pb-14 lg:pt-16">
           <div className="pointer-events-none absolute inset-x-0 top-28 h-[680px] bg-[radial-gradient(ellipse_at_center,rgba(114,220,163,0.17),rgba(232,255,243,0.06)_38%,transparent_72%)]" />
 
           <div
@@ -718,7 +718,7 @@ export default function HomePage({
               <EnergyCalculator locale={locale} homePresentation />
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5">
               {text.hero.features.map((item, index) => (
                 <div
                   key={item}
@@ -737,7 +737,7 @@ export default function HomePage({
           </div>
         </section>
 
-        <section className="px-5 py-8 sm:px-6 sm:py-10">
+        <section className="px-5 py-10 sm:px-6 sm:py-12">
           <div className="mx-auto max-w-7xl">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
@@ -770,7 +770,7 @@ export default function HomePage({
 
         <section
           id="so-funktionierts"
-          className="scroll-mt-24 px-5 py-8 sm:px-6 sm:py-10"
+          className="scroll-mt-24 px-5 py-10 sm:px-6 sm:py-12"
         >
           <div className="mx-auto max-w-7xl border-y border-slate-200/80 py-7">
             <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
@@ -800,7 +800,7 @@ export default function HomePage({
 
         <section
           id="about"
-          className="scroll-mt-[120px] px-5 py-8 sm:px-6 sm:py-10"
+          className="scroll-mt-[120px] px-5 py-10 sm:px-6 sm:py-12"
         >
           <div className="mx-auto max-w-5xl border-b border-slate-200/80 pb-8">
             <h2 className="text-xl font-bold tracking-[-0.025em] text-[#07111f] sm:text-2xl">
@@ -814,7 +814,7 @@ export default function HomePage({
 
         <section
           id="faq"
-          className="scroll-mt-24 px-5 pb-14 pt-5 sm:px-6 sm:pb-16"
+          className="scroll-mt-24 px-5 pb-16 pt-8 sm:px-6 sm:pb-20 sm:pt-10"
         >
           <div className="mx-auto max-w-5xl">
             <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
