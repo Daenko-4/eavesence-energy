@@ -124,6 +124,7 @@ const calculatorText = {
       uses: "Nutzungen",
       perWeek: "pro Woche",
       perMonth: "pro Monat",
+      month: "Monat",
       usagePeriod: "Zeitraum der Nutzung",
     },
 
@@ -149,7 +150,7 @@ const calculatorText = {
       electricityPrice:
         "Deinen Arbeitspreis findest du auf deiner Stromrechnung.",
       usesPerWeek:
-        "Gib eine ganze Anzahl ein und wähle, ob sie pro Woche oder pro Monat gilt.",
+        "Wähle Woche oder Monat. Auch halbe Schritte wie 0,5 sind möglich.",
     },
 
     missing: {
@@ -284,6 +285,7 @@ const calculatorText = {
       uses: "Uses",
       perWeek: "per week",
       perMonth: "per month",
+      month: "month",
       usagePeriod: "Usage period",
     },
 
@@ -309,7 +311,7 @@ const calculatorText = {
       electricityPrice:
         "You can find your electricity price on your electricity bill.",
       usesPerWeek:
-        "Enter a whole number and choose whether it applies per week or per month.",
+        "Choose week or month. Half steps such as 0.5 are supported.",
     },
 
     missing: {
@@ -409,14 +411,6 @@ function parseNumericInput(value: string): NumericInput {
   }
 
   return nonNegative(Number(value));
-}
-
-function parseWholeNumberInput(value: string): NumericInput {
-  if (value === "") {
-    return "";
-  }
-
-  return Math.round(nonNegative(Number(value)));
 }
 
 function usageAmountToWeekly(amount: number, period: UsagePeriod) {
@@ -800,11 +794,9 @@ export default function EnergyCalculator({
       savedSourceDevice?.usagePattern === "annual"
         ? item.usesPerWeek
         : item.usageAmount ??
-          Math.round(
-            weeklyUsageToAmount(item.usesPerWeek, restoredUsagePeriod)
-          );
+          weeklyUsageToAmount(item.usesPerWeek, restoredUsagePeriod);
     const scenarioStepInWeeks =
-      restoredUsagePeriod === "month" ? 12 / 52 : 1;
+      restoredUsagePeriod === "month" ? 6 / 52 : 0.5;
 
     setDevice(item.device);
     setCustomDeviceName(item.customDeviceName);
@@ -866,7 +858,7 @@ export default function EnergyCalculator({
       numericValue(usesPerWeek),
       nextPeriod
     );
-    const scenarioStep = nextPeriod === "month" ? 12 / 52 : 1;
+    const scenarioStep = nextPeriod === "month" ? 6 / 52 : 0.5;
 
     setUsagePeriod(nextPeriod);
     setScenarioUsesPerWeek(
@@ -1026,8 +1018,8 @@ export default function EnergyCalculator({
       : mode === "estimate" && isContinuousDevice
         ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue / 60, activeLocale, 0, 1)} h/${activeLocale === "de" ? "Tag" : "day"} × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} ${activeLocale === "de" ? "Tage/Woche" : "days/week"} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
       : mode === "estimate" && isPowerDevice
-      ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usageAmountValue, activeLocale, 0, 0)} ${usagePeriodText} × ${usagePeriod === "month" ? 12 : 52} × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
-      : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usageAmountValue, activeLocale, 0, 0)} ${usagePeriodText} × ${usagePeriod === "month" ? 12 : 52} × ${formatMoney(priceValue, activeLocale, currency)}/kWh`;
+      ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usageAmountValue, activeLocale, 0, 1)} ${usagePeriodText} × ${usagePeriod === "month" ? 12 : 52} × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
+      : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usageAmountValue, activeLocale, 0, 1)} ${usagePeriodText} × ${usagePeriod === "month" ? 12 : 52} × ${formatMoney(priceValue, activeLocale, currency)}/kWh`;
 
   const comparisonCandidates = devices.filter(
     (item) =>
@@ -1647,8 +1639,8 @@ export default function EnergyCalculator({
               type="number"
               min="0"
               max={isContinuousDevice ? 7 : undefined}
-              step="1"
-              inputMode="numeric"
+              step="0.5"
+              inputMode="decimal"
               value={usesPerWeek}
               onFocus={
                 handleCalculatorFieldFocus
@@ -1664,15 +1656,15 @@ export default function EnergyCalculator({
                 }
               }}
               onChange={(event) => {
-                const nextUses = parseWholeNumberInput(event.target.value);
+                const nextUses = parseNumericInput(event.target.value);
                 const nextAmount = numericValue(nextUses);
                 const nextUsesPerWeek = isContinuousDevice
                   ? nextAmount
                   : usageAmountToWeekly(nextAmount, usagePeriod);
                 const scenarioStep =
                   !isContinuousDevice && usagePeriod === "month"
-                    ? 12 / 52
-                    : 1;
+                    ? 6 / 52
+                    : 0.5;
 
                 setUsesPerWeek(nextUses);
                 setScenarioUsesPerWeek(
@@ -1686,29 +1678,35 @@ export default function EnergyCalculator({
               <div
                 role="group"
                 aria-label={text.fields.usagePeriod}
-                className="grid min-w-[8.75rem] gap-1 rounded-xl border border-white/[0.12] bg-[#202b28] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]"
+                className="flex min-w-[8.5rem] items-center justify-end gap-1.5 whitespace-nowrap text-[12px]"
               >
-                {(["week", "month"] as const).map((period) => {
-                  const selected = usagePeriod === period;
+                <button
+                  type="button"
+                  aria-pressed={usagePeriod === "week"}
+                  onClick={() => handleUsagePeriodChange("week")}
+                  className={`px-0.5 py-2 font-semibold transition-colors focus-visible:outline-none focus-visible:text-[var(--brand-green-mint)] ${
+                    usagePeriod === "week"
+                      ? "text-[var(--brand-green-mint)]"
+                      : "text-[#8fa09a] hover:text-white"
+                  }`}
+                >
+                  {text.fields.perWeek}
+                </button>
 
-                  return (
-                    <button
-                      key={period}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => handleUsagePeriodChange(period)}
-                      className={`rounded-lg px-3 py-1 text-[11px] font-bold leading-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] ${
-                        selected
-                          ? "bg-[var(--brand-green-mint)] text-[#12352a] shadow-sm"
-                          : "text-[#aebbb6] hover:bg-white/[0.06] hover:text-white"
-                      }`}
-                    >
-                      {period === "week"
-                        ? text.fields.perWeek
-                        : text.fields.perMonth}
-                    </button>
-                  );
-                })}
+                <span aria-hidden="true" className="text-[#53615d]">/</span>
+
+                <button
+                  type="button"
+                  aria-pressed={usagePeriod === "month"}
+                  onClick={() => handleUsagePeriodChange("month")}
+                  className={`px-0.5 py-2 font-semibold transition-colors focus-visible:outline-none focus-visible:text-[var(--brand-green-mint)] ${
+                    usagePeriod === "month"
+                      ? "text-[var(--brand-green-mint)]"
+                      : "text-[#8fa09a] hover:text-white"
+                  }`}
+                >
+                  {text.fields.month}
+                </button>
               </div>
             )}
           </div>
@@ -1854,8 +1852,8 @@ export default function EnergyCalculator({
                     max={usesPerWeekValue}
                     step={
                       !isContinuousDevice && usagePeriod === "month"
-                        ? 12 / 52
-                        : 1
+                        ? 6 / 52
+                        : 0.5
                     }
                     value={scenarioUsesPerWeekValue}
                     onChange={(event) => setScenarioUsesPerWeek(Number(event.target.value))}
@@ -1865,10 +1863,10 @@ export default function EnergyCalculator({
                 </div>
                 <div className="mt-1 flex items-center justify-between gap-3 text-[10px] font-medium text-[#66736e] tabular-nums">
                   <span>
-                    {text.result.currentUses}: {formatNumber(usageAmountValue, activeLocale, 0, 0)}× {isContinuousDevice ? text.fields.perWeek : usagePeriodText}
+                    {text.result.currentUses}: {formatNumber(usageAmountValue, activeLocale, 0, 1)}× {isContinuousDevice ? text.fields.perWeek : usagePeriodText}
                   </span>
                   <span className="text-right font-semibold text-[var(--brand-green)]">
-                    {text.result.selectedUses}: {formatNumber(displayedScenarioUses, activeLocale, 0, 0)}× {isContinuousDevice ? text.fields.perWeek : usagePeriodText}
+                    {text.result.selectedUses}: {formatNumber(displayedScenarioUses, activeLocale, 0, 1)}× {isContinuousDevice ? text.fields.perWeek : usagePeriodText}
                   </span>
                 </div>
               </div>
@@ -2018,12 +2016,12 @@ export default function EnergyCalculator({
                   <input
                     type="number"
                     min="0"
-                    step="1"
-                    inputMode="numeric"
+                    step="0.5"
+                    inputMode="decimal"
                     value={comparisonUsesPerWeek}
                     onChange={(event) =>
                       setComparisonUsesPerWeek(
-                        parseWholeNumberInput(event.target.value)
+                        parseNumericInput(event.target.value)
                       )
                     }
                     className={secondaryFieldClassName}
