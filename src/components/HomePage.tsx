@@ -24,6 +24,8 @@ type HomePageProps = {
   locale?: Locale;
 };
 
+const FEEDBACK_EMAIL = "parkwaydrive@gmx.at";
+
 const content = {
   de: {
     categories: [
@@ -211,6 +213,9 @@ const content = {
     faq: {
       label: "Gut zu wissen",
       title: "Antworten rund um deinen Rechner",
+      feedbackText: "Fehlt etwas oder war eine Erklärung unklar?",
+      feedbackLink: "Kurzes Feedback senden",
+      feedbackSubject: "Feedback zu EAVESENCE Energy",
 
       items: [
         {
@@ -440,6 +445,9 @@ const content = {
     faq: {
       label: "Good to know",
       title: "Answers about your calculator",
+      feedbackText: "Is something missing or was an explanation unclear?",
+      feedbackLink: "Send brief feedback",
+      feedbackSubject: "Feedback about EAVESENCE Energy",
 
       items: [
         {
@@ -690,6 +698,9 @@ export default function HomePage({
 
   const devicesHref =
     locale === "de" ? "/geraete" : "/en/devices";
+  const feedbackHref = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(
+    text.faq.feedbackSubject
+  )}`;
 
   useEffect(() => {
     function syncFaqWithHash() {
@@ -851,7 +862,7 @@ export default function HomePage({
                 aria-hidden="true"
                 className={`shrink-0 text-xl font-light text-slate-500 transition-[color,transform] duration-200 ${
                   faqOpen
-                    ? "rotate-45 text-[var(--brand-green)]"
+                    ? "-rotate-45 text-[var(--brand-green)]"
                     : "rotate-0"
                 }`}
               >
@@ -878,7 +889,7 @@ export default function HomePage({
 
                         <span
                           aria-hidden="true"
-                          className="text-lg font-light text-slate-500 transition-transform duration-150 group-open:rotate-45 group-open:text-[var(--brand-green)]"
+                          className="text-lg font-light text-slate-500 transition-transform duration-150 group-open:-rotate-45 group-open:text-[var(--brand-green)]"
                         >
                           +
                         </span>
@@ -891,6 +902,16 @@ export default function HomePage({
                   ))}
                 </div>
               </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+              <span>{text.faq.feedbackText}</span>
+              <a
+                href={feedbackHref}
+                className="font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+              >
+                {text.faq.feedbackLink} →
+              </a>
             </div>
           </div>
         </section>

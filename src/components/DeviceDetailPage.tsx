@@ -63,38 +63,6 @@ const pageText = {
     calculatorDescription:
       "Passe die vorgeschlagenen Werte an dein eigenes Gerät, deinen Stromtarif und deine tatsächliche Nutzung an.",
 
-    understandCalculation:
-      "Berechnung verstehen",
-    howCalculated:
-      "Wie berechnet EAVESENCE die Stromkosten?",
-
-    powerExplanation1:
-      "EAVESENCE rechnet die Leistung des Geräts von Watt in Kilowatt um und multipliziert sie mit der Nutzungsdauer.",
-    powerExplanation2:
-      "Anschließend wird der errechnete Verbrauch mit deinem Strompreis und der Nutzungshäufigkeit multipliziert.",
-    powerFormula:
-      "Watt ÷ 1.000 × Stunden × Strompreis",
-    powerExplanation3:
-      "Das ist eine Näherung. Bei Geräten, deren Leistungsaufnahme während des Betriebs schwankt, ist ein gemessener Verbrauch genauer.",
-
-    consumptionExplanation1:
-      "Bei diesem Gerät ist ein Verbrauchswert pro Nutzung sinnvoller als eine einfache Rechnung aus Watt und Laufzeit.",
-    consumptionExplanation2:
-      "EAVESENCE multipliziert deshalb den Verbrauch pro Nutzung mit deinem Strompreis und deiner Nutzungshäufigkeit.",
-    consumptionFormula:
-      "kWh pro Nutzung × Strompreis × Nutzungen",
-    consumptionExplanation3:
-      "Wenn dein Energielabel einen Wert pro 100 Zyklen angibt, kannst du diesen durch 100 teilen und als Verbrauch pro Nutzung in EAVESENCE eintragen.",
-
-    savingTip: "💡 Spartipp für",
-
-    moreAccurate: "Noch genauer?",
-    moreAccurateText1:
-      "Passe die vorgeschlagenen Werte an dein Gerät an. Je nach Gerät kannst du",
-    exactMode: "den kWh-Wert direkt eintragen",
-    moreAccurateText2:
-      "oder „Gemessenen Verbrauch eingeben“ auswählen.",
-
     guide: "Praxis-Ratgeber",
     scenarioUses: "Nutzungen pro Woche",
     scenarioCost: "Stromkosten pro Jahr",
@@ -145,38 +113,6 @@ const pageText = {
       "electricity cost calculator",
     calculatorDescription:
       "Adjust the suggested values to match your own device, electricity tariff and actual usage.",
-
-    understandCalculation:
-      "Understand the calculation",
-    howCalculated:
-      "How does EAVESENCE calculate electricity costs?",
-
-    powerExplanation1:
-      "EAVESENCE converts the device's power from watts to kilowatts and multiplies it by the usage time.",
-    powerExplanation2:
-      "The calculated electricity consumption is then multiplied by your electricity price and usage frequency.",
-    powerFormula:
-      "Watts ÷ 1,000 × hours × electricity price",
-    powerExplanation3:
-      "This is an estimate. For devices whose power consumption changes during operation, a measured consumption value is more accurate.",
-
-    consumptionExplanation1:
-      "For this device, a consumption value per use is more useful than a simple calculation based on watts and runtime.",
-    consumptionExplanation2:
-      "EAVESENCE therefore multiplies consumption per use by your electricity price and usage frequency.",
-    consumptionFormula:
-      "kWh per use × electricity price × uses",
-    consumptionExplanation3:
-      "If your energy label states a value per 100 cycles, divide it by 100 and enter the result in EAVESENCE as consumption per use.",
-
-    savingTip: "💡 Energy-saving tip for",
-
-    moreAccurate: "Want a more accurate result?",
-    moreAccurateText1:
-      "Adjust the suggested values to match your device. Depending on the device, you can",
-    exactMode: "enter the kWh value directly",
-    moreAccurateText2:
-      "or select “Enter measured consumption”.",
 
     guide: "Practical guide",
     scenarioUses: "Uses per week",
@@ -442,16 +378,16 @@ export default function DeviceDetailPage({
         </section>
 
         {/* Example calculation */}
-        <section className="px-5 py-8 sm:px-6 sm:py-10">
+        <section className="px-5 py-6 sm:px-6 sm:py-8">
           <div className="mx-auto max-w-7xl">
-            <div className="rounded-2xl border border-[#dfe5dd] bg-[#fbfcf8] p-5 sm:p-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="border-y border-[#dfe5dd] py-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
                     {text.example}
                   </p>
 
-                  <h2 className="mt-2 text-xl font-bold tracking-[-0.025em] sm:text-2xl">
+                  <h2 className="mt-1.5 text-lg font-bold tracking-[-0.025em] sm:text-xl">
                     {
                       text.referenceValues
                     }{" "}
@@ -466,13 +402,13 @@ export default function DeviceDetailPage({
                 </span>
               </div>
 
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-[#65716d]">
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#65716d]">
                 {
                   text.referenceDescription
                 }
               </p>
 
-              <div className="mt-5 grid gap-px overflow-hidden rounded-xl border border-[#dfe5dd] bg-[#dfe5dd] sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-4 grid gap-px overflow-hidden rounded-xl border border-[#dfe5dd] bg-[#dfe5dd] sm:grid-cols-2 lg:grid-cols-4">
                 {device.calculationType ===
                 "power" ? (
                   <>
@@ -545,17 +481,23 @@ export default function DeviceDetailPage({
                 </div>
               </div>
 
-              <div className="mt-4 border-t border-[#dfe5dd] pt-4">
-                <p className="text-sm font-semibold text-slate-900">
+              <details className="group mt-3">
+                <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-[var(--brand-green)] [&::-webkit-details-marker]:hidden">
                   {text.dataBasis}
-                </p>
+                  <span
+                    aria-hidden="true"
+                    className="text-base font-light transition-transform duration-150 group-open:-rotate-45"
+                  >
+                    +
+                  </span>
+                </summary>
 
-                <p className="mt-2 text-sm leading-6 text-slate-600">
+                <p className="mt-2 max-w-3xl text-xs leading-5 text-slate-500">
                   {localizedDevice.dataNote}
                 </p>
-              </div>
+              </details>
 
-              <p className="mt-5 text-sm leading-6 text-slate-500">
+              <p className="mt-3 text-xs leading-5 text-slate-500">
                 {text.exampleWith}{" "}
                 {formatEuro(
                   DEFAULT_ELECTRICITY_PRICE,
@@ -618,108 +560,27 @@ export default function DeviceDetailPage({
           </div>
         </section>
 
-        {/* Explanation */}
-        <section className="border-y border-[#dfe5dd] bg-[#f9faf5] px-5 py-10 sm:px-6 sm:py-12">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid gap-7 lg:grid-cols-[1.15fr_.85fr]">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
-                  {
-                    text.understandCalculation
-                  }
-                </p>
-
-                <h2 className="mt-2 text-2xl font-bold tracking-[-0.025em]">
-                  {text.howCalculated}
-                </h2>
-
-                {device.calculationType ===
-                "power" ? (
-                  <div className="mt-5 space-y-4 leading-8 text-slate-600">
-                    <p>
-                      {
-                        text.powerExplanation1
-                      }
-                    </p>
-
-                    <p>
-                      {
-                        text.powerExplanation2
-                      }
-                    </p>
-
-                    <div className="rounded-xl bg-slate-50 p-4 font-medium text-slate-700">
-                      {text.powerFormula}
-                    </div>
-
-                    <p>
-                      {
-                        text.powerExplanation3
-                      }
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-5 space-y-4 leading-8 text-slate-600">
-                    <p>
-                      {
-                        text.consumptionExplanation1
-                      }
-                    </p>
-
-                    <p>
-                      {
-                        text.consumptionExplanation2
-                      }
-                    </p>
-
-                    <div className="rounded-xl bg-slate-50 p-4 font-medium text-slate-700">
-                      {
-                        text.consumptionFormula
-                      }
-                    </div>
-
-                    <p>
-                      {
-                        text.consumptionExplanation3
-                      }
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="rounded-xl border border-[#dfe5dd] bg-[var(--brand-off-white)] p-5 sm:p-6">
-                  <p className="font-bold text-slate-900">
-                    {text.moreAccurate}
-                  </p>
-
-                  <p className="mt-3 leading-7 text-slate-600">
-                    {
-                      text.moreAccurateText1
-                    }{" "}
-                    <strong>
-                      {text.exactMode}
-                    </strong>{" "}
-                    {
-                      text.moreAccurateText2
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {seoContent && (
-          <section className="px-5 py-10 sm:px-6 sm:py-12">
-            <div className="mx-auto max-w-7xl">
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
-                {text.guide}
-              </p>
+          <section className="px-5 py-8 sm:px-6 sm:py-10">
+            <details className="group/device-guide mx-auto max-w-7xl border-y border-[#dfe5dd]">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-6 [&::-webkit-details-marker]:hidden">
+                <span>
+                  <span className="block text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
+                    {text.guide}
+                  </span>
+                  <span className="mt-2 block max-w-3xl text-xl font-bold tracking-[-0.03em] text-[#17211f] sm:text-2xl">
+                    {seoContent.introTitle}
+                  </span>
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center text-xl font-light text-slate-500 transition-[color,transform] duration-200 group-open/device-guide:-rotate-45 group-open/device-guide:text-[var(--brand-green)]"
+                >
+                  +
+                </span>
+              </summary>
 
-              <h2 className="mt-2 max-w-3xl text-2xl font-bold tracking-[-0.03em] sm:text-3xl">
-                {seoContent.introTitle}
-              </h2>
+              <div className="pb-8">
 
               <div className="mt-4 max-w-4xl space-y-3 text-[15px] leading-7 text-[#65716d]">
                 {seoContent.intro.map(
@@ -841,13 +702,13 @@ export default function DeviceDetailPage({
                   {seoContent.faqs.map((faq) => (
                     <details
                       key={faq.question}
-                      className="group rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"
+                      className="group/faq-item rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"
                     >
                       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
                         {faq.question}
                         <span
                           aria-hidden="true"
-                          className="text-lg text-slate-400 transition group-open:rotate-45"
+                          className="text-lg text-slate-400 transition group-open/faq-item:-rotate-45"
                         >
                           +
                         </span>
@@ -881,7 +742,8 @@ export default function DeviceDetailPage({
                   )}
                 </ul>
               </div>
-            </div>
+              </div>
+            </details>
           </section>
         )}
 

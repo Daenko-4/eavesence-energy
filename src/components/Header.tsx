@@ -434,7 +434,7 @@ export default function Header({
               <span
                 ref={activeIndicatorRef}
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[var(--brand-green-mint)] opacity-0 transition-[width,transform,opacity] duration-[360ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none"
+                className="pointer-events-none absolute bottom-[18px] left-0 h-[2px] rounded-full bg-[var(--brand-green-mint)] opacity-0 transition-[width,transform,opacity] duration-[360ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none"
               />
             </nav>
           </div>

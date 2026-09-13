@@ -21,12 +21,6 @@ import MyDevicesPanel, {
 
 const CUSTOM_DEVICE = "__custom_device__";
 
-/*
-  Hier bitte wieder dieselbe Feedback-E-Mail einsetzen,
-  die aktuell bereits in deiner Datei verwendet wird.
-*/
-const FEEDBACK_EMAIL = "parkwaydrive@gmx.at";
-
 type Mode = "estimate" | "exact";
 type NumericInput = number | "";
 type CurrencyCode = SavedDeviceCurrency;
@@ -207,21 +201,11 @@ const calculatorText = {
     accuracy: {
       title: "Hinweis zur Genauigkeit",
       consumptionEstimate:
-        "Die Berechnung nutzt einen anpassbaren Orientierungswert für den Verbrauch pro Nutzung. Der tatsächliche Verbrauch kann je nach Gerät, Programm und Nutzung abweichen.",
+        "Orientierungswert – der tatsächliche Verbrauch kann abweichen.",
       powerEstimate:
-        "Die Berechnung nutzt Leistung × Nutzungsdauer als Näherung. Bei Geräten, deren Leistungsaufnahme während des Betriebs schwankt, kann der tatsächliche Verbrauch abweichen.",
+        "Näherung aus Leistung und Laufzeit – der reale Verbrauch kann abweichen.",
       exact:
-        "Die Berechnung verwendet den von dir angegebenen Verbrauch pro Nutzung. Die Genauigkeit hängt davon ab, wie zuverlässig dieser Wert ermittelt wurde.",
-    },
-
-    feedback: {
-      title: "💬 Hat dir EAVESENCE geholfen?",
-      text:
-        "Fehlt dir ein Gerät, war etwas unklar oder hast du eine Idee, wie EAVESENCE besser werden kann? Kurzes Feedback hilft uns sehr.",
-      button: "Feedback senden",
-      note:
-        "Der Button öffnet dein E-Mail-Programm. EAVESENCE speichert dabei keine Daten und verwendet weiterhin kein Tracking.",
-      subject: "Feedback zu EAVESENCE Energy",
+        "Die Genauigkeit hängt von deinem eingegebenen Messwert ab.",
     },
 
     calculate: "Berechnung speichern",
@@ -362,21 +346,11 @@ const calculatorText = {
     accuracy: {
       title: "Accuracy note",
       consumptionEstimate:
-        "The calculation uses an adjustable typical value for electricity consumption per use. Actual consumption may vary depending on the device, program and usage.",
+        "Typical value – actual electricity consumption may vary.",
       powerEstimate:
-        "The calculation uses power × usage duration as an estimate. For devices whose power consumption varies during operation, actual electricity consumption may differ.",
+        "Estimate from power and runtime – actual consumption may vary.",
       exact:
-        "The calculation uses the electricity consumption per use that you entered. Accuracy depends on how reliably this value was measured or determined.",
-    },
-
-    feedback: {
-      title: "💬 Did EAVESENCE help you?",
-      text:
-        "Is a device missing, was something unclear or do you have an idea for improving EAVESENCE? A short message helps us a lot.",
-      button: "Send feedback",
-      note:
-        "The button opens your email application. EAVESENCE does not store any data and continues to use no tracking.",
-      subject: "Feedback about EAVESENCE Energy",
+        "Accuracy depends on the measured value you entered.",
     },
 
     calculate: "Save calculation",
@@ -1058,10 +1032,12 @@ export default function EnergyCalculator({
     ? "hidden"
     : "mt-2 text-sm leading-6 text-slate-500";
 
-  const feedbackSubject =
-    encodeURIComponent(
-      text.feedback.subject
-    );
+  const accuracyText =
+    mode === "estimate"
+      ? isConsumptionDevice
+        ? text.accuracy.consumptionEstimate
+        : text.accuracy.powerEstimate
+      : text.accuracy.exact;
 
   return (
     <section>
@@ -1752,11 +1728,11 @@ export default function EnergyCalculator({
                     <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--brand-green)]">
                       {text.result.formula}
                     </span>
-                    <span
-                      title={calculationFormula}
-                      className="mt-0.5 line-clamp-2 block break-words text-[11px] font-medium leading-4 text-[#65716d]"
-                    >
+                    <span title={calculationFormula} className="mt-0.5 block truncate text-[11px] font-medium leading-4 text-[#52605b]">
                       {calculationFormula}
+                    </span>
+                    <span title={accuracyText} className="block truncate text-[10px] leading-4 text-[#7a8580]">
+                      {text.accuracy.title}: {accuracyText}
                     </span>
                   </>
                 ) : (
@@ -1768,7 +1744,7 @@ export default function EnergyCalculator({
               <span
                 aria-hidden="true"
                 className={`flex h-7 w-7 shrink-0 origin-center items-center justify-center text-lg leading-none text-[var(--brand-green)] transition-transform duration-[180ms] ${
-                  calculationDetailsOpen ? "rotate-45" : "rotate-0"
+                  calculationDetailsOpen ? "-rotate-45" : "rotate-0"
                 }`}
               >
                 +
@@ -1840,7 +1816,7 @@ export default function EnergyCalculator({
             <span
               aria-hidden="true"
               className={`flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none text-[var(--brand-green)] transition-transform duration-200 ${
-                comparisonOpen ? "rotate-45" : ""
+                comparisonOpen ? "-rotate-45" : ""
               }`}
             >
               +
@@ -2016,63 +1992,6 @@ export default function EnergyCalculator({
           </span>
           <span className="text-sm font-bold">{text.result.viewResult} ↑</span>
         </button>
-      )}
-
-      {/* Accuracy */}
-      {!homePresentation && (
-      <details className="group mt-4 border-b border-slate-200 pb-4">
-        <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-slate-800 [&::-webkit-details-marker]:hidden">
-          {text.accuracy.title}
-          <svg
-            viewBox="0 0 20 20"
-            fill="none"
-            className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-open:rotate-90"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="m7.5 5 5 5-5 5" />
-          </svg>
-        </summary>
-        <p className="mt-3 max-w-3xl text-xs leading-5 text-slate-500">
-          {mode === "estimate"
-            ? isConsumptionDevice
-              ? text.accuracy.consumptionEstimate
-              : text.accuracy.powerEstimate
-            : text.accuracy.exact}
-        </p>
-      </details>
-      )}
-
-      {/* Feedback */}
-      {!homePresentation && (
-      <div className="mt-6 border-t border-slate-200 pt-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="max-w-2xl">
-          <p className="text-base font-bold tracking-tight text-slate-900">
-            {text.feedback.title.replace("💬 ", "")}
-          </p>
-
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            {text.feedback.text}
-          </p>
-
-          </div>
-
-          <a
-            href={`mailto:${FEEDBACK_EMAIL}?subject=${feedbackSubject}`}
-            className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-green-200 bg-white px-4 py-2 text-xs font-bold text-[var(--brand-green)] transition hover:border-green-400 hover:bg-green-50"
-          >
-            {text.feedback.button}
-          </a>
-
-        </div>
-        <p className="mt-3 text-[11px] leading-5 text-slate-400">
-          {text.feedback.note}
-        </p>
-      </div>
       )}
 
     </section>
