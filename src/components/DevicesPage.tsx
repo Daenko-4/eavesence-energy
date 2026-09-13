@@ -218,6 +218,8 @@ function CategoryIcon({
           <path d="M12 15v1" />
           <path d="M15 16v1" />
           <path d="M18 15v1" />
+          <path d="M12 19v1" />
+          <path d="M16 19v1" />
         </svg>
       );
 
@@ -368,16 +370,16 @@ export default function DevicesPage({
 
               {categories.length > 0 && (
                 <nav
-                  className="mt-3 flex flex-wrap gap-x-1 gap-y-1"
+                  className="mt-5 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7"
                   aria-label={text.searchLabel}
                 >
                   {categories.map(({ category }) => (
                     <a
                       key={category}
                       href={`#${getCategoryAnchor(category, locale)}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-[#52605b] transition hover:bg-[#e5f7ec] hover:text-[var(--brand-green)]"
+                      className="group flex min-h-[72px] items-center gap-2.5 border-b border-r border-slate-200/70 px-4 text-[13px] font-semibold text-slate-700 transition hover:bg-[#eaf8ef] hover:text-[var(--brand-green)] sm:px-5 lg:border-b-0 lg:last:border-r-0"
                     >
-                      <span className="text-[var(--brand-green)] [&>svg]:h-4 [&>svg]:w-4">
+                      <span className="text-[var(--brand-green)] transition-transform duration-200 group-hover:-translate-y-0.5 [&>svg]:h-5 [&>svg]:w-5">
                         <CategoryIcon category={category} />
                       </span>
 

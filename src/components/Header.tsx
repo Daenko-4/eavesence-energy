@@ -76,7 +76,7 @@ function NavigationLink({
       onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
-      className={`group relative flex h-10 items-center whitespace-nowrap px-1 text-[13px] font-semibold transition-colors duration-150 hover:text-[var(--brand-green)] ${
+      className={`group relative flex h-full items-center whitespace-nowrap px-1 text-[13px] font-semibold transition-colors duration-150 hover:text-[var(--brand-green)] ${
         active ? "text-[#07111f]" : "text-slate-600"
       }`}
     >
@@ -327,7 +327,7 @@ export default function Header({
           <Link
             href={homeHref}
             onClick={handleLogoClick}
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:hidden"
+            className="absolute left-1/2 top-1/2 flex h-[68px] -translate-x-1/2 -translate-y-1/2 items-center lg:hidden"
             aria-label={text.homeLabel}
           >
             <BrandLogo
@@ -351,7 +351,7 @@ export default function Header({
               }
               setDesktopNavigationOpen(false);
             }}
-            className="absolute left-1/2 top-1/2 hidden h-11 w-[760px] -translate-x-1/2 -translate-y-1/2 lg:block"
+            className="absolute left-1/2 top-1/2 hidden h-[68px] w-[760px] -translate-x-1/2 -translate-y-1/2 lg:block"
           >
             <Link
               href={homeHref}
@@ -367,7 +367,7 @@ export default function Header({
                   ? "0 -50%"
                   : "285px -50%",
               }}
-              className={`absolute left-0 top-1/2 z-20 flex w-[190px] items-center gap-2.5 overflow-hidden transition-[translate,clip-path] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-[translate,clip-path] motion-reduce:transition-none ${
+              className={`absolute left-0 top-1/2 z-20 flex h-full w-[190px] items-center gap-2.5 overflow-hidden transition-[translate,clip-path] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-[translate,clip-path] motion-reduce:transition-none ${
                 desktopNavigationOpen
                   ? "delay-0"
                   : "delay-[250ms]"
