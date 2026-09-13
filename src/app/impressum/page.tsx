@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import ScrollToTopOnMount from "@/components/ScrollToTopOnMount";
 
 export const metadata: Metadata = {
   title: "Impressum",
@@ -22,10 +24,19 @@ export default function ImpressumPage() {
       lang="de"
       className="min-h-screen bg-[var(--brand-off-white)] text-[#17211f]"
     >
+      <ScrollToTopOnMount />
       <Header />
 
-      <main className="px-5 py-12 sm:px-6 sm:py-16">
-        <div className="mx-auto max-w-3xl">
+      <main className="mx-auto max-w-3xl px-5 py-10 sm:px-6 sm:py-12">
+        <Link
+          href="/de"
+          scroll
+          className="inline-flex text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+        >
+          ← Zur EAVESENCE Startseite
+        </Link>
+
+        <div className="mt-8">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
               Rechtliches
@@ -94,6 +105,16 @@ export default function ImpressumPage() {
               </section>
             </div>
           </div>
+        </div>
+
+        <div className="mt-12 border-t border-slate-200/80 pt-6">
+          <Link
+            href="/de"
+            scroll
+            className="inline-flex text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+          >
+            ← Zur EAVESENCE Startseite
+          </Link>
         </div>
       </main>
 

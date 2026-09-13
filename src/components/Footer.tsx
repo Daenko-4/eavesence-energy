@@ -26,7 +26,6 @@ const footerText = {
     calculator: "Stromkosten-Rechner",
     devices: "Geräteübersicht",
     faq: "Häufige Fragen",
-    about: "Über EAVESENCE",
     explore: "Entdecken",
     company: "EAVESENCE",
     legal: "Rechtliches",
@@ -41,7 +40,6 @@ const footerText = {
     calculator: "Electricity cost calculator",
     devices: "Device overview",
     faq: "Frequently asked questions",
-    about: "About EAVESENCE",
     explore: "Explore",
     company: "EAVESENCE",
     legal: "Legal",
@@ -91,7 +89,6 @@ export default function Footer({ locale = "de" }: FooterProps) {
   const devicesHref = getDevicesHref(locale);
   const faqHref = getFaqHref(locale);
   const howItWorksHref = `${getHomeHref(locale)}#so-funktionierts`;
-  const aboutHref = `${getHomeHref(locale)}#about`;
   const imprintHref = getImprintHref(locale);
   const privacyHref = getPrivacyHref(locale);
 
@@ -100,11 +97,20 @@ export default function Footer({ locale = "de" }: FooterProps) {
       <div className="mx-auto max-w-7xl px-5 py-6 sm:px-6">
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-[minmax(300px,1fr)_auto_auto] lg:gap-10">
           <div>
-            <BrandLogo
-              markClassName="h-7 w-7"
-              wordmarkClassName="text-[1rem]"
-              className="inline-flex items-center gap-2"
-            />
+            <Link
+              href={getHomeHref(locale)}
+              onClick={(event) =>
+                handleInternalNavigation(event, getHomeHref(locale))
+              }
+              aria-label={locale === "de" ? "Zur EAVESENCE Startseite" : "Go to the EAVESENCE home page"}
+              className="inline-flex rounded-md transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]"
+            >
+              <BrandLogo
+                markClassName="h-7 w-7"
+                wordmarkClassName="text-[1rem]"
+                className="inline-flex items-center gap-2"
+              />
+            </Link>
 
             <p className="mt-3 max-w-sm text-[13px] leading-5 text-slate-500">
               {text.description}
@@ -163,16 +169,6 @@ export default function Footer({ locale = "de" }: FooterProps) {
               {text.company}
             </p>
             <div className="grid gap-1.5 text-[12px] font-medium leading-5 text-slate-500">
-              <Link
-                href={aboutHref}
-                onClick={(event) =>
-                  handleInternalNavigation(event, aboutHref)
-                }
-                className="transition hover:text-slate-900"
-              >
-                {text.about}
-              </Link>
-
               <Link
                 href={imprintHref}
                 onClick={(event) =>

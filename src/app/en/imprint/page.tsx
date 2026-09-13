@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import ScrollToTopOnMount from "@/components/ScrollToTopOnMount";
 
 export const metadata: Metadata = {
   title: "Imprint",
@@ -22,10 +24,19 @@ export default function ImprintPage() {
       lang="en"
       className="min-h-screen bg-[var(--brand-off-white)] text-[#17211f]"
     >
+      <ScrollToTopOnMount />
       <Header locale="en" />
 
-      <main className="px-5 py-12 sm:px-6 sm:py-16">
-        <div className="mx-auto max-w-3xl">
+      <main className="mx-auto max-w-3xl px-5 py-10 sm:px-6 sm:py-12">
+        <Link
+          href="/"
+          scroll
+          className="inline-flex text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+        >
+          ← Back to the EAVESENCE home page
+        </Link>
+
+        <div className="mt-8">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
               Legal
@@ -93,6 +104,16 @@ export default function ImprintPage() {
               </section>
             </div>
           </div>
+        </div>
+
+        <div className="mt-12 border-t border-slate-200/80 pt-6">
+          <Link
+            href="/"
+            scroll
+            className="inline-flex text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+          >
+            ← Back to the EAVESENCE home page
+          </Link>
         </div>
       </main>
 

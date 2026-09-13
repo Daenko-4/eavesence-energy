@@ -214,7 +214,7 @@ const content = {
       label: "Gut zu wissen",
       title: "Antworten rund um deinen Rechner",
       feedbackText: "Fehlt etwas oder war eine Erklärung unklar?",
-      feedbackLink: "Kurzes Feedback senden",
+      feedbackLink: "Feedback senden",
       feedbackSubject: "Feedback zu EAVESENCE Energy",
 
       items: [
@@ -446,7 +446,7 @@ const content = {
       label: "Good to know",
       title: "Answers about your calculator",
       feedbackText: "Is something missing or was an explanation unclear?",
-      feedbackLink: "Send brief feedback",
+      feedbackLink: "Send feedback",
       feedbackSubject: "Feedback about EAVESENCE Energy",
 
       items: [

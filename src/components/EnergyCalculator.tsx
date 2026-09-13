@@ -31,6 +31,7 @@ const CUSTOM_DEVICE = "__custom_device__";
 
 type Mode = "estimate" | "exact";
 type NumericInput = number | "";
+type UsagePeriod = "week" | "month";
 type CurrencyCode = SavedDeviceCurrency;
 
 const CURRENCY_STORAGE_KEY = "eavesence-currency";
@@ -120,7 +121,10 @@ const calculatorText = {
       daysPerWeek: "Tage pro Woche",
       electricityPrice: "Strompreis",
       currency: "Währung",
-      usesPerWeek: "Nutzungen pro Woche",
+      uses: "Nutzungen",
+      perWeek: "pro Woche",
+      perMonth: "pro Monat",
+      usagePeriod: "Zeitraum der Nutzung",
     },
 
     hints: {
@@ -145,7 +149,7 @@ const calculatorText = {
       electricityPrice:
         "Deinen Arbeitspreis findest du auf deiner Stromrechnung.",
       usesPerWeek:
-        "Auch Dezimalwerte sind möglich, zum Beispiel 0,5 für etwa jede zweite Woche.",
+        "Gib eine ganze Anzahl ein und wähle, ob sie pro Woche oder pro Monat gilt.",
     },
 
     missing: {
@@ -187,7 +191,7 @@ const calculatorText = {
       details: "So wurde das berechnet",
       formula: "Berechnungsgrundlage",
       scenario: "Was wäre bei seltenerer Nutzung?",
-      scenarioText: "Wähle, wie oft du das Gerät pro Woche verwenden würdest.",
+      scenarioText: "Wähle, wie oft du das Gerät im gewählten Zeitraum verwenden würdest.",
       currentUses: "Aktuell",
       selectedUses: "Gewählt",
       newYearlyCost: "Neue Jahreskosten",
@@ -224,8 +228,8 @@ const calculatorText = {
     },
 
     accuracy: {
-      title: "Genauigkeit",
-      note: "Schätzwert – der tatsächliche Verbrauch kann abweichen.",
+      title: "Einordnung",
+      note: "Realistische Schätzung auf Basis typischer Werte – dein tatsächlicher Verbrauch kann abweichen.",
     },
 
     calculate: "Berechnung speichern",
@@ -277,7 +281,10 @@ const calculatorText = {
       daysPerWeek: "Days per week",
       electricityPrice: "Electricity price",
       currency: "Currency",
-      usesPerWeek: "Uses per week",
+      uses: "Uses",
+      perWeek: "per week",
+      perMonth: "per month",
+      usagePeriod: "Usage period",
     },
 
     hints: {
@@ -302,7 +309,7 @@ const calculatorText = {
       electricityPrice:
         "You can find your electricity price on your electricity bill.",
       usesPerWeek:
-        "Decimal values are also possible, for example 0.5 for roughly every second week.",
+        "Enter a whole number and choose whether it applies per week or per month.",
     },
 
     missing: {
@@ -344,7 +351,7 @@ const calculatorText = {
       details: "How this was calculated",
       formula: "Calculation basis",
       scenario: "What if you used it less?",
-      scenarioText: "Choose how often you would use the device per week.",
+      scenarioText: "Choose how often you would use the device in the selected period.",
       currentUses: "Current",
       selectedUses: "Selected",
       newYearlyCost: "New yearly cost",
@@ -381,8 +388,8 @@ const calculatorText = {
     },
 
     accuracy: {
-      title: "Accuracy note",
-      note: "Estimated result – actual consumption may vary.",
+      title: "Context",
+      note: "Realistic estimate based on typical values – actual consumption may vary.",
     },
 
     calculate: "Save calculation",
@@ -402,6 +409,22 @@ function parseNumericInput(value: string): NumericInput {
   }
 
   return nonNegative(Number(value));
+}
+
+function parseWholeNumberInput(value: string): NumericInput {
+  if (value === "") {
+    return "";
+  }
+
+  return Math.round(nonNegative(Number(value)));
+}
+
+function usageAmountToWeekly(amount: number, period: UsagePeriod) {
+  return period === "month" ? (amount * 12) / 52 : amount;
+}
+
+function weeklyUsageToAmount(usesPerWeek: number, period: UsagePeriod) {
+  return period === "month" ? (usesPerWeek * 52) / 12 : usesPerWeek;
 }
 
 function numericValue(value: NumericInput) {
@@ -587,6 +610,9 @@ export default function EnergyCalculator({
   const [usesPerWeek, setUsesPerWeek] =
     useState<NumericInput>(initialUses);
 
+  const [usagePeriod, setUsagePeriod] =
+    useState<UsagePeriod>("week");
+
   const [
     estimatedKwhPerUse,
     setEstimatedKwhPerUse,
@@ -659,6 +685,8 @@ export default function EnergyCalculator({
   });
 
   function loadDeviceDefaults(name: string) {
+    setUsagePeriod("week");
+
     if (name === CUSTOM_DEVICE) {
       setCustomDeviceName("");
       setWatts(0);
@@ -763,6 +791,20 @@ export default function EnergyCalculator({
     const canUseMeasuredMode =
       item.device === CUSTOM_DEVICE ||
       savedSourceDevice?.calculationType === "power";
+    const restoredUsagePeriod: UsagePeriod =
+      savedSourceDevice?.usagePattern === "annual" ||
+      savedSourceDevice?.usagePattern === "continuous"
+        ? "week"
+        : item.usagePeriod ?? "week";
+    const restoredUsageAmount =
+      savedSourceDevice?.usagePattern === "annual"
+        ? item.usesPerWeek
+        : item.usageAmount ??
+          Math.round(
+            weeklyUsageToAmount(item.usesPerWeek, restoredUsagePeriod)
+          );
+    const scenarioStepInWeeks =
+      restoredUsagePeriod === "month" ? 12 / 52 : 1;
 
     setDevice(item.device);
     setCustomDeviceName(item.customDeviceName);
@@ -775,8 +817,11 @@ export default function EnergyCalculator({
     setPrice(item.price);
     setWatts(item.watts);
     setMinutesPerUse(item.minutesPerUse);
-    setUsesPerWeek(item.usesPerWeek);
-    setScenarioUsesPerWeek(Math.max(0, item.usesPerWeek - 1));
+    setUsagePeriod(restoredUsagePeriod);
+    setUsesPerWeek(restoredUsageAmount);
+    setScenarioUsesPerWeek(
+      Math.max(0, item.usesPerWeek - scenarioStepInWeeks)
+    );
     setEstimatedKwhPerUse(
       item.mode === "exact" && !canUseMeasuredMode
         ? item.measuredKwhPerUse
@@ -814,15 +859,6 @@ export default function EnergyCalculator({
   function handleReset() {
     setPrice(currency === "EUR" ? 0.35 : "");
     loadDeviceDefaults(device);
-
-    window.requestAnimationFrame(() => {
-      document
-        .getElementById("rechner")
-        ?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-    });
   }
 
   const resultRef =
@@ -914,8 +950,26 @@ export default function EnergyCalculator({
   const minutesPerUseValue =
     numericValue(minutesPerUse);
 
-  const usesPerWeekValue =
+  const usageAmountValue =
     numericValue(usesPerWeek);
+
+  const usesPerWeekValue =
+    !isAnnualDevice && !isContinuousDevice
+      ? usageAmountToWeekly(usageAmountValue, usagePeriod)
+      : usageAmountValue;
+
+  const displayedScenarioUses =
+    isContinuousDevice
+      ? numericValue(scenarioUsesPerWeek)
+      : weeklyUsageToAmount(
+          numericValue(scenarioUsesPerWeek),
+          usagePeriod
+        );
+
+  const usagePeriodText =
+    usagePeriod === "month"
+      ? text.fields.perMonth
+      : text.fields.perWeek;
 
   const estimatedKwhPerUseValue =
     numericValue(estimatedKwhPerUse);
@@ -959,8 +1013,8 @@ export default function EnergyCalculator({
       : mode === "estimate" && isContinuousDevice
         ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue / 60, activeLocale, 0, 1)} h/${activeLocale === "de" ? "Tag" : "day"} × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} ${activeLocale === "de" ? "Tage/Woche" : "days/week"} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
       : mode === "estimate" && isPowerDevice
-      ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
-      : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`;
+      ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usageAmountValue, activeLocale, 0, 0)} ${usagePeriodText} × ${usagePeriod === "month" ? 12 : 52} × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
+      : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usageAmountValue, activeLocale, 0, 0)} ${usagePeriodText} × ${usagePeriod === "month" ? 12 : 52} × ${formatMoney(priceValue, activeLocale, currency)}/kWh`;
 
   const comparisonCandidates = devices.filter(
     (item) =>
@@ -1572,37 +1626,73 @@ export default function EnergyCalculator({
           <label className={fieldLabelClassName}>
             {isContinuousDevice
               ? text.fields.daysPerWeek
-              : text.fields.usesPerWeek}
+              : text.fields.uses}
           </label>
 
-          <input
-            type="number"
-            min="0"
-            max={isContinuousDevice ? 7 : undefined}
-            step="0.1"
-            value={usesPerWeek}
-            onFocus={
-              handleCalculatorFieldFocus
-            }
-            onBlur={
-              scrollToResultAfterLastField
-            }
-            onKeyDown={(event) => {
-              if (
-                event.key === "Enter"
-              ) {
-                event.currentTarget.blur();
+          <div className={isContinuousDevice ? "" : "grid grid-cols-[minmax(0,1fr)_auto] gap-2"}>
+            <input
+              type="number"
+              min="0"
+              max={isContinuousDevice ? 7 : undefined}
+              step="1"
+              inputMode="numeric"
+              value={usesPerWeek}
+              onFocus={
+                handleCalculatorFieldFocus
               }
-            }}
-            onChange={(event) => {
-              const nextUses = parseNumericInput(event.target.value);
-              setUsesPerWeek(nextUses);
-              setScenarioUsesPerWeek(
-                Math.max(0, numericValue(nextUses) - 1)
-              );
-            }}
-            className={fieldClassName}
-          />
+              onBlur={
+                scrollToResultAfterLastField
+              }
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Enter"
+                ) {
+                  event.currentTarget.blur();
+                }
+              }}
+              onChange={(event) => {
+                const nextUses = parseWholeNumberInput(event.target.value);
+                const nextAmount = numericValue(nextUses);
+                const nextUsesPerWeek = isContinuousDevice
+                  ? nextAmount
+                  : usageAmountToWeekly(nextAmount, usagePeriod);
+                const scenarioStep =
+                  !isContinuousDevice && usagePeriod === "month"
+                    ? 12 / 52
+                    : 1;
+
+                setUsesPerWeek(nextUses);
+                setScenarioUsesPerWeek(
+                  Math.max(0, nextUsesPerWeek - scenarioStep)
+                );
+              }}
+              className={fieldClassName}
+            />
+
+            {!isContinuousDevice && (
+              <select
+                aria-label={text.fields.usagePeriod}
+                value={usagePeriod}
+                onChange={(event) => {
+                  const nextPeriod = event.target.value as UsagePeriod;
+                  const nextUsesPerWeek = usageAmountToWeekly(
+                    numericValue(usesPerWeek),
+                    nextPeriod
+                  );
+                  const scenarioStep = nextPeriod === "month" ? 12 / 52 : 1;
+
+                  setUsagePeriod(nextPeriod);
+                  setScenarioUsesPerWeek(
+                    Math.max(0, nextUsesPerWeek - scenarioStep)
+                  );
+                }}
+                className={`${fieldClassName} min-w-[8.5rem]`}
+              >
+                <option value="week">{text.fields.perWeek}</option>
+                <option value="month">{text.fields.perMonth}</option>
+              </select>
+            )}
+          </div>
 
           <p className={fieldHintClassName}>
             {isContinuousDevice
@@ -1743,7 +1833,11 @@ export default function EnergyCalculator({
                     type="range"
                     min="0"
                     max={usesPerWeekValue}
-                    step={usesPerWeekValue <= 10 ? 0.5 : 1}
+                    step={
+                      !isContinuousDevice && usagePeriod === "month"
+                        ? 12 / 52
+                        : 1
+                    }
                     value={scenarioUsesPerWeekValue}
                     onChange={(event) => setScenarioUsesPerWeek(Number(event.target.value))}
                     className="calculator-scenario-slider h-6 min-w-0 flex-1 cursor-pointer"
@@ -1752,10 +1846,10 @@ export default function EnergyCalculator({
                 </div>
                 <div className="mt-1 flex items-center justify-between gap-3 text-[10px] font-medium text-[#66736e] tabular-nums">
                   <span>
-                    {text.result.currentUses}: {formatNumber(usesPerWeekValue, activeLocale, 0, 1)}× / {activeLocale === "de" ? "Woche" : "week"}
+                    {text.result.currentUses}: {formatNumber(usageAmountValue, activeLocale, 0, 0)}× {isContinuousDevice ? text.fields.perWeek : usagePeriodText}
                   </span>
                   <span className="text-right font-semibold text-[var(--brand-green)]">
-                    {text.result.selectedUses}: {formatNumber(scenarioUsesPerWeekValue, activeLocale, 0, 1)}× / {activeLocale === "de" ? "Woche" : "week"}
+                    {text.result.selectedUses}: {formatNumber(displayedScenarioUses, activeLocale, 0, 0)}× {isContinuousDevice ? text.fields.perWeek : usagePeriodText}
                   </span>
                 </div>
               </div>
@@ -1905,11 +1999,12 @@ export default function EnergyCalculator({
                   <input
                     type="number"
                     min="0"
-                    step="0.1"
+                    step="1"
+                    inputMode="numeric"
                     value={comparisonUsesPerWeek}
                     onChange={(event) =>
                       setComparisonUsesPerWeek(
-                        parseNumericInput(event.target.value)
+                        parseWholeNumberInput(event.target.value)
                       )
                     }
                     className={secondaryFieldClassName}
@@ -2029,6 +2124,8 @@ export default function EnergyCalculator({
           watts: wattsValue,
           minutesPerUse: minutesPerUseValue,
           usesPerWeek: usesPerWeekValue,
+          usagePeriod,
+          usageAmount: usageAmountValue,
           estimatedKwhPerUse: estimatedKwhPerUseValue,
           measuredKwhPerUse: measuredKwhPerUseValue,
           yearlyKwh,
