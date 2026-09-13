@@ -400,7 +400,7 @@ function MyDevicesPanel(
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute left-2 top-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/import-empty:translate-y-0 group-hover/import-empty:opacity-100"
+                    className="pointer-events-none absolute left-0 top-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/import-empty:translate-y-0 group-hover/import-empty:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -554,7 +554,7 @@ function MyDevicesPanel(
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute left-2 top-0 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/export:translate-y-0 group-hover/export:opacity-100"
+                    className="pointer-events-none absolute left-0 top-0 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/export:translate-y-0 group-hover/export:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -573,7 +573,7 @@ function MyDevicesPanel(
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute left-2 top-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/import:translate-y-0 group-hover/import:opacity-100"
+                    className="pointer-events-none absolute left-0 top-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/import:translate-y-0 group-hover/import:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -592,7 +592,7 @@ function MyDevicesPanel(
                   <svg
                     viewBox="0 0 12 12"
                     fill="none"
-                    className="pointer-events-none absolute left-2 top-0 h-2.5 w-2.5 -translate-y-1 opacity-0 transition duration-150 group-hover/remove-all:translate-y-0 group-hover/remove-all:opacity-100"
+                    className="pointer-events-none absolute left-0 top-0 h-2.5 w-2.5 -translate-y-1 opacity-0 transition duration-150 group-hover/remove-all:translate-y-0 group-hover/remove-all:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.7"
                     strokeLinecap="round"

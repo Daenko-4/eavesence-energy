@@ -61,17 +61,20 @@ function NavigationLink({
   active,
   navigationKey,
   onPreview,
+  onActivate,
   children,
 }: {
   href: string;
   active: boolean;
   navigationKey: NavigationKey;
   onPreview: (navigationKey: NavigationKey) => void;
+  onActivate?: () => void;
   children: ReactNode;
 }) {
   return (
     <a
       href={href}
+      onClick={onActivate}
       onMouseEnter={() => onPreview(navigationKey)}
       onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
@@ -417,7 +420,15 @@ export default function Header({
               <NavigationLink href={howItWorksHref} active={activeNavigation === "howItWorks"} navigationKey="howItWorks" onPreview={setPreviewNavigation}>
                 {text.howItWorks}
               </NavigationLink>
-              <NavigationLink href={faqHref} active={activeNavigation === "faq"} navigationKey="faq" onPreview={setPreviewNavigation}>
+              <NavigationLink
+                href={faqHref}
+                active={activeNavigation === "faq"}
+                navigationKey="faq"
+                onPreview={setPreviewNavigation}
+                onActivate={() =>
+                  window.dispatchEvent(new Event("eavesence:open-faq"))
+                }
+              >
                 {text.faq}
               </NavigationLink>
               <span
@@ -460,7 +471,12 @@ export default function Header({
                 <a
                   key={href}
                   href={href}
-                  onClick={closeMenu}
+                  onClick={() => {
+                    closeMenu();
+                    if (href === faqHref) {
+                      window.dispatchEvent(new Event("eavesence:open-faq"));
+                    }
+                  }}
                   className="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
                 >
                   {label}

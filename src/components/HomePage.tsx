@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -665,6 +667,7 @@ function Icon({
 export default function HomePage({
   locale = "de",
 }: HomePageProps) {
+  const [faqOpen, setFaqOpen] = useState(false);
   const text = content[locale];
   const hero =
     locale === "de"
@@ -687,6 +690,23 @@ export default function HomePage({
 
   const devicesHref =
     locale === "de" ? "/geraete" : "/en/devices";
+
+  useEffect(() => {
+    function syncFaqWithHash() {
+      setFaqOpen(window.location.hash === "#faq");
+    }
+
+    syncFaqWithHash();
+    window.addEventListener("hashchange", syncFaqWithHash);
+    window.addEventListener("popstate", syncFaqWithHash);
+    window.addEventListener("eavesence:open-faq", syncFaqWithHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncFaqWithHash);
+      window.removeEventListener("popstate", syncFaqWithHash);
+      window.removeEventListener("eavesence:open-faq", syncFaqWithHash);
+    };
+  }, []);
 
   return (
     <div
@@ -817,32 +837,60 @@ export default function HomePage({
           className="scroll-mt-24 px-5 pb-16 pt-8 sm:px-6 sm:pb-20 sm:pt-10"
         >
           <div className="mx-auto max-w-5xl">
-            <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
-              {text.faq.title}
-            </h2>
+            <button
+              type="button"
+              onClick={() => setFaqOpen((current) => !current)}
+              aria-expanded={faqOpen}
+              aria-controls="faq-answers"
+              className="group flex w-full items-center justify-between gap-5 border-y border-slate-200 py-4 text-left transition hover:text-[var(--brand-green)]"
+            >
+              <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] transition group-hover:text-[var(--brand-green)] sm:text-3xl">
+                {text.faq.title}
+              </h2>
+              <span
+                aria-hidden="true"
+                className={`shrink-0 text-xl font-light text-slate-500 transition-[color,transform] duration-200 ${
+                  faqOpen
+                    ? "rotate-45 text-[var(--brand-green)]"
+                    : "rotate-0"
+                }`}
+              >
+                +
+              </span>
+            </button>
 
-            <div className="mt-5 divide-y divide-slate-200 border-y border-slate-200">
-              {text.faq.items.map((faq) => (
-                <details
-                  key={faq.question}
-                  className="group"
-                >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-semibold text-[#07111f] transition hover:text-[var(--brand-green)] [&::-webkit-details-marker]:hidden">
-                    {faq.question}
+            <div
+              id="faq-answers"
+              aria-hidden={!faqOpen}
+              inert={!faqOpen}
+              className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                faqOpen
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-0"
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="divide-y divide-slate-200 border-b border-slate-200">
+                  {text.faq.items.map((faq) => (
+                    <details key={faq.question} className="group">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-semibold text-[#07111f] transition hover:text-[var(--brand-green)] [&::-webkit-details-marker]:hidden">
+                        {faq.question}
 
-                    <span
-                      aria-hidden="true"
-                      className="text-lg font-light text-slate-500 transition-transform duration-150 group-open:rotate-45 group-open:text-[var(--brand-green)]"
-                    >
-                      +
-                    </span>
-                  </summary>
+                        <span
+                          aria-hidden="true"
+                          className="text-lg font-light text-slate-500 transition-transform duration-150 group-open:rotate-45 group-open:text-[var(--brand-green)]"
+                        >
+                          +
+                        </span>
+                      </summary>
 
-                  <p className="max-w-4xl pb-5 pr-10 text-sm leading-6 text-slate-600">
-                    {faq.answer}
-                  </p>
-                </details>
-              ))}
+                      <p className="max-w-4xl pb-5 pr-10 text-sm leading-6 text-slate-600">
+                        {faq.answer}
+                      </p>
+                    </details>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
