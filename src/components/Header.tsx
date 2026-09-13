@@ -286,7 +286,7 @@ export default function Header({
     logoInteractionTimeoutRef.current = setTimeout(() => {
       suppressPointerOpenRef.current = false;
       logoInteractionTimeoutRef.current = null;
-    }, 1100);
+    }, 1450);
     closeMenu();
     setDesktopNavigationOpen(false);
     setPreviewNavigation(null);
@@ -359,20 +359,23 @@ export default function Header({
                 clipPath: desktopNavigationOpen
                   ? "inset(0 158px 0 0)"
                   : "inset(0 0 0 0)",
+                translate: desktopNavigationOpen
+                  ? "0 -50%"
+                  : "285px -50%",
               }}
-              className={`absolute top-1/2 z-20 flex w-[190px] -translate-y-1/2 items-center gap-2.5 overflow-hidden transition-[left,transform,clip-path] duration-[900ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none ${
+              className={`absolute left-0 top-1/2 z-20 flex w-[190px] items-center gap-2.5 overflow-hidden transition-[translate,clip-path] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-[translate,clip-path] motion-reduce:transition-none ${
                 desktopNavigationOpen
-                  ? "left-0 translate-x-0 delay-0"
-                  : "left-1/2 -translate-x-1/2 delay-[120ms]"
+                  ? "delay-0"
+                  : "delay-[250ms]"
               }`}
               aria-label={text.homeLabel}
             >
               <BrandMark className="h-8 w-8 shrink-0" />
               <span
-                className={`w-[148px] shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-[opacity,transform] duration-[680ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none ${
+                className={`w-[148px] shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-[opacity,transform] duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                   desktopNavigationOpen
                     ? "-translate-x-2 opacity-0"
-                    : "translate-x-0 opacity-100 delay-[180ms]"
+                    : "translate-x-0 opacity-100 delay-[650ms]"
                 }`}
               >
                 EAVESENCE
@@ -392,9 +395,9 @@ export default function Header({
                 setPreviewNavigation(null);
               }}
               aria-label={text.openNavigation}
-              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,transform,visibility] duration-[560ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none ${
+              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,transform,visibility] duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                 desktopNavigationOpen
-                  ? "visible translate-x-0 opacity-100 delay-[360ms]"
+                  ? "visible translate-x-0 opacity-100 delay-[650ms]"
                   : "invisible pointer-events-none translate-x-2 opacity-0 delay-0"
               }`}
             >
@@ -416,7 +419,7 @@ export default function Header({
               <span
                 ref={activeIndicatorRef}
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[var(--brand-green-mint)] opacity-0 transition-[width,transform,opacity] duration-[420ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none"
+                className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-[var(--brand-green-mint)] opacity-0 transition-[width,transform,opacity] duration-[360ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none"
               />
             </nav>
           </div>
