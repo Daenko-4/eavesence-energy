@@ -340,59 +340,52 @@ export default function DevicesPage({
               {text.description}
             </p>
 
-            <div className="mt-7 grid gap-3 lg:grid-cols-[minmax(0,32rem)_1fr] lg:items-center">
-            <label className="block">
-              <span className="sr-only">{text.searchLabel}</span>
-              <span className="relative block">
-                <svg
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="8.5" cy="8.5" r="5.5" />
-                  <path d="m13 13 4 4" />
-                </svg>
-                <input
-                  type="search"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder={text.searchPlaceholder}
-                  className="w-full rounded-xl border border-[#cfd8d0] bg-[#fbfcf8] py-3 pl-11 pr-4 text-[15px] font-medium text-[#17211f] outline-none transition placeholder:text-[#89938f] hover:border-[#aebbb1] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20"
-                />
-              </span>
-            </label>
-
-            {categories.length > 0 && (
-            <nav className="flex flex-wrap gap-x-1 gap-y-1 lg:justify-end" aria-label={text.searchLabel}>
-              {categories.map(
-                ({ category }) => (
-                  <a
-                    key={category}
-                    href={`#${getCategoryAnchor(
-                      category,
-                      locale
-                    )}`}
-                    className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-[#52605b] transition hover:bg-[#e5f7ec] hover:text-[var(--brand-green)]"
+            <div className="mt-6">
+              <label className="block max-w-md">
+                <span className="sr-only">{text.searchLabel}</span>
+                <span className="relative block">
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    aria-hidden="true"
                   >
-                    <span className="text-[var(--brand-green)] [&>svg]:h-4 [&>svg]:w-4">
-                      <CategoryIcon
-                        category={category}
-                      />
-                    </span>
+                    <circle cx="8.5" cy="8.5" r="5.5" />
+                    <path d="m13 13 4 4" />
+                  </svg>
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder={text.searchPlaceholder}
+                    className="w-full rounded-lg border border-[#cfd8d0] bg-[#fbfcf8] py-2.5 pl-10 pr-3.5 text-sm font-medium text-[#17211f] outline-none transition placeholder:text-[#89938f] hover:border-[#aebbb1] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20"
+                  />
+                </span>
+              </label>
 
-                    {getLocalizedCategory(
-                      category,
-                      locale
-                    )}
-                  </a>
-                )
+              {categories.length > 0 && (
+                <nav
+                  className="mt-3 flex flex-wrap gap-x-1 gap-y-1"
+                  aria-label={text.searchLabel}
+                >
+                  {categories.map(({ category }) => (
+                    <a
+                      key={category}
+                      href={`#${getCategoryAnchor(category, locale)}`}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-[#52605b] transition hover:bg-[#e5f7ec] hover:text-[var(--brand-green)]"
+                    >
+                      <span className="text-[var(--brand-green)] [&>svg]:h-4 [&>svg]:w-4">
+                        <CategoryIcon category={category} />
+                      </span>
+
+                      {getLocalizedCategory(category, locale)}
+                    </a>
+                  ))}
+                </nav>
               )}
-            </nav>
-            )}
             </div>
           </div>
         </section>

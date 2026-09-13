@@ -17,7 +17,7 @@ export function getDevicesHref(locale: Locale) {
 }
 
 export function getCalculatorHref(locale: Locale) {
-  return `${getHomeHref(locale)}#rechner`;
+  return getHomeHref(locale);
 }
 
 export function getHowItWorksHref(locale: Locale) {

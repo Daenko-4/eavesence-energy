@@ -279,6 +279,8 @@ export default function Header({
   }
 
   function handleLogoClick(event: MouseEvent<HTMLAnchorElement>) {
+    const navigationWasOpen = desktopNavigationOpen || menuOpen;
+
     suppressPointerOpenRef.current = true;
     if (logoInteractionTimeoutRef.current) {
       clearTimeout(logoInteractionTimeoutRef.current);
@@ -297,6 +299,8 @@ export default function Header({
     if (pathname !== homeHref) return;
 
     event.preventDefault();
+    if (navigationWasOpen) return;
+
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (window.location.hash) {
       window.history.replaceState(null, "", homeHref);
@@ -426,6 +430,7 @@ export default function Header({
 
           <Link
             href={languageHref}
+            scroll={false}
             onClick={closeMenu}
             className="group flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-bold uppercase tracking-[0.04em] transition hover:bg-[#eaf8ef] active:scale-[0.98]"
             aria-label={

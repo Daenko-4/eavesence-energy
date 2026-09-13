@@ -80,9 +80,9 @@ export default function DeviceCategoryIcon({
 
   return (
     <svg viewBox="0 0 24 24" className={className} {...props} aria-hidden="true">
-      <path d="M8.5 8V4.5M15.5 8V4.5" />
-      <path d="M6.5 8h11v2.25A5.5 5.5 0 0 1 12 15.75V20" />
-      <path d="M9.5 20h5" />
+      <path d="M8.5 3.5V8M15.5 3.5V8" />
+      <path d="M6.5 8h11v2a5.5 5.5 0 0 1-11 0V8Z" />
+      <path d="M12 15.5V21" />
     </svg>
   );
 }
