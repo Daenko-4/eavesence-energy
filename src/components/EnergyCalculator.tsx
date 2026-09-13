@@ -1158,7 +1158,7 @@ export default function EnergyCalculator({
         text.savingTip.fallback;
 
   const fieldClassName =
-    `w-full rounded-xl border border-white/[0.12] bg-[#202b28] px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[#f7faf8] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] outline-none transition-[border-color,background-color,box-shadow] placeholder:text-[#7f918b] hover:border-white/[0.2] focus:border-[var(--brand-green-mint)] focus:bg-[#24312d] focus:ring-2 focus:ring-[#72dca3]/12`;
+    `w-full min-w-0 max-w-full rounded-xl border border-white/[0.12] bg-[#202b28] px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[#f7faf8] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] outline-none transition-[border-color,background-color,box-shadow] placeholder:text-[#7f918b] hover:border-white/[0.2] focus:border-[var(--brand-green-mint)] focus:bg-[#24312d] focus:ring-2 focus:ring-[#72dca3]/12`;
   const secondaryFieldClassName =
     "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
   const fieldLabelClassName =
@@ -1171,12 +1171,12 @@ export default function EnergyCalculator({
 
   return (
     <section>
-      <div className={`grid rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] lg:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] ${
+      <div className={`grid w-full min-w-0 max-w-full rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] xl:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] ${
         homePresentation
           ? "gap-4 p-4 sm:p-5 lg:gap-6 lg:p-5"
           : "gap-5 p-4 sm:p-6 lg:gap-8 lg:p-7"
       }`}>
-        <div className="calculator-form flex min-w-0 flex-col justify-start px-1 py-1 sm:px-2 lg:justify-between">
+        <div data-calculator-form className="calculator-form flex min-w-0 flex-col justify-start px-1 py-1 sm:px-2 xl:justify-between">
 
       {/* Device */}
       <div className={homePresentation ? "mb-4" : "mb-6"}>
@@ -1429,7 +1429,7 @@ export default function EnergyCalculator({
             : text.modes.useMeasured}
         </button>
       )}
-      <div className={`grid sm:grid-cols-2 ${homePresentation ? "gap-3" : "gap-5"}`}>
+      <div className={`grid min-w-0 md:grid-cols-2 [&>*]:min-w-0 ${homePresentation ? "gap-3" : "gap-5"}`}>
         {mode === "estimate" &&
           isPowerDevice && (
             <>
@@ -1611,7 +1611,7 @@ export default function EnergyCalculator({
         )}
 
         {/* Electricity price */}
-        <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_8rem]">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_7rem] [&>*]:min-w-0">
           <div>
           <label className={fieldLabelClassName}>
             {
@@ -1620,7 +1620,7 @@ export default function EnergyCalculator({
             }
           </label>
 
-          <div className="flex w-full items-center rounded-xl border border-white/[0.12] bg-[#202b28] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-[border-color,background-color,box-shadow] hover:border-white/[0.2] focus-within:border-[var(--brand-green-mint)] focus-within:bg-[#24312d] focus-within:ring-2 focus-within:ring-[#72dca3]/12">
+          <div className="flex w-full min-w-0 max-w-full items-center rounded-xl border border-white/[0.12] bg-[#202b28] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-[border-color,background-color,box-shadow] hover:border-white/[0.2] focus-within:border-[var(--brand-green-mint)] focus-within:bg-[#24312d] focus-within:ring-2 focus-within:ring-[#72dca3]/12">
             <input
               type="number"
               min="0"
@@ -1683,7 +1683,7 @@ export default function EnergyCalculator({
             className={
               isContinuousDevice
                 ? ""
-                : "flex w-full items-center rounded-xl border border-white/[0.12] bg-[#202b28] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-[border-color,background-color,box-shadow] hover:border-white/[0.2] focus-within:border-[var(--brand-green-mint)] focus-within:bg-[#24312d] focus-within:ring-2 focus-within:ring-[#72dca3]/12"
+                : "flex w-full min-w-0 max-w-full items-center rounded-xl border border-white/[0.12] bg-[#202b28] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-[border-color,background-color,box-shadow] hover:border-white/[0.2] focus-within:border-[var(--brand-green-mint)] focus-within:bg-[#24312d] focus-within:ring-2 focus-within:ring-[#72dca3]/12"
             }
           >
             <input
@@ -1774,7 +1774,7 @@ export default function EnergyCalculator({
         </div>}
       </div>
 
-      <div className={`${homePresentation ? "mt-5" : "mt-6"} flex items-center justify-between gap-4`}>
+      <div className={`${homePresentation ? "mt-5" : "mt-6"} flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4`}>
         <button
           type="button"
           onClick={handleReset}
@@ -1793,7 +1793,7 @@ export default function EnergyCalculator({
           type="button"
           onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
           disabled={!calculationIsValid}
-          className="calculator-save-action group ml-auto inline-flex min-h-10 items-center justify-center gap-2 px-1 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-4 focus-visible:ring-offset-[#17211f] disabled:cursor-not-allowed disabled:text-[#65736e]"
+          className="calculator-save-action ml-0 inline-flex min-h-10 max-w-full self-end items-center justify-center gap-2 whitespace-normal px-1 text-right text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-4 focus-visible:ring-offset-[#17211f] disabled:cursor-not-allowed disabled:text-[#65736e] sm:ml-auto sm:self-auto"
         >
           <svg
             viewBox="0 0 20 20"
@@ -1808,12 +1808,6 @@ export default function EnergyCalculator({
             <path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z" />
           </svg>
           {activeSavedDeviceId ? text.saveChanges : text.calculate}
-          <span
-            aria-hidden="true"
-            className="transition-transform group-hover:translate-x-0.5"
-          >
-            →
-          </span>
         </button>
       </div>
 
@@ -1853,6 +1847,7 @@ export default function EnergyCalculator({
       {/* Result */}
       <div
         ref={resultRef}
+        data-calculator-result
         className={`relative flex min-w-0 flex-col justify-center overflow-hidden rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] !pb-16 text-[#24302d] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] ${
           homePresentation
             ? "min-h-[280px] p-6 sm:p-7"
