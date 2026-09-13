@@ -326,8 +326,8 @@ export default function DeviceDetailPage({
 
       <main>
         {/* Hero */}
-        <section className="border-b border-[#dfe5dd] bg-[var(--brand-off-white)]">
-          <div className="mx-auto max-w-7xl px-5 py-7 sm:px-6 sm:py-9">
+        <section className="border-b border-[#dfe5dd] bg-[var(--brand-off-white)] px-5 sm:px-6">
+          <div className="mx-auto max-w-7xl py-7 sm:py-9">
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <Link
                 href={homeHref}

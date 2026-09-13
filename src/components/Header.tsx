@@ -70,7 +70,7 @@ function NavigationLink({
   active: boolean;
   navigationKey: NavigationKey;
   onPreview: (navigationKey: NavigationKey) => void;
-  onActivate?: () => void;
+  onActivate?: (event: MouseEvent<HTMLAnchorElement>) => void;
   children: ReactNode;
 }) {
   return (
@@ -369,6 +369,25 @@ export default function Header({
     setMenuOpen(false);
   }
 
+  function handleFaqActivate(event: MouseEvent<HTMLAnchorElement>) {
+    if (!isHomePage) return;
+
+    event.preventDefault();
+    const faqElement = document.getElementById("faq");
+    if (!faqElement) return;
+
+    if (window.location.hash !== "#faq") {
+      window.history.pushState(null, "", faqHref);
+    }
+    window.dispatchEvent(new Event("eavesence:open-faq"));
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        faqElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }
+
   function handleLogoClick(event: MouseEvent<HTMLAnchorElement>) {
     const navigationWasOpen = desktopNavigationOpen || menuOpen;
 
@@ -467,11 +486,11 @@ export default function Header({
                 clipPath: desktopNavigationOpen
                   ? "inset(0 158px 0 0)"
                   : "inset(0 0 0 0)",
-                translate: desktopNavigationOpen
-                  ? "0 -50%"
-                  : "285px -50%",
+                transform: desktopNavigationOpen
+                  ? "translate3d(0, -50%, 0)"
+                  : "translate3d(285px, -50%, 0)",
               }}
-              className={`absolute left-0 top-1/2 z-20 flex h-full w-[190px] items-center gap-2.5 overflow-hidden transition-[translate,clip-path] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-[translate,clip-path] motion-reduce:transition-none ${
+              className={`absolute left-0 top-1/2 z-20 flex h-full w-[190px] items-center gap-2.5 overflow-hidden transition-[transform,clip-path] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-transform motion-reduce:transition-none ${
                 desktopNavigationOpen
                   ? "delay-0"
                   : "delay-[250ms]"
@@ -480,10 +499,10 @@ export default function Header({
             >
               <BrandMark className="h-8 w-8 shrink-0" />
               <span
-                className={`w-[148px] shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-[opacity,transform] duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
+                className={`w-[148px] shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                   desktopNavigationOpen
-                    ? "-translate-x-2 opacity-0"
-                    : "translate-x-0 opacity-100 delay-[650ms]"
+                    ? "opacity-0"
+                    : "opacity-100 delay-[650ms]"
                 }`}
               >
                 EAVESENCE
@@ -503,10 +522,10 @@ export default function Header({
                 setPreviewNavigation(null);
               }}
               aria-label={text.openNavigation}
-              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,transform,visibility] duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
+              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,visibility] duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                 desktopNavigationOpen
-                  ? "visible translate-x-0 opacity-100 delay-[650ms]"
-                  : "invisible pointer-events-none translate-x-2 opacity-0 delay-0"
+                  ? "visible opacity-100 delay-[650ms]"
+                  : "invisible pointer-events-none opacity-0 delay-0"
               }`}
             >
               <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator" onPreview={setPreviewNavigation}>
@@ -526,9 +545,7 @@ export default function Header({
                 active={activeNavigation === "faq"}
                 navigationKey="faq"
                 onPreview={setPreviewNavigation}
-                onActivate={() =>
-                  window.dispatchEvent(new Event("eavesence:open-faq"))
-                }
+                onActivate={handleFaqActivate}
               >
                 {text.faq}
               </NavigationLink>
@@ -572,10 +589,10 @@ export default function Header({
                 <a
                   key={href}
                   href={href}
-                  onClick={() => {
+                  onClick={(event) => {
                     closeMenu();
                     if (href === faqHref) {
-                      window.dispatchEvent(new Event("eavesence:open-faq"));
+                      handleFaqActivate(event);
                     }
                   }}
                   className="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-green-50 hover:text-[var(--brand-green-dark)]"

@@ -845,7 +845,7 @@ export default function HomePage({
 
         <section
           id="faq"
-          className="scroll-mt-24 px-5 pb-16 pt-4 sm:px-6 sm:pb-20 sm:pt-5"
+          className="scroll-mt-[84px] px-5 pb-16 pt-4 sm:px-6 sm:pb-20 sm:pt-5"
         >
           <div className="mx-auto max-w-5xl">
             <button

@@ -322,10 +322,10 @@ export default function DevicesPage({
 
       <main>
         {/* Hero */}
-        <section className="relative overflow-hidden border-b border-[#dfe5dd] bg-[var(--brand-off-white)]">
+        <section className="relative overflow-hidden border-b border-[#dfe5dd] bg-[var(--brand-off-white)] px-5 sm:px-6">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(114,220,163,0.13),transparent_30%)]" />
 
-          <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-6 sm:py-12">
+          <div className="relative mx-auto max-w-7xl py-10 sm:py-12">
             <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-green-mint)]" />
               {text.badge}
