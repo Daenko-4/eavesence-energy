@@ -33,7 +33,7 @@ type NavigationKey =
   | "howItWorks"
   | "faq";
 
-const HEADER_INTRO_STORAGE_KEY = "eavesence-header-intro-seen";
+const HEADER_INTRO_STORAGE_KEY = "eavesence-header-intro-seen-v3";
 
 const navigation = {
   de: {
@@ -164,23 +164,52 @@ export default function Header({
 
     if (!desktopQuery.matches || reducedMotionQuery.matches) return;
 
+    let introSeen = false;
     try {
-      if (window.localStorage.getItem(HEADER_INTRO_STORAGE_KEY)) return;
-      window.localStorage.setItem(HEADER_INTRO_STORAGE_KEY, "true");
+      introSeen = Boolean(
+        window.localStorage.getItem(HEADER_INTRO_STORAGE_KEY),
+      );
     } catch {
-      return;
+      // Show the preview even when browser storage is unavailable.
+    }
+    if (introSeen) return;
+
+    let disposed = false;
+
+    function scheduleIntro() {
+      if (disposed || document.visibilityState !== "visible") return;
+
+      introOpenTimeoutRef.current = setTimeout(() => {
+        setDesktopNavigationOpen(true);
+        introOpenTimeoutRef.current = null;
+        introCloseTimeoutRef.current = setTimeout(() => {
+          setDesktopNavigationOpen(false);
+          introCloseTimeoutRef.current = null;
+          try {
+            window.localStorage.setItem(HEADER_INTRO_STORAGE_KEY, "true");
+          } catch {
+            // The preview still works when browser storage is unavailable.
+          }
+        }, 2400);
+      }, 900);
     }
 
-    introOpenTimeoutRef.current = setTimeout(() => {
-      setDesktopNavigationOpen(true);
-      introOpenTimeoutRef.current = null;
-      introCloseTimeoutRef.current = setTimeout(() => {
-        setDesktopNavigationOpen(false);
-        introCloseTimeoutRef.current = null;
-      }, 1900);
-    }, 1100);
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        scheduleIntro();
+      }
+    }
+
+    if (document.visibilityState === "visible") {
+      scheduleIntro();
+    } else {
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+    }
 
     return () => {
+      disposed = true;
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (introOpenTimeoutRef.current) {
         clearTimeout(introOpenTimeoutRef.current);
         introOpenTimeoutRef.current = null;
@@ -300,6 +329,11 @@ export default function Header({
       clearTimeout(introCloseTimeoutRef.current);
       introCloseTimeoutRef.current = null;
     }
+    try {
+      window.localStorage.setItem(HEADER_INTRO_STORAGE_KEY, "true");
+    } catch {
+      // Manual navigation remains available when storage is unavailable.
+    }
     if (closeNavigationTimeoutRef.current) {
       clearTimeout(closeNavigationTimeoutRef.current);
       closeNavigationTimeoutRef.current = null;
@@ -346,6 +380,11 @@ export default function Header({
     if (introCloseTimeoutRef.current) {
       clearTimeout(introCloseTimeoutRef.current);
       introCloseTimeoutRef.current = null;
+    }
+    try {
+      window.localStorage.setItem(HEADER_INTRO_STORAGE_KEY, "true");
+    } catch {
+      // Clicking the logo must not depend on storage access.
     }
     if (logoInteractionTimeoutRef.current) {
       clearTimeout(logoInteractionTimeoutRef.current);
