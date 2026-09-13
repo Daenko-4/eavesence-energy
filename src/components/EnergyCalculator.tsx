@@ -167,11 +167,12 @@ const calculatorText = {
         "EAVESENCE zeigt dir dann Kosten pro Nutzung, Woche, Monat und Jahr.",
       details: "So wurde das berechnet",
       formula: "Berechnungsgrundlage",
-      scenario: "Nutzung simulieren",
-      scenarioText: "Alternative Nutzung",
+      scenario: "Was wäre bei seltenerer Nutzung?",
+      scenarioText: "Wähle, wie oft du das Gerät pro Woche verwenden würdest.",
       currentUses: "Aktuell",
+      selectedUses: "Gewählt",
       newYearlyCost: "Neue Jahreskosten",
-      savings: "Du sparst pro Jahr",
+      savings: "Spare ca.",
       viewResult: "Ergebnis ansehen",
     },
 
@@ -307,11 +308,12 @@ const calculatorText = {
         "EAVESENCE will show your costs per use, week, month and year.",
       details: "How this was calculated",
       formula: "Calculation basis",
-      scenario: "Simulate usage",
-      scenarioText: "Alternative use",
-      currentUses: "Current use",
+      scenario: "What if you used it less?",
+      scenarioText: "Choose how often you would use the device per week.",
+      currentUses: "Current",
+      selectedUses: "Selected",
       newYearlyCost: "New yearly cost",
-      savings: "You save per year",
+      savings: "Save about",
       viewResult: "View result",
     },
 
@@ -1650,12 +1652,15 @@ export default function EnergyCalculator({
 
             {supportsUsageScenario && (
               <div className={`${homePresentation ? "mt-3 pt-3" : "mt-5 pt-4"} border-t border-[#dfe4da]`}>
-                <div className="flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-start justify-between gap-3 text-xs">
                   <span className="font-semibold text-[#52605b]">{text.result.scenario}</span>
                   <span className="whitespace-nowrap font-bold text-[var(--brand-green)] tabular-nums">
-                    −{formatMoney(scenarioSavings, activeLocale, currency)} {text.result.perYear}
+                    {text.result.savings} {formatMoney(scenarioSavings, activeLocale, currency)} / {activeLocale === "de" ? "Jahr" : "year"}
                   </span>
                 </div>
+                <p className="mt-1 text-[11px] leading-4 text-[#7a8580]">
+                  {text.result.scenarioText}
+                </p>
                 <div className="mt-2 flex items-center gap-3">
                   <input
                     type="range"
@@ -1667,8 +1672,13 @@ export default function EnergyCalculator({
                     className="calculator-scenario-slider h-6 min-w-0 flex-1 cursor-pointer"
                     aria-label={text.result.scenarioText}
                   />
-                  <span className="min-w-[5.5rem] text-right text-[11px] font-medium text-[#66736e] tabular-nums">
-                    {formatNumber(usesPerWeekValue, activeLocale, 0, 1)} → {formatNumber(scenarioUsesPerWeekValue, activeLocale, 0, 1)} / {activeLocale === "de" ? "Woche" : "week"}
+                </div>
+                <div className="mt-1 flex items-center justify-between gap-3 text-[10px] font-medium text-[#66736e] tabular-nums">
+                  <span>
+                    {text.result.currentUses}: {formatNumber(usesPerWeekValue, activeLocale, 0, 1)}× / {activeLocale === "de" ? "Woche" : "week"}
+                  </span>
+                  <span className="text-right font-semibold text-[var(--brand-green)]">
+                    {text.result.selectedUses}: {formatNumber(scenarioUsesPerWeekValue, activeLocale, 0, 1)}× / {activeLocale === "de" ? "Woche" : "week"}
                   </span>
                 </div>
               </div>
