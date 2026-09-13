@@ -76,9 +76,9 @@ body {
 }
 
 .calculator-save-action {
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  line-height: 1rem;
+  line-height: 1.125rem;
 }
 
 .calculator-scenario-slider {
@@ -138,11 +138,16 @@ body {
 
 @keyframes eavesence-logo-load {
   0% {
-    opacity: 0.72;
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+
+  22% {
+    opacity: 0.76;
     transform: scale(0.92) rotate(-3deg);
   }
 
-  58% {
+  68% {
     opacity: 1;
     transform: scale(1.035) rotate(1deg);
   }
@@ -154,7 +159,7 @@ body {
 }
 
 .eavesence-logo-load-animation {
-  animation: eavesence-logo-load 620ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
+  animation: eavesence-logo-load 620ms cubic-bezier(0.22, 1, 0.36, 1) 1500ms forwards;
   transform-origin: center;
 }
 

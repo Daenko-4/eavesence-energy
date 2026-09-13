@@ -29,7 +29,7 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await numericInputs.nth(0).fill("600");
   await expect(page.getByText("€12.74", { exact: true }).first()).toBeVisible();
 
-  await page.getByRole("button", { name: "Save calculation" }).click();
+  await page.getByRole("button", { name: "Save to My devices" }).click();
   const savedDevices = page.locator("#meine-geraete");
   await expect(
     savedDevices.getByText("Coffee machine", { exact: true }),
