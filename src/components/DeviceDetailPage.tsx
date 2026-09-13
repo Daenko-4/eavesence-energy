@@ -356,7 +356,7 @@ export default function DeviceDetailPage({
               </span>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 pl-5 sm:pl-8 lg:pl-9">
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
                 {localizedCategory} ·{" "}
                 {text.calculator}

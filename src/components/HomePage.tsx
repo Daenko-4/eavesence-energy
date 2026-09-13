@@ -782,7 +782,7 @@ export default function HomePage({
               </a>
             </div>
 
-            <div className="mt-5 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7">
+            <div className="mt-7 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7">
               {text.categories.map((category) => (
                 <a
                   key={category.name}

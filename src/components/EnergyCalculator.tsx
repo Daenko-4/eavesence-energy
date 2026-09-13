@@ -199,13 +199,13 @@ const calculatorText = {
     },
 
     accuracy: {
-      title: "Hinweis zur Genauigkeit",
+      title: "Genauigkeit",
       consumptionEstimate:
-        "Orientierungswert – der tatsächliche Verbrauch kann abweichen.",
+        "Schätzung – tatsächlicher Verbrauch kann abweichen.",
       powerEstimate:
-        "Näherung aus Leistung und Laufzeit – der reale Verbrauch kann abweichen.",
+        "Schätzung – tatsächlicher Verbrauch kann abweichen.",
       exact:
-        "Die Genauigkeit hängt von deinem eingegebenen Messwert ab.",
+        "Abhängig vom eingegebenen Messwert.",
     },
 
     calculate: "Berechnung speichern",
@@ -344,13 +344,13 @@ const calculatorText = {
     },
 
     accuracy: {
-      title: "Accuracy note",
+      title: "Accuracy",
       consumptionEstimate:
-        "Typical value – actual electricity consumption may vary.",
+        "Estimate – actual consumption may vary.",
       powerEstimate:
-        "Estimate from power and runtime – actual consumption may vary.",
+        "Estimate – actual consumption may vary.",
       exact:
-        "Accuracy depends on the measured value you entered.",
+        "Depends on the measured value entered.",
     },
 
     calculate: "Save calculation",
@@ -1731,7 +1731,7 @@ export default function EnergyCalculator({
                     <span title={calculationFormula} className="mt-0.5 block truncate text-[11px] font-medium leading-4 text-[#52605b]">
                       {calculationFormula}
                     </span>
-                    <span title={accuracyText} className="block truncate text-[10px] leading-4 text-[#7a8580]">
+                    <span title={accuracyText} className="block whitespace-normal text-[9px] leading-3 text-[#7a8580]">
                       {text.accuracy.title}: {accuracyText}
                     </span>
                   </>
