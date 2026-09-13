@@ -235,8 +235,8 @@ const calculatorText = {
       note: "Realistische Schätzung auf Basis typischer Werte – dein tatsächlicher Verbrauch kann abweichen.",
     },
 
-    calculate: "Berechnung speichern",
-    saveChanges: "Änderungen speichern",
+    calculate: "In „Meine Geräte“ speichern",
+    saveChanges: "Gespeichertes Gerät aktualisieren",
     reset: "Werte zurücksetzen",
     fallbackDevice: "Gerät",
   },
@@ -397,8 +397,8 @@ const calculatorText = {
       note: "Realistic estimate based on typical values – actual consumption may vary.",
     },
 
-    calculate: "Save calculation",
-    saveChanges: "Save changes",
+    calculate: "Save to My devices",
+    saveChanges: "Update saved device",
     reset: "Reset values",
     fallbackDevice: "Device",
   },
@@ -1158,7 +1158,7 @@ export default function EnergyCalculator({
         text.savingTip.fallback;
 
   const fieldClassName =
-    `w-full rounded-xl border border-white/[0.12] bg-[#202b28] px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[var(--brand-green-mint)] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] outline-none transition-[border-color,background-color,box-shadow] placeholder:text-[#7f918b] hover:border-white/[0.2] focus:border-[var(--brand-green-mint)] focus:bg-[#24312d] focus:ring-2 focus:ring-[#72dca3]/12`;
+    `w-full rounded-xl border border-white/[0.12] bg-[#202b28] px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[#f7faf8] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] outline-none transition-[border-color,background-color,box-shadow] placeholder:text-[#7f918b] hover:border-white/[0.2] focus:border-[var(--brand-green-mint)] focus:bg-[#24312d] focus:ring-2 focus:ring-[#72dca3]/12`;
   const secondaryFieldClassName =
     "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
   const fieldLabelClassName =
@@ -1176,7 +1176,7 @@ export default function EnergyCalculator({
           ? "gap-4 p-4 sm:p-5 lg:gap-6 lg:p-5"
           : "gap-5 p-4 sm:p-6 lg:gap-8 lg:p-7"
       }`}>
-        <div className="calculator-form flex min-w-0 flex-col justify-center px-1 py-1 sm:px-2">
+        <div className="calculator-form flex min-w-0 flex-col justify-start px-1 py-1 sm:px-2 lg:justify-between">
 
       {/* Device */}
       <div className={homePresentation ? "mb-4" : "mb-6"}>
@@ -1276,7 +1276,7 @@ export default function EnergyCalculator({
 
             <div className={`flex flex-wrap items-start gap-x-5 gap-y-2 ${homePresentation ? "mt-2" : "mt-3"}`}>
             <details className="group min-w-0 open:basis-full">
-          <summary className="calculator-secondary-action inline-flex cursor-pointer list-none items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)] [&::-webkit-details-marker]:hidden">
+          <summary className="calculator-secondary-action inline-flex cursor-pointer list-none items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] [&::-webkit-details-marker]:hidden">
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
               <circle cx="8.5" cy="8.5" r="5.5" />
               <path d="m13 13 4 4" />
@@ -1342,7 +1342,7 @@ export default function EnergyCalculator({
                     current === "exact" ? "estimate" : "exact"
                   )
                 }
-                className="calculator-secondary-action inline-flex items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)]"
+                className="calculator-secondary-action inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2]"
               >
                 <svg
                   viewBox="0 0 20 20"
@@ -1407,7 +1407,7 @@ export default function EnergyCalculator({
               current === "exact" ? "estimate" : "exact"
             )
           }
-          className={`${homePresentation ? "mb-3" : "mb-5"} calculator-secondary-action inline-flex items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)]`}
+          className={`${homePresentation ? "mb-3" : "mb-5"} calculator-secondary-action inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2]`}
         >
           <svg
             viewBox="0 0 20 20"
@@ -1636,7 +1636,7 @@ export default function EnergyCalculator({
                   )
                 )
               }
-              className={`min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[var(--brand-green-mint)] outline-none tabular-nums`}
+              className={`min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[#f7faf8] outline-none tabular-nums`}
             />
 
             <span className="pointer-events-none shrink-0 whitespace-nowrap pr-3 text-xs font-medium text-[#9fb0aa]">
@@ -1725,7 +1725,7 @@ export default function EnergyCalculator({
               className={
                 isContinuousDevice
                   ? fieldClassName
-                  : `min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[var(--brand-green-mint)] outline-none`
+                  : `min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[#f7faf8] outline-none`
               }
             />
 
@@ -1778,7 +1778,7 @@ export default function EnergyCalculator({
         <button
           type="button"
           onClick={handleReset}
-          className="calculator-secondary-action group inline-flex items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)] active:scale-[0.98]"
+          className="calculator-secondary-action group inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] active:scale-[0.98]"
         >
           <span
             aria-hidden="true"
@@ -1793,10 +1793,27 @@ export default function EnergyCalculator({
           type="button"
           onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
           disabled={!calculationIsValid}
-          className="calculator-save-action ml-auto inline-flex min-h-10 w-36 items-center justify-center gap-1 rounded-md border border-[var(--brand-green-mint)] bg-[var(--brand-green-mint)] px-2.5 py-1 text-[var(--brand-green)] shadow-[0_8px_20px_-16px_rgba(114,220,163,0.65)] transition hover:-translate-y-0.5 hover:border-[#62d797] hover:bg-[#62d797] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0 sm:min-h-8"
+          className="calculator-save-action group ml-auto inline-flex min-h-10 items-center justify-center gap-2 px-1 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-4 focus-visible:ring-offset-[#17211f] disabled:cursor-not-allowed disabled:text-[#65736e]"
         >
+          <svg
+            viewBox="0 0 20 20"
+            fill="none"
+            className="h-4 w-4 shrink-0"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z" />
+          </svg>
           {activeSavedDeviceId ? text.saveChanges : text.calculate}
-          <span aria-hidden="true">+</span>
+          <span
+            aria-hidden="true"
+            className="transition-transform group-hover:translate-x-0.5"
+          >
+            →
+          </span>
         </button>
       </div>
 
