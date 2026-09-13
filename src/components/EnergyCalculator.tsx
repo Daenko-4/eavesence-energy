@@ -1158,7 +1158,7 @@ export default function EnergyCalculator({
         text.savingTip.fallback;
 
   const fieldClassName =
-    `w-full rounded-xl border border-white/[0.12] bg-[#202b28] px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[15px] font-semibold text-[#f7faf8] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] outline-none transition-[border-color,background-color,box-shadow] placeholder:text-[#7f918b] hover:border-white/[0.2] focus:border-[var(--brand-green-mint)] focus:bg-[#24312d] focus:ring-2 focus:ring-[#72dca3]/12`;
+    `w-full rounded-xl border border-white/[0.12] bg-[#202b28] px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[var(--brand-green-mint)] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] outline-none transition-[border-color,background-color,box-shadow] placeholder:text-[#7f918b] hover:border-white/[0.2] focus:border-[var(--brand-green-mint)] focus:bg-[#24312d] focus:ring-2 focus:ring-[#72dca3]/12`;
   const secondaryFieldClassName =
     "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
   const fieldLabelClassName =
@@ -1276,7 +1276,7 @@ export default function EnergyCalculator({
 
             <div className={`flex flex-wrap items-start gap-x-5 gap-y-2 ${homePresentation ? "mt-2" : "mt-3"}`}>
             <details className="group min-w-0 open:basis-full">
-          <summary className="calculator-secondary-action inline-flex cursor-pointer list-none items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)] [&::-webkit-details-marker]:hidden">
+          <summary className="calculator-secondary-action inline-flex cursor-pointer list-none items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)] [&::-webkit-details-marker]:hidden">
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
               <circle cx="8.5" cy="8.5" r="5.5" />
               <path d="m13 13 4 4" />
@@ -1342,7 +1342,7 @@ export default function EnergyCalculator({
                     current === "exact" ? "estimate" : "exact"
                   )
                 }
-                className="calculator-secondary-action inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)]"
+                className="calculator-secondary-action inline-flex items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)]"
               >
                 <svg
                   viewBox="0 0 20 20"
@@ -1407,7 +1407,7 @@ export default function EnergyCalculator({
               current === "exact" ? "estimate" : "exact"
             )
           }
-          className={`${homePresentation ? "mb-3" : "mb-5"} calculator-secondary-action inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)]`}
+          className={`${homePresentation ? "mb-3" : "mb-5"} calculator-secondary-action inline-flex items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)]`}
         >
           <svg
             viewBox="0 0 20 20"
@@ -1636,7 +1636,7 @@ export default function EnergyCalculator({
                   )
                 )
               }
-              className={`min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[15px] font-semibold text-[#f7faf8] outline-none tabular-nums`}
+              className={`min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[var(--brand-green-mint)] outline-none tabular-nums`}
             />
 
             <span className="pointer-events-none shrink-0 whitespace-nowrap pr-3 text-xs font-medium text-[#9fb0aa]">
@@ -1725,7 +1725,7 @@ export default function EnergyCalculator({
               className={
                 isContinuousDevice
                   ? fieldClassName
-                  : `min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[15px] font-semibold text-[#f7faf8] outline-none`
+                  : `min-w-0 flex-1 bg-transparent px-4 ${homePresentation ? "py-2.5" : "py-3"} text-[14px] font-semibold text-[var(--brand-green-mint)] outline-none`
               }
             />
 
@@ -1733,7 +1733,7 @@ export default function EnergyCalculator({
               <div
                 role="group"
                 aria-label={text.fields.usagePeriod}
-                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-4 text-[11px]"
+                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-4 text-[12px]"
               >
                 <button
                   type="button"
@@ -1778,7 +1778,7 @@ export default function EnergyCalculator({
         <button
           type="button"
           onClick={handleReset}
-          className="calculator-secondary-action group inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)] active:scale-[0.98]"
+          className="calculator-secondary-action group inline-flex items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)] active:scale-[0.98]"
         >
           <span
             aria-hidden="true"
