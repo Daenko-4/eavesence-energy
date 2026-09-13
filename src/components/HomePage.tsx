@@ -831,9 +831,9 @@ export default function HomePage({
 
         <section
           id="about"
-          className="scroll-mt-[120px] px-5 py-10 sm:px-6 sm:py-12"
+          className="scroll-mt-[120px] px-5 pb-4 pt-8 sm:px-6 sm:pb-5 sm:pt-10"
         >
-          <div className="mx-auto max-w-5xl border-b border-slate-200/80 pb-8">
+          <div className="mx-auto max-w-5xl border-b border-slate-200/80 pb-7">
             <h2 className="text-xl font-bold tracking-[-0.025em] text-[#07111f] sm:text-2xl">
               {text.about.label}
             </h2>
@@ -845,7 +845,7 @@ export default function HomePage({
 
         <section
           id="faq"
-          className="scroll-mt-24 px-5 pb-16 pt-8 sm:px-6 sm:pb-20 sm:pt-10"
+          className="scroll-mt-24 px-5 pb-16 pt-4 sm:px-6 sm:pb-20 sm:pt-5"
         >
           <div className="mx-auto max-w-5xl">
             <button

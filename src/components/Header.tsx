@@ -33,6 +33,8 @@ type NavigationKey =
   | "howItWorks"
   | "faq";
 
+const HEADER_INTRO_STORAGE_KEY = "eavesence-header-intro-seen";
+
 const navigation = {
   de: {
     calculator: "Rechner",
@@ -105,6 +107,8 @@ export default function Header({
   const logoInteractionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const introOpenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const introCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suppressPointerOpenRef = useRef(false);
   const headerRef = useRef<HTMLElement>(null);
   const desktopNavigationRef = useRef<HTMLElement>(null);
@@ -142,6 +146,48 @@ export default function Header({
       }
       if (logoInteractionTimeoutRef.current) {
         clearTimeout(logoInteractionTimeoutRef.current);
+      }
+      if (introOpenTimeoutRef.current) {
+        clearTimeout(introOpenTimeoutRef.current);
+      }
+      if (introCloseTimeoutRef.current) {
+        clearTimeout(introCloseTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+
+    if (!desktopQuery.matches || reducedMotionQuery.matches) return;
+
+    try {
+      if (window.localStorage.getItem(HEADER_INTRO_STORAGE_KEY)) return;
+      window.localStorage.setItem(HEADER_INTRO_STORAGE_KEY, "true");
+    } catch {
+      return;
+    }
+
+    introOpenTimeoutRef.current = setTimeout(() => {
+      setDesktopNavigationOpen(true);
+      introOpenTimeoutRef.current = null;
+      introCloseTimeoutRef.current = setTimeout(() => {
+        setDesktopNavigationOpen(false);
+        introCloseTimeoutRef.current = null;
+      }, 1900);
+    }, 1100);
+
+    return () => {
+      if (introOpenTimeoutRef.current) {
+        clearTimeout(introOpenTimeoutRef.current);
+        introOpenTimeoutRef.current = null;
+      }
+      if (introCloseTimeoutRef.current) {
+        clearTimeout(introCloseTimeoutRef.current);
+        introCloseTimeoutRef.current = null;
       }
     };
   }, []);
@@ -246,6 +292,14 @@ export default function Header({
   }, [indicatedNavigation, desktopNavigationOpen]);
 
   function openDesktopNavigation() {
+    if (introOpenTimeoutRef.current) {
+      clearTimeout(introOpenTimeoutRef.current);
+      introOpenTimeoutRef.current = null;
+    }
+    if (introCloseTimeoutRef.current) {
+      clearTimeout(introCloseTimeoutRef.current);
+      introCloseTimeoutRef.current = null;
+    }
     if (closeNavigationTimeoutRef.current) {
       clearTimeout(closeNavigationTimeoutRef.current);
       closeNavigationTimeoutRef.current = null;
@@ -285,6 +339,14 @@ export default function Header({
     const navigationWasOpen = desktopNavigationOpen || menuOpen;
 
     suppressPointerOpenRef.current = true;
+    if (introOpenTimeoutRef.current) {
+      clearTimeout(introOpenTimeoutRef.current);
+      introOpenTimeoutRef.current = null;
+    }
+    if (introCloseTimeoutRef.current) {
+      clearTimeout(introCloseTimeoutRef.current);
+      introCloseTimeoutRef.current = null;
+    }
     if (logoInteractionTimeoutRef.current) {
       clearTimeout(logoInteractionTimeoutRef.current);
     }
@@ -320,7 +382,7 @@ export default function Header({
           <button
             type="button"
             onClick={() => setMenuOpen((current) => !current)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] lg:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] lg:hidden"
             aria-label={menuOpen ? text.closeNavigation : text.openNavigation}
             aria-expanded={menuOpen}
           >
@@ -443,7 +505,7 @@ export default function Header({
             href={languageHref}
             scroll={false}
             onClick={closeMenu}
-            className="group flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-bold uppercase tracking-[0.04em] transition hover:bg-[#eaf8ef] active:scale-[0.98]"
+            className="group flex h-11 items-center gap-1.5 rounded-lg px-2 text-[10px] font-bold uppercase tracking-[0.04em] transition hover:bg-[#eaf8ef] active:scale-[0.98] lg:h-8"
             aria-label={
               locale === "de" ? "Switch to English" : "Zur deutschen Version wechseln"
             }
@@ -459,7 +521,7 @@ export default function Header({
         </div>
 
         {menuOpen && (
-          <nav className="border-t border-slate-200 py-3 lg:hidden">
+          <nav className="absolute inset-x-0 top-full border-y border-slate-200 bg-white/98 px-5 py-3 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl sm:px-6 lg:hidden">
             <div className="grid gap-1">
               {[
                 [calculatorHref, text.calculator],

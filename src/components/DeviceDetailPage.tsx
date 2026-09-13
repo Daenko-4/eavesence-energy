@@ -327,7 +327,7 @@ export default function DeviceDetailPage({
       <main>
         {/* Hero */}
         <section className="border-b border-[#dfe5dd] bg-[var(--brand-off-white)]">
-          <div className="mx-auto max-w-7xl px-5 py-9 sm:px-6 sm:py-11">
+          <div className="mx-auto max-w-7xl px-5 py-7 sm:px-6 sm:py-9">
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <Link
                 href={homeHref}
@@ -362,7 +362,7 @@ export default function DeviceDetailPage({
                 {text.calculator}
               </p>
 
-              <h1 className="mt-3 max-w-4xl text-3xl font-bold tracking-[-0.04em] sm:text-4xl lg:text-5xl">
+              <h1 className="mt-3 max-w-4xl text-3xl font-bold tracking-[-0.04em] sm:text-4xl lg:text-[2.75rem]">
                 {text.heroTitleBefore}{" "}
                 {localizedDevice.name}{" "}
                 {text.heroTitleAfter}

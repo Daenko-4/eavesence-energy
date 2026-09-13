@@ -200,12 +200,7 @@ const calculatorText = {
 
     accuracy: {
       title: "Genauigkeit",
-      consumptionEstimate:
-        "Schätzung – tatsächlicher Verbrauch kann abweichen.",
-      powerEstimate:
-        "Schätzung – tatsächlicher Verbrauch kann abweichen.",
-      exact:
-        "Abhängig vom eingegebenen Messwert.",
+      note: "Schätzwert – der tatsächliche Verbrauch kann abweichen.",
     },
 
     calculate: "Berechnung speichern",
@@ -344,13 +339,8 @@ const calculatorText = {
     },
 
     accuracy: {
-      title: "Accuracy",
-      consumptionEstimate:
-        "Estimate – actual consumption may vary.",
-      powerEstimate:
-        "Estimate – actual consumption may vary.",
-      exact:
-        "Depends on the measured value entered.",
+      title: "Accuracy note",
+      note: "Estimated result – actual consumption may vary.",
     },
 
     calculate: "Save calculation",
@@ -1032,12 +1022,7 @@ export default function EnergyCalculator({
     ? "hidden"
     : "mt-2 text-sm leading-6 text-slate-500";
 
-  const accuracyText =
-    mode === "estimate"
-      ? isConsumptionDevice
-        ? text.accuracy.consumptionEstimate
-        : text.accuracy.powerEstimate
-      : text.accuracy.exact;
+  const accuracyText = text.accuracy.note;
 
   return (
     <section>
@@ -1594,7 +1579,7 @@ export default function EnergyCalculator({
           type="button"
           onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
           disabled={!calculationIsValid}
-          className="calculator-save-action ml-auto inline-flex min-h-8 items-center justify-center gap-1 rounded-md border border-[var(--brand-green-mint)] bg-[var(--brand-green-mint)] px-2.5 py-1 text-[var(--brand-green)] shadow-[0_8px_20px_-16px_rgba(114,220,163,0.65)] transition hover:-translate-y-0.5 hover:border-[#62d797] hover:bg-[#62d797] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0"
+          className="calculator-save-action ml-auto inline-flex min-h-10 items-center justify-center gap-1 rounded-md border border-[var(--brand-green-mint)] bg-[var(--brand-green-mint)] px-2.5 py-1 text-[var(--brand-green)] shadow-[0_8px_20px_-16px_rgba(114,220,163,0.65)] transition hover:-translate-y-0.5 hover:border-[#62d797] hover:bg-[#62d797] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1819] disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:translate-y-0 active:translate-y-0 sm:min-h-8"
         >
           {activeSavedDeviceId ? text.saveChanges : text.calculate}
           <span aria-hidden="true">+</span>
@@ -1706,7 +1691,7 @@ export default function EnergyCalculator({
                     step={usesPerWeekValue <= 10 ? 0.5 : 1}
                     value={scenarioUsesPerWeekValue}
                     onChange={(event) => setScenarioUsesPerWeek(Number(event.target.value))}
-                    className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[var(--brand-green)]"
+                    className="h-6 min-w-0 flex-1 cursor-pointer accent-[var(--brand-green)]"
                     aria-label={text.result.scenarioText}
                   />
                   <span className="min-w-[5.5rem] text-right text-[11px] font-medium text-[#66736e] tabular-nums">

@@ -386,7 +386,7 @@ function MyDevicesPanel(
                 {text.compareTotal}
               </span>
             </div>
-            <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-4">
               <p className="max-w-2xl text-[12px] leading-5 text-slate-500">
                 {text.description}
               </p>
@@ -394,13 +394,13 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
-                  className="group/import-empty relative w-fit shrink-0 pt-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                  className="group/import-empty relative w-fit shrink-0 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                 >
                   {text.import}
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute left-0 top-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/import-empty:translate-y-0 group-hover/import-empty:opacity-100"
+                    className="pointer-events-none absolute bottom-full left-0 mb-0.5 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/import-empty:translate-y-0 group-hover/import-empty:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -520,7 +520,7 @@ function MyDevicesPanel(
                         <button
                           type="button"
                           onClick={() => onOpen(item)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#ddf8e9] hover:text-[var(--brand-green)]"
+                          className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#ddf8e9] hover:text-[var(--brand-green)] sm:h-7 sm:w-7"
                           aria-label={`${text.open}: ${getDeviceName(item)}`}
                           title={text.open}
                         >
@@ -531,7 +531,7 @@ function MyDevicesPanel(
                         <button
                           type="button"
                           onClick={() => removeDevice(item.id)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 transition hover:bg-red-50 hover:text-red-600"
+                          className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-300 transition hover:bg-red-50 hover:text-red-600 sm:h-7 sm:w-7"
                           aria-label={`${text.remove}: ${getDeviceName(item)}`}
                           title={text.remove}
                         >
