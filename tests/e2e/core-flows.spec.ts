@@ -221,3 +221,76 @@ test.describe("mobile", () => {
     ).toBe(true);
   });
 });
+
+const responsiveCalculatorViewports = [
+  { name: "small phone portrait", width: 320, height: 568 },
+  { name: "phone portrait", width: 390, height: 844 },
+  { name: "phone landscape", width: 844, height: 390 },
+  { name: "iPad portrait", width: 768, height: 1024 },
+  { name: "iPad landscape", width: 1024, height: 768 },
+] as const;
+
+test.describe("responsive calculator layout", () => {
+  for (const viewport of responsiveCalculatorViewports) {
+    test(`fits ${viewport.name} without overflow or overlap`, async ({
+      page,
+    }) => {
+      await disableHeaderIntro(page);
+      await page.setViewportSize({
+        width: viewport.width,
+        height: viewport.height,
+      });
+      await page.goto("/");
+
+      const layout = await page.locator("#rechner").evaluate((calculator) => {
+        const viewportWidth = document.documentElement.clientWidth;
+        const candidates = Array.from(
+          calculator.querySelectorAll(
+            ".calculator-form input, .calculator-form select, .calculator-form button, .calculator-form [role='group'], .calculator-form .rounded-xl",
+          ),
+        );
+        const overflowing = candidates
+          .filter((element) => {
+            const rect = element.getBoundingClientRect();
+            return (
+              rect.width > 0 &&
+              rect.height > 0 &&
+              (rect.left < -0.5 || rect.right > viewportWidth + 0.5)
+            );
+          })
+          .map(
+            (element) =>
+              element.getAttribute("aria-label") ||
+              element.textContent?.trim().slice(0, 60) ||
+              element.tagName,
+          );
+
+        const form = calculator.querySelector("[data-calculator-form]");
+        const result = calculator.querySelector("[data-calculator-result]");
+        const formRect = form?.getBoundingClientRect();
+        const resultRect = result?.getBoundingClientRect();
+        const panelsOverlap = Boolean(
+          formRect &&
+            resultRect &&
+            Math.min(formRect.right, resultRect.right) -
+              Math.max(formRect.left, resultRect.left) >
+              0.5 &&
+            Math.min(formRect.bottom, resultRect.bottom) -
+              Math.max(formRect.top, resultRect.top) >
+              0.5,
+        );
+
+        return {
+          documentOverflows:
+            document.documentElement.scrollWidth > viewportWidth,
+          overflowing,
+          panelsOverlap,
+        };
+      });
+
+      expect(layout.documentOverflows).toBe(false);
+      expect(layout.overflowing).toEqual([]);
+      expect(layout.panelsOverlap).toBe(false);
+    });
+  }
+});
