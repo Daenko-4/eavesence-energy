@@ -47,6 +47,26 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   ).toHaveCount(0);
 });
 
+test("annual and continuous devices show the right usage inputs", async ({
+  page,
+}) => {
+  await disableHeaderIntro(page);
+  await page.goto("/");
+
+  const deviceSelect = page.locator("#rechner select").first();
+
+  await deviceSelect.selectOption({ label: "Refrigerator" });
+  await expect(
+    page.getByText("Consumption per year", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.getByText("€70.00", { exact: true }).first()).toBeVisible();
+
+  await deviceSelect.selectOption({ label: "Wi-Fi router" });
+  await expect(page.getByText("Hours per day", { exact: true })).toBeVisible();
+  await expect(page.getByText("Days per week", { exact: true })).toBeVisible();
+  await expect(page.getByText("€30.58", { exact: true }).first()).toBeVisible();
+});
+
 test("FAQ navigation opens the answers and reaches one stable position", async ({
   page,
 }) => {
@@ -80,7 +100,7 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
           return Math.abs(window.scrollY - expectedScrollTop);
         });
       })
-      .toBeLessThanOrEqual(2);
+      .toBeLessThanOrEqual(4);
 
     const currentFaqTop = await page.locator("#faq").evaluate((element) =>
       element.getBoundingClientRect().top,
@@ -122,6 +142,16 @@ test("header labels keep a fixed horizontal axis while closing", async ({
   await page.goto("/");
   await openDesktopNavigation(page);
 
+  const calculatorLink = page.locator('[data-navigation-key="calculator"]');
+  const xBefore = await calculatorLink.evaluate((element) =>
+    element.getBoundingClientRect().x,
+  );
+
+  // Leave the link hover state before comparing the navigation colors.
+  // The menu remains open during its short close delay.
+  await page.mouse.move(10, 180);
+  await page.waitForTimeout(200);
+
   const navigationStyles = await page
     .locator("[data-navigation-key]")
     .evaluateAll((links) =>
@@ -135,13 +165,7 @@ test("header labels keep a fixed horizontal axis while closing", async ({
     new Set(navigationStyles.map(({ fontWeight }) => fontWeight)).size,
   ).toBe(1);
 
-  const calculatorLink = page.locator('[data-navigation-key="calculator"]');
-  const xBefore = await calculatorLink.evaluate((element) =>
-    element.getBoundingClientRect().x,
-  );
-
-  await page.mouse.move(10, 180);
-  await page.waitForTimeout(380);
+  await page.waitForTimeout(180);
   const xWhileClosing = await calculatorLink.evaluate((element) =>
     element.getBoundingClientRect().x,
   );

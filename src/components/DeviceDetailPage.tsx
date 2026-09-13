@@ -5,7 +5,11 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { getDeviceSeoContent } from "@/data/deviceSeoContent";
 import type { Device } from "@/data/devices";
-import { devices } from "@/data/devices";
+import {
+  devices,
+  getDeviceCalculationDefaults,
+  getDeviceTypicalYearlyKwh,
+} from "@/data/devices";
 import {
   getDevicesHref,
   getHomeHref,
@@ -44,6 +48,9 @@ const pageText = {
     power: "Leistung",
     durationPerUse: "Dauer/Nutzung",
     consumptionPerUse: "Verbrauch/Nutzung",
+    annualConsumption: "Verbrauch/Jahr",
+    hoursPerDay: "Stunden/Tag",
+    daysPerWeek: "Tage/Woche",
     usesPerWeek: "Nutzungen/Woche",
     examplePerYear: "Beispiel/Jahr",
 
@@ -54,6 +61,8 @@ const pageText = {
     exampleWith: "Beispiel mit",
     resultingIn: "Daraus ergeben sich ungefähr",
     perUse: "pro Nutzung",
+    perDay: "pro Betriebstag",
+    perYear: "pro Jahr",
     perMonth: "pro Monat",
     perYearKwh: "kWh pro Jahr",
 
@@ -95,6 +104,9 @@ const pageText = {
     power: "Power",
     durationPerUse: "Duration/use",
     consumptionPerUse: "Consumption/use",
+    annualConsumption: "Consumption/year",
+    hoursPerDay: "Hours/day",
+    daysPerWeek: "Days/week",
     usesPerWeek: "Uses/week",
     examplePerYear: "Example/year",
 
@@ -105,6 +117,8 @@ const pageText = {
     exampleWith: "Example using",
     resultingIn: "This works out to approximately",
     perUse: "per use",
+    perDay: "per operating day",
+    perYear: "per year",
     perMonth: "per month",
     perYearKwh: "kWh per year",
 
@@ -178,16 +192,18 @@ function formatKwh(
 function getTypicalKwhPerUse(
   device: Device
 ) {
+  const defaults = getDeviceCalculationDefaults(device);
+
   if (
     device.calculationType ===
     "consumption"
   ) {
-    return device.kwhPerUse ?? 0;
+    return defaults.estimatedKwhPerUse;
   }
 
   return (
-    ((device.watts ?? 0) / 1000) *
-    ((device.typicalMinutes ?? 0) / 60)
+    (defaults.watts / 1000) *
+    (defaults.minutesPerUse / 60)
   );
 }
 
@@ -266,13 +282,10 @@ export default function DeviceDetailPage({
   const kwhPerUse =
     getTypicalKwhPerUse(device);
 
-  const typicalUsesPerWeek =
-    device.typicalUsesPerWeek ?? 1;
+  const calculationDefaults = getDeviceCalculationDefaults(device);
+  const typicalUsesPerWeek = calculationDefaults.usesPerWeek;
 
-  const yearlyKwh =
-    kwhPerUse *
-    typicalUsesPerWeek *
-    52;
+  const yearlyKwh = getDeviceTypicalYearlyKwh(device);
 
   const yearlyCost =
     yearlyKwh *
@@ -409,8 +422,17 @@ export default function DeviceDetailPage({
               </p>
 
               <div className="mt-4 grid gap-px overflow-hidden rounded-xl border border-[#dfe5dd] bg-[#dfe5dd] sm:grid-cols-2 lg:grid-cols-4">
-                {device.calculationType ===
-                "power" ? (
+                {device.usagePattern === "annual" ? (
+                  <div className="bg-[#f6f7f2] p-4">
+                    <p className="text-sm text-slate-500">
+                      {text.annualConsumption}
+                    </p>
+
+                    <p className="mt-1 text-xl font-bold">
+                      {formatKwh(yearlyKwh, locale)} kWh
+                    </p>
+                  </div>
+                ) : device.calculationType === "power" ? (
                   <>
                     <div className="bg-[#f6f7f2] p-4">
                       <p className="text-sm text-slate-500">
@@ -425,15 +447,21 @@ export default function DeviceDetailPage({
                     <div className="bg-[#f6f7f2] p-4">
                       <p className="text-sm text-slate-500">
                         {
-                          text.durationPerUse
+                          device.usagePattern === "continuous"
+                            ? text.hoursPerDay
+                            : text.durationPerUse
                         }
                       </p>
 
                       <p className="mt-1 text-xl font-bold">
                         {
-                          device.typicalMinutes
+                          device.usagePattern === "continuous"
+                            ? device.typicalHoursPerDay
+                            : device.typicalMinutes
                         }{" "}
-                        {text.minutes}
+                        {device.usagePattern === "continuous"
+                          ? "h"
+                          : text.minutes}
                       </p>
                     </div>
                   </>
@@ -455,15 +483,17 @@ export default function DeviceDetailPage({
                   </div>
                 )}
 
-                <div className="bg-[#f6f7f2] p-4">
+                {device.usagePattern !== "annual" && <div className="bg-[#f6f7f2] p-4">
                   <p className="text-sm text-slate-500">
-                    {text.usesPerWeek}
+                    {device.usagePattern === "continuous"
+                      ? text.daysPerWeek
+                      : text.usesPerWeek}
                   </p>
 
                   <p className="mt-1 text-xl font-bold">
                     {typicalUsesPerWeek}
                   </p>
-                </div>
+                </div>}
 
                 <div className="bg-[#1d2725] p-4 text-[var(--brand-off-white)]">
                   <p className="text-sm text-slate-300">
@@ -508,7 +538,11 @@ export default function DeviceDetailPage({
                   costPerUse,
                   locale
                 )}{" "}
-                {text.perUse},{" "}
+                {device.usagePattern === "annual"
+                  ? text.perYear
+                  : device.usagePattern === "continuous"
+                    ? text.perDay
+                    : text.perUse},{" "}
                 {formatEuro(
                   monthlyCost,
                   locale

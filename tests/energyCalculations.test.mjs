@@ -5,6 +5,11 @@ import {
   calculateEnergyCosts,
   calculateUsageScenario,
 } from "../src/lib/energyCalculations.ts";
+import {
+  devices,
+  getDeviceCalculationDefaults,
+  getDeviceTypicalYearlyKwh,
+} from "../src/data/devices.ts";
 
 function closeTo(actual, expected, tolerance = 1e-10) {
   assert.ok(
@@ -110,4 +115,25 @@ test("what-if scenario clamps usage and reports annual savings", () => {
   closeTo(reduced.savings, 7.28);
   assert.equal(excessive.adjustedUsesPerWeek, 7);
   closeTo(excessive.savings, 0);
+});
+
+test("uses the energy-label annual consumption for cooling appliances", () => {
+  const refrigerator = devices.find((device) => device.name === "Kühlschrank");
+  assert.ok(refrigerator);
+
+  const defaults = getDeviceCalculationDefaults(refrigerator);
+  closeTo(defaults.estimatedKwhPerUse, 200);
+  closeTo(defaults.usesPerWeek, 1 / 52);
+  closeTo(getDeviceTypicalYearlyKwh(refrigerator), 200);
+});
+
+test("converts continuous operation into daily hours and weekly days", () => {
+  const router = devices.find((device) => device.name === "WLAN-Router");
+  assert.ok(router);
+
+  const defaults = getDeviceCalculationDefaults(router);
+  assert.equal(defaults.watts, 10);
+  assert.equal(defaults.minutesPerUse, 1440);
+  assert.equal(defaults.usesPerWeek, 7);
+  closeTo(getDeviceTypicalYearlyKwh(router), 87.36);
 });

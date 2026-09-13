@@ -7,15 +7,57 @@ export type Device = {
 
   calculationType: "power" | "consumption";
 
+  usagePattern?: "perUse" | "annual" | "continuous";
+
   watts?: number;
   kwhPerUse?: number;
+  annualKwh?: number;
 
   typicalMinutes?: number;
   typicalUsesPerWeek?: number;
+  typicalHoursPerDay?: number;
+  typicalDaysPerWeek?: number;
 
   dataBasis: string;
   dataNote: string;
 };
+
+export function getDeviceCalculationDefaults(device: Device) {
+  if (device.usagePattern === "annual") {
+    return {
+      watts: 0,
+      minutesPerUse: 0,
+      usesPerWeek: 1 / 52,
+      estimatedKwhPerUse: device.annualKwh ?? 0,
+    };
+  }
+
+  if (device.usagePattern === "continuous") {
+    return {
+      watts: device.watts ?? 0,
+      minutesPerUse: (device.typicalHoursPerDay ?? 24) * 60,
+      usesPerWeek: device.typicalDaysPerWeek ?? 7,
+      estimatedKwhPerUse: 0,
+    };
+  }
+
+  return {
+    watts: device.watts ?? 0,
+    minutesPerUse: device.typicalMinutes ?? 0,
+    usesPerWeek: device.typicalUsesPerWeek ?? 1,
+    estimatedKwhPerUse: device.kwhPerUse ?? 0,
+  };
+}
+
+export function getDeviceTypicalYearlyKwh(device: Device) {
+  const defaults = getDeviceCalculationDefaults(device);
+  const kwhPerUse =
+    device.calculationType === "consumption"
+      ? defaults.estimatedKwhPerUse
+      : (defaults.watts / 1000) * (defaults.minutesPerUse / 60);
+
+  return kwhPerUse * defaults.usesPerWeek * 52;
+}
 
 export const devices: Device[] = [
   {
@@ -23,13 +65,12 @@ export const devices: Device[] = [
     slug: "kuehlschrank",
     category: "Küche",
     description:
-      "Schätze die laufenden Stromkosten deines Kühlschranks anhand einer typischen mittleren Leistungsaufnahme.",
+      "Berechne die Stromkosten deines Kühlschranks direkt mit dem Jahresverbrauch vom Energielabel.",
     tip: "Stelle etwa 7 °C ein, halte die Türdichtungen sauber und lasse warme Speisen erst abkühlen.",
-    calculationType: "power",
-    watts: 23,
-    typicalMinutes: 1440,
-    typicalUsesPerWeek: 7,
-    dataBasis: "Mittlere Leistung × Dauerbetrieb",
+    calculationType: "consumption",
+    usagePattern: "annual",
+    annualKwh: 200,
+    dataBasis: "EU-Energielabel / Jahresverbrauch",
     dataNote:
       "Orientierungswert von rund 200 kWh pro Jahr. Kühlgeräte takten automatisch; der Jahresverbrauch auf dem Energielabel ist für dein Modell genauer.",
   },
@@ -40,11 +81,10 @@ export const devices: Device[] = [
     description:
       "Schätze die jährlichen Stromkosten deines Gefrierschranks oder deiner Gefriertruhe.",
     tip: "Taue starke Eisschichten ab, prüfe die Dichtung und stelle das Gerät möglichst kühl auf.",
-    calculationType: "power",
-    watts: 26,
-    typicalMinutes: 1440,
-    typicalUsesPerWeek: 7,
-    dataBasis: "Mittlere Leistung × Dauerbetrieb",
+    calculationType: "consumption",
+    usagePattern: "annual",
+    annualKwh: 225,
+    dataBasis: "EU-Energielabel / Jahresverbrauch",
     dataNote:
       "Orientierungswert von rund 225 kWh pro Jahr. Bauform, Alter, Standort und Energielabel beeinflussen den tatsächlichen Verbrauch deutlich.",
   },
@@ -417,12 +457,61 @@ export const devices: Device[] = [
       "Schätze die laufenden Stromkosten eines WLAN-Routers im Dauerbetrieb.",
     tip: "Deaktiviere ungenutzte Funknetze oder Zeiträume nur dann, wenn dadurch wichtige Geräte nicht getrennt werden.",
     calculationType: "power",
+    usagePattern: "continuous",
     watts: 10,
-    typicalMinutes: 1440,
-    typicalUsesPerWeek: 7,
+    typicalHoursPerDay: 24,
+    typicalDaysPerWeek: 7,
     dataBasis: "Leistung × Dauerbetrieb",
     dataNote:
       "Orientierungswert für Router ohne zusätzliche Netzwerkgeräte. Modell, Funkstandard und angeschlossene Funktionen beeinflussen die Leistungsaufnahme.",
+  },
+  {
+    name: "Aquarium",
+    slug: "aquarium",
+    category: "Haushalt",
+    description:
+      "Schätze die laufenden Stromkosten von Filter, Pumpe, Beleuchtung und Heizung deines Aquariums.",
+    tip: "Nutze effiziente Pumpen und LED-Beleuchtung und prüfe die Temperatur regelmäßig.",
+    calculationType: "power",
+    usagePattern: "continuous",
+    watts: 50,
+    typicalHoursPerDay: 24,
+    typicalDaysPerWeek: 7,
+    dataBasis: "Mittlere Leistung × Dauerbetrieb",
+    dataNote:
+      "Orientierungswert für die mittlere Gesamtleistung. Beckengröße, Heizung, Beleuchtung und Pumpentechnik können den Verbrauch stark verändern.",
+  },
+  {
+    name: "Luftreiniger",
+    slug: "luftreiniger",
+    category: "Raumklima",
+    description:
+      "Berechne die Stromkosten eines Luftreinigers anhand seiner Leistung und täglichen Laufzeit.",
+    tip: "Nutze den Automatikmodus und reinige oder wechsle Filter nach Herstellerangabe.",
+    calculationType: "power",
+    usagePattern: "continuous",
+    watts: 40,
+    typicalHoursPerDay: 8,
+    typicalDaysPerWeek: 7,
+    dataBasis: "Leistung × tägliche Laufzeit",
+    dataNote:
+      "Orientierungswert. Lüfterstufe, Raumgröße, Filterzustand und Automatikmodus beeinflussen die Leistungsaufnahme.",
+  },
+  {
+    name: "NAS",
+    slug: "nas",
+    category: "Büro",
+    description:
+      "Schätze die laufenden Stromkosten eines NAS-Systems im Dauerbetrieb.",
+    tip: "Aktiviere Festplatten-Ruhezustand und Zeitpläne, wenn das System nicht rund um die Uhr erreichbar sein muss.",
+    calculationType: "power",
+    usagePattern: "continuous",
+    watts: 30,
+    typicalHoursPerDay: 24,
+    typicalDaysPerWeek: 7,
+    dataBasis: "Mittlere Leistung × Dauerbetrieb",
+    dataNote:
+      "Orientierungswert für ein kleines NAS. Anzahl und Typ der Laufwerke, Auslastung und Zusatzdienste beeinflussen den Verbrauch.",
   },
   {
     name: "Laptop",
