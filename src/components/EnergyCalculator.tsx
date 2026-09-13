@@ -861,6 +861,19 @@ export default function EnergyCalculator({
     loadDeviceDefaults(device);
   }
 
+  function handleUsagePeriodChange(nextPeriod: UsagePeriod) {
+    const nextUsesPerWeek = usageAmountToWeekly(
+      numericValue(usesPerWeek),
+      nextPeriod
+    );
+    const scenarioStep = nextPeriod === "month" ? 12 / 52 : 1;
+
+    setUsagePeriod(nextPeriod);
+    setScenarioUsesPerWeek(
+      Math.max(0, nextUsesPerWeek - scenarioStep)
+    );
+  }
+
   const resultRef =
     useRef<HTMLDivElement>(null);
   const myDevicesPanelRef =
@@ -1670,27 +1683,33 @@ export default function EnergyCalculator({
             />
 
             {!isContinuousDevice && (
-              <select
+              <div
+                role="group"
                 aria-label={text.fields.usagePeriod}
-                value={usagePeriod}
-                onChange={(event) => {
-                  const nextPeriod = event.target.value as UsagePeriod;
-                  const nextUsesPerWeek = usageAmountToWeekly(
-                    numericValue(usesPerWeek),
-                    nextPeriod
-                  );
-                  const scenarioStep = nextPeriod === "month" ? 12 / 52 : 1;
-
-                  setUsagePeriod(nextPeriod);
-                  setScenarioUsesPerWeek(
-                    Math.max(0, nextUsesPerWeek - scenarioStep)
-                  );
-                }}
-                className={`${fieldClassName} min-w-[8.5rem]`}
+                className="grid min-w-[8.75rem] gap-1 rounded-xl border border-white/[0.12] bg-[#202b28] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]"
               >
-                <option value="week">{text.fields.perWeek}</option>
-                <option value="month">{text.fields.perMonth}</option>
-              </select>
+                {(["week", "month"] as const).map((period) => {
+                  const selected = usagePeriod === period;
+
+                  return (
+                    <button
+                      key={period}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => handleUsagePeriodChange(period)}
+                      className={`rounded-lg px-3 py-1 text-[11px] font-bold leading-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] ${
+                        selected
+                          ? "bg-[var(--brand-green-mint)] text-[#12352a] shadow-sm"
+                          : "text-[#aebbb6] hover:bg-white/[0.06] hover:text-white"
+                      }`}
+                    >
+                      {period === "week"
+                        ? text.fields.perWeek
+                        : text.fields.perMonth}
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </div>
 
