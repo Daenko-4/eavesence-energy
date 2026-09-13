@@ -60,6 +60,7 @@ const copy = {
     storedLocally:
       "Die Daten bleiben ausschließlich in diesem Browser. Wenn du Browserdaten löschst oder das Gerät wechselst, sind sie nicht mehr verfügbar.",
     usesPerWeek: "Nutzungen/Woche",
+    usesPerMonth: "Nutzungen/Monat",
     savedDevice: "gespeichertes Gerät",
     savedDevices: "gespeicherte Geräte",
     showList: "Liste anzeigen",
@@ -103,6 +104,7 @@ const copy = {
     storedLocally:
       "The data stays exclusively in this browser. If you clear browser data or switch devices, it will no longer be available.",
     usesPerWeek: "Uses/week",
+    usesPerMonth: "Uses/month",
     savedDevice: "saved device",
     savedDevices: "saved devices",
     showList: "Show list",
@@ -330,6 +332,10 @@ function MyDevicesPanel(
       devices.find((candidate) => candidate.name === item.device)?.category ??
       "custom"
     );
+  }
+
+  function getDeviceUsagePattern(item: SavedDevice) {
+    return devices.find((device) => device.name === item.device)?.usagePattern;
   }
 
   useImperativeHandle(ref, () => ({ saveCurrentDevice }));
@@ -814,10 +820,17 @@ function MyDevicesPanel(
                     )}{" "}
                     {text.perYear}
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    {formatUses(item.usesPerWeek, locale)}{" "}
-                    {text.usesPerWeek}
+                  {getDeviceUsagePattern(item) !== "annual" && (
+                    <p className="mt-1 text-xs text-slate-400">
+                      {formatUses(
+                        item.usageAmount ?? item.usesPerWeek,
+                        locale
+                      )}{" "}
+                      {item.usagePeriod === "month"
+                        ? text.usesPerMonth
+                        : text.usesPerWeek}
                     </p>
+                  )}
                   </div>
                 </div>
 

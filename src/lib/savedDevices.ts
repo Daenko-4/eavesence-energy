@@ -25,6 +25,8 @@ export type SavedDevice = {
   watts: number;
   minutesPerUse: number;
   usesPerWeek: number;
+  usagePeriod?: "week" | "month";
+  usageAmount?: number;
   estimatedKwhPerUse: number;
   measuredKwhPerUse: number;
   yearlyKwh: number;
@@ -74,6 +76,11 @@ export function readSavedDevices(value: string | null): SavedDevice[] {
         typeof candidate.watts === "number" &&
         typeof candidate.minutesPerUse === "number" &&
         typeof candidate.usesPerWeek === "number" &&
+        (candidate.usagePeriod === undefined ||
+          candidate.usagePeriod === "week" ||
+          candidate.usagePeriod === "month") &&
+        (candidate.usageAmount === undefined ||
+          typeof candidate.usageAmount === "number") &&
         typeof candidate.estimatedKwhPerUse === "number" &&
         typeof candidate.measuredKwhPerUse === "number" &&
         typeof candidate.yearlyKwh === "number" &&
