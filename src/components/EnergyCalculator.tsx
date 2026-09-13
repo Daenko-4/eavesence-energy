@@ -1276,7 +1276,7 @@ export default function EnergyCalculator({
 
             <div className={`flex flex-wrap items-start gap-x-5 gap-y-2 ${homePresentation ? "mt-2" : "mt-3"}`}>
             <details className="group min-w-0 open:basis-full">
-          <summary className="calculator-secondary-action inline-flex cursor-pointer list-none items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)] [&::-webkit-details-marker]:hidden">
+          <summary className="calculator-secondary-action inline-flex cursor-pointer list-none items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)] [&::-webkit-details-marker]:hidden">
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
               <circle cx="8.5" cy="8.5" r="5.5" />
               <path d="m13 13 4 4" />
@@ -1342,7 +1342,7 @@ export default function EnergyCalculator({
                     current === "exact" ? "estimate" : "exact"
                   )
                 }
-                className="calculator-secondary-action inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)]"
+                className="calculator-secondary-action inline-flex items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)]"
               >
                 <svg
                   viewBox="0 0 20 20"
@@ -1407,7 +1407,7 @@ export default function EnergyCalculator({
               current === "exact" ? "estimate" : "exact"
             )
           }
-          className={`${homePresentation ? "mb-3" : "mb-5"} calculator-secondary-action inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)]`}
+          className={`${homePresentation ? "mb-3" : "mb-5"} calculator-secondary-action inline-flex items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)]`}
         >
           <svg
             viewBox="0 0 20 20"
@@ -1778,7 +1778,7 @@ export default function EnergyCalculator({
         <button
           type="button"
           onClick={handleReset}
-          className="calculator-secondary-action group inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[var(--brand-off-white)] active:scale-[0.98]"
+          className="calculator-secondary-action group inline-flex items-center gap-2 text-[#aebbb6] transition hover:text-[var(--brand-green-mint)] active:scale-[0.98]"
         >
           <span
             aria-hidden="true"
