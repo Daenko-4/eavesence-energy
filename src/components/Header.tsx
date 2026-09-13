@@ -379,13 +379,18 @@ export default function Header({
     if (window.location.hash !== "#faq") {
       window.history.pushState(null, "", faqHref);
     }
+    const faqWasOpen =
+      faqElement
+        .querySelector<HTMLElement>("[aria-controls='faq-answers']")
+        ?.getAttribute("aria-expanded") === "true";
     window.dispatchEvent(new Event("eavesence:open-faq"));
 
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
+    window.setTimeout(
+      () => {
         faqElement.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    });
+      },
+      faqWasOpen ? 0 : 340,
+    );
   }
 
   function handleLogoClick(event: MouseEvent<HTMLAnchorElement>) {
@@ -484,13 +489,13 @@ export default function Header({
               aria-expanded={desktopNavigationOpen}
               style={{
                 clipPath: desktopNavigationOpen
-                  ? "inset(0 158px 0 0)"
+                  ? "inset(0 173px 0 0)"
                   : "inset(0 0 0 0)",
                 transform: desktopNavigationOpen
                   ? "translate3d(0, -50%, 0)"
                   : "translate3d(285px, -50%, 0)",
               }}
-              className={`absolute left-0 top-1/2 z-20 flex h-full w-[190px] items-center gap-2.5 overflow-hidden transition-[transform,clip-path] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-transform motion-reduce:transition-none ${
+              className={`absolute left-0 top-1/2 z-20 flex h-full w-[205px] items-center gap-2.5 overflow-hidden transition-[transform,clip-path] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-transform motion-reduce:transition-none ${
                 desktopNavigationOpen
                   ? "delay-0"
                   : "delay-[250ms]"
@@ -499,7 +504,7 @@ export default function Header({
             >
               <BrandMark className="h-8 w-8 shrink-0" />
               <span
-                className={`w-[148px] shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
+                className={`w-[160px] shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                   desktopNavigationOpen
                     ? "opacity-0"
                     : "opacity-100 delay-[650ms]"

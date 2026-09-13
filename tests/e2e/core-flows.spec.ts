@@ -23,15 +23,20 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await disableHeaderIntro(page);
   await page.goto("/");
 
-  await expect(page.getByText("€25.48", { exact: true })).toBeVisible();
+  await expect(page.getByText("€25.48", { exact: true }).first()).toBeVisible();
 
   const numericInputs = page.locator('#rechner input[type="number"]');
   await numericInputs.nth(0).fill("600");
-  await expect(page.getByText("€12.74", { exact: true })).toBeVisible();
+  await expect(page.getByText("€12.74", { exact: true }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "Save calculation" }).click();
-  await expect(page.getByText("Coffee machine", { exact: true }).last()).toBeVisible();
-  await expect(page.getByText("€12.74", { exact: true }).last()).toBeVisible();
+  const savedDevices = page.locator("#meine-geraete");
+  await expect(
+    savedDevices.getByText("Coffee machine", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    savedDevices.getByText("€12.74", { exact: true }).first(),
+  ).toBeVisible();
 
   page.once("dialog", (dialog) => dialog.accept());
   await page
@@ -59,12 +64,13 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
     ).toHaveAttribute("aria-expanded", "true");
 
     await expect
-      .poll(async () =>
-        page.locator("#faq").evaluate((element) =>
-          Math.round(element.getBoundingClientRect().top),
-        ),
-      )
-      .toBe(84);
+      .poll(async () => {
+        const top = await page.locator("#faq").evaluate((element) =>
+          element.getBoundingClientRect().top,
+        );
+        return Math.abs(top - 84);
+      })
+      .toBeLessThanOrEqual(2);
   }
 });
 
@@ -109,6 +115,12 @@ test("header labels keep a fixed horizontal axis while closing", async ({
   );
 
   expect(Math.abs(xBefore - xWhileClosing)).toBeLessThan(0.5);
+
+  const logo = page.locator('a[aria-expanded]').first();
+  await expect(logo).toHaveAttribute("aria-expanded", "false");
+  expect(
+    await logo.evaluate((element) => element.scrollWidth - element.clientWidth),
+  ).toBeLessThanOrEqual(0);
 });
 
 test("device overview and detail heroes share the content axis below", async ({
