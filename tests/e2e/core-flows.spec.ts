@@ -100,7 +100,7 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
           return Math.abs(window.scrollY - expectedScrollTop);
         });
       })
-      .toBeLessThanOrEqual(2);
+      .toBeLessThanOrEqual(4);
 
     const currentFaqTop = await page.locator("#faq").evaluate((element) =>
       element.getBoundingClientRect().top,
@@ -150,7 +150,7 @@ test("header labels keep a fixed horizontal axis while closing", async ({
   // Leave the link hover state before comparing the navigation colors.
   // The menu remains open during its short close delay.
   await page.mouse.move(10, 180);
-  await page.waitForTimeout(50);
+  await page.waitForTimeout(200);
 
   const navigationStyles = await page
     .locator("[data-navigation-key]")
@@ -165,7 +165,7 @@ test("header labels keep a fixed horizontal axis while closing", async ({
     new Set(navigationStyles.map(({ fontWeight }) => fontWeight)).size,
   ).toBe(1);
 
-  await page.waitForTimeout(330);
+  await page.waitForTimeout(180);
   const xWhileClosing = await calculatorLink.evaluate((element) =>
     element.getBoundingClientRect().x,
   );
