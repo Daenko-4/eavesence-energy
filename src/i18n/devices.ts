@@ -55,10 +55,10 @@ const deviceTranslations: Record<
       category: "Kitchen",
       slug: "refrigerator",
       description:
-        "Estimate the running electricity cost of your refrigerator using a typical average power draw.",
+        "Calculate your refrigerator's electricity cost directly from the annual consumption on its energy label.",
       tip:
         "Set it to about 7 °C, keep the door seals clean and allow hot food to cool before storing it.",
-      dataBasis: "Average power × continuous operation",
+      dataBasis: "EU energy label / annual consumption",
       dataNote:
         "Estimate based on roughly 200 kWh per year. Refrigerators cycle automatically; the annual figure on your appliance's energy label is more accurate.",
     },
@@ -73,7 +73,7 @@ const deviceTranslations: Record<
         "Estimate the annual electricity cost of your upright or chest freezer.",
       tip:
         "Defrost heavy ice build-up, check the seal and place the appliance in a cool location where possible.",
-      dataBasis: "Average power × continuous operation",
+      dataBasis: "EU energy label / annual consumption",
       dataNote:
         "Estimate based on roughly 225 kWh per year. Design, age, location and energy label can significantly affect actual consumption.",
     },
@@ -477,6 +477,51 @@ const deviceTranslations: Record<
       dataBasis: "Power × continuous operation",
       dataNote:
         "Typical value for a router without additional network equipment. Model, wireless standard and enabled features affect power consumption.",
+    },
+  },
+
+  Aquarium: {
+    en: {
+      name: "Aquarium",
+      category: "Household",
+      slug: "aquarium",
+      description:
+        "Estimate the running electricity cost of your aquarium's filter, pump, lighting and heater.",
+      tip:
+        "Use efficient pumps and LED lighting, and check the temperature regularly.",
+      dataBasis: "Average power × continuous operation",
+      dataNote:
+        "Typical value for average total power. Tank size, heating, lighting and pump technology can significantly affect consumption.",
+    },
+  },
+
+  Luftreiniger: {
+    en: {
+      name: "Air purifier",
+      category: "Room climate",
+      slug: "air-purifier",
+      description:
+        "Calculate the electricity cost of an air purifier from its power and daily running time.",
+      tip:
+        "Use automatic mode and clean or replace filters according to the manufacturer's guidance.",
+      dataBasis: "Power × daily runtime",
+      dataNote:
+        "Typical value. Fan speed, room size, filter condition and automatic mode affect power consumption.",
+    },
+  },
+
+  NAS: {
+    en: {
+      name: "NAS",
+      category: "Office",
+      slug: "nas",
+      description:
+        "Estimate the running electricity cost of a NAS system operating continuously.",
+      tip:
+        "Enable drive hibernation and schedules when the system does not need to be available around the clock.",
+      dataBasis: "Average power × continuous operation",
+      dataNote:
+        "Typical value for a small NAS. Drive count and type, workload and additional services affect consumption.",
     },
   },
 

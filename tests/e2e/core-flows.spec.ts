@@ -47,6 +47,26 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   ).toHaveCount(0);
 });
 
+test("annual and continuous devices show the right usage inputs", async ({
+  page,
+}) => {
+  await disableHeaderIntro(page);
+  await page.goto("/");
+
+  const deviceSelect = page.locator("#rechner select").first();
+
+  await deviceSelect.selectOption({ label: "Refrigerator" });
+  await expect(
+    page.getByText("Consumption per year", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.getByText("€70.00", { exact: true }).first()).toBeVisible();
+
+  await deviceSelect.selectOption({ label: "Wi-Fi router" });
+  await expect(page.getByText("Hours per day", { exact: true })).toBeVisible();
+  await expect(page.getByText("Days per week", { exact: true })).toBeVisible();
+  await expect(page.getByText("€30.58", { exact: true }).first()).toBeVisible();
+});
+
 test("FAQ navigation opens the answers and reaches one stable position", async ({
   page,
 }) => {

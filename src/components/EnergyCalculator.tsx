@@ -4,7 +4,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import DeviceCategoryIcon from "@/components/DeviceCategoryIcon";
-import { devices } from "@/data/devices";
+import {
+  devices,
+  getDeviceCalculationDefaults,
+  getDeviceTypicalYearlyKwh,
+} from "@/data/devices";
 import { getDevicesHref, type Locale } from "@/i18n/config";
 import {
   getLocalizedCategory,
@@ -109,6 +113,11 @@ const calculatorText = {
       consumptionPerUse: "Verbrauch pro Nutzung",
       actualConsumptionPerUse:
         "Tatsächlicher Verbrauch pro Nutzung",
+      actualConsumptionPerDay:
+        "Tatsächlicher Verbrauch pro Betriebstag",
+      annualConsumption: "Verbrauch pro Jahr",
+      hoursPerDay: "Stunden pro Tag",
+      daysPerWeek: "Tage pro Woche",
       electricityPrice: "Strompreis",
       currency: "Währung",
       usesPerWeek: "Nutzungen pro Woche",
@@ -127,6 +136,12 @@ const calculatorText = {
         "Orientierungswert – passe ihn an, wenn du einen besseren Wert für dein Gerät oder Programm kennst.",
       measuredConsumption:
         "Zum Beispiel ein Wert aus einem Strommessgerät oder einer Herstellerangabe.",
+      annualConsumption:
+        "Übernimm den kWh/Jahr-Wert direkt vom Energielabel deines Geräts.",
+      hoursPerDay:
+        "Wie viele Stunden das Gerät an einem typischen Tag läuft.",
+      daysPerWeek:
+        "An wie vielen Tagen pro Woche das Gerät läuft.",
       electricityPrice:
         "Deinen Arbeitspreis findest du auf deiner Stromrechnung.",
       usesPerWeek:
@@ -151,6 +166,10 @@ const calculatorText = {
         "Die angegebene Nutzungsdauer liegt über 24 Stunden pro Nutzung.",
       highConsumption:
         "Mehr als 50 kWh pro Nutzung ist für ein typisches Haushaltsgerät ungewöhnlich.",
+      longDailyRuntime:
+        "Mehr als 24 Stunden pro Tag sind nicht möglich. Prüfe bitte deine Eingabe.",
+      manyDays:
+        "Mehr als 7 Tage pro Woche sind nicht möglich. Prüfe bitte deine Eingabe.",
     },
 
     result: {
@@ -189,6 +208,7 @@ const calculatorText = {
       yearlyCost: "Kosten pro Jahr",
       yearlyConsumption: "Verbrauch pro Jahr",
       perUse: "Kosten pro Nutzung",
+      perDay: "Kosten pro Betriebstag",
       lowerBy: "Günstiger pro Jahr",
       same: "Beide Varianten kosten ungefähr gleich viel.",
       typicalNote:
@@ -250,6 +270,11 @@ const calculatorText = {
       consumptionPerUse: "Consumption per use",
       actualConsumptionPerUse:
         "Actual consumption per use",
+      actualConsumptionPerDay:
+        "Actual consumption per operating day",
+      annualConsumption: "Consumption per year",
+      hoursPerDay: "Hours per day",
+      daysPerWeek: "Days per week",
       electricityPrice: "Electricity price",
       currency: "Currency",
       usesPerWeek: "Uses per week",
@@ -268,6 +293,12 @@ const calculatorText = {
         "Typical value – adjust it if you know a more accurate figure for your device or program.",
       measuredConsumption:
         "For example, a value from an electricity meter or manufacturer specification.",
+      annualConsumption:
+        "Enter the kWh/year figure shown on your appliance's energy label.",
+      hoursPerDay:
+        "How many hours the device runs on a typical day.",
+      daysPerWeek:
+        "How many days per week the device runs.",
       electricityPrice:
         "You can find your electricity price on your electricity bill.",
       usesPerWeek:
@@ -292,6 +323,10 @@ const calculatorText = {
         "The entered usage duration is longer than 24 hours per use.",
       highConsumption:
         "More than 50 kWh per use is unusual for a typical household device.",
+      longDailyRuntime:
+        "A day cannot have more than 24 running hours. Please check your entry.",
+      manyDays:
+        "A week cannot have more than 7 running days. Please check your entry.",
     },
 
     result: {
@@ -330,6 +365,7 @@ const calculatorText = {
       yearlyCost: "Cost per year",
       yearlyConsumption: "Consumption per year",
       perUse: "Cost per use",
+      perDay: "Cost per operating day",
       lowerBy: "Lower per year",
       same: "Both options cost approximately the same.",
       typicalNote:
@@ -434,17 +470,15 @@ export default function EnergyCalculator({
     devices.find((item) => item.name === initialDevice) ??
     devices[0];
 
-  const initialWatts = initialDeviceData.watts ?? 0;
-  const initialMinutes =
-    initialDeviceData.typicalMinutes ?? 0;
-  const initialUses =
-    initialDeviceData.typicalUsesPerWeek ?? 1;
-  const initialEstimatedKwh =
-    initialDeviceData.kwhPerUse ?? 0;
+  const initialDefaults = getDeviceCalculationDefaults(initialDeviceData);
+  const initialWatts = initialDefaults.watts;
+  const initialMinutes = initialDefaults.minutesPerUse;
+  const initialUses = initialDefaults.usesPerWeek;
+  const initialEstimatedKwh = initialDefaults.estimatedKwhPerUse;
 
   const initialMeasuredKwh =
     initialDeviceData.calculationType === "consumption"
-      ? initialDeviceData.kwhPerUse ?? 0
+      ? initialEstimatedKwh
       : (initialWatts / 1000) *
         (initialMinutes / 60);
 
@@ -471,7 +505,9 @@ export default function EnergyCalculator({
     initialComparisonDevice.name
   );
   const [comparisonUsesPerWeek, setComparisonUsesPerWeek] =
-    useState<NumericInput>(initialComparisonDevice.typicalUsesPerWeek ?? 1);
+    useState<NumericInput>(
+      getDeviceCalculationDefaults(initialComparisonDevice).usesPerWeek
+    );
 
   const [
     activeSavedDeviceId,
@@ -579,6 +615,12 @@ export default function EnergyCalculator({
     selectedDevice?.calculationType ===
       "consumption";
 
+  const isAnnualDevice =
+    selectedDevice?.usagePattern === "annual";
+
+  const isContinuousDevice =
+    selectedDevice?.usagePattern === "continuous";
+
   const localizedSelectedDevice = selectedDevice
     ? getLocalizedDevice(
         selectedDevice,
@@ -636,18 +678,17 @@ export default function EnergyCalculator({
       return;
     }
 
-    setWatts(selected.watts ?? 0);
+    const defaults = getDeviceCalculationDefaults(selected);
 
-    setMinutesPerUse(
-      selected.typicalMinutes ?? 0
-    );
+    setWatts(defaults.watts);
+    setMinutesPerUse(defaults.minutesPerUse);
 
-    const selectedUses = selected.typicalUsesPerWeek ?? 1;
+    const selectedUses = defaults.usesPerWeek;
     setUsesPerWeek(selectedUses);
     setScenarioUsesPerWeek(Math.max(0, selectedUses - 1));
 
     setEstimatedKwhPerUse(
-      selected.kwhPerUse ?? 0
+      defaults.estimatedKwhPerUse
     );
 
     if (
@@ -655,13 +696,12 @@ export default function EnergyCalculator({
       "consumption"
     ) {
       setMeasuredKwhPerUse(
-        selected.kwhPerUse ?? 0
+        defaults.estimatedKwhPerUse
       );
     } else {
       const estimatedConsumption =
-        ((selected.watts ?? 0) / 1000) *
-        ((selected.typicalMinutes ?? 0) /
-          60);
+        (defaults.watts / 1000) *
+        (defaults.minutesPerUse / 60);
 
       setMeasuredKwhPerUse(
         Number(
@@ -686,7 +726,9 @@ export default function EnergyCalculator({
     );
     if (alternative) {
       setComparisonDeviceName(alternative.name);
-      setComparisonUsesPerWeek(alternative.typicalUsesPerWeek ?? 1);
+      setComparisonUsesPerWeek(
+        getDeviceCalculationDefaults(alternative).usesPerWeek
+      );
     }
 
     if (name !== CUSTOM_DEVICE) {
@@ -709,7 +751,9 @@ export default function EnergyCalculator({
     if (!comparisonDevice) return;
 
     setComparisonDeviceName(name);
-    setComparisonUsesPerWeek(comparisonDevice.typicalUsesPerWeek ?? 1);
+    setComparisonUsesPerWeek(
+      getDeviceCalculationDefaults(comparisonDevice).usesPerWeek
+    );
   }
 
   function handleOpenSavedDevice(item: SavedDevice) {
@@ -747,7 +791,9 @@ export default function EnergyCalculator({
       );
       if (alternative) {
         setComparisonDeviceName(alternative.name);
-        setComparisonUsesPerWeek(alternative.typicalUsesPerWeek ?? 1);
+        setComparisonUsesPerWeek(
+          getDeviceCalculationDefaults(alternative).usesPerWeek
+        );
       }
     }
     window.localStorage.setItem(
@@ -906,9 +952,13 @@ export default function EnergyCalculator({
     electricityPrice: priceValue,
   });
   const supportsUsageScenario =
-    isCustomDevice || (selectedDevice?.typicalMinutes ?? 0) < 1440;
+    !isAnnualDevice;
   const calculationFormula =
-    mode === "estimate" && isPowerDevice
+    mode === "estimate" && isAnnualDevice
+      ? `${formatNumber(estimatedKwhPerUseValue, activeLocale, 0, 1)} kWh/${activeLocale === "de" ? "Jahr" : "year"} × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
+      : mode === "estimate" && isContinuousDevice
+        ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue / 60, activeLocale, 0, 1)} h/${activeLocale === "de" ? "Tag" : "day"} × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} ${activeLocale === "de" ? "Tage/Woche" : "days/week"} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
+      : mode === "estimate" && isPowerDevice
       ? `${formatNumber(wattsValue, activeLocale, 0, 0)} W ÷ 1.000 × ${formatNumber(minutesPerUseValue, activeLocale, 0, 1)} min ÷ 60 × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`
       : `${formatNumber(actualKwhPerUse, activeLocale, 0, 3)} kWh × ${formatNumber(usesPerWeekValue, activeLocale, 0, 1)} × 52 × ${formatMoney(priceValue, activeLocale, currency)}/kWh`;
 
@@ -926,13 +976,20 @@ export default function EnergyCalculator({
     comparisonDevice,
     activeLocale
   );
+  const comparisonDefaults = getDeviceCalculationDefaults(comparisonDevice);
   const comparisonKwhPerUse =
     comparisonDevice.calculationType === "consumption"
-      ? comparisonDevice.kwhPerUse ?? 0
-      : ((comparisonDevice.watts ?? 0) / 1000) *
-        ((comparisonDevice.typicalMinutes ?? 0) / 60);
-  const comparisonUsesValue = numericValue(comparisonUsesPerWeek);
-  const comparisonYearlyKwh = comparisonKwhPerUse * comparisonUsesValue * 52;
+      ? comparisonDefaults.estimatedKwhPerUse
+      : (comparisonDefaults.watts / 1000) *
+        (comparisonDefaults.minutesPerUse / 60);
+  const comparisonUsesValue =
+    comparisonDevice.usagePattern === "annual"
+      ? comparisonDefaults.usesPerWeek
+      : numericValue(comparisonUsesPerWeek);
+  const comparisonYearlyKwh =
+    comparisonDevice.usagePattern === "annual"
+      ? getDeviceTypicalYearlyKwh(comparisonDevice)
+      : comparisonKwhPerUse * comparisonUsesValue * 52;
   const comparisonYearlyCost = comparisonYearlyKwh * priceValue;
   const comparisonCostPerUse = comparisonKwhPerUse * priceValue;
   const comparisonDifference = Math.abs(yearlyCost - comparisonYearlyCost);
@@ -952,6 +1009,14 @@ export default function EnergyCalculator({
     );
   }
 
+  if (isContinuousDevice && usesPerWeekValue > 7) {
+    warnings.push(text.warnings.manyDays);
+  }
+
+  if (isContinuousDevice && minutesPerUseValue > 1440) {
+    warnings.push(text.warnings.longDailyRuntime);
+  }
+
   if (
     mode === "estimate" &&
     isPowerDevice &&
@@ -965,6 +1030,7 @@ export default function EnergyCalculator({
   if (
     mode === "estimate" &&
     isPowerDevice &&
+    !isContinuousDevice &&
     minutesPerUseValue > 1440
   ) {
     warnings.push(
@@ -1303,28 +1369,31 @@ export default function EnergyCalculator({
 
               <div>
                 <label className={fieldLabelClassName}>
-                  {
-                    text.fields
-                      .minutesPerUse
-                  }
+                  {isContinuousDevice
+                    ? text.fields.hoursPerDay
+                    : text.fields.minutesPerUse}
                 </label>
 
                 <input
                   type="number"
                   min="0"
-                  step="1"
+                  max={isContinuousDevice ? 24 : undefined}
+                  step={isContinuousDevice ? "0.5" : "1"}
                   value={
-                    minutesPerUse
+                    isContinuousDevice && minutesPerUse !== ""
+                      ? minutesPerUse / 60
+                      : minutesPerUse
                   }
                   onFocus={
                     handleCalculatorFieldFocus
                   }
                   onChange={(event) =>
-                    setMinutesPerUse(
-                      parseNumericInput(
-                        event.target.value
-                      )
-                    )
+                    setMinutesPerUse(() => {
+                      const nextValue = parseNumericInput(event.target.value);
+                      return isContinuousDevice && nextValue !== ""
+                        ? nextValue * 60
+                        : nextValue;
+                    })
                   }
                   className={
                     fieldClassName
@@ -1332,7 +1401,9 @@ export default function EnergyCalculator({
                 />
 
                 <p className={fieldHintClassName}>
-                  {isCustomDevice
+                  {isContinuousDevice
+                    ? text.hints.hoursPerDay
+                    : isCustomDevice
                     ? text.hints
                         .customMinutes
                     : text.hints
@@ -1348,7 +1419,9 @@ export default function EnergyCalculator({
               <label className={fieldLabelClassName}>
                 {
                   text.fields
-                    .consumptionPerUse
+                    [isAnnualDevice
+                      ? "annualConsumption"
+                      : "consumptionPerUse"]
                 }
               </label>
 
@@ -1380,8 +1453,9 @@ export default function EnergyCalculator({
 
               <p className={fieldHintClassName}>
                 {
-                  text.hints
-                    .estimatedConsumption
+                  isAnnualDevice
+                    ? text.hints.annualConsumption
+                    : text.hints.estimatedConsumption
                 }
               </p>
             </div>
@@ -1391,8 +1465,9 @@ export default function EnergyCalculator({
           <div>
             <label className={fieldLabelClassName}>
               {
-                text.fields
-                  .actualConsumptionPerUse
+                isContinuousDevice
+                  ? text.fields.actualConsumptionPerDay
+                  : text.fields.actualConsumptionPerUse
               }
             </label>
 
@@ -1493,17 +1568,17 @@ export default function EnergyCalculator({
         </div>
 
         {/* Uses */}
-        <div>
+        {!isAnnualDevice && <div>
           <label className={fieldLabelClassName}>
-            {
-              text.fields
-                .usesPerWeek
-            }
+            {isContinuousDevice
+              ? text.fields.daysPerWeek
+              : text.fields.usesPerWeek}
           </label>
 
           <input
             type="number"
             min="0"
+            max={isContinuousDevice ? 7 : undefined}
             step="0.1"
             value={usesPerWeek}
             onFocus={
@@ -1530,9 +1605,11 @@ export default function EnergyCalculator({
           />
 
           <p className={fieldHintClassName}>
-            {text.hints.usesPerWeek}
+            {isContinuousDevice
+              ? text.hints.daysPerWeek
+              : text.hints.usesPerWeek}
           </p>
-        </div>
+        </div>}
       </div>
 
       <div className={`${homePresentation ? "mt-5" : "mt-6"} flex items-center justify-between gap-4`}>
@@ -1819,9 +1896,11 @@ export default function EnergyCalculator({
                     ))}
                   </select>
                 </div>
-                <div>
+                {comparisonDevice.usagePattern !== "annual" && <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    {text.comparison.uses}
+                    {comparisonDevice.usagePattern === "continuous"
+                      ? text.fields.daysPerWeek
+                      : text.comparison.uses}
                   </label>
                   <input
                     type="number"
@@ -1835,7 +1914,7 @@ export default function EnergyCalculator({
                     }
                     className={secondaryFieldClassName}
                   />
-                </div>
+                </div>}
               </div>
 
               <p className="mt-3 text-xs leading-5 text-slate-500">
@@ -1851,6 +1930,11 @@ export default function EnergyCalculator({
                     yearly: yearlyCost,
                     kwh: yearlyKwh,
                     perUse: costPerUse,
+                    usagePattern: isAnnualDevice
+                      ? "annual"
+                      : isContinuousDevice
+                        ? "continuous"
+                        : "perUse",
                     cheaper: currentIsCheaper,
                   },
                   {
@@ -1860,6 +1944,7 @@ export default function EnergyCalculator({
                     yearly: comparisonYearlyCost,
                     kwh: comparisonYearlyKwh,
                     perUse: comparisonCostPerUse,
+                    usagePattern: comparisonDevice.usagePattern ?? "perUse",
                     cheaper: !currentIsCheaper,
                   },
                 ].map((option) => (
@@ -1894,7 +1979,11 @@ export default function EnergyCalculator({
                       </div>
                       <div>
                         <p className="text-xs text-slate-500">
-                          {text.comparison.perUse}
+                          {option.usagePattern === "annual"
+                            ? text.comparison.yearlyCost
+                            : option.usagePattern === "continuous"
+                              ? text.comparison.perDay
+                              : text.comparison.perUse}
                         </p>
                         <p className="mt-1 font-semibold text-slate-900">
                           {formatMoney(option.perUse, activeLocale, currency)}

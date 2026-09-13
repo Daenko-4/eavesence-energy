@@ -68,6 +68,8 @@ const pageText = {
     searchPlaceholder: "z. B. Waschmaschine oder Laptop",
     noResults: "Kein passendes Gerät gefunden.",
     perUse: "pro Nutzung",
+    perYear: "pro Jahr",
+    continuous: "Dauerbetrieb",
 
     ctaTitle: "Dein Gerät ist nicht dabei?",
 
@@ -93,6 +95,8 @@ const pageText = {
     searchPlaceholder: "e.g. washing machine or laptop",
     noResults: "No matching device found.",
     perUse: "per use",
+    perYear: "per year",
+    continuous: "continuous operation",
 
     ctaTitle: "Can't find your device?",
 
@@ -455,8 +459,17 @@ export default function DevicesPage({
                               : `/en/devices/${localizedDevice.slug}`;
 
                           const typicalValue =
-                            device.calculationType === "power"
-                              ? `${device.watts ?? 0} W`
+                            device.usagePattern === "annual"
+                              ? `${(device.annualKwh ?? 0).toLocaleString(
+                                  locale === "de" ? "de-DE" : "en-GB",
+                                  { maximumFractionDigits: 1 }
+                                )} kWh ${text.perYear}`
+                              : device.calculationType === "power"
+                              ? `${device.watts ?? 0} W${
+                                  device.usagePattern === "continuous"
+                                    ? ` · ${text.continuous}`
+                                    : ""
+                                }`
                               : `${(device.kwhPerUse ?? 0).toLocaleString(
                                   locale === "de" ? "de-DE" : "en-GB",
                                   { maximumFractionDigits: 2 }
