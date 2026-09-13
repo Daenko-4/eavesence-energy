@@ -1664,7 +1664,7 @@ export default function EnergyCalculator({
                     step={usesPerWeekValue <= 10 ? 0.5 : 1}
                     value={scenarioUsesPerWeekValue}
                     onChange={(event) => setScenarioUsesPerWeek(Number(event.target.value))}
-                    className="h-6 min-w-0 flex-1 cursor-pointer accent-[var(--brand-green)]"
+                    className="calculator-scenario-slider h-6 min-w-0 flex-1 cursor-pointer"
                     aria-label={text.result.scenarioText}
                   />
                   <span className="min-w-[5.5rem] text-right text-[11px] font-medium text-[#66736e] tabular-nums">

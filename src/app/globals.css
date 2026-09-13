@@ -81,6 +81,55 @@ body {
   line-height: 1rem;
 }
 
+.calculator-scenario-slider {
+  appearance: none;
+  background: transparent;
+}
+
+.calculator-scenario-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: #cfd8d1;
+}
+
+.calculator-scenario-slider::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4.5px;
+  appearance: none;
+  border: 2px solid #f6f6f0;
+  border-radius: 999px;
+  background: var(--brand-green-mint);
+  box-shadow: 0 0 0 1px rgba(8, 122, 69, 0.18);
+}
+
+.calculator-scenario-slider::-moz-range-track {
+  height: 3px;
+  border: 0;
+  border-radius: 999px;
+  background: #cfd8d1;
+}
+
+.calculator-scenario-slider::-moz-range-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(8, 122, 69, 0.42);
+}
+
+.calculator-scenario-slider::-moz-range-thumb {
+  width: 8px;
+  height: 8px;
+  border: 2px solid #f6f6f0;
+  border-radius: 999px;
+  background: var(--brand-green-mint);
+  box-shadow: 0 0 0 1px rgba(8, 122, 69, 0.18);
+}
+
+.calculator-scenario-slider:focus-visible {
+  outline: 2px solid var(--brand-green-mint);
+  outline-offset: 3px;
+}
+
 .saved-device-utility-action {
   font-size: 0.6875rem;
   font-weight: 650;
