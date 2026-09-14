@@ -188,6 +188,53 @@ test("desktop navigation opens after the logo intro and stays open", async ({
   });
 });
 
+test("subpages show the open header immediately without replaying the logo intro", async ({
+  page,
+}) => {
+  for (const path of [
+    "/en/devices",
+    "/en/devices/refrigerator",
+    "/en/privacy",
+    "/en/imprint",
+    "/datenschutz",
+    "/impressum",
+  ]) {
+    await page.goto(path);
+
+    const header = page.locator("header");
+    await expect(header.locator('a[aria-expanded]').first()).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    await expect(
+      header.locator(".eavesence-logo-load-animation"),
+    ).toHaveCount(0);
+    await expect(header.locator("nav").first()).toBeVisible();
+  }
+});
+
+test("all feedback links use the eavesence address", async ({ page }) => {
+  for (const { path, homeHref } of [
+    { path: "/", homeHref: "/" },
+    { path: "/en/privacy", homeHref: "/" },
+    { path: "/en/imprint", homeHref: "/" },
+    { path: "/datenschutz", homeHref: "/de" },
+    { path: "/impressum", homeHref: "/de" },
+  ]) {
+    await page.goto(path);
+    const emailLinks = page.locator('a[href^="mailto:"]');
+    await expect(emailLinks.first()).toBeVisible();
+    await expect(emailLinks).toHaveAttribute(
+      "href",
+      /^mailto:feedback@eavesence\.com(?:\?|$)/,
+    );
+
+    if (path !== "/") {
+      await expect(page.locator(`main a[href="${homeHref}"]`)).toHaveCount(1);
+    }
+  }
+});
+
 test("header labels keep a fixed horizontal axis while staying open", async ({
   page,
 }) => {

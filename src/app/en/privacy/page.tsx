@@ -28,14 +28,6 @@ export default function PrivacyPage() {
       <Header locale="en" />
 
       <main className="mx-auto max-w-3xl px-5 py-10 sm:px-6 sm:py-12">
-        <Link
-          href="/"
-          scroll
-          className="inline-flex text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
-        >
-          ← Back to the EAVESENCE home page
-        </Link>
-
         <div className="mt-8">
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
             Legal
@@ -64,10 +56,10 @@ export default function PrivacyPage() {
               <p>
                 Email:{" "}
                 <a
-                  href="mailto:parkwaydrive@gmx.at"
+                  href="mailto:feedback@eavesence.com"
                   className="font-medium text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]"
                 >
-                  parkwaydrive@gmx.at
+                  feedback@eavesence.com
                 </a>
               </p>
             </div>
