@@ -169,6 +169,24 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
   }
 });
 
+test("footer FAQ navigation opens the answers from the page end", async ({
+  page,
+}) => {
+  await disableHeaderIntro(page);
+  await page.goto("/");
+  await page.locator("footer").scrollIntoViewIfNeeded();
+
+  await page
+    .locator("footer")
+    .getByRole("link", { name: "Frequently asked questions", exact: true })
+    .click();
+
+  await expect(page).toHaveURL(/#faq$/);
+  await expect(
+    page.getByRole("button", { name: /Answers about your calculator/ }),
+  ).toHaveAttribute("aria-expanded", "true");
+});
+
 test("desktop navigation opens after the logo intro and stays open", async ({
   page,
 }) => {
