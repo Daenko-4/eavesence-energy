@@ -33,20 +33,19 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   const calculatorForm = page.locator("[data-calculator-form]");
   const heightBeforeHelp =
     (await calculatorForm.boundingBox())?.height ?? 0;
-  const prefilledDetails = page.locator("[data-prefilled-help]");
-  const helpTrigger = prefilledDetails.locator(
-    'summary[aria-label="Information about typical values"]',
+  const helpTrigger = page.locator("[data-prefilled-help-trigger]");
+  await expect(helpTrigger).toHaveAttribute("aria-expanded", "false");
+  await expect(helpTrigger).toHaveAttribute(
+    "aria-label",
+    "Information about typical values",
   );
-  await expect(prefilledDetails).not.toHaveAttribute("open", "");
   await helpTrigger.click();
-  await expect(prefilledDetails).toHaveAttribute("open", "");
+  await expect(helpTrigger).toHaveAttribute("aria-expanded", "true");
 
-  const helpPanel = prefilledDetails.locator(
-    "[data-prefilled-help-panel]",
-  );
+  const helpPanel = page.locator("[data-prefilled-help-panel]");
   await expect(
     helpPanel.getByText(
-      "Typical values are estimates. Actual consumption varies by model, settings and usage.",
+      "Typical values are estimates and may vary by model and usage.",
       { exact: true },
     ),
   ).toBeVisible();
@@ -64,8 +63,16 @@ test("calculator updates live and a saved calculation can be deleted", async ({
     throw new Error("Help panel or device field is not visible");
   }
   expect(Math.abs(helpBox.x - deviceBox.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(helpBox.y - deviceBox.y)).toBeLessThanOrEqual(1);
   expect(Math.abs(helpBox.width - deviceBox.width)).toBeLessThanOrEqual(1);
-  expect(helpBox.y).toBeLessThan(deviceBox.y + deviceBox.height);
+  expect(Math.abs(helpBox.height - deviceBox.height)).toBeLessThanOrEqual(1);
+
+  await page.mouse.click(
+    helpBox.x + helpBox.width / 2,
+    helpBox.y + helpBox.height / 2,
+  );
+  await expect(helpTrigger).toHaveAttribute("aria-expanded", "false");
+  await expect(helpPanel).toHaveCount(0);
 
   await expect(page.getByText("€25.48", { exact: true }).first()).toBeVisible();
 

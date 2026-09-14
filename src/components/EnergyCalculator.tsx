@@ -100,7 +100,7 @@ const calculatorText = {
         "Typische Werte sind vorausgefüllt – bei Bedarf anpassen.",
       prefilledQuestion: "Informationen zu typischen Werten",
       prefilledExplanation:
-        "Typische Werte sind Schätzwerte. Der tatsächliche Verbrauch variiert je nach Modell, Einstellung und Nutzung.",
+        "Typische Werte sind Schätzwerte und können je nach Modell und Nutzung abweichen.",
       search: "Gerät suchen",
       searchPlaceholder: "z. B. Waschmaschine",
       recent: "Zuletzt verwendet",
@@ -267,7 +267,7 @@ const calculatorText = {
         "Typical values are prefilled – adjust if needed.",
       prefilledQuestion: "Information about typical values",
       prefilledExplanation:
-        "Typical values are estimates. Actual consumption varies by model, settings and usage.",
+        "Typical values are estimates and may vary by model and usage.",
       search: "Search devices",
       searchPlaceholder: "e.g. Washing machine",
       recent: "Recently used",
@@ -573,6 +573,29 @@ export default function EnergyCalculator({
     devices.find((item) => item.name !== initialDeviceData.name) ?? devices[0];
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [calculationDetailsOpen, setCalculationDetailsOpen] = useState(false);
+  const [prefilledHelpOpen, setPrefilledHelpOpen] = useState(false);
+
+  useEffect(() => {
+    if (!prefilledHelpOpen) {
+      return;
+    }
+
+    const closeHelp = () => setPrefilledHelpOpen(false);
+    const closeHelpWithKeyboard = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeHelp();
+      }
+    };
+
+    document.addEventListener("pointerdown", closeHelp);
+    document.addEventListener("keydown", closeHelpWithKeyboard);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeHelp);
+      document.removeEventListener("keydown", closeHelpWithKeyboard);
+    };
+  }, [prefilledHelpOpen]);
+
   const [comparisonDeviceName, setComparisonDeviceName] = useState(
     initialComparisonDevice.name
   );
@@ -1190,7 +1213,7 @@ export default function EnergyCalculator({
 
       {/* Device */}
       <div className={homePresentation ? "mb-7" : "mb-6"}>
-        <div className="calculator-field-label relative mb-3 flex min-w-0 items-start gap-1.5 text-[12px] font-semibold leading-5">
+        <div className="calculator-field-label relative mb-5 flex min-w-0 items-start gap-1.5 text-[12px] font-semibold leading-5">
           {homePresentation && (
             <svg
               viewBox="0 0 20 20"
@@ -1212,28 +1235,23 @@ export default function EnergyCalculator({
               : text.device.label}
           </span>
           {homePresentation && (
-            <details
-              data-prefilled-help
-              className="group static ml-auto shrink-0"
+            <button
+              type="button"
+              data-prefilled-help-trigger
+              aria-label={text.device.prefilledQuestion}
+              aria-controls="prefilled-values-help"
+              aria-expanded={prefilledHelpOpen}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={() => setPrefilledHelpOpen((open) => !open)}
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--brand-green-mint)] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50"
             >
-              <summary
-                aria-label={text.device.prefilledQuestion}
-                className="flex h-5 w-5 cursor-pointer list-none items-center justify-center rounded-sm text-[var(--brand-green-mint)] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50 [&::-webkit-details-marker]:hidden"
+              <span
+                className={`flex h-5 w-5 origin-center items-center justify-center text-lg leading-none transition-transform duration-[180ms] ${prefilledHelpOpen ? "-rotate-45" : "rotate-0"}`}
+                aria-hidden="true"
               >
-                <span
-                  className="flex h-5 w-5 origin-center items-center justify-center text-lg leading-none transition-transform duration-[180ms] group-open:-rotate-45"
-                  aria-hidden="true"
-                >
-                  +
-                </span>
-              </summary>
-              <p
-                data-prefilled-help-panel
-                className="absolute inset-x-0 top-full z-30 mt-2 rounded-xl border border-[var(--brand-green-mint)]/20 bg-[#24312d] px-4 py-3 text-[11px] font-medium leading-[1.55] text-[#c5d0cc] shadow-[0_14px_35px_-18px_rgba(0,0,0,0.85)]"
-              >
-                {text.device.prefilledExplanation}
-              </p>
-            </details>
+                +
+              </span>
+            </button>
           )}
         </div>
         {detailPage ? (
@@ -1325,6 +1343,16 @@ export default function EnergyCalculator({
             </option>
           </optgroup>
               </select>
+              {homePresentation && prefilledHelpOpen && (
+                <p
+                  id="prefilled-values-help"
+                  data-prefilled-help-panel
+                  role="status"
+                  className="absolute inset-0 z-30 flex items-center rounded-xl border border-[var(--brand-green-mint)]/25 bg-[#24312d] px-4 text-[10px] font-medium leading-[1.35] text-[#d2dbd8] shadow-[0_14px_35px_-18px_rgba(0,0,0,0.85)] sm:text-[11px]"
+                >
+                  {text.device.prefilledExplanation}
+                </p>
+              )}
             </div>
 
             <div className={`flex flex-wrap items-start gap-x-5 gap-y-2 ${homePresentation ? "mt-2" : "mt-3"}`}>
