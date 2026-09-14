@@ -111,6 +111,25 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-xl font-bold text-slate-950">
+              Local browser storage
+            </h2>
+
+            <p className="mt-3 leading-7">
+              When you use “My devices”, your saved calculations are stored
+              exclusively in your browser&apos;s local storage. Your selected
+              currency and recently used devices may also be stored there. This
+              data is not sent to EAVESENCE Energy.
+            </p>
+
+            <p className="mt-3 leading-7">
+              You can delete local devices from the home page at any time or
+              export them as a backup file. Clearing your browser data may also
+              remove locally saved information.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold text-slate-950">
               Hosting
             </h2>
 

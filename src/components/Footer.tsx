@@ -127,7 +127,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 onClick={(event) =>
                   handleInternalNavigation(event, calculatorHref)
                 }
-                className="transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
               >
                 {text.calculator}
               </Link>
@@ -137,7 +137,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 onClick={(event) =>
                   handleInternalNavigation(event, devicesHref)
                 }
-                className="transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
               >
                 {text.devices}
               </Link>
@@ -147,7 +147,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 onClick={(event) =>
                   handleInternalNavigation(event, howItWorksHref)
                 }
-                className="transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
               >
                 {locale === "de" ? "So funktioniert's" : "How it works"}
               </Link>
@@ -157,7 +157,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 onClick={(event) =>
                   handleInternalNavigation(event, faqHref)
                 }
-                className="transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
               >
                 {text.faq}
               </Link>
@@ -174,7 +174,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 onClick={(event) =>
                   handleInternalNavigation(event, imprintHref)
                 }
-                className="transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
               >
                 {text.imprint}
               </Link>
@@ -184,7 +184,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 onClick={(event) =>
                   handleInternalNavigation(event, privacyHref)
                 }
-                className="transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
               >
                 {text.privacy}
               </Link>

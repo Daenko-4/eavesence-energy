@@ -136,6 +136,12 @@ body {
   line-height: 1rem;
 }
 
+.saved-device-utility-action::after {
+  position: absolute;
+  inset: -0.45rem -0.35rem;
+  content: "";
+}
+
 @keyframes eavesence-logo-load {
   0% {
     opacity: 1;
