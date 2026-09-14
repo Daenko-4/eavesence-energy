@@ -83,6 +83,10 @@ export default function Footer({ locale = "de" }: FooterProps) {
     });
 
     window.history.replaceState(null, "", href);
+
+    if (targetId === "faq") {
+      window.dispatchEvent(new Event("eavesence:open-faq"));
+    }
   }
 
   const calculatorHref = getCalculatorHref(locale);
