@@ -112,6 +112,26 @@ export default function DatenschutzPage() {
 
           <section>
             <h2 className="text-xl font-bold text-slate-950">
+              Lokale Speicherung im Browser
+            </h2>
+
+            <p className="mt-3 leading-7">
+              Wenn du „Meine Geräte“ verwendest, werden deine gespeicherten
+              Berechnungen ausschließlich im lokalen Speicher deines Browsers
+              abgelegt. Dort können außerdem deine gewählte Währung und zuletzt
+              verwendete Geräte gespeichert werden. Diese Daten werden nicht an
+              EAVESENCE Energy übertragen.
+            </p>
+
+            <p className="mt-3 leading-7">
+              Du kannst lokale Geräte jederzeit auf der Startseite löschen oder
+              als Sicherungsdatei exportieren. Beim Löschen der Browserdaten
+              können lokal gespeicherte Angaben ebenfalls verloren gehen.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold text-slate-950">
               Hosting
             </h2>
 

@@ -421,7 +421,15 @@ export default function DeviceDetailPage({
                 }
               </p>
 
-              <div className="mt-4 grid gap-px overflow-hidden rounded-xl border border-[#dfe5dd] bg-[#dfe5dd] sm:grid-cols-2 lg:grid-cols-4">
+              <div
+                className={`mt-4 grid gap-px overflow-hidden rounded-xl border border-[#dfe5dd] bg-[#dfe5dd] sm:grid-cols-2 ${
+                  device.usagePattern === "annual"
+                    ? ""
+                    : device.calculationType === "consumption"
+                      ? "lg:grid-cols-3"
+                      : "lg:grid-cols-4"
+                }`}
+              >
                 {device.usagePattern === "annual" ? (
                   <div className="bg-[#f6f7f2] p-4">
                     <p className="text-sm text-slate-500">

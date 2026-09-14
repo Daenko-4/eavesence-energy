@@ -33,8 +33,6 @@ type NavigationKey =
   | "howItWorks"
   | "faq";
 
-const HEADER_INTRO_STORAGE_KEY = "eavesence-header-intro-seen-v3";
-
 const navigation = {
   de: {
     calculator: "Rechner",
@@ -138,6 +136,10 @@ export default function Header({
       : getHomeHref(otherLocale));
 
   useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
+  useEffect(() => {
     return () => {
       if (closeNavigationTimeoutRef.current) {
         clearTimeout(closeNavigationTimeoutRef.current);
@@ -160,17 +162,15 @@ export default function Header({
       "(prefers-reduced-motion: reduce)",
     );
 
-    if (!desktopQuery.matches || reducedMotionQuery.matches) return;
+    if (!desktopQuery.matches) return;
 
-    let introSeen = false;
-    try {
-      introSeen = Boolean(
-        window.localStorage.getItem(HEADER_INTRO_STORAGE_KEY),
-      );
-    } catch {
-      // Show the preview even when browser storage is unavailable.
+    if (reducedMotionQuery.matches) {
+      introOpenTimeoutRef.current = setTimeout(() => {
+        setDesktopNavigationOpen(true);
+        introOpenTimeoutRef.current = null;
+      }, 0);
+      return;
     }
-    if (introSeen) return;
 
     let disposed = false;
 
@@ -180,16 +180,7 @@ export default function Header({
       introOpenTimeoutRef.current = setTimeout(() => {
         setDesktopNavigationOpen(true);
         introOpenTimeoutRef.current = null;
-        introCloseTimeoutRef.current = setTimeout(() => {
-          setDesktopNavigationOpen(false);
-          introCloseTimeoutRef.current = null;
-          try {
-            window.localStorage.setItem(HEADER_INTRO_STORAGE_KEY, "true");
-          } catch {
-            // The preview still works when browser storage is unavailable.
-          }
-        }, 2400);
-      }, 900);
+      }, 2150);
     }
 
     function handleVisibilityChange() {
@@ -327,11 +318,6 @@ export default function Header({
       clearTimeout(introCloseTimeoutRef.current);
       introCloseTimeoutRef.current = null;
     }
-    try {
-      window.localStorage.setItem(HEADER_INTRO_STORAGE_KEY, "true");
-    } catch {
-      // Manual navigation remains available when storage is unavailable.
-    }
     if (closeNavigationTimeoutRef.current) {
       clearTimeout(closeNavigationTimeoutRef.current);
       closeNavigationTimeoutRef.current = null;
@@ -350,17 +336,7 @@ export default function Header({
       clearTimeout(logoInteractionTimeoutRef.current);
       logoInteractionTimeoutRef.current = null;
     }
-    scheduleDesktopNavigationClose();
-  }
-
-  function scheduleDesktopNavigationClose() {
-    if (closeNavigationTimeoutRef.current) {
-      clearTimeout(closeNavigationTimeoutRef.current);
-    }
-    closeNavigationTimeoutRef.current = setTimeout(
-      () => setDesktopNavigationOpen(false),
-      280,
-    );
+    setPreviewNavigation(null);
   }
 
   function closeMenu() {
@@ -401,8 +377,6 @@ export default function Header({
   }
 
   function handleLogoClick(event: MouseEvent<HTMLAnchorElement>) {
-    const navigationWasOpen = desktopNavigationOpen || menuOpen;
-
     suppressPointerOpenRef.current = true;
     if (introOpenTimeoutRef.current) {
       clearTimeout(introOpenTimeoutRef.current);
@@ -412,11 +386,6 @@ export default function Header({
       clearTimeout(introCloseTimeoutRef.current);
       introCloseTimeoutRef.current = null;
     }
-    try {
-      window.localStorage.setItem(HEADER_INTRO_STORAGE_KEY, "true");
-    } catch {
-      // Clicking the logo must not depend on storage access.
-    }
     if (logoInteractionTimeoutRef.current) {
       clearTimeout(logoInteractionTimeoutRef.current);
     }
@@ -425,7 +394,7 @@ export default function Header({
       logoInteractionTimeoutRef.current = null;
     }, 1450);
     closeMenu();
-    setDesktopNavigationOpen(false);
+    setDesktopNavigationOpen(true);
     setPreviewNavigation(null);
     if (closeNavigationTimeoutRef.current) {
       clearTimeout(closeNavigationTimeoutRef.current);
@@ -434,8 +403,6 @@ export default function Header({
     if (pathname !== homeHref) return;
 
     event.preventDefault();
-    if (navigationWasOpen) return;
-
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (window.location.hash) {
       window.history.replaceState(null, "", homeHref);
@@ -484,7 +451,7 @@ export default function Header({
               ) {
                 return;
               }
-              setDesktopNavigationOpen(false);
+              setPreviewNavigation(null);
             }}
             className="absolute left-1/2 top-1/2 hidden h-[68px] w-[760px] -translate-x-1/2 -translate-y-1/2 lg:block"
           >

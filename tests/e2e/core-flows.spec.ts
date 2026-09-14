@@ -1,17 +1,14 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const headerPreviewKey = "eavesence-header-intro-seen-v3";
-
 async function disableHeaderIntro(page: Page) {
-  await page.addInitScript((key) => {
-    window.localStorage.setItem(key, "true");
-  }, headerPreviewKey);
+  await page.emulateMedia({ reducedMotion: "reduce" });
 }
 
 async function openDesktopNavigation(page: Page) {
   const logo = page.locator('a[aria-expanded]').first();
-  await logo.hover();
-  await expect(logo).toHaveAttribute("aria-expanded", "true");
+  await expect(logo).toHaveAttribute("aria-expanded", "true", {
+    timeout: 3_000,
+  });
   await expect(
     page.getByRole("navigation", { name: "Open navigation" }),
   ).toBeVisible();
@@ -172,29 +169,26 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
   }
 });
 
-test("the first desktop visit previews the navigation exactly once", async ({
+test("desktop navigation opens after the logo intro and stays open", async ({
   page,
 }) => {
-  await page.addInitScript((key) => {
-    window.localStorage.removeItem(key);
-  }, headerPreviewKey);
   await page.goto("/");
 
   const logo = page.locator('a[aria-expanded]').first();
   await expect(logo).toHaveAttribute("aria-expanded", "false");
   await expect(logo).toHaveAttribute("aria-expanded", "true", {
-    timeout: 2_500,
+    timeout: 3_000,
   });
-  await expect(logo).toHaveAttribute("aria-expanded", "false", {
-    timeout: 5_000,
-  });
+  await page.waitForTimeout(2_500);
+  await expect(logo).toHaveAttribute("aria-expanded", "true");
 
   await page.reload();
-  await page.waitForTimeout(1_500);
-  await expect(logo).toHaveAttribute("aria-expanded", "false");
+  await expect(logo).toHaveAttribute("aria-expanded", "true", {
+    timeout: 3_000,
+  });
 });
 
-test("header labels keep a fixed horizontal axis while closing", async ({
+test("header labels keep a fixed horizontal axis while staying open", async ({
   page,
 }) => {
   await disableHeaderIntro(page);
@@ -206,10 +200,8 @@ test("header labels keep a fixed horizontal axis while closing", async ({
     element.getBoundingClientRect().x,
   );
 
-  // Leave the link hover state before comparing the navigation colors.
-  // The menu remains open during its short close delay.
   await page.mouse.move(10, 180);
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(500);
 
   const navigationStyles = await page
     .locator("[data-navigation-key]")
@@ -224,18 +216,96 @@ test("header labels keep a fixed horizontal axis while closing", async ({
     new Set(navigationStyles.map(({ fontWeight }) => fontWeight)).size,
   ).toBe(1);
 
-  await page.waitForTimeout(180);
-  const xWhileClosing = await calculatorLink.evaluate((element) =>
+  const xAfterPointerLeave = await calculatorLink.evaluate((element) =>
     element.getBoundingClientRect().x,
   );
 
-  expect(Math.abs(xBefore - xWhileClosing)).toBeLessThan(0.5);
+  expect(Math.abs(xBefore - xAfterPointerLeave)).toBeLessThan(0.5);
 
   const logo = page.locator('a[aria-expanded]').first();
-  await expect(logo).toHaveAttribute("aria-expanded", "false");
+  await expect(logo).toHaveAttribute("aria-expanded", "true");
   expect(
     await logo.evaluate((element) => getComputedStyle(element).overflowX),
   ).toBe("visible");
+});
+
+test("reset keeps the current scroll position", async ({ page }) => {
+  await disableHeaderIntro(page);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  await page.evaluate(() => window.scrollTo(0, 0));
+
+  const before = await page.evaluate(() => window.scrollY);
+  await page.getByRole("button", { name: "Reset values" }).click();
+  await page.waitForTimeout(150);
+  const after = await page.evaluate(() => window.scrollY);
+
+  expect(after).toBe(before);
+});
+
+test("device search never shows a different device than the calculation", async ({
+  page,
+}) => {
+  await disableHeaderIntro(page);
+  await page.goto("/");
+
+  const deviceSelect = page.getByLabel("Device", { exact: true });
+  await page.getByRole("button", { name: "Search devices" }).click();
+  await page.getByRole("searchbox", { name: "Search devices" }).fill("tele");
+
+  await expect(deviceSelect).toHaveValue("Kaffeemaschine");
+  await deviceSelect.selectOption({ label: "Television" });
+  await expect(deviceSelect).toHaveValue("Fernseher");
+  await expect(page.getByText(/coffee machine off/i)).toHaveCount(0);
+});
+
+test("search and measured-input states do not stay open together", async ({
+  page,
+}) => {
+  await disableHeaderIntro(page);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Enter measured consumption" }).click();
+  await page.getByRole("button", { name: "Search devices" }).click();
+  await expect(page.getByRole("searchbox", { name: "Search devices" })).toBeVisible();
+  await expect(page.getByLabel("Power", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Enter measured consumption" }).click();
+  await expect(page.getByRole("searchbox", { name: "Search devices" })).toHaveCount(0);
+  await expect(page.getByLabel("Actual consumption per use")).toBeVisible();
+});
+
+test("German pages expose German as the document language", async ({ page }) => {
+  await disableHeaderIntro(page);
+
+  for (const path of ["/de", "/geraete", "/datenschutz", "/impressum"]) {
+    await page.goto(path);
+    await expect.poll(() => page.locator("html").getAttribute("lang")).toBe("de");
+  }
+});
+
+test("unknown routes show a branded localized 404 page", async ({ page }) => {
+  await disableHeaderIntro(page);
+  await page.goto("/de/diese-seite-gibt-es-nicht");
+
+  await expect(page.getByRole("heading", { name: "Hier ist leider nichts." })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Zur Startseite" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Geräte ansehen" })).toBeVisible();
+});
+
+test("annual reference values use the full two-column row", async ({ page }) => {
+  await disableHeaderIntro(page);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/en/devices/refrigerator");
+
+  const values = page.getByRole("heading", { name: /Typical values for Refrigerator/ })
+    .locator("xpath=following::div[contains(@class,'grid')][1]");
+  await expect(values.locator(":scope > div")).toHaveCount(2);
+  expect(
+    await values.evaluate((element) =>
+      getComputedStyle(element).gridTemplateColumns.split(" ").length,
+    ),
+  ).toBe(2);
 });
 
 test("device overview and detail heroes share the content axis below", async ({

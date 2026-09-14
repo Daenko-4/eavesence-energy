@@ -895,7 +895,7 @@ export default function HomePage({
               <span>{text.faq.feedbackText}</span>
               <a
                 href={feedbackHref}
-                className="font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                className="-my-2 inline-flex min-h-10 items-center py-2 font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
               >
                 {text.faq.feedbackLink} →
               </a>

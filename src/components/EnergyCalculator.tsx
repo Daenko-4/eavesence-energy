@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import DeviceCategoryIcon from "@/components/DeviceCategoryIcon";
 import {
@@ -565,6 +565,7 @@ export default function EnergyCalculator({
     initialDeviceData.name
   );
   const [deviceSearch, setDeviceSearch] = useState("");
+  const [deviceSearchOpen, setDeviceSearchOpen] = useState(false);
   const [recentDevices, setRecentDevices] = useState<string[]>([]);
   const [scenarioUsesPerWeek, setScenarioUsesPerWeek] =
     useState<NumericInput>(Math.max(0, initialUses - 1));
@@ -712,6 +713,22 @@ export default function EnergyCalculator({
     (item) => item.name === device
   );
 
+  const fieldIdPrefix = useId().replaceAll(":", "");
+  const fieldIds = {
+    device: `${fieldIdPrefix}-device`,
+    search: `${fieldIdPrefix}-device-search`,
+    customName: `${fieldIdPrefix}-custom-name`,
+    power: `${fieldIdPrefix}-power`,
+    duration: `${fieldIdPrefix}-duration`,
+    estimatedConsumption: `${fieldIdPrefix}-estimated-consumption`,
+    measuredConsumption: `${fieldIdPrefix}-measured-consumption`,
+    electricityPrice: `${fieldIdPrefix}-electricity-price`,
+    currency: `${fieldIdPrefix}-currency`,
+    uses: `${fieldIdPrefix}-uses`,
+    comparisonDevice: `${fieldIdPrefix}-comparison-device`,
+    comparisonUses: `${fieldIdPrefix}-comparison-uses`,
+  };
+
   const isCustomDevice =
     device === CUSTOM_DEVICE;
 
@@ -766,6 +783,10 @@ export default function EnergyCalculator({
       .toLocaleLowerCase(activeLocale === "de" ? "de-DE" : "en-GB")
       .includes(normalizedDeviceSearch);
   });
+  const selectableDevices =
+    selectedDevice && !visibleDevices.some((item) => item.name === device)
+      ? [selectedDevice, ...visibleDevices]
+      : visibleDevices;
 
   function loadDeviceDefaults(name: string) {
     setUsagePeriod("week");
@@ -826,6 +847,7 @@ export default function EnergyCalculator({
     setDevice(name);
     setMode("estimate");
     setDeviceSearch("");
+    setDeviceSearchOpen(false);
     loadDeviceDefaults(name);
     setActiveSavedDeviceId(null);
 
@@ -937,9 +959,29 @@ export default function EnergyCalculator({
     });
   }
 
-  function handleReset() {
+  function handleReset(button?: HTMLButtonElement) {
+    const scrollPosition = {
+      left: window.scrollX,
+      top: window.scrollY,
+    };
+
+    button?.blur();
     setPrice(currency === "EUR" ? 0.35 : "");
     loadDeviceDefaults(device);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ ...scrollPosition, behavior: "auto" });
+      });
+    });
+  }
+
+  function toggleMeasuredMode() {
+    setDeviceSearchOpen(false);
+    setDeviceSearch("");
+    setMode((current) =>
+      current === "exact" ? "estimate" : "exact"
+    );
   }
 
   function handleUsagePeriodChange(nextPeriod: UsagePeriod) {
@@ -1253,7 +1295,7 @@ export default function EnergyCalculator({
               aria-controls="prefilled-values-help"
               aria-expanded={prefilledHelpOpen}
               onClick={() => setPrefilledHelpOpen((open) => !open)}
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--brand-green-mint)] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50"
+              className="relative flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--brand-green-mint)] transition-colors before:absolute before:-inset-2.5 before:content-[''] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50"
             >
               <span
                 className={`flex h-5 w-5 origin-center items-center justify-center text-lg leading-none transition-transform duration-[180ms] ${prefilledHelpOpen ? "-rotate-45" : "rotate-0"}`}
@@ -1283,7 +1325,7 @@ export default function EnergyCalculator({
           </div>
         ) : (
           <>
-            <label className="sr-only">
+            <label htmlFor={fieldIds.device} className="sr-only">
               {text.device.label}
             </label>
 
@@ -1294,6 +1336,7 @@ export default function EnergyCalculator({
                 />
               </span>
               <select
+                id={fieldIds.device}
                 value={device}
                 onChange={(event) =>
                   handleDeviceChange(
@@ -1304,7 +1347,7 @@ export default function EnergyCalculator({
               >
           {categories
             .filter((category) =>
-              visibleDevices.some((item) => item.category === category)
+              selectableDevices.some((item) => item.category === category)
             )
             .map((category) => (
             <optgroup
@@ -1314,7 +1357,7 @@ export default function EnergyCalculator({
                 activeLocale
               )}
             >
-              {visibleDevices
+              {selectableDevices
                 .filter(
                   (item) =>
                     item.category ===
@@ -1366,8 +1409,18 @@ export default function EnergyCalculator({
             </div>
 
             <div className={`flex flex-wrap items-start gap-x-5 gap-y-2 ${homePresentation ? "mt-2" : "mt-3"}`}>
-            <details className="group min-w-0 open:basis-full">
-          <summary className="calculator-secondary-action inline-flex cursor-pointer list-none items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] [&::-webkit-details-marker]:hidden">
+            <div className={`min-w-0 ${deviceSearchOpen ? "basis-full" : ""}`}>
+          <button
+            type="button"
+            aria-expanded={deviceSearchOpen}
+            aria-controls={`${fieldIds.search}-panel`}
+            onClick={() => {
+              const nextOpen = !deviceSearchOpen;
+              setDeviceSearchOpen(nextOpen);
+              if (nextOpen && mode === "exact") setMode("estimate");
+            }}
+            className="calculator-secondary-action inline-flex min-h-10 cursor-pointer items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2]"
+          >
             <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
               <circle cx="8.5" cy="8.5" r="5.5" />
               <path d="m13 13 4 4" />
@@ -1376,7 +1429,7 @@ export default function EnergyCalculator({
             <svg
               viewBox="0 0 20 20"
               fill="none"
-              className="h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-90"
+              className={`h-4 w-4 shrink-0 transition-transform duration-200 ${deviceSearchOpen ? "rotate-90" : ""}`}
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
@@ -1385,9 +1438,13 @@ export default function EnergyCalculator({
             >
               <path d="m7.5 5 5 5-5 5" />
             </svg>
-          </summary>
-          <div className="mt-2.5 w-full rounded-xl bg-slate-50 p-3">
+          </button>
+          {deviceSearchOpen && <div id={`${fieldIds.search}-panel`} className="mt-1.5 w-full rounded-xl bg-[#202b28] p-3 ring-1 ring-white/[0.1]">
+            <label htmlFor={fieldIds.search} className="sr-only">
+              {text.device.search}
+            </label>
             <input
+              id={fieldIds.search}
               type="search"
               value={deviceSearch}
               onChange={(event) => setDeviceSearch(event.target.value)}
@@ -1423,17 +1480,13 @@ export default function EnergyCalculator({
                 })}
               </div>
             )}
-          </div>
-            </details>
+          </div>}
+            </div>
             {isPowerDevice && (
               <button
                 type="button"
-                onClick={() =>
-                  setMode((current) =>
-                    current === "exact" ? "estimate" : "exact"
-                  )
-                }
-                className="calculator-secondary-action inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2]"
+                onClick={toggleMeasuredMode}
+                className="calculator-secondary-action inline-flex min-h-10 items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2]"
               >
                 <svg
                   viewBox="0 0 20 20"
@@ -1463,11 +1516,12 @@ export default function EnergyCalculator({
       {/* Custom device */}
       {isCustomDevice && (
         <div className="mb-8 rounded-2xl border border-white/[0.12] bg-white/[0.035] p-5">
-          <label className={fieldLabelClassName}>
+          <label htmlFor={fieldIds.customName} className={fieldLabelClassName}>
             {text.device.customName}
           </label>
 
           <input
+            id={fieldIds.customName}
             type="text"
             value={customDeviceName}
             onChange={(event) =>
@@ -1493,12 +1547,8 @@ export default function EnergyCalculator({
       {detailPage && isPowerDevice && (
         <button
           type="button"
-          onClick={() =>
-            setMode((current) =>
-              current === "exact" ? "estimate" : "exact"
-            )
-          }
-          className={`${homePresentation ? "mb-3" : "mb-5"} calculator-secondary-action inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2]`}
+          onClick={toggleMeasuredMode}
+          className={`${homePresentation ? "mb-3" : "mb-5"} calculator-secondary-action inline-flex min-h-10 items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2]`}
         >
           <svg
             viewBox="0 0 20 20"
@@ -1525,12 +1575,13 @@ export default function EnergyCalculator({
           isPowerDevice && (
             <>
               <div>
-                <label className={fieldLabelClassName}>
+                <label htmlFor={fieldIds.power} className={fieldLabelClassName}>
                   {text.fields.power}
                 </label>
 
                 <div className="relative">
                   <input
+                    id={fieldIds.power}
                     type="number"
                     min="0"
                     step="1"
@@ -1563,13 +1614,14 @@ export default function EnergyCalculator({
               </div>
 
               <div>
-                <label className={fieldLabelClassName}>
+                <label htmlFor={fieldIds.duration} className={fieldLabelClassName}>
                   {isContinuousDevice
                     ? text.fields.hoursPerDay
                     : text.fields.minutesPerUse}
                 </label>
 
                 <input
+                  id={fieldIds.duration}
                   type="number"
                   min="0"
                   max={isContinuousDevice ? 24 : undefined}
@@ -1611,7 +1663,7 @@ export default function EnergyCalculator({
         {mode === "estimate" &&
           isConsumptionDevice && (
             <div>
-              <label className={fieldLabelClassName}>
+              <label htmlFor={fieldIds.estimatedConsumption} className={fieldLabelClassName}>
                 {
                   text.fields
                     [isAnnualDevice
@@ -1622,6 +1674,7 @@ export default function EnergyCalculator({
 
               <div className="relative">
                 <input
+                  id={fieldIds.estimatedConsumption}
                   type="number"
                   min="0"
                   step="0.01"
@@ -1658,7 +1711,7 @@ export default function EnergyCalculator({
 
         {mode === "exact" && (
           <div>
-            <label className={fieldLabelClassName}>
+            <label htmlFor={fieldIds.measuredConsumption} className={fieldLabelClassName}>
               {
                 isContinuousDevice
                   ? text.fields.actualConsumptionPerDay
@@ -1668,6 +1721,7 @@ export default function EnergyCalculator({
 
             <div className="relative">
               <input
+                id={fieldIds.measuredConsumption}
                 type="number"
                 min="0"
                 step="0.01"
@@ -1704,7 +1758,7 @@ export default function EnergyCalculator({
         {/* Electricity price */}
         <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_7rem] [&>*]:min-w-0">
           <div>
-          <label className={fieldLabelClassName}>
+          <label htmlFor={fieldIds.electricityPrice} className={fieldLabelClassName}>
             {
               text.fields
                 .electricityPrice
@@ -1713,6 +1767,7 @@ export default function EnergyCalculator({
 
           <div className="flex w-full min-w-0 max-w-full items-center rounded-xl border border-white/[0.12] bg-[#202b28] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-[border-color,background-color,box-shadow] hover:border-white/[0.2] focus-within:border-[var(--brand-green-mint)] focus-within:bg-[#24312d] focus-within:ring-2 focus-within:ring-[#72dca3]/12">
             <input
+              id={fieldIds.electricityPrice}
               type="number"
               min="0"
               step="0.01"
@@ -1744,11 +1799,12 @@ export default function EnergyCalculator({
           </div>
 
           <div>
-            <label className={fieldLabelClassName}>
+            <label htmlFor={fieldIds.currency} className={fieldLabelClassName}>
               {text.fields.currency}
             </label>
 
             <select
+              id={fieldIds.currency}
               value={currency}
               onChange={(event) => changeCurrency(event.target.value)}
               className={fieldClassName}
@@ -1764,7 +1820,7 @@ export default function EnergyCalculator({
 
         {/* Uses */}
         {!isAnnualDevice && <div>
-          <label className={fieldLabelClassName}>
+          <label htmlFor={fieldIds.uses} className={fieldLabelClassName}>
             {isContinuousDevice
               ? text.fields.daysPerWeek
               : text.fields.uses}
@@ -1778,6 +1834,7 @@ export default function EnergyCalculator({
             }
           >
             <input
+              id={fieldIds.uses}
               type="number"
               min="0"
               max={isContinuousDevice ? 7 : undefined}
@@ -1868,8 +1925,8 @@ export default function EnergyCalculator({
       <div className={`${homePresentation ? "mt-auto pt-7" : "mt-6"} flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4`}>
         <button
           type="button"
-          onClick={handleReset}
-          className="calculator-secondary-action group inline-flex items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] active:scale-[0.98]"
+          onClick={(event) => handleReset(event.currentTarget)}
+          className="calculator-secondary-action group inline-flex min-h-10 items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] active:scale-[0.98]"
         >
           <span
             aria-hidden="true"
@@ -2164,10 +2221,11 @@ export default function EnergyCalculator({
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  <label htmlFor={fieldIds.comparisonDevice} className="mb-2 block text-sm font-semibold text-slate-700">
                     {text.comparison.select}
                   </label>
                   <select
+                    id={fieldIds.comparisonDevice}
                     value={comparisonDevice.name}
                     onChange={(event) =>
                       handleComparisonDeviceChange(event.target.value)
@@ -2182,12 +2240,13 @@ export default function EnergyCalculator({
                   </select>
                 </div>
                 {comparisonDevice.usagePattern !== "annual" && <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  <label htmlFor={fieldIds.comparisonUses} className="mb-2 block text-sm font-semibold text-slate-700">
                     {comparisonDevice.usagePattern === "continuous"
                       ? text.fields.daysPerWeek
                       : text.comparison.uses}
                   </label>
                   <input
+                    id={fieldIds.comparisonUses}
                     type="number"
                     min="0"
                     step="0.5"
