@@ -554,32 +554,13 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={exportDevices}
-                  className="group/export relative pt-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                  className="group/export relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                 >
                   {text.export}
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute left-0 top-0 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/export:translate-y-0 group-hover/export:opacity-100"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m2.5 5.5 3.5-3 3.5 3" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => importInputRef.current?.click()}
-                  className="group/import relative pt-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
-                >
-                  {text.import}
-                  <svg
-                    viewBox="0 0 12 8"
-                    fill="none"
-                    className="pointer-events-none absolute left-0 top-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/import:translate-y-0 group-hover/import:opacity-100"
+                    className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/export:translate-y-0 group-hover/export:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -591,14 +572,33 @@ function MyDevicesPanel(
                 </button>
                 <button
                   type="button"
+                  onClick={() => importInputRef.current?.click()}
+                  className="group/import relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                >
+                  {text.import}
+                  <svg
+                    viewBox="0 0 12 8"
+                    fill="none"
+                    className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/import:translate-y-0 group-hover/import:opacity-100"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m2.5 5.5 3.5-3 3.5 3" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
                   onClick={removeAllDevices}
-                  className="group/remove-all relative pt-3 saved-device-utility-action text-slate-400 transition hover:text-red-700"
+                  className="group/remove-all relative pb-3 saved-device-utility-action text-slate-400 transition hover:text-red-700"
                 >
                   {text.removeAll}
                   <svg
                     viewBox="0 0 12 12"
                     fill="none"
-                    className="pointer-events-none absolute left-0 top-0 h-2.5 w-2.5 -translate-y-1 opacity-0 transition duration-150 group-hover/remove-all:translate-y-0 group-hover/remove-all:opacity-100"
+                    className="pointer-events-none absolute bottom-0 left-0 h-2.5 w-2.5 translate-y-1 opacity-0 transition duration-150 group-hover/remove-all:translate-y-0 group-hover/remove-all:opacity-100"
                     stroke="currentColor"
                     strokeWidth="1.7"
                     strokeLinecap="round"
