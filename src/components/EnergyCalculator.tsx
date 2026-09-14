@@ -97,10 +97,10 @@ const calculatorText = {
     device: {
       label: "Gerät",
       prefilledHint:
-        "Typische Verbrauchswerte sind vorausgefüllt. Passe beliebige Werte an – das Ergebnis aktualisiert sich sofort.",
-      prefilledQuestion: "Wie werden diese Werte ausgewählt?",
+        "Typische Werte sind vorausgefüllt – bei Bedarf anpassen.",
+      prefilledQuestion: "Warum?",
       prefilledExplanation:
-        "Wir verwenden realistische typische Werte für jedes Gerät. Der tatsächliche Verbrauch kann je nach Modell, Einstellungen und Nutzung abweichen.",
+        "Typische Werte sind Schätzwerte. Der tatsächliche Verbrauch variiert je nach Modell, Einstellung und Nutzung.",
       search: "Gerät suchen",
       searchPlaceholder: "z. B. Waschmaschine",
       recent: "Zuletzt verwendet",
@@ -264,10 +264,10 @@ const calculatorText = {
     device: {
       label: "Device",
       prefilledHint:
-        "Typical values are prefilled. Adjust any field – results update instantly.",
-      prefilledQuestion: "How are these values chosen?",
+        "Typical values are prefilled – adjust if needed.",
+      prefilledQuestion: "Why?",
       prefilledExplanation:
-        "We use realistic typical values for each device. Actual consumption may vary depending on the model, settings and usage.",
+        "Typical values are estimates. Actual consumption varies by model, settings and usage.",
       search: "Search devices",
       searchPlaceholder: "e.g. Washing machine",
       recent: "Recently used",
@@ -1190,7 +1190,7 @@ export default function EnergyCalculator({
 
       {/* Device */}
       <div className={homePresentation ? "mb-7" : "mb-6"}>
-        <p className="calculator-field-label mb-1.5 flex items-start gap-1.5 text-[12px] font-semibold leading-5">
+        <div className="calculator-field-label relative mb-3 flex min-w-0 items-start gap-1.5 text-[12px] font-semibold leading-5">
           {homePresentation && (
             <svg
               viewBox="0 0 20 20"
@@ -1206,24 +1206,28 @@ export default function EnergyCalculator({
               <path d="M10 9v4M10 6.5h.01" />
             </svg>
           )}
-          {homePresentation ? text.device.prefilledHint : text.device.label}
-        </p>
-        {homePresentation && (
-          <details className="group mb-3 pl-5">
-            <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-[11px] font-semibold leading-5 text-[#a9b8b3] transition-colors hover:text-[var(--brand-green-mint)] focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50 [&::-webkit-details-marker]:hidden">
-              {text.device.prefilledQuestion}
-              <span
-                className="text-[13px] leading-none text-[var(--brand-green-mint)] transition-transform duration-200 group-open:rotate-45"
-                aria-hidden="true"
-              >
-                +
-              </span>
-            </summary>
-            <p className="mt-1.5 max-w-[42rem] text-[11px] leading-[1.55] text-[#91a19c]">
-              {text.device.prefilledExplanation}
-            </p>
-          </details>
-        )}
+          <span className="min-w-0">
+            {homePresentation
+              ? text.device.prefilledHint
+              : text.device.label}
+          </span>
+          {homePresentation && (
+            <details className="group relative ml-auto shrink-0">
+              <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-[11px] font-semibold leading-5 text-[var(--brand-green-mint)] transition-colors hover:text-white focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50 [&::-webkit-details-marker]:hidden">
+                {text.device.prefilledQuestion}
+                <span
+                  className="text-[13px] leading-none transition-transform duration-200 group-open:rotate-45"
+                  aria-hidden="true"
+                >
+                  +
+                </span>
+              </summary>
+              <p className="absolute right-0 top-full z-30 mt-2 w-64 max-w-[calc(100vw-4rem)] rounded-xl border border-white/[0.12] bg-[#24312d] p-3 text-[11px] font-medium leading-[1.55] text-[#c5d0cc] shadow-[0_14px_35px_-18px_rgba(0,0,0,0.85)]">
+                {text.device.prefilledExplanation}
+              </p>
+            </details>
+          )}
+        </div>
         {detailPage ? (
           <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-[#fbfcfb] px-4 py-3.5">
             <span className="flex min-w-0 items-center gap-3 font-semibold text-slate-900">
