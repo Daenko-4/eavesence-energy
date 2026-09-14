@@ -25,23 +25,29 @@ test("calculator updates live and a saved calculation can be deleted", async ({
 
   await expect(
     page.getByText(
-      "Typical values are prefilled. Adjust any field – results update instantly.",
+      "Typical values are prefilled – adjust if needed.",
       { exact: true },
     ),
   ).toBeVisible();
 
+  const calculatorForm = page.locator("[data-calculator-form]");
+  const heightBeforeHelp =
+    (await calculatorForm.boundingBox())?.height ?? 0;
   const prefilledDetails = page.locator("details").filter({
-    hasText: "How are these values chosen?",
+    hasText: "Why?",
   });
   await expect(prefilledDetails).not.toHaveAttribute("open", "");
   await prefilledDetails.locator("summary").click();
   await expect(prefilledDetails).toHaveAttribute("open", "");
   await expect(
     prefilledDetails.getByText(
-      "We use realistic typical values for each device. Actual consumption may vary depending on the model, settings and usage.",
+      "Typical values are estimates. Actual consumption varies by model, settings and usage.",
       { exact: true },
     ),
   ).toBeVisible();
+  const heightAfterHelp =
+    (await calculatorForm.boundingBox())?.height ?? 0;
+  expect(Math.abs(heightAfterHelp - heightBeforeHelp)).toBeLessThanOrEqual(1);
 
   await expect(page.getByText("€25.48", { exact: true }).first()).toBeVisible();
 
