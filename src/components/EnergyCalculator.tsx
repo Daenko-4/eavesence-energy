@@ -98,7 +98,7 @@ const calculatorText = {
       label: "Gerät",
       prefilledHint:
         "Typische Werte sind vorausgefüllt – bei Bedarf anpassen.",
-      prefilledQuestion: "Warum?",
+      prefilledQuestion: "Informationen zu typischen Werten",
       prefilledExplanation:
         "Typische Werte sind Schätzwerte. Der tatsächliche Verbrauch variiert je nach Modell, Einstellung und Nutzung.",
       search: "Gerät suchen",
@@ -265,7 +265,7 @@ const calculatorText = {
       label: "Device",
       prefilledHint:
         "Typical values are prefilled – adjust if needed.",
-      prefilledQuestion: "Why?",
+      prefilledQuestion: "Information about typical values",
       prefilledExplanation:
         "Typical values are estimates. Actual consumption varies by model, settings and usage.",
       search: "Search devices",
@@ -1212,17 +1212,25 @@ export default function EnergyCalculator({
               : text.device.label}
           </span>
           {homePresentation && (
-            <details className="group relative ml-auto shrink-0">
-              <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-[11px] font-semibold leading-5 text-[var(--brand-green-mint)] transition-colors hover:text-white focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50 [&::-webkit-details-marker]:hidden">
-                {text.device.prefilledQuestion}
+            <details
+              data-prefilled-help
+              className="group static ml-auto shrink-0"
+            >
+              <summary
+                aria-label={text.device.prefilledQuestion}
+                className="flex h-5 w-5 cursor-pointer list-none items-center justify-center rounded-sm text-[var(--brand-green-mint)] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50 [&::-webkit-details-marker]:hidden"
+              >
                 <span
-                  className="text-[13px] leading-none transition-transform duration-200 group-open:rotate-45"
+                  className="flex h-5 w-5 origin-center items-center justify-center text-lg leading-none transition-transform duration-[180ms] group-open:-rotate-45"
                   aria-hidden="true"
                 >
                   +
                 </span>
               </summary>
-              <p className="absolute right-0 top-full z-30 mt-2 w-64 max-w-[calc(100vw-4rem)] rounded-xl border border-white/[0.12] bg-[#24312d] p-3 text-[11px] font-medium leading-[1.55] text-[#c5d0cc] shadow-[0_14px_35px_-18px_rgba(0,0,0,0.85)]">
+              <p
+                data-prefilled-help-panel
+                className="absolute inset-x-0 top-full z-30 mt-2 rounded-xl border border-[var(--brand-green-mint)]/20 bg-[#24312d] px-4 py-3 text-[11px] font-medium leading-[1.55] text-[#c5d0cc] shadow-[0_14px_35px_-18px_rgba(0,0,0,0.85)]"
+              >
                 {text.device.prefilledExplanation}
               </p>
             </details>
