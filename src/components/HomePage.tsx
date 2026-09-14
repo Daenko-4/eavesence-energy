@@ -24,7 +24,7 @@ type HomePageProps = {
   locale?: Locale;
 };
 
-const FEEDBACK_EMAIL = "parkwaydrive@gmx.at";
+const FEEDBACK_EMAIL = "feedback@eavesence.com";
 
 const content = {
   de: {

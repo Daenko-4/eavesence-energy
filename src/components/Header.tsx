@@ -91,8 +91,13 @@ export default function Header({
   calculatorHrefOverride,
   languageHrefOverride,
 }: HeaderProps) {
+  const pathname = usePathname();
+  const homeHref = getHomeHref(locale);
+  const isHomePage = pathname === homeHref;
   const [menuOpen, setMenuOpen] = useState(false);
-  const [desktopNavigationOpen, setDesktopNavigationOpen] = useState(false);
+  const [desktopNavigationOpen, setDesktopNavigationOpen] = useState(
+    !isHomePage,
+  );
   const [previewNavigation, setPreviewNavigation] =
     useState<NavigationKey | null>(null);
   const [activeHomeSection, setActiveHomeSection] =
@@ -109,11 +114,8 @@ export default function Header({
   const headerRef = useRef<HTMLElement>(null);
   const desktopNavigationRef = useRef<HTMLElement>(null);
   const activeIndicatorRef = useRef<HTMLSpanElement>(null);
-  const pathname = usePathname();
   const text = navigation[locale];
 
-  const homeHref = getHomeHref(locale);
-  const isHomePage = pathname === homeHref;
   const calculatorHref = calculatorHrefOverride ?? getCalculatorHref(locale);
   const devicesHref = getDevicesHref(locale);
   const myDevicesHref = `${homeHref}#meine-geraete`;
@@ -157,6 +159,8 @@ export default function Header({
   }, []);
 
   useEffect(() => {
+    if (!isHomePage) return;
+
     const desktopQuery = window.matchMedia("(min-width: 1024px)");
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -208,7 +212,7 @@ export default function Header({
         introCloseTimeoutRef.current = null;
       }
     };
-  }, []);
+  }, [isHomePage]);
 
   useEffect(() => {
     if (!isHomePage) return;
@@ -433,7 +437,7 @@ export default function Header({
             aria-label={text.homeLabel}
           >
             <BrandLogo
-              markClassName="eavesence-logo-load-animation h-8 w-8"
+              markClassName={`${isHomePage ? "eavesence-logo-load-animation " : ""}h-8 w-8`}
               wordmarkClassName="text-[1.05rem]"
               className="inline-flex items-center gap-2"
             />
@@ -474,7 +478,9 @@ export default function Header({
               }`}
               aria-label={text.homeLabel}
             >
-              <BrandMark className="eavesence-logo-load-animation h-8 w-8 shrink-0" />
+              <BrandMark
+                className={`${isHomePage ? "eavesence-logo-load-animation " : ""}h-8 w-8 shrink-0`}
+              />
               <span
                 className={`shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                   desktopNavigationOpen
