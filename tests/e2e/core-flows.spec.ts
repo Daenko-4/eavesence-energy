@@ -23,6 +23,12 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await disableHeaderIntro(page);
   await page.goto("/");
 
+  await expect(
+    page.getByText(
+      "Typical consumption values are prefilled – adjust them to match your device.",
+      { exact: true },
+    ),
+  ).toBeVisible();
   await expect(page.getByText("€25.48", { exact: true }).first()).toBeVisible();
 
   const numericInputs = page.locator('#rechner input[type="number"]');

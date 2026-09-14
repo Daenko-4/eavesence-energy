@@ -96,6 +96,8 @@ const calculatorText = {
 
     device: {
       label: "Gerät",
+      prefilledHint:
+        "Typische Verbrauchswerte sind vorausgefüllt – du kannst sie jederzeit anpassen.",
       search: "Gerät suchen",
       searchPlaceholder: "z. B. Waschmaschine",
       recent: "Zuletzt verwendet",
@@ -258,6 +260,8 @@ const calculatorText = {
 
     device: {
       label: "Device",
+      prefilledHint:
+        "Typical consumption values are prefilled – adjust them to match your device.",
       search: "Search devices",
       searchPlaceholder: "e.g. Washing machine",
       recent: "Recently used",
@@ -1180,8 +1184,23 @@ export default function EnergyCalculator({
 
       {/* Device */}
       <div className={homePresentation ? "mb-4" : "mb-6"}>
-        <p className="calculator-field-label mb-1.5 text-[12px] font-semibold leading-5">
-          {text.device.label}
+        <p className="calculator-field-label mb-1.5 flex items-start gap-1.5 text-[12px] font-semibold leading-5">
+          {homePresentation && (
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              className="mt-[3px] h-3.5 w-3.5 shrink-0 text-[var(--brand-green-mint)]"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="10" cy="10" r="7" />
+              <path d="M10 9v4M10 6.5h.01" />
+            </svg>
+          )}
+          {homePresentation ? text.device.prefilledHint : text.device.label}
         </p>
         {detailPage ? (
           <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-[#fbfcfb] px-4 py-3.5">
