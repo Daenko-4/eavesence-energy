@@ -1190,7 +1190,7 @@ export default function EnergyCalculator({
 
       {/* Device */}
       <div className={homePresentation ? "mb-7" : "mb-6"}>
-        <p className={`calculator-field-label flex items-start gap-1.5 text-[12px] font-semibold leading-5 ${homePresentation ? "mb-1.5" : "mb-1.5"}`}>
+        <p className="calculator-field-label mb-1.5 flex items-start gap-1.5 text-[12px] font-semibold leading-5">
           {homePresentation && (
             <svg
               viewBox="0 0 20 20"
