@@ -33,21 +33,39 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   const calculatorForm = page.locator("[data-calculator-form]");
   const heightBeforeHelp =
     (await calculatorForm.boundingBox())?.height ?? 0;
-  const prefilledDetails = page.locator("details").filter({
-    hasText: "Why?",
-  });
+  const prefilledDetails = page.locator("[data-prefilled-help]");
+  const helpTrigger = prefilledDetails.locator(
+    'summary[aria-label="Information about typical values"]',
+  );
   await expect(prefilledDetails).not.toHaveAttribute("open", "");
-  await prefilledDetails.locator("summary").click();
+  await helpTrigger.click();
   await expect(prefilledDetails).toHaveAttribute("open", "");
+
+  const helpPanel = prefilledDetails.locator(
+    "[data-prefilled-help-panel]",
+  );
   await expect(
-    prefilledDetails.getByText(
+    helpPanel.getByText(
       "Typical values are estimates. Actual consumption varies by model, settings and usage.",
       { exact: true },
     ),
   ).toBeVisible();
+
   const heightAfterHelp =
     (await calculatorForm.boundingBox())?.height ?? 0;
   expect(Math.abs(heightAfterHelp - heightBeforeHelp)).toBeLessThanOrEqual(1);
+
+  const deviceField = page.locator("#rechner select").first();
+  const [helpBox, deviceBox] = await Promise.all([
+    helpPanel.boundingBox(),
+    deviceField.boundingBox(),
+  ]);
+  if (!helpBox || !deviceBox) {
+    throw new Error("Help panel or device field is not visible");
+  }
+  expect(Math.abs(helpBox.x - deviceBox.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(helpBox.width - deviceBox.width)).toBeLessThanOrEqual(1);
+  expect(helpBox.y).toBeLessThan(deviceBox.y + deviceBox.height);
 
   await expect(page.getByText("€25.48", { exact: true }).first()).toBeVisible();
 
