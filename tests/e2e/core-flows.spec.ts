@@ -25,10 +25,24 @@ test("calculator updates live and a saved calculation can be deleted", async ({
 
   await expect(
     page.getByText(
-      "Typical consumption values are prefilled – adjust them to match your device.",
+      "Typical values are prefilled. Adjust any field – results update instantly.",
       { exact: true },
     ),
   ).toBeVisible();
+
+  const prefilledDetails = page.locator("details").filter({
+    hasText: "How are these values chosen?",
+  });
+  await expect(prefilledDetails).not.toHaveAttribute("open", "");
+  await prefilledDetails.locator("summary").click();
+  await expect(prefilledDetails).toHaveAttribute("open", "");
+  await expect(
+    prefilledDetails.getByText(
+      "We use realistic typical values for each device. Actual consumption may vary depending on the model, settings and usage.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+
   await expect(page.getByText("€25.48", { exact: true }).first()).toBeVisible();
 
   const numericInputs = page.locator('#rechner input[type="number"]');
