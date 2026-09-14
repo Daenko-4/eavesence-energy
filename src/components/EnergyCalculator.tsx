@@ -1180,11 +1180,11 @@ export default function EnergyCalculator({
           ? "gap-4 p-4 sm:p-5 lg:gap-6 lg:p-5"
           : "gap-5 p-4 sm:p-6 lg:gap-8 lg:p-7"
       }`}>
-        <div data-calculator-form className="calculator-form flex min-w-0 flex-col justify-start px-1 py-1 sm:px-2 xl:justify-between">
+        <div data-calculator-form className="calculator-form flex min-w-0 flex-col justify-start px-1 py-1 sm:px-2">
 
       {/* Device */}
-      <div className={homePresentation ? "mb-4" : "mb-6"}>
-        <p className="calculator-field-label mb-1.5 flex items-start gap-1.5 text-[12px] font-semibold leading-5">
+      <div className={homePresentation ? "mb-7" : "mb-6"}>
+        <p className={`calculator-field-label flex items-start gap-1.5 text-[12px] font-semibold leading-5 ${homePresentation ? "mb-3" : "mb-1.5"}`}>
           {homePresentation && (
             <svg
               viewBox="0 0 20 20"
@@ -1793,7 +1793,7 @@ export default function EnergyCalculator({
         </div>}
       </div>
 
-      <div className={`${homePresentation ? "mt-5" : "mt-6"} flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4`}>
+      <div className={`${homePresentation ? "mt-auto pt-7" : "mt-6"} flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4`}>
         <button
           type="button"
           onClick={handleReset}
