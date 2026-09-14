@@ -97,7 +97,10 @@ const calculatorText = {
     device: {
       label: "Gerät",
       prefilledHint:
-        "Typische Verbrauchswerte sind vorausgefüllt – du kannst sie jederzeit anpassen.",
+        "Typische Verbrauchswerte sind vorausgefüllt. Passe beliebige Werte an – das Ergebnis aktualisiert sich sofort.",
+      prefilledQuestion: "Wie werden diese Werte ausgewählt?",
+      prefilledExplanation:
+        "Wir verwenden realistische typische Werte für jedes Gerät. Der tatsächliche Verbrauch kann je nach Modell, Einstellungen und Nutzung abweichen.",
       search: "Gerät suchen",
       searchPlaceholder: "z. B. Waschmaschine",
       recent: "Zuletzt verwendet",
@@ -261,7 +264,10 @@ const calculatorText = {
     device: {
       label: "Device",
       prefilledHint:
-        "Typical consumption values are prefilled – adjust them to match your device.",
+        "Typical values are prefilled. Adjust any field – results update instantly.",
+      prefilledQuestion: "How are these values chosen?",
+      prefilledExplanation:
+        "We use realistic typical values for each device. Actual consumption may vary depending on the model, settings and usage.",
       search: "Search devices",
       searchPlaceholder: "e.g. Washing machine",
       recent: "Recently used",
@@ -1184,7 +1190,7 @@ export default function EnergyCalculator({
 
       {/* Device */}
       <div className={homePresentation ? "mb-7" : "mb-6"}>
-        <p className={`calculator-field-label flex items-start gap-1.5 text-[12px] font-semibold leading-5 ${homePresentation ? "mb-3" : "mb-1.5"}`}>
+        <p className={`calculator-field-label flex items-start gap-1.5 text-[12px] font-semibold leading-5 ${homePresentation ? "mb-1.5" : "mb-1.5"}`}>
           {homePresentation && (
             <svg
               viewBox="0 0 20 20"
@@ -1202,6 +1208,22 @@ export default function EnergyCalculator({
           )}
           {homePresentation ? text.device.prefilledHint : text.device.label}
         </p>
+        {homePresentation && (
+          <details className="group mb-3 pl-5">
+            <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-[11px] font-semibold leading-5 text-[#a9b8b3] transition-colors hover:text-[var(--brand-green-mint)] focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50 [&::-webkit-details-marker]:hidden">
+              {text.device.prefilledQuestion}
+              <span
+                className="text-[13px] leading-none text-[var(--brand-green-mint)] transition-transform duration-200 group-open:rotate-45"
+                aria-hidden="true"
+              >
+                +
+              </span>
+            </summary>
+            <p className="mt-1.5 max-w-[42rem] text-[11px] leading-[1.55] text-[#91a19c]">
+              {text.device.prefilledExplanation}
+            </p>
+          </details>
+        )}
         {detailPage ? (
           <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-[#fbfcfb] px-4 py-3.5">
             <span className="flex min-w-0 items-center gap-3 font-semibold text-slate-900">
