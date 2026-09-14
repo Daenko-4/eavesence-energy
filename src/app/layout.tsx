@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { Geist, Geist_Mono } from "next/font/google";
 
+import BrandStructuredData from "@/components/BrandStructuredData";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,6 +20,9 @@ const siteUrl = "https://eavesence.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+
+  applicationName: "EAVESENCE Energy",
+  manifest: "/manifest.webmanifest",
 
   title: {
     default: "EAVESENCE Energy – Stromkosten einfach verstehen",
@@ -69,11 +74,21 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: {
-      url: "/icon.png",
-      type: "image/png",
-      sizes: "512x512",
-    },
+    icon: [
+      {
+        url: "/icon.png",
+        type: "image/png",
+        sizes: "512x512",
+      },
+    ],
+    shortcut: "/icon.png",
+    apple: [
+      {
+        url: "/icon.png",
+        type: "image/png",
+        sizes: "512x512",
+      },
+    ],
   },
 };
 
@@ -87,6 +102,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable}`}
       >
+        <BrandStructuredData />
         {children}
       </body>
     </html>
