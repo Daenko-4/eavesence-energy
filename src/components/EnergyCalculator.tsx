@@ -580,10 +580,21 @@ export default function EnergyCalculator({
       return;
     }
 
-    const closeHelp = () => setPrefilledHelpOpen(false);
+    const closeHelp = (event: PointerEvent) => {
+      const target = event.target;
+
+      if (
+        target instanceof Element &&
+        target.closest("[data-prefilled-help-trigger]")
+      ) {
+        return;
+      }
+
+      setPrefilledHelpOpen(false);
+    };
     const closeHelpWithKeyboard = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        closeHelp();
+        setPrefilledHelpOpen(false);
       }
     };
 
@@ -1241,7 +1252,6 @@ export default function EnergyCalculator({
               aria-label={text.device.prefilledQuestion}
               aria-controls="prefilled-values-help"
               aria-expanded={prefilledHelpOpen}
-              onPointerDown={(event) => event.stopPropagation()}
               onClick={() => setPrefilledHelpOpen((open) => !open)}
               className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--brand-green-mint)] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50"
             >

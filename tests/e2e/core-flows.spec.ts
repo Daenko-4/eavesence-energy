@@ -67,6 +67,14 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   expect(Math.abs(helpBox.width - deviceBox.width)).toBeLessThanOrEqual(1);
   expect(Math.abs(helpBox.height - deviceBox.height)).toBeLessThanOrEqual(1);
 
+  await helpTrigger.click();
+  await expect(helpTrigger).toHaveAttribute("aria-expanded", "false");
+  await expect(helpPanel).toHaveCount(0);
+
+  await helpTrigger.click();
+  await expect(helpTrigger).toHaveAttribute("aria-expanded", "true");
+  await expect(helpPanel).toBeVisible();
+
   await page.mouse.click(
     helpBox.x + helpBox.width / 2,
     helpBox.y + helpBox.height / 2,
