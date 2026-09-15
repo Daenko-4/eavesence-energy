@@ -231,9 +231,19 @@ test("legal-page footer links open and correctly position the FAQ", async ({
     );
     await expect
       .poll(() =>
-        page.locator("#faq").evaluate((element) =>
-          Math.abs(element.getBoundingClientRect().top - 84),
-        ),
+        page.locator("#faq").evaluate((element) => {
+          const requestedTop =
+            element.getBoundingClientRect().top + window.scrollY - 84;
+          const maximumTop = Math.max(
+            0,
+            document.documentElement.scrollHeight - window.innerHeight,
+          );
+          const expectedScrollTop = Math.min(
+            Math.max(0, requestedTop),
+            maximumTop,
+          );
+          return Math.abs(window.scrollY - expectedScrollTop);
+        }),
       )
       .toBeLessThanOrEqual(4);
   }
