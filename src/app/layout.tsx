@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 
 import BrandStructuredData from "@/components/BrandStructuredData";
 
@@ -104,6 +105,7 @@ export default function RootLayout({
       >
         <BrandStructuredData />
         {children}
+        <Analytics />
       </body>
     </html>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -879,6 +880,13 @@ export default function EnergyCalculator({
     loadDeviceDefaults(name);
     setActiveSavedDeviceId(null);
 
+    const selectedDevice = devices.find((item) => item.name === name);
+    track("Calculator Device Selected", {
+      category: selectedDevice?.category ?? "custom",
+      kind: name === CUSTOM_DEVICE ? "custom" : "preset",
+      locale: activeLocale,
+    });
+
     const selectedForComparison = devices.find((item) => item.name === name);
     const alternative = devices.find(
       (item) =>
@@ -1010,8 +1018,14 @@ export default function EnergyCalculator({
     const originalLabel = activeSavedDeviceId
       ? text.saveChanges
       : text.calculate;
+    const saveAction = activeSavedDeviceId ? "updated" : "created";
     const message = myDevicesPanelRef.current?.saveCurrentDevice();
     if (!message) return;
+
+    track("Saved Device Changed", {
+      action: saveAction,
+      locale: activeLocale,
+    });
 
     if (saveConfirmationDelayRef.current) {
       clearTimeout(saveConfirmationDelayRef.current);
@@ -1034,9 +1048,12 @@ export default function EnergyCalculator({
   function toggleMeasuredMode() {
     setDeviceSearchOpen(false);
     setDeviceSearch("");
-    setMode((current) =>
-      current === "exact" ? "estimate" : "exact"
-    );
+    const nextMode = mode === "exact" ? "estimate" : "exact";
+    setMode(nextMode);
+    track("Calculator Mode Changed", {
+      locale: activeLocale,
+      mode: nextMode,
+    });
   }
 
   function handleUsagePeriodChange(nextPeriod: UsagePeriod) {

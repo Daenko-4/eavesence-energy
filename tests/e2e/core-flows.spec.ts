@@ -14,6 +14,23 @@ async function openDesktopNavigation(page: Page) {
   ).toBeVisible();
 }
 
+test("app interest can be answered once without leaving the page", async ({
+  page,
+}) => {
+  await disableHeaderIntro(page);
+  await page.goto("/");
+
+  const prompt = page.getByRole("region", { name: "EAVESENCE as an app" });
+  await expect(prompt).toBeVisible();
+  await prompt.getByRole("button", { name: "Yes, I would" }).click();
+  await expect(
+    prompt.getByRole("status"),
+  ).toHaveText("Thank you – this helps us make the next decision.");
+
+  await page.reload();
+  await expect(prompt).toHaveCount(0);
+});
+
 test("calculator updates live and a saved calculation can be deleted", async ({
   page,
 }) => {
