@@ -86,6 +86,9 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await expect(page.getByText("€12.74", { exact: true }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "Save to My devices" }).click();
+  await expect(page.locator("[data-save-confirmation]")).toHaveText(
+    "Device saved locally.",
+  );
   const savedDevices = page.locator("#meine-geraete");
   await expect(
     savedDevices.getByText("Coffee machine", { exact: true }),
@@ -93,6 +96,14 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await expect(
     savedDevices.getByText("€12.74", { exact: true }).first(),
   ).toBeVisible();
+
+  await page.getByRole("button", { name: "Update saved device" }).click();
+  await expect(page.locator("[data-save-confirmation]")).toHaveText(
+    "Changes saved locally.",
+  );
+  await expect(
+    page.getByRole("button", { name: "Delete: Coffee machine" }),
+  ).toHaveCount(1);
 
   page.once("dialog", (dialog) => dialog.accept());
   await page
@@ -167,6 +178,35 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
       expect(Math.abs(currentFaqTop - firstFaqTop)).toBeLessThanOrEqual(2);
     }
   }
+});
+
+test("language switching keeps an open FAQ expanded and preserves its position", async ({
+  page,
+}) => {
+  await disableHeaderIntro(page);
+  await page.goto("/#faq");
+
+  const englishFaq = page.getByRole("button", {
+    name: /Answers about your calculator/,
+  });
+  await expect(englishFaq).toHaveAttribute("aria-expanded", "true");
+
+  const scrollBefore = await page.evaluate(() => window.scrollY);
+  await page
+    .getByRole("link", { name: "Zur deutschen Version wechseln" })
+    .click();
+
+  await expect(page).toHaveURL("/de#faq");
+  await expect(
+    page.getByRole("button", { name: /Antworten rund um deinen Rechner/ }),
+  ).toHaveAttribute("aria-expanded", "true");
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBeGreaterThan(scrollBefore - 8);
+
+  await page.getByRole("link", { name: "Switch to English" }).click();
+  await expect(page).toHaveURL("/#faq");
+  await expect(englishFaq).toHaveAttribute("aria-expanded", "true");
 });
 
 test("footer FAQ navigation opens the answers from the page end", async ({

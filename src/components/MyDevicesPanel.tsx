@@ -31,7 +31,7 @@ type MyDevicesPanelProps = {
 };
 
 export type MyDevicesPanelHandle = {
-  saveCurrentDevice: () => void;
+  saveCurrentDevice: () => string | undefined;
 };
 
 const copy = {
@@ -44,6 +44,7 @@ const copy = {
     update: "Änderungen speichern",
     saved: "Gerät wurde lokal gespeichert.",
     updated: "Änderungen wurden lokal gespeichert.",
+    alreadySaved: "Dieses Gerät ist bereits lokal gespeichert.",
     empty:
       "Noch keine Geräte gespeichert. Berechne ein Gerät und füge es hier hinzu.",
     monthlyTotal: "Gesamtkosten pro Monat",
@@ -88,6 +89,7 @@ const copy = {
     update: "Save changes",
     saved: "Device saved locally.",
     updated: "Changes saved locally.",
+    alreadySaved: "This device is already saved locally.",
     empty:
       "No devices saved yet. Calculate a device and add it here.",
     monthlyTotal: "Total cost per month",
@@ -170,6 +172,33 @@ function createId() {
   return String(Date.now()) + "-" + Math.random().toString(16).slice(2);
 }
 
+const comparableDeviceKeys = [
+  "device",
+  "customDeviceName",
+  "mode",
+  "currency",
+  "price",
+  "watts",
+  "minutesPerUse",
+  "usesPerWeek",
+  "usagePeriod",
+  "usageAmount",
+  "estimatedKwhPerUse",
+  "measuredKwhPerUse",
+  "yearlyKwh",
+  "yearlyCost",
+  "monthlyCost",
+] as const satisfies ReadonlyArray<keyof Omit<SavedDevice, "id" | "updatedAt">>;
+
+function hasSameCalculation(
+  savedDevice: SavedDevice,
+  currentDevice: Omit<SavedDevice, "id" | "updatedAt">,
+) {
+  return comparableDeviceKeys.every(
+    (key) => savedDevice[key] === currentDevice[key],
+  );
+}
+
 const MyDevicesPanel = forwardRef<MyDevicesPanelHandle, MyDevicesPanelProps>(
 function MyDevicesPanel(
   {
@@ -217,25 +246,39 @@ function MyDevicesPanel(
       return;
     }
 
-    const id = activeSavedDeviceId ?? createId();
+    const activeDevice = savedDevices.find(
+      (item) => item.id === activeSavedDeviceId,
+    );
+    const identicalDevice = activeDevice
+      ? undefined
+      : savedDevices.find((item) => hasSameCalculation(item, currentDevice));
+
+    if (identicalDevice) {
+      setListOpen(true);
+      onActiveSavedDeviceChange(identicalDevice.id);
+      setNotice(text.alreadySaved);
+      return text.alreadySaved;
+    }
+
+    const id = activeDevice?.id ?? createId();
     const nextDevice: SavedDevice = {
       ...currentDevice,
       id,
       updatedAt: new Date().toISOString(),
     };
 
-    const nextDevices = activeSavedDeviceId
+    const nextDevices = activeDevice
       ? savedDevices.map((item) =>
-          item.id === activeSavedDeviceId ? nextDevice : item
+          item.id === activeDevice.id ? nextDevice : item
         )
       : [nextDevice, ...savedDevices];
 
     persist(nextDevices);
     setListOpen(true);
     onActiveSavedDeviceChange(id);
-    setNotice(
-      activeSavedDeviceId ? text.updated : text.saved
-    );
+    const message = activeDevice ? text.updated : text.saved;
+    setNotice(message);
+    return message;
   }
 
   function removeDevice(id: string) {
