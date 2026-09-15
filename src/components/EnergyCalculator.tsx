@@ -620,6 +620,21 @@ export default function EnergyCalculator({
     activeSavedDeviceId,
     setActiveSavedDeviceId,
   ] = useState<string | null>(null);
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    id: number;
+    message: string;
+  } | null>(null);
+  const saveConfirmationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  useEffect(() => {
+    return () => {
+      if (saveConfirmationTimeoutRef.current) {
+        clearTimeout(saveConfirmationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const [customDeviceName, setCustomDeviceName] =
     useState("");
@@ -974,6 +989,21 @@ export default function EnergyCalculator({
         window.scrollTo({ ...scrollPosition, behavior: "auto" });
       });
     });
+  }
+
+  function handleSaveCurrentDevice() {
+    const message = myDevicesPanelRef.current?.saveCurrentDevice();
+    if (!message) return;
+
+    if (saveConfirmationTimeoutRef.current) {
+      clearTimeout(saveConfirmationTimeoutRef.current);
+    }
+
+    setSaveConfirmation({ id: Date.now(), message });
+    saveConfirmationTimeoutRef.current = setTimeout(() => {
+      setSaveConfirmation(null);
+      saveConfirmationTimeoutRef.current = null;
+    }, 2600);
   }
 
   function toggleMeasuredMode() {
@@ -1937,26 +1967,39 @@ export default function EnergyCalculator({
           {text.reset}
         </button>
 
-        <button
-          type="button"
-          onClick={() => myDevicesPanelRef.current?.saveCurrentDevice()}
-          disabled={!calculationIsValid}
-          className="calculator-save-action ml-0 inline-flex min-h-10 max-w-full self-end items-center justify-center gap-2 whitespace-normal px-1 text-right text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-4 focus-visible:ring-offset-[#17211f] disabled:cursor-not-allowed disabled:text-[#65736e] sm:ml-auto sm:self-auto"
-        >
-          <svg
-            viewBox="0 0 20 20"
-            fill="none"
-            className="h-4 w-4 shrink-0"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+        <div className="relative ml-0 max-w-full self-end sm:ml-auto sm:self-auto">
+          {saveConfirmation && (
+            <p
+              key={saveConfirmation.id}
+              role="status"
+              aria-live="polite"
+              data-save-confirmation
+              className="pointer-events-none absolute bottom-full right-0 z-30 mb-2 w-max max-w-[min(17rem,calc(100vw-2.5rem))] rounded-xl border border-[#4d6a60] bg-[#22302c] px-3 py-2 text-right text-xs font-semibold leading-5 text-[var(--brand-green-mint)] shadow-xl"
+            >
+              {saveConfirmation.message}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={handleSaveCurrentDevice}
+            disabled={!calculationIsValid}
+            className="calculator-save-action inline-flex min-h-10 max-w-full items-center justify-center gap-2 whitespace-normal px-1 text-right text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-4 focus-visible:ring-offset-[#17211f] disabled:cursor-not-allowed disabled:text-[#65736e]"
           >
-            <path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z" />
-          </svg>
-          {activeSavedDeviceId ? text.saveChanges : text.calculate}
-        </button>
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              className="h-4 w-4 shrink-0"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z" />
+            </svg>
+            {activeSavedDeviceId ? text.saveChanges : text.calculate}
+          </button>
+        </div>
       </div>
 
       {/* Missing input */}

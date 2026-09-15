@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import type { Locale } from "@/i18n/config";
+import { getFaqHref, type Locale } from "@/i18n/config";
 
 type IconName =
   | "kitchen"
@@ -747,7 +747,12 @@ export default function HomePage({
       lang={locale}
       className="min-h-screen bg-[var(--background)] text-[#07111f]"
     >
-      <Header locale={locale} />
+      <Header
+        locale={locale}
+        languageHrefOverride={
+          faqOpen ? getFaqHref(locale === "de" ? "en" : "de") : undefined
+        }
+      />
 
       <main className="overflow-hidden">
         <section className="relative px-5 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-12 lg:pb-14 lg:pt-16">
