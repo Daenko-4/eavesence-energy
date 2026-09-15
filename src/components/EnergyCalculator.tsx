@@ -2034,18 +2034,37 @@ export default function EnergyCalculator({
                 </span>
               ))}
               <span className="col-start-1 row-start-1 inline-flex items-center justify-end gap-2">
-                <svg
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  className="h-4 w-4 shrink-0"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z" />
-                </svg>
+                {saveConfirmation?.visible ? (
+                  <svg
+                    data-save-status-icon
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="h-4 w-4 shrink-0"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="10" cy="10" r="7" />
+                    <path d="M10 9v4" />
+                    <path d="M10 6.5h.01" />
+                  </svg>
+                ) : (
+                  <svg
+                    data-save-action-icon
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="h-4 w-4 shrink-0"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z" />
+                  </svg>
+                )}
                 <span aria-live="polite">
                   {saveConfirmation
                     ? saveConfirmation.visible
