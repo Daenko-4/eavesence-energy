@@ -242,6 +242,9 @@ const calculatorText = {
 
     calculate: "In „Meine Geräte“ speichern",
     saveChanges: "Gespeichertes Gerät aktualisieren",
+    deviceSaved: "Gerät wurde lokal gespeichert.",
+    changesSaved: "Änderungen wurden lokal gespeichert.",
+    alreadySaved: "Dieses Gerät ist bereits lokal gespeichert.",
     reset: "Werte zurücksetzen",
     fallbackDevice: "Gerät",
   },
@@ -409,6 +412,9 @@ const calculatorText = {
 
     calculate: "Save to My devices",
     saveChanges: "Update saved device",
+    deviceSaved: "Device saved locally.",
+    changesSaved: "Changes saved locally.",
+    alreadySaved: "This device is already saved locally.",
     reset: "Reset values",
     fallbackDevice: "Device",
   },
@@ -621,15 +627,22 @@ export default function EnergyCalculator({
     setActiveSavedDeviceId,
   ] = useState<string | null>(null);
   const [saveConfirmation, setSaveConfirmation] = useState<{
-    id: number;
     message: string;
+    originalLabel: string;
+    visible: boolean;
   } | null>(null);
+  const saveConfirmationDelayRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const saveConfirmationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
 
   useEffect(() => {
     return () => {
+      if (saveConfirmationDelayRef.current) {
+        clearTimeout(saveConfirmationDelayRef.current);
+      }
       if (saveConfirmationTimeoutRef.current) {
         clearTimeout(saveConfirmationTimeoutRef.current);
       }
@@ -992,18 +1005,30 @@ export default function EnergyCalculator({
   }
 
   function handleSaveCurrentDevice() {
+    if (saveConfirmation) return;
+
+    const originalLabel = activeSavedDeviceId
+      ? text.saveChanges
+      : text.calculate;
     const message = myDevicesPanelRef.current?.saveCurrentDevice();
     if (!message) return;
 
+    if (saveConfirmationDelayRef.current) {
+      clearTimeout(saveConfirmationDelayRef.current);
+    }
     if (saveConfirmationTimeoutRef.current) {
       clearTimeout(saveConfirmationTimeoutRef.current);
     }
 
-    setSaveConfirmation({ id: Date.now(), message });
-    saveConfirmationTimeoutRef.current = setTimeout(() => {
-      setSaveConfirmation(null);
-      saveConfirmationTimeoutRef.current = null;
-    }, 2600);
+    setSaveConfirmation({ message, originalLabel, visible: false });
+    saveConfirmationDelayRef.current = setTimeout(() => {
+      setSaveConfirmation({ message, originalLabel, visible: true });
+      saveConfirmationDelayRef.current = null;
+      saveConfirmationTimeoutRef.current = setTimeout(() => {
+        setSaveConfirmation(null);
+        saveConfirmationTimeoutRef.current = null;
+      }, 2200);
+    }, 350);
   }
 
   function toggleMeasuredMode() {
@@ -1968,17 +1993,6 @@ export default function EnergyCalculator({
         </button>
 
         <div className="relative ml-0 max-w-full self-end sm:ml-auto sm:self-auto">
-          {saveConfirmation && (
-            <p
-              key={saveConfirmation.id}
-              role="status"
-              aria-live="polite"
-              data-save-confirmation
-              className="pointer-events-none absolute bottom-full right-0 z-30 mb-2 w-max max-w-[min(17rem,calc(100vw-2.5rem))] rounded-xl border border-[#4d6a60] bg-[#22302c] px-3 py-2 text-right text-xs font-semibold leading-5 text-[var(--brand-green-mint)] shadow-xl"
-            >
-              {saveConfirmation.message}
-            </p>
-          )}
           <button
             type="button"
             onClick={handleSaveCurrentDevice}
@@ -1997,7 +2011,32 @@ export default function EnergyCalculator({
             >
               <path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z" />
             </svg>
-            {activeSavedDeviceId ? text.saveChanges : text.calculate}
+            <span className="grid max-w-full text-right">
+              {[
+                text.calculate,
+                text.saveChanges,
+                text.deviceSaved,
+                text.changesSaved,
+                text.alreadySaved,
+              ].map((label) => (
+                <span
+                  key={label}
+                  aria-hidden="true"
+                  className="invisible col-start-1 row-start-1"
+                >
+                  {label}
+                </span>
+              ))}
+              <span aria-live="polite" className="col-start-1 row-start-1">
+                {saveConfirmation
+                  ? saveConfirmation.visible
+                    ? saveConfirmation.message
+                    : saveConfirmation.originalLabel
+                  : activeSavedDeviceId
+                    ? text.saveChanges
+                    : text.calculate}
+              </span>
+            </span>
           </button>
         </div>
       </div>
