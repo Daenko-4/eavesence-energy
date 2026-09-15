@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import { getFaqHref, type Locale } from "@/i18n/config";
+import type { Locale } from "@/i18n/config";
 
 type IconName =
   | "kitchen"
@@ -25,6 +25,7 @@ type HomePageProps = {
 };
 
 const FEEDBACK_EMAIL = "feedback@eavesence.com";
+const FAQ_LANGUAGE_TRANSFER_KEY = "eavesence-keep-faq-open-after-language-change";
 
 const content = {
   de: {
@@ -703,16 +704,23 @@ export default function HomePage({
   )}`;
 
   useEffect(() => {
+    const keepFaqOpen =
+      window.sessionStorage.getItem(FAQ_LANGUAGE_TRANSFER_KEY) === "true";
+    window.sessionStorage.removeItem(FAQ_LANGUAGE_TRANSFER_KEY);
+
     function syncFaqWithHash() {
       setFaqOpen(window.location.hash === "#faq");
     }
 
-    syncFaqWithHash();
+    const initialFrame = window.requestAnimationFrame(() => {
+      setFaqOpen(window.location.hash === "#faq" || keepFaqOpen);
+    });
     window.addEventListener("hashchange", syncFaqWithHash);
     window.addEventListener("popstate", syncFaqWithHash);
     window.addEventListener("eavesence:open-faq", syncFaqWithHash);
 
     return () => {
+      window.cancelAnimationFrame(initialFrame);
       window.removeEventListener("hashchange", syncFaqWithHash);
       window.removeEventListener("popstate", syncFaqWithHash);
       window.removeEventListener("eavesence:open-faq", syncFaqWithHash);
@@ -749,9 +757,13 @@ export default function HomePage({
     >
       <Header
         locale={locale}
-        languageHrefOverride={
-          faqOpen ? getFaqHref(locale === "de" ? "en" : "de") : undefined
-        }
+        onLanguageChange={() => {
+          if (faqOpen) {
+            window.sessionStorage.setItem(FAQ_LANGUAGE_TRANSFER_KEY, "true");
+          } else {
+            window.sessionStorage.removeItem(FAQ_LANGUAGE_TRANSFER_KEY);
+          }
+        }}
       />
 
       <main className="overflow-hidden">

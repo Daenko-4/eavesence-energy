@@ -190,6 +190,20 @@ test("language switching keeps an open FAQ expanded and preserves its position",
   page,
 }) => {
   await disableHeaderIntro(page);
+  await page.goto("/");
+  await page.evaluate(() => window.scrollTo(0, 400));
+  const regularScrollBefore = await page.evaluate(() => window.scrollY);
+  await page
+    .getByRole("link", { name: "Zur deutschen Version wechseln" })
+    .click();
+  await expect(page).toHaveURL("/de");
+  await expect(
+    page.getByRole("button", { name: /Antworten rund um deinen Rechner/ }),
+  ).toHaveAttribute("aria-expanded", "false");
+  expect(
+    Math.abs((await page.evaluate(() => window.scrollY)) - regularScrollBefore),
+  ).toBeLessThanOrEqual(8);
+
   await page.goto("/#faq");
 
   const englishFaq = page.getByRole("button", {
@@ -202,7 +216,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
     .getByRole("link", { name: "Zur deutschen Version wechseln" })
     .click();
 
-  await expect(page).toHaveURL("/de#faq");
+  await expect(page).toHaveURL("/de");
   await expect(
     page.getByRole("button", { name: /Antworten rund um deinen Rechner/ }),
   ).toHaveAttribute("aria-expanded", "true");
@@ -211,7 +225,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
     .toBeGreaterThan(scrollBefore - 8);
 
   await page.getByRole("link", { name: "Switch to English" }).click();
-  await expect(page).toHaveURL("/#faq");
+  await expect(page).toHaveURL("/");
   await expect(englishFaq).toHaveAttribute("aria-expanded", "true");
 });
 
