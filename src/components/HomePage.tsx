@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import { getHomeHref, type Locale } from "@/i18n/config";
+import type { Locale } from "@/i18n/config";
 
 type IconName =
   | "kitchen"
@@ -25,6 +25,7 @@ type HomePageProps = {
 };
 
 const FEEDBACK_EMAIL = "feedback@eavesence.com";
+const FAQ_LANGUAGE_TRANSFER_KEY = "eavesence-keep-faq-open-after-language-change";
 
 const content = {
   de: {
@@ -704,36 +705,32 @@ export default function HomePage({
 
   useEffect(() => {
     const keepFaqOpen =
-      new URLSearchParams(window.location.search).get("faq") === "open";
-    let languageTransferSettling = keepFaqOpen;
-
-    if (keepFaqOpen) {
-      window.history.replaceState(
-        window.history.state,
-        "",
-        window.location.pathname,
-      );
-    }
+      window.sessionStorage.getItem(FAQ_LANGUAGE_TRANSFER_KEY) === "true";
 
     function syncFaqWithHash() {
       setFaqOpen(
-        window.location.hash === "#faq" || languageTransferSettling,
+        window.location.hash === "#faq" ||
+          window.sessionStorage.getItem(FAQ_LANGUAGE_TRANSFER_KEY) === "true",
       );
     }
 
     const initialFrame = window.requestAnimationFrame(() => {
       setFaqOpen(window.location.hash === "#faq" || keepFaqOpen);
     });
-    const transferSettledTimeout = window.setTimeout(() => {
-      languageTransferSettling = false;
-    }, 1000);
+    const transferSettledTimeout = keepFaqOpen
+      ? window.setTimeout(() => {
+          window.sessionStorage.removeItem(FAQ_LANGUAGE_TRANSFER_KEY);
+        }, 1000)
+      : undefined;
     window.addEventListener("hashchange", syncFaqWithHash);
     window.addEventListener("popstate", syncFaqWithHash);
     window.addEventListener("eavesence:open-faq", syncFaqWithHash);
 
     return () => {
       window.cancelAnimationFrame(initialFrame);
-      window.clearTimeout(transferSettledTimeout);
+      if (transferSettledTimeout) {
+        window.clearTimeout(transferSettledTimeout);
+      }
       window.removeEventListener("hashchange", syncFaqWithHash);
       window.removeEventListener("popstate", syncFaqWithHash);
       window.removeEventListener("eavesence:open-faq", syncFaqWithHash);
@@ -770,11 +767,13 @@ export default function HomePage({
     >
       <Header
         locale={locale}
-        languageHrefOverride={
-          faqOpen
-            ? `${getHomeHref(locale === "de" ? "en" : "de")}?faq=open`
-            : undefined
-        }
+        onLanguageChange={() => {
+          if (faqOpen) {
+            window.sessionStorage.setItem(FAQ_LANGUAGE_TRANSFER_KEY, "true");
+          } else {
+            window.sessionStorage.removeItem(FAQ_LANGUAGE_TRANSFER_KEY);
+          }
+        }}
       />
 
       <main className="overflow-hidden">
