@@ -24,7 +24,6 @@ type HeaderProps = {
   locale?: Locale;
   calculatorHrefOverride?: string;
   languageHrefOverride?: string;
-  onLanguageChange?: () => void;
 };
 
 type NavigationKey =
@@ -91,7 +90,6 @@ export default function Header({
   locale = "de",
   calculatorHrefOverride,
   languageHrefOverride,
-  onLanguageChange,
 }: HeaderProps) {
   const pathname = usePathname();
   const homeHref = getHomeHref(locale);
@@ -545,10 +543,7 @@ export default function Header({
           <Link
             href={languageHref}
             scroll={false}
-            onClick={() => {
-              onLanguageChange?.();
-              closeMenu();
-            }}
+            onClick={closeMenu}
             className="group flex h-11 items-center gap-1.5 rounded-lg px-2 text-[10px] font-bold uppercase tracking-[0.04em] transition hover:bg-[#eaf8ef] active:scale-[0.98] lg:h-8"
             aria-label={
               locale === "de" ? "Switch to English" : "Zur deutschen Version wechseln"

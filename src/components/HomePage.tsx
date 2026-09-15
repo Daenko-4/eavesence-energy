@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import type { Locale } from "@/i18n/config";
+import { getHomeHref, type Locale } from "@/i18n/config";
 
 type IconName =
   | "kitchen"
@@ -25,7 +25,6 @@ type HomePageProps = {
 };
 
 const FEEDBACK_EMAIL = "feedback@eavesence.com";
-const FAQ_LANGUAGE_TRANSFER_KEY = "eavesence-keep-faq-open-after-language-change";
 
 const content = {
   de: {
@@ -677,7 +676,6 @@ export default function HomePage({
   locale = "de",
 }: HomePageProps) {
   const [faqOpen, setFaqOpen] = useState(false);
-  const preserveFaqDuringLanguageChangeRef = useRef(false);
   const text = content[locale];
   const hero =
     locale === "de"
@@ -706,19 +704,17 @@ export default function HomePage({
 
   useEffect(() => {
     const keepFaqOpen =
-      window.sessionStorage.getItem(FAQ_LANGUAGE_TRANSFER_KEY) === "true";
-    window.sessionStorage.removeItem(FAQ_LANGUAGE_TRANSFER_KEY);
+      new URLSearchParams(window.location.search).get("faq") === "open";
+
+    if (keepFaqOpen) {
+      window.history.replaceState(
+        window.history.state,
+        "",
+        window.location.pathname,
+      );
+    }
 
     function syncFaqWithHash() {
-      if (
-        preserveFaqDuringLanguageChangeRef.current &&
-        window.location.hash !== "#faq"
-      ) {
-        preserveFaqDuringLanguageChangeRef.current = false;
-        setFaqOpen(true);
-        return;
-      }
-
       setFaqOpen(window.location.hash === "#faq");
     }
 
@@ -735,7 +731,7 @@ export default function HomePage({
       window.removeEventListener("popstate", syncFaqWithHash);
       window.removeEventListener("eavesence:open-faq", syncFaqWithHash);
     };
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     if (!faqOpen || window.location.hash !== "#faq") return;
@@ -767,17 +763,11 @@ export default function HomePage({
     >
       <Header
         locale={locale}
-        onLanguageChange={() => {
-          if (faqOpen) {
-            preserveFaqDuringLanguageChangeRef.current = true;
-            window.sessionStorage.setItem(FAQ_LANGUAGE_TRANSFER_KEY, "true");
-            window.setTimeout(() => {
-              window.sessionStorage.removeItem(FAQ_LANGUAGE_TRANSFER_KEY);
-            }, 1500);
-          } else {
-            window.sessionStorage.removeItem(FAQ_LANGUAGE_TRANSFER_KEY);
-          }
-        }}
+        languageHrefOverride={
+          faqOpen
+            ? `${getHomeHref(locale === "de" ? "en" : "de")}?faq=open`
+            : undefined
+        }
       />
 
       <main className="overflow-hidden">
