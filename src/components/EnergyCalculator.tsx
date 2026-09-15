@@ -1997,20 +1997,8 @@ export default function EnergyCalculator({
             type="button"
             onClick={handleSaveCurrentDevice}
             disabled={!calculationIsValid}
-            className="calculator-save-action inline-flex min-h-10 max-w-full items-center justify-center gap-2 whitespace-normal px-1 text-right text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-4 focus-visible:ring-offset-[#17211f] disabled:cursor-not-allowed disabled:text-[#65736e]"
+            className="calculator-save-action inline-flex min-h-10 max-w-full items-center justify-center whitespace-normal px-1 text-right text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)] focus-visible:ring-offset-4 focus-visible:ring-offset-[#17211f] disabled:cursor-not-allowed disabled:text-[#65736e]"
           >
-            <svg
-              viewBox="0 0 20 20"
-              fill="none"
-              className="h-4 w-4 shrink-0"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z" />
-            </svg>
             <span className="grid max-w-full text-right">
               {[
                 text.calculate,
@@ -2022,19 +2010,34 @@ export default function EnergyCalculator({
                 <span
                   key={label}
                   aria-hidden="true"
-                  className="invisible col-start-1 row-start-1"
+                  className="invisible col-start-1 row-start-1 inline-flex items-center gap-2"
                 >
+                  <span className="h-4 w-4 shrink-0" />
                   {label}
                 </span>
               ))}
-              <span aria-live="polite" className="col-start-1 row-start-1">
-                {saveConfirmation
-                  ? saveConfirmation.visible
-                    ? saveConfirmation.message
-                    : saveConfirmation.originalLabel
-                  : activeSavedDeviceId
-                    ? text.saveChanges
-                    : text.calculate}
+              <span className="col-start-1 row-start-1 inline-flex items-center justify-end gap-2">
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className="h-4 w-4 shrink-0"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z" />
+                </svg>
+                <span aria-live="polite">
+                  {saveConfirmation
+                    ? saveConfirmation.visible
+                      ? saveConfirmation.message
+                      : saveConfirmation.originalLabel
+                    : activeSavedDeviceId
+                      ? text.saveChanges
+                      : text.calculate}
+                </span>
               </span>
             </span>
           </button>
