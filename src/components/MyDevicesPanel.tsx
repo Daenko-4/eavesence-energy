@@ -256,7 +256,6 @@ function MyDevicesPanel(
     if (identicalDevice) {
       setListOpen(true);
       onActiveSavedDeviceChange(identicalDevice.id);
-      setNotice(text.alreadySaved);
       return text.alreadySaved;
     }
 
@@ -277,7 +276,6 @@ function MyDevicesPanel(
     setListOpen(true);
     onActiveSavedDeviceChange(id);
     const message = activeDevice ? text.updated : text.saved;
-    setNotice(message);
     return message;
   }
 

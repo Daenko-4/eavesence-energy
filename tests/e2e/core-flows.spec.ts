@@ -86,9 +86,9 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await expect(page.getByText("€12.74", { exact: true }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "Save to My devices" }).click();
-  await expect(page.locator("[data-save-confirmation]")).toHaveText(
-    "Device saved locally.",
-  );
+  await expect(
+    page.getByRole("button", { name: "Device saved locally." }),
+  ).toBeVisible();
   const savedDevices = page.locator("#meine-geraete");
   await expect(
     savedDevices.getByText("Coffee machine", { exact: true }),
@@ -97,10 +97,16 @@ test("calculator updates live and a saved calculation can be deleted", async ({
     savedDevices.getByText("€12.74", { exact: true }).first(),
   ).toBeVisible();
 
+  await expect(
+    page.getByRole("button", { name: "Update saved device" }),
+  ).toBeVisible({ timeout: 4_000 });
   await page.getByRole("button", { name: "Update saved device" }).click();
-  await expect(page.locator("[data-save-confirmation]")).toHaveText(
-    "Changes saved locally.",
-  );
+  await expect(
+    page.getByRole("button", { name: "Changes saved locally." }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Update saved device" }),
+  ).toBeVisible({ timeout: 4_000 });
   await expect(
     page.getByRole("button", { name: "Delete: Coffee machine" }),
   ).toHaveCount(1);
