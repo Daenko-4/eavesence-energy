@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
@@ -677,6 +677,7 @@ export default function HomePage({
   locale = "de",
 }: HomePageProps) {
   const [faqOpen, setFaqOpen] = useState(false);
+  const preserveFaqDuringLanguageChangeRef = useRef(false);
   const text = content[locale];
   const hero =
     locale === "de"
@@ -709,6 +710,15 @@ export default function HomePage({
     window.sessionStorage.removeItem(FAQ_LANGUAGE_TRANSFER_KEY);
 
     function syncFaqWithHash() {
+      if (
+        preserveFaqDuringLanguageChangeRef.current &&
+        window.location.hash !== "#faq"
+      ) {
+        preserveFaqDuringLanguageChangeRef.current = false;
+        setFaqOpen(true);
+        return;
+      }
+
       setFaqOpen(window.location.hash === "#faq");
     }
 
@@ -759,7 +769,11 @@ export default function HomePage({
         locale={locale}
         onLanguageChange={() => {
           if (faqOpen) {
+            preserveFaqDuringLanguageChangeRef.current = true;
             window.sessionStorage.setItem(FAQ_LANGUAGE_TRANSFER_KEY, "true");
+            window.setTimeout(() => {
+              window.sessionStorage.removeItem(FAQ_LANGUAGE_TRANSFER_KEY);
+            }, 1500);
           } else {
             window.sessionStorage.removeItem(FAQ_LANGUAGE_TRANSFER_KEY);
           }
