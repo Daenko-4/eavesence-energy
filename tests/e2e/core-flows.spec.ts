@@ -187,6 +187,58 @@ test("footer FAQ navigation opens the answers from the page end", async ({
   ).toHaveAttribute("aria-expanded", "true");
 });
 
+test("legal-page footer links open and correctly position the FAQ", async ({
+  page,
+}) => {
+  await disableHeaderIntro(page);
+
+  for (const { path, linkName, title, homePath } of [
+    {
+      path: "/en/imprint",
+      linkName: "Frequently asked questions",
+      title: /Answers about your calculator/,
+      homePath: "/",
+    },
+    {
+      path: "/en/privacy",
+      linkName: "Frequently asked questions",
+      title: /Answers about your calculator/,
+      homePath: "/",
+    },
+    {
+      path: "/impressum",
+      linkName: "Häufige Fragen",
+      title: /Antworten rund um deinen Rechner/,
+      homePath: "/de",
+    },
+    {
+      path: "/datenschutz",
+      linkName: "Häufige Fragen",
+      title: /Antworten rund um deinen Rechner/,
+      homePath: "/de",
+    },
+  ]) {
+    await page.goto(path);
+    await page
+      .locator("footer")
+      .getByRole("link", { name: linkName, exact: true })
+      .click();
+
+    await expect(page).toHaveURL(`${homePath}#faq`);
+    await expect(page.getByRole("button", { name: title })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    await expect
+      .poll(() =>
+        page.locator("#faq").evaluate((element) =>
+          Math.abs(element.getBoundingClientRect().top - 84),
+        ),
+      )
+      .toBeLessThanOrEqual(4);
+  }
+});
+
 test("desktop navigation opens after the logo intro and stays open", async ({
   page,
 }) => {

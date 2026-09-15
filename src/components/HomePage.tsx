@@ -719,6 +719,29 @@ export default function HomePage({
     };
   }, []);
 
+  useEffect(() => {
+    if (!faqOpen || window.location.hash !== "#faq") return;
+
+    const scrollTimeout = window.setTimeout(() => {
+      const faqElement = document.getElementById("faq");
+      if (!faqElement) return;
+
+      const requestedTop =
+        faqElement.getBoundingClientRect().top + window.scrollY - 84;
+      const maximumTop = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
+
+      window.scrollTo({
+        top: Math.min(Math.max(0, requestedTop), maximumTop),
+        behavior: "smooth",
+      });
+    }, 340);
+
+    return () => window.clearTimeout(scrollTimeout);
+  }, [faqOpen]);
+
   return (
     <div
       lang={locale}
