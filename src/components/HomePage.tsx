@@ -705,6 +705,7 @@ export default function HomePage({
   useEffect(() => {
     const keepFaqOpen =
       new URLSearchParams(window.location.search).get("faq") === "open";
+    let languageTransferSettling = keepFaqOpen;
 
     if (keepFaqOpen) {
       window.history.replaceState(
@@ -715,18 +716,24 @@ export default function HomePage({
     }
 
     function syncFaqWithHash() {
-      setFaqOpen(window.location.hash === "#faq");
+      setFaqOpen(
+        window.location.hash === "#faq" || languageTransferSettling,
+      );
     }
 
     const initialFrame = window.requestAnimationFrame(() => {
       setFaqOpen(window.location.hash === "#faq" || keepFaqOpen);
     });
+    const transferSettledTimeout = window.setTimeout(() => {
+      languageTransferSettling = false;
+    }, 1000);
     window.addEventListener("hashchange", syncFaqWithHash);
     window.addEventListener("popstate", syncFaqWithHash);
     window.addEventListener("eavesence:open-faq", syncFaqWithHash);
 
     return () => {
       window.cancelAnimationFrame(initialFrame);
+      window.clearTimeout(transferSettledTimeout);
       window.removeEventListener("hashchange", syncFaqWithHash);
       window.removeEventListener("popstate", syncFaqWithHash);
       window.removeEventListener("eavesence:open-faq", syncFaqWithHash);
