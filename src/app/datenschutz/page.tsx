@@ -110,9 +110,10 @@ export default function DatenschutzPage() {
             <p className="mt-3 leading-7">
               Wenn du „Meine Geräte“ verwendest, werden deine gespeicherten
               Berechnungen ausschließlich im lokalen Speicher deines Browsers
-              abgelegt. Dort können außerdem deine gewählte Währung und zuletzt
-              verwendete Geräte gespeichert werden. Diese Daten werden nicht an
-              EAVESENCE Energy übertragen.
+              abgelegt. Dort können außerdem deine gewählte Währung, zuletzt
+              verwendete Geräte und die Information gespeichert werden, ob du
+              die App-Frage bereits beantwortet hast. Die lokal gespeicherten
+              Berechnungsdaten werden nicht an EAVESENCE Energy übertragen.
             </p>
 
             <p className="mt-3 leading-7">
@@ -141,14 +142,22 @@ export default function DatenschutzPage() {
             </h2>
 
             <p className="mt-3 leading-7">
-              EAVESENCE Energy setzt derzeit keine eigenen Analyse- oder
-              Marketingdienste ein.
+              EAVESENCE Energy nutzt Vercel Web Analytics, um zu verstehen,
+              welche Seiten und Produktfunktionen verwendet werden. Laut
+              Vercel arbeitet dieser Dienst ohne Cookies und erfasst die Nutzung
+              in anonymisierter Form.
             </p>
 
             <p className="mt-3 leading-7">
-              Sollte EAVESENCE Energy künftig Analyse-, Marketing- oder andere
-              zusätzliche Dienste einsetzen, wird diese Datenschutzerklärung
-              entsprechend aktualisiert.
+              Erfasst werden wenige Interaktionen, etwa die Auswahl einer
+              Gerätekategorie, der Wechsel des Berechnungsmodus, das Speichern
+              eines Geräts oder die freiwillige Antwort auf die App-Frage.
+              Selbst vergebene Gerätenamen, Berechnungswerte, E-Mail-Adressen
+              und andere Freitexte werden nicht als Analyseereignisse
+              übertragen. Die Informationen dienen ausschließlich dazu,
+              EAVESENCE zu verbessern und das Interesse an künftigen
+              Produktfunktionen einzuschätzen. Marketing-Tracking wird nicht
+              eingesetzt.
             </p>
           </section>
 

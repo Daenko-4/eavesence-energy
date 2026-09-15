@@ -109,8 +109,9 @@ export default function PrivacyPage() {
             <p className="mt-3 leading-7">
               When you use “My devices”, your saved calculations are stored
               exclusively in your browser&apos;s local storage. Your selected
-              currency and recently used devices may also be stored there. This
-              data is not sent to EAVESENCE Energy.
+              currency, recently used devices and whether you have already
+              answered the app-interest question may also be stored there. The
+              locally saved calculation data is not sent to EAVESENCE Energy.
             </p>
 
             <p className="mt-3 leading-7">
@@ -138,14 +139,20 @@ export default function PrivacyPage() {
             </h2>
 
             <p className="mt-3 leading-7">
-              EAVESENCE Energy currently does not use its own analytics or
-              marketing services.
+              EAVESENCE Energy uses Vercel Web Analytics to understand which
+              pages and product functions are used. According to Vercel, this
+              service works without cookies and records usage in anonymised
+              form.
             </p>
 
             <p className="mt-3 leading-7">
-              If EAVESENCE Energy uses analytics, marketing or other additional
-              services in the future, this privacy information will be updated
-              accordingly.
+              We record a small number of interactions, such as selecting a
+              device category, switching calculation mode, saving a device or
+              answering the voluntary app-interest question. Device names you
+              create, calculation values, email addresses and other free-text
+              entries are not sent as analytics events. The information is used
+              solely to improve EAVESENCE and assess interest in future product
+              features. No marketing tracking is used.
             </p>
           </section>
 

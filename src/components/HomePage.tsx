@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import AppInterestPrompt from "@/components/AppInterestPrompt";
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -835,6 +836,8 @@ export default function HomePage({
             </div>
           </div>
         </section>
+
+        <AppInterestPrompt locale={locale} />
 
         <section
           id="so-funktionierts"
