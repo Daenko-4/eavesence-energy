@@ -31,6 +31,75 @@ test("app interest can be answered once without leaving the page", async ({
   await expect(prompt).toHaveCount(0);
 });
 
+test("calculator engagement is tracked only on the first interaction", async ({
+  page,
+}) => {
+  await disableHeaderIntro(page);
+  await page.goto("/");
+
+  await page.evaluate(() => {
+    const analyticsWindow = window as typeof window & {
+      __trackedAnalytics: Array<{
+        payload?: {
+          data?: Record<string, string>;
+          name?: string;
+        };
+        type: string;
+      }>;
+    };
+
+    analyticsWindow.__trackedAnalytics = [];
+    Object.defineProperty(window, "va", {
+      configurable: true,
+      value: (
+        type: string,
+        payload?: {
+          data?: Record<string, string>;
+          name?: string;
+        },
+      ) => {
+        analyticsWindow.__trackedAnalytics.push({ type, payload });
+      },
+      writable: true,
+    });
+  });
+
+  const numericInputs = page.locator('#rechner input[type="number"]');
+  await numericInputs.nth(0).fill("600");
+  await numericInputs.nth(1).fill("12");
+
+  const engagementEvents = await page.evaluate(() => {
+    const analyticsWindow = window as typeof window & {
+      __trackedAnalytics: Array<{
+        payload?: {
+          data?: Record<string, string>;
+          name?: string;
+        };
+        type: string;
+      }>;
+    };
+
+    return analyticsWindow.__trackedAnalytics.filter(
+      ({ payload, type }) =>
+        type === "event" && payload?.name === "Calculator Engaged",
+    );
+  });
+
+  expect(engagementEvents).toEqual([
+    {
+      payload: {
+        data: {
+          context: "home",
+          interaction: "field_change",
+          locale: "en",
+        },
+        name: "Calculator Engaged",
+      },
+      type: "event",
+    },
+  ]);
+});
+
 test("calculator updates live and a saved calculation can be deleted", async ({
   page,
 }) => {

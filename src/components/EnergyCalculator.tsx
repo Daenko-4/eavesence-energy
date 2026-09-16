@@ -34,6 +34,14 @@ type Mode = "estimate" | "exact";
 type NumericInput = number | "";
 type UsagePeriod = "week" | "month";
 type CurrencyCode = SavedDeviceCurrency;
+type CalculatorInteraction =
+  | "device_selection"
+  | "field_change"
+  | "mode_change"
+  | "period_change"
+  | "reset"
+  | "save"
+  | "saved_device_open";
 
 const CURRENCY_STORAGE_KEY = "eavesence-currency";
 const RECENT_DEVICES_STORAGE_KEY = "eavesence-recent-devices";
@@ -638,6 +646,7 @@ export default function EnergyCalculator({
   const saveConfirmationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const engagementTrackedRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -872,7 +881,19 @@ export default function EnergyCalculator({
     }
   }
 
+  function trackCalculatorEngagement(interaction: CalculatorInteraction) {
+    if (engagementTrackedRef.current) return;
+
+    engagementTrackedRef.current = true;
+    track("Calculator Engaged", {
+      context: detailPage ? "device_detail" : "home",
+      interaction,
+      locale: activeLocale,
+    });
+  }
+
   function handleDeviceChange(name: string) {
+    trackCalculatorEngagement("device_selection");
     setDevice(name);
     setMode("estimate");
     setDeviceSearch("");
@@ -926,6 +947,7 @@ export default function EnergyCalculator({
   }
 
   function handleOpenSavedDevice(item: SavedDevice) {
+    trackCalculatorEngagement("saved_device_open");
     const savedSourceDevice = devices.find(
       (candidate) => candidate.name === item.device
     );
@@ -996,6 +1018,7 @@ export default function EnergyCalculator({
   }
 
   function handleReset(button?: HTMLButtonElement) {
+    trackCalculatorEngagement("reset");
     const scrollPosition = {
       left: window.scrollX,
       top: window.scrollY,
@@ -1014,6 +1037,8 @@ export default function EnergyCalculator({
 
   function handleSaveCurrentDevice() {
     if (saveConfirmation) return;
+
+    trackCalculatorEngagement("save");
 
     const originalLabel = activeSavedDeviceId
       ? text.saveChanges
@@ -1046,6 +1071,7 @@ export default function EnergyCalculator({
   }
 
   function toggleMeasuredMode() {
+    trackCalculatorEngagement("mode_change");
     setDeviceSearchOpen(false);
     setDeviceSearch("");
     const nextMode = mode === "exact" ? "estimate" : "exact";
@@ -1057,6 +1083,7 @@ export default function EnergyCalculator({
   }
 
   function handleUsagePeriodChange(nextPeriod: UsagePeriod) {
+    trackCalculatorEngagement("period_change");
     const nextUsesPerWeek = usageAmountToWeekly(
       numericValue(usesPerWeek),
       nextPeriod
@@ -1329,11 +1356,15 @@ export default function EnergyCalculator({
 
   return (
     <section>
-      <div className={`grid w-full min-w-0 max-w-full rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] xl:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] ${
+      <div
+        data-calculator-shell
+        onChangeCapture={() => trackCalculatorEngagement("field_change")}
+        className={`grid w-full min-w-0 max-w-full rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] xl:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] ${
         homePresentation
           ? "gap-4 p-4 sm:p-5 lg:gap-6 lg:p-5"
           : "gap-5 p-4 sm:p-6 lg:gap-8 lg:p-7"
-      }`}>
+      }`}
+      >
         <div data-calculator-form className="calculator-form flex min-w-0 flex-col justify-start px-1 py-1 sm:px-2">
 
       {/* Device */}
