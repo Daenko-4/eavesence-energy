@@ -19,6 +19,7 @@ import {
   type SavedDevice,
   type SavedDeviceCurrency,
 } from "@/lib/savedDevices";
+import { HOUSEHOLD_CHANGED_EVENT } from "@/lib/household";
 
 type MyDevicesPanelProps = {
   locale: Locale;
@@ -239,6 +240,7 @@ function MyDevicesPanel(
       SAVED_DEVICES_STORAGE_KEY,
       JSON.stringify(nextDevices)
     );
+    window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
   }
 
   function saveCurrentDevice() {

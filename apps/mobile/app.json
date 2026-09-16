@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "EAVESENCE Home",
+    "slug": "eavesence-home",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "eavesence",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.eavesence.home"
+    },
+    "android": {
+      "package": "com.eavesence.home",
+      "adaptiveIcon": {
+        "backgroundColor": "#f6f7f2"
+      }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "monthly-check-in"
+        }
+      ]
+    ],
+    "extra": {
+      "privacyMode": "local-first"
+    }
+  }
+}

@@ -108,12 +108,14 @@ export default function DatenschutzPage() {
             </h2>
 
             <p className="mt-3 leading-7">
-              Wenn du „Meine Geräte“ verwendest, werden deine gespeicherten
-              Berechnungen ausschließlich im lokalen Speicher deines Browsers
-              abgelegt. Dort können außerdem deine gewählte Währung, zuletzt
-              verwendete Geräte und die Information gespeichert werden, ob du
-              die App-Frage bereits beantwortet hast. Die lokal gespeicherten
-              Berechnungsdaten werden nicht an EAVESENCE Energy übertragen.
+              Wenn du „Meine Geräte“ oder „Mein Zuhause“ verwendest, werden
+              deine gespeicherten Berechnungen, Räume, Sparziele und freiwillig
+              eingetragenen Monatswerte ausschließlich im lokalen Speicher
+              deines Browsers abgelegt. Dort können außerdem deine gewählte
+              Währung, zuletzt verwendete Geräte und dein freiwilliges
+              Beta-Interesse gespeichert werden. Diese lokal gespeicherten
+              Haushalts- und Berechnungsdaten werden nicht an EAVESENCE Energy
+              übertragen.
             </p>
 
             <p className="mt-3 leading-7">
@@ -151,7 +153,8 @@ export default function DatenschutzPage() {
             <p className="mt-3 leading-7">
               Erfasst werden wenige Interaktionen, etwa die Auswahl einer
               Gerätekategorie, der Wechsel des Berechnungsmodus, das Speichern
-              eines Geräts oder die freiwillige Antwort auf die App-Frage.
+              eines Geräts, der Abschluss des Home-Onboardings, das Erreichen
+              von Aktivierungsschritten oder freiwilliges Beta-Interesse.
               Selbst vergebene Gerätenamen, Berechnungswerte, E-Mail-Adressen
               und andere Freitexte werden nicht als Analyseereignisse
               übertragen. Die Informationen dienen ausschließlich dazu,

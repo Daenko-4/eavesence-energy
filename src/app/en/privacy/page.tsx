@@ -107,11 +107,12 @@ export default function PrivacyPage() {
             </h2>
 
             <p className="mt-3 leading-7">
-              When you use “My devices”, your saved calculations are stored
+              When you use “My devices” or “My home”, your saved calculations,
+              rooms, savings goals and optional monthly entries are stored
               exclusively in your browser&apos;s local storage. Your selected
-              currency, recently used devices and whether you have already
-              answered the app-interest question may also be stored there. The
-              locally saved calculation data is not sent to EAVESENCE Energy.
+              currency, recently used devices and voluntary beta interest may
+              also be stored there. This locally saved household and
+              calculation data is not sent to EAVESENCE Energy.
             </p>
 
             <p className="mt-3 leading-7">
@@ -147,8 +148,9 @@ export default function PrivacyPage() {
 
             <p className="mt-3 leading-7">
               We record a small number of interactions, such as selecting a
-              device category, switching calculation mode, saving a device or
-              answering the voluntary app-interest question. Device names you
+              device category, switching calculation mode, saving a device,
+              completing Home onboarding, reaching activation milestones or
+              expressing voluntary beta interest. Device names you
               create, calculation values, email addresses and other free-text
               entries are not sent as analytics events. The information is used
               solely to improve EAVESENCE and assess interest in future product

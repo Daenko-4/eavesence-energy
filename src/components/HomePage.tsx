@@ -700,6 +700,7 @@ export default function HomePage({
 
   const devicesHref =
     locale === "de" ? "/geraete" : "/en/devices";
+  const householdHref = locale === "de" ? "/de/zuhause" : "/home";
   const feedbackHref = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(
     text.faq.feedbackSubject
   )}`;
@@ -795,6 +796,18 @@ export default function HomePage({
             <p className="mt-3 text-center text-base font-medium tracking-[-0.02em] text-slate-600">
               {hero.subtitle}
             </p>
+
+            <div className="mt-4 flex justify-center">
+              <a
+                href={householdHref}
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-green-200 bg-white/80 px-4 text-sm font-bold text-[var(--brand-green)] transition hover:border-green-300 hover:bg-green-50"
+              >
+                {locale === "de"
+                  ? "Neu: Mein Zuhause einrichten"
+                  : "New: Set up My home"}
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
 
             <div className="mx-auto mt-7 max-w-7xl sm:mt-8">
               <EnergyCalculator
