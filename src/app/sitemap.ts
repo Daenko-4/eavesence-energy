@@ -105,6 +105,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
 
+    {
+      url: `${siteUrl}/home`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+      alternates: {
+        languages: {
+          de: `${siteUrl}/de/zuhause`,
+          en: `${siteUrl}/home`,
+          "x-default": `${siteUrl}/home`,
+        },
+      },
+    },
+
+    {
+      url: `${siteUrl}/de/zuhause`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+      alternates: {
+        languages: {
+          de: `${siteUrl}/de/zuhause`,
+          en: `${siteUrl}/home`,
+          "x-default": `${siteUrl}/home`,
+        },
+      },
+    },
+
     ...germanDevicePages,
     ...englishDevicePages,
 

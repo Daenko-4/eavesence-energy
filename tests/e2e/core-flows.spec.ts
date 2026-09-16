@@ -100,6 +100,65 @@ test("calculator engagement is tracked only on the first interaction", async ({
   ]);
 });
 
+test("EAVESENCE Home onboarding builds a household and records a monthly check-in", async ({
+  page,
+}) => {
+  await disableHeaderIntro(page);
+  await page.goto("/home");
+
+  await expect(
+    page.getByRole("heading", { name: "Set up your home" }),
+  ).toBeVisible();
+  await page.getByLabel("Home name").fill("Test home");
+  await page.getByLabel("Electricity price per kWh").fill("0.35");
+  await page.getByRole("button", { name: "Create my home" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "Test home", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("0 / 3 Devices", { exact: true })).toBeVisible();
+
+  await page.evaluate(() => {
+    const template = {
+      customDeviceName: "",
+      mode: "estimate",
+      currency: "EUR",
+      price: 0.35,
+      watts: 100,
+      minutesPerUse: 60,
+      usesPerWeek: 7,
+      estimatedKwhPerUse: 0.1,
+      measuredKwhPerUse: 0,
+      yearlyKwh: 36.4,
+      yearlyCost: 12.74,
+      monthlyCost: 1.0617,
+      updatedAt: new Date().toISOString(),
+    };
+    window.localStorage.setItem(
+      "eavesence-saved-devices-v1",
+      JSON.stringify([
+        { ...template, id: "one", device: "Kaffeemaschine" },
+        { ...template, id: "two", device: "Fernseher" },
+        { ...template, id: "three", device: "Wasserkocher" },
+      ]),
+    );
+  });
+  await page.reload();
+
+  await expect(page.getByText("Foundation complete", { exact: true })).toBeVisible();
+  await page.getByLabel("Month").fill("2026-09");
+  await page.getByLabel("Consumption in kWh").fill("210");
+  await page.getByLabel("Cost").fill("73.50");
+  await page.getByRole("button", { name: "Save month" }).click();
+  await expect(page.getByText("210 kWh", { exact: true })).toBeVisible();
+  await expect(page.getByText("€73.50", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Reserve a beta place" }).click();
+  await expect(
+    page.getByRole("button", { name: "Beta interest saved" }),
+  ).toBeDisabled();
+});
+
 test("calculator updates live and a saved calculation can be deleted", async ({
   page,
 }) => {

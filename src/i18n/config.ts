@@ -16,6 +16,10 @@ export function getDevicesHref(locale: Locale) {
   return locale === "de" ? "/geraete" : "/en/devices";
 }
 
+export function getHouseholdHref(locale: Locale) {
+  return locale === "de" ? "/de/zuhause" : "/home";
+}
+
 export function getCalculatorHref(locale: Locale) {
   return getHomeHref(locale);
 }

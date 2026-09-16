@@ -16,6 +16,7 @@ import {
   getDevicesHref,
   getFaqHref,
   getHomeHref,
+  getHouseholdHref,
   getHowItWorksHref,
   type Locale,
 } from "@/i18n/config";
@@ -30,7 +31,7 @@ type HeaderProps = {
 type NavigationKey =
   | "calculator"
   | "allDevices"
-  | "myDevices"
+  | "household"
   | "howItWorks"
   | "faq";
 
@@ -38,7 +39,7 @@ const navigation = {
   de: {
     calculator: "Rechner",
     allDevices: "Alle Geräte",
-    myDevices: "Meine Geräte",
+    household: "Mein Zuhause",
     howItWorks: "So funktioniert's",
     faq: "FAQ",
     homeLabel: "EAVESENCE Startseite",
@@ -48,7 +49,7 @@ const navigation = {
   en: {
     calculator: "Calculator",
     allDevices: "All devices",
-    myDevices: "My devices",
+    household: "My home",
     howItWorks: "How it works",
     faq: "FAQ",
     homeLabel: "EAVESENCE home",
@@ -120,16 +121,19 @@ export default function Header({
 
   const calculatorHref = calculatorHrefOverride ?? getCalculatorHref(locale);
   const devicesHref = getDevicesHref(locale);
-  const myDevicesHref = `${homeHref}#meine-geraete`;
+  const householdHref = getHouseholdHref(locale);
   const howItWorksHref = getHowItWorksHref(locale);
   const faqHref = getFaqHref(locale);
   const isDevicesPage =
     pathname === devicesHref || pathname.startsWith(`${devicesHref}/`);
+  const isHouseholdPage = pathname === householdHref;
   const activeNavigation: NavigationKey | null = isDevicesPage
     ? "allDevices"
-    : isHomePage
-      ? activeHomeSection
-      : null;
+    : isHouseholdPage
+      ? "household"
+      : isHomePage
+        ? activeHomeSection
+        : null;
   const indicatedNavigation = previewNavigation ?? activeNavigation;
 
   const otherLocale: Locale = locale === "de" ? "en" : "de";
@@ -229,7 +233,6 @@ export default function Header({
         window.scrollY + headerHeight + Math.min(window.innerHeight * 0.18, 150);
       const sections: Array<{ id: string; navigation: NavigationKey }> = [
         { id: "rechner", navigation: "calculator" },
-        { id: "meine-geraete", navigation: "myDevices" },
         { id: "so-funktionierts", navigation: "howItWorks" },
         { id: "faq", navigation: "faq" },
       ];
@@ -519,8 +522,8 @@ export default function Header({
               <NavigationLink href={devicesHref} active={activeNavigation === "allDevices"} navigationKey="allDevices" onPreview={setPreviewNavigation}>
                 {text.allDevices}
               </NavigationLink>
-              <NavigationLink href={myDevicesHref} active={activeNavigation === "myDevices"} navigationKey="myDevices" onPreview={setPreviewNavigation}>
-                {text.myDevices}
+              <NavigationLink href={householdHref} active={activeNavigation === "household"} navigationKey="household" onPreview={setPreviewNavigation}>
+                {text.household}
               </NavigationLink>
               <NavigationLink href={howItWorksHref} active={activeNavigation === "howItWorks"} navigationKey="howItWorks" onPreview={setPreviewNavigation}>
                 {text.howItWorks}
@@ -570,7 +573,7 @@ export default function Header({
               {[
                 [calculatorHref, text.calculator],
                 [devicesHref, text.allDevices],
-                [myDevicesHref, text.myDevices],
+                [householdHref, text.household],
                 [howItWorksHref, text.howItWorks],
                 [faqHref, text.faq],
               ].map(([href, label]) => (
