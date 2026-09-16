@@ -118,6 +118,11 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeVisible();
   await expect(page.getByText("0 / 3 Devices", { exact: true })).toBeVisible();
 
+  await page.getByRole("button", { name: "Rename: Kitchen" }).click();
+  await page.getByLabel("Room name").fill("Cooking");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Cooking" })).toBeVisible();
+
   await page.evaluate(() => {
     const template = {
       customDeviceName: "",
@@ -146,6 +151,14 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.reload();
 
   await expect(page.getByText("Foundation complete", { exact: true })).toBeVisible();
+  const firstRoomAssignment = page.getByLabel("Assign room").first();
+  await firstRoomAssignment.selectOption({ label: "Cooking" });
+  await expect(firstRoomAssignment).toHaveValue(/.+/);
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Delete: Cooking" }).click();
+  await expect(firstRoomAssignment).toHaveValue("");
+  await expect(page.getByRole("heading", { name: "Cooking" })).toHaveCount(0);
+
   await page.getByLabel("Month").fill("2026-09");
   await page.getByLabel("Consumption in kWh").fill("210");
   await page.getByLabel("Cost").fill("73.50");
