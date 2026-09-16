@@ -105,6 +105,13 @@ const copy = {
       "Noch keine Zahlung. Wir messen damit nur, ob die Pro-Version für dich interessant ist.",
     addRoom: "Raum hinzufügen",
     newRoom: "Neuer Raum",
+    roomName: "Raumname",
+    editRoom: "Umbenennen",
+    deleteRoom: "Löschen",
+    saveRoom: "Speichern",
+    cancelRoomEdit: "Abbrechen",
+    deleteRoomConfirm:
+      "Diesen Raum löschen? Zugeordnete Geräte bleiben erhalten und werden auf „Noch nicht zugeordnet“ gesetzt.",
     settings: "Einstellungen",
     saveSettings: "Einstellungen speichern",
     saved: "Gespeichert",
@@ -167,6 +174,13 @@ const copy = {
       "No payment yet. This only tells us whether the Pro version interests you.",
     addRoom: "Add room",
     newRoom: "New room",
+    roomName: "Room name",
+    editRoom: "Rename",
+    deleteRoom: "Delete",
+    saveRoom: "Save",
+    cancelRoomEdit: "Cancel",
+    deleteRoomConfirm:
+      "Delete this room? Assigned devices will be kept and moved to “Not assigned yet”.",
     settings: "Settings",
     saveSettings: "Save settings",
     saved: "Saved",
@@ -233,6 +247,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
   const [betaInterested, setBetaInterested] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
+  const [roomNameDraft, setRoomNameDraft] = useState("");
   const [notice, setNotice] = useState("");
 
   const loadLocalData = useCallback(() => {
@@ -362,15 +378,70 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   function addRoom() {
     if (!profile) return;
-    const roomName = `${text.newRoom} ${profile.rooms.length + 1}`;
+    let roomNumber = profile.rooms.length + 1;
+    let roomName = `${text.newRoom} ${roomNumber}`;
+    while (profile.rooms.some((room) => room.name === roomName)) {
+      roomNumber += 1;
+      roomName = `${text.newRoom} ${roomNumber}`;
+    }
+    let roomIndex = profile.rooms.length;
+    let roomId = createRoomId(roomName, roomIndex);
+    while (profile.rooms.some((room) => room.id === roomId)) {
+      roomIndex += 1;
+      roomId = createRoomId(roomName, roomIndex);
+    }
     persistProfile({
       ...profile,
       rooms: [
         ...profile.rooms,
-        { id: createRoomId(roomName, profile.rooms.length), name: roomName },
+        { id: roomId, name: roomName },
       ],
       updatedAt: new Date().toISOString(),
     });
+    setEditingRoomId(roomId);
+    setRoomNameDraft(roomName);
+  }
+
+  function startEditingRoom(roomId: string, roomName: string) {
+    setEditingRoomId(roomId);
+    setRoomNameDraft(roomName);
+  }
+
+  function cancelEditingRoom() {
+    setEditingRoomId(null);
+    setRoomNameDraft("");
+  }
+
+  function saveRoomName(roomId: string) {
+    if (!profile) return;
+    const roomName = roomNameDraft.trim();
+    if (!roomName) return;
+    persistProfile({
+      ...profile,
+      rooms: profile.rooms.map((room) =>
+        room.id === roomId ? { ...room, name: roomName } : room,
+      ),
+      updatedAt: new Date().toISOString(),
+    });
+    cancelEditingRoom();
+    track("Home Room Renamed", { locale });
+  }
+
+  function deleteRoom(roomId: string) {
+    if (!profile || !window.confirm(text.deleteRoomConfirm)) return;
+    const deviceRooms = Object.fromEntries(
+      Object.entries(profile.deviceRooms).filter(
+        ([, assignedRoomId]) => assignedRoomId !== roomId,
+      ),
+    );
+    persistProfile({
+      ...profile,
+      rooms: profile.rooms.filter((room) => room.id !== roomId),
+      deviceRooms,
+      updatedAt: new Date().toISOString(),
+    });
+    if (editingRoomId === roomId) cancelEditingRoom();
+    track("Home Room Deleted", { locale });
   }
 
   function saveMonthlyCheckIn() {
@@ -508,7 +579,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-2xl font-extrabold tracking-[-0.035em]">{text.roomsTitle}</h2><p className="mt-1 text-sm text-slate-600">{profile.rooms.length} {text.rooms.toLowerCase()}</p></div><button type="button" onClick={addRoom} className="w-fit text-sm font-bold text-[var(--brand-green)]">+ {text.addRoom}</button></div>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {summary?.roomTotals.map((room) => <article key={room.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4"><div className="flex items-center justify-between gap-4"><h3 className="font-extrabold">{room.name}</h3><span className="text-xs font-bold text-slate-500">{room.deviceCount}</span></div><p className="mt-3 text-xl font-extrabold">{formatMoney(room.annualCost, locale, profile.currency)}</p><p className="mt-1 text-xs text-slate-500">{text.yearly.toLowerCase()}</p></article>)}
+              {summary?.roomTotals.map((room) => <article key={room.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">{editingRoomId === room.id ? <form onSubmit={(event) => { event.preventDefault(); saveRoomName(room.id); }}><label className="grid gap-1.5 text-xs font-bold text-slate-600"><span>{text.roomName}</span><input autoFocus value={roomNameDraft} onChange={(event) => setRoomNameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") cancelEditingRoom(); }} className="min-h-10 rounded-lg border border-green-300 bg-white px-3 text-sm text-slate-900 outline-none ring-green-100 focus:ring-4" /></label><div className="mt-3 flex flex-wrap gap-2"><button type="submit" disabled={!roomNameDraft.trim()} className="rounded-full bg-[var(--brand-green)] px-3 py-1.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{text.saveRoom}</button><button type="button" onClick={cancelEditingRoom} className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600">{text.cancelRoomEdit}</button></div></form> : <><div className="flex items-center justify-between gap-4"><h3 className="font-extrabold">{room.name}</h3><span className="text-xs font-bold text-slate-500">{room.deviceCount}</span></div><p className="mt-3 text-xl font-extrabold">{formatMoney(room.annualCost, locale, profile.currency)}</p><p className="mt-1 text-xs text-slate-500">{text.yearly.toLowerCase()}</p><div className="mt-4 flex items-center gap-3 border-t border-slate-200 pt-3"><button type="button" onClick={() => startEditingRoom(room.id, room.name)} aria-label={`${text.editRoom}: ${room.name}`} className="text-xs font-bold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.editRoom}</button><button type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${room.name}`} className="text-xs font-bold text-red-600 hover:text-red-700">{text.deleteRoom}</button></div></>}</article>)}
             </div>
             <div className="mt-6 divide-y divide-slate-100 border-t border-slate-200">
               {savedDevices.length === 0 ? <p className="py-5 text-sm text-slate-500">{text.noDevices}</p> : savedDevices.map((device) => <div key={device.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold">{localizedSavedDeviceName(device, locale)}</p><p className="mt-1 text-xs text-slate-500">{formatMoney(device.yearlyKwh * profile.electricityPrice, locale, profile.currency)} {text.yearly.toLowerCase()}</p></div><label className="flex items-center gap-3 text-xs font-bold text-slate-500"><span>{text.assign}</span><select value={profile.deviceRooms[device.id] ?? ""} onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"><option value="">{text.unassigned}</option>{profile.rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label></div>)}
