@@ -4,10 +4,21 @@ import test from "node:test";
 import {
   calculateHouseholdSummary,
   createHouseholdProfile,
+  localizeDefaultHouseholdName,
+  localizeDefaultRoomName,
   readHouseholdProfile,
   readMonthlyEnergyEntries,
   upsertMonthlyEnergyEntry,
 } from "../src/lib/household.ts";
+
+test("localizes stored default home and room names", () => {
+  assert.equal(localizeDefaultHouseholdName("Mein Zuhause", "en"), "My home");
+  assert.equal(localizeDefaultHouseholdName("My home", "de"), "Mein Zuhause");
+  assert.equal(localizeDefaultRoomName("Küche", "en"), "Kitchen");
+  assert.equal(localizeDefaultRoomName("Living room", "de"), "Wohnzimmer");
+  assert.equal(localizeDefaultRoomName("Neuer Raum 7", "en"), "New room 7");
+  assert.equal(localizeDefaultRoomName("Studio", "en"), "Studio");
+});
 
 test("creates and validates a household profile", () => {
   const profile = createHouseholdProfile({

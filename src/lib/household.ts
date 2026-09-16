@@ -44,6 +44,44 @@ export const DEFAULT_ROOM_NAMES = {
   en: ["Kitchen", "Living room", "Bedroom", "Bathroom", "Office"],
 } as const;
 
+export const DEFAULT_HOUSEHOLD_NAMES = {
+  de: "Mein Zuhause",
+  en: "My home",
+} as const;
+
+type HouseholdLocale = keyof typeof DEFAULT_ROOM_NAMES;
+
+export function localizeDefaultHouseholdName(
+  name: string,
+  locale: HouseholdLocale,
+) {
+  return name === DEFAULT_HOUSEHOLD_NAMES.de ||
+    name === DEFAULT_HOUSEHOLD_NAMES.en
+    ? DEFAULT_HOUSEHOLD_NAMES[locale]
+    : name;
+}
+
+export function localizeDefaultRoomName(
+  name: string,
+  locale: HouseholdLocale,
+) {
+  for (let index = 0; index < DEFAULT_ROOM_NAMES.de.length; index += 1) {
+    if (
+      name === DEFAULT_ROOM_NAMES.de[index] ||
+      name === DEFAULT_ROOM_NAMES.en[index]
+    ) {
+      return DEFAULT_ROOM_NAMES[locale][index];
+    }
+  }
+
+  const generatedRoom = /^(?:Neuer Raum|New room) (\d+)$/.exec(name);
+  if (generatedRoom) {
+    return `${locale === "de" ? "Neuer Raum" : "New room"} ${generatedRoom[1]}`;
+  }
+
+  return name;
+}
+
 export function createRoomId(name: string, index = 0) {
   const normalized = name
     .normalize("NFD")
