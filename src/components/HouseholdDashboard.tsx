@@ -2,7 +2,15 @@
 
 import { track } from "@vercel/analytics";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+} from "react";
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -11,6 +19,7 @@ import type { Locale } from "@/i18n/config";
 import { getLocalizedDevice } from "@/i18n/devices";
 import {
   calculateHouseholdSummary,
+  createHouseholdBackup,
   createHouseholdProfile,
   createRoomId,
   DEFAULT_ROOM_NAMES,
@@ -21,6 +30,7 @@ import {
   localizeDefaultHouseholdName,
   localizeDefaultRoomName,
   readHouseholdProfile,
+  readHouseholdBackup,
   readMonthlyEnergyEntries,
   upsertMonthlyEnergyEntry,
   type HouseholdProfile,
@@ -117,6 +127,21 @@ const copy = {
     settings: "Einstellungen",
     saveSettings: "Einstellungen speichern",
     saved: "Gespeichert",
+    dataTitle: "Daten verwalten",
+    dataText:
+      "Sichere dein Zuhause inklusive Geräten und Verlauf oder übertrage es in einen anderen Browser.",
+    importHome: "Sicherung importieren",
+    exportHome: "Sicherung exportieren",
+    resetHome: "My Home zurücksetzen",
+    importedHome: "My-Home-Sicherung importiert.",
+    importHomeError: "Diese Sicherungsdatei ist ungültig oder unvollständig.",
+    importHomeConfirm:
+      "Diese Sicherung ersetzt dein aktuelles Zuhause, deine gespeicherten Geräte und den Monatsverlauf. Fortfahren?",
+    resetHomeConfirm:
+      "My Home wirklich zurücksetzen? Räume, Zuordnungen und Monatsverlauf werden gelöscht. Deine gespeicherten Geräte bleiben erhalten.",
+    dragRoom: "Raum verschieben",
+    moveRoomEarlier: "Weiter nach vorne",
+    moveRoomLater: "Weiter nach hinten",
   },
   en: {
     pageTitle: "My home",
@@ -186,6 +211,21 @@ const copy = {
     settings: "Settings",
     saveSettings: "Save settings",
     saved: "Saved",
+    dataTitle: "Manage data",
+    dataText:
+      "Back up your home including devices and history, or move it to another browser.",
+    importHome: "Import backup",
+    exportHome: "Export backup",
+    resetHome: "Reset My home",
+    importedHome: "My home backup imported.",
+    importHomeError: "This backup file is invalid or incomplete.",
+    importHomeConfirm:
+      "This backup will replace your current home, saved devices and monthly history. Continue?",
+    resetHomeConfirm:
+      "Reset My home? Rooms, assignments and monthly history will be deleted. Your saved devices will be kept.",
+    dragRoom: "Reorder room",
+    moveRoomEarlier: "Move earlier",
+    moveRoomLater: "Move later",
   },
 } as const;
 
@@ -251,7 +291,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
   const [roomNameDraft, setRoomNameDraft] = useState("");
+  const [draggedRoomId, setDraggedRoomId] = useState<string | null>(null);
+  const [dragOverRoomId, setDragOverRoomId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
+  const homeImportInputRef = useRef<HTMLInputElement>(null);
 
   const loadLocalData = useCallback(() => {
     const storedProfile = readHouseholdProfile(
@@ -369,6 +412,84 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     track("Home Savings Goal Set", { locale, savings_goal: goal });
   }
 
+  function exportHome() {
+    if (!profile) return;
+    const backup = createHouseholdBackup({
+      profile,
+      devices: savedDevices,
+      history,
+    });
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `eavesence-home-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importHome(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    const backup = readHouseholdBackup(await file.text());
+    if (!backup) {
+      setNotice(text.importHomeError);
+      return;
+    }
+    if (!window.confirm(text.importHomeConfirm)) return;
+
+    window.localStorage.setItem(
+      HOUSEHOLD_PROFILE_STORAGE_KEY,
+      JSON.stringify(backup.profile),
+    );
+    window.localStorage.setItem(
+      SAVED_DEVICES_STORAGE_KEY,
+      JSON.stringify(backup.devices),
+    );
+    window.localStorage.setItem(
+      HOUSEHOLD_HISTORY_STORAGE_KEY,
+      JSON.stringify(backup.history),
+    );
+    setProfile(backup.profile);
+    setSavedDevices(backup.devices);
+    setHistory(backup.history);
+    setName(localizeDefaultHouseholdName(backup.profile.name, locale));
+    setCurrency(backup.profile.currency);
+    setPrice(backup.profile.electricityPrice);
+    setGoal(backup.profile.savingsGoalPercent);
+    setSettingsOpen(false);
+    setNotice(text.importedHome);
+    window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
+    track("Home Backup Imported", {
+      locale,
+      device_count: backup.devices.length,
+      room_count: backup.profile.rooms.length,
+    });
+  }
+
+  function resetHome() {
+    if (!window.confirm(text.resetHomeConfirm)) return;
+    window.localStorage.removeItem(HOUSEHOLD_PROFILE_STORAGE_KEY);
+    window.localStorage.removeItem(HOUSEHOLD_HISTORY_STORAGE_KEY);
+    window.localStorage.removeItem(HOUSEHOLD_VISIT_STORAGE_KEY);
+    window.localStorage.removeItem(BETA_INTEREST_STORAGE_KEY);
+    setProfile(null);
+    setHistory([]);
+    setName(locale === "de" ? "Mein Zuhause" : "My home");
+    setCurrency("EUR");
+    setPrice(0.3);
+    setGoal(10);
+    setBetaInterested(false);
+    setSettingsOpen(false);
+    setNotice("");
+    window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
+    track("Home Reset", { locale, devices_preserved: savedDevices.length });
+  }
+
   function assignRoom(deviceId: string, roomId: string) {
     if (!profile) return;
     const deviceRooms = { ...profile.deviceRooms };
@@ -444,6 +565,62 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     });
     if (editingRoomId === roomId) cancelEditingRoom();
     track("Home Room Deleted", { locale });
+  }
+
+  function reorderRooms(sourceRoomId: string, targetRoomId: string) {
+    if (!profile || sourceRoomId === targetRoomId) return;
+    const sourceIndex = profile.rooms.findIndex(
+      (room) => room.id === sourceRoomId,
+    );
+    const targetIndex = profile.rooms.findIndex(
+      (room) => room.id === targetRoomId,
+    );
+    if (sourceIndex < 0 || targetIndex < 0) return;
+
+    const rooms = [...profile.rooms];
+    const [room] = rooms.splice(sourceIndex, 1);
+    rooms.splice(targetIndex, 0, room);
+    persistProfile({
+      ...profile,
+      rooms,
+      updatedAt: new Date().toISOString(),
+    });
+    track("Home Rooms Reordered", { locale, method: "drag" });
+  }
+
+  function moveRoom(roomId: string, offset: -1 | 1) {
+    if (!profile) return;
+    const sourceIndex = profile.rooms.findIndex((room) => room.id === roomId);
+    const targetIndex = sourceIndex + offset;
+    if (sourceIndex < 0 || targetIndex < 0 || targetIndex >= profile.rooms.length) {
+      return;
+    }
+    const rooms = [...profile.rooms];
+    [rooms[sourceIndex], rooms[targetIndex]] = [
+      rooms[targetIndex],
+      rooms[sourceIndex],
+    ];
+    persistProfile({
+      ...profile,
+      rooms,
+      updatedAt: new Date().toISOString(),
+    });
+    track("Home Rooms Reordered", { locale, method: "button" });
+  }
+
+  function startRoomDrag(event: DragEvent<HTMLElement>, roomId: string) {
+    setDraggedRoomId(roomId);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", roomId);
+  }
+
+  function dropRoom(event: DragEvent<HTMLElement>, targetRoomId: string) {
+    event.preventDefault();
+    const sourceRoomId =
+      draggedRoomId || event.dataTransfer.getData("text/plain");
+    if (sourceRoomId) reorderRooms(sourceRoomId, targetRoomId);
+    setDraggedRoomId(null);
+    setDragOverRoomId(null);
   }
 
   function saveMonthlyCheckIn() {
@@ -529,7 +706,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">EAVESENCE Home</p>
-              <h1 className="mt-2 text-4xl font-extrabold tracking-[-0.05em] sm:text-5xl">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
+              <h1 className="mt-2 text-[clamp(2.25rem,4.1vw,3.75rem)] font-extrabold leading-[1.02] tracking-[-0.05em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
               <p className="mt-2 text-slate-600">{text.pageSubtitle}</p>
             </div>
             <button type="button" onClick={() => setSettingsOpen((current) => !current)} className="w-fit rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:border-green-300 hover:text-[var(--brand-green)]">{text.settings}</button>
@@ -542,6 +719,46 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <label className="grid gap-1.5 text-xs font-bold text-slate-600"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm">{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
               <label className="grid gap-1.5 text-xs font-bold text-slate-600"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
               <button type="button" onClick={saveSettings} className="min-h-11 rounded-full bg-[var(--brand-green)] px-5 text-sm font-bold text-white sm:col-span-4 sm:justify-self-start">{text.saveSettings}</button>
+              <div className="rounded-2xl border border-green-200 bg-[#f0faf4] p-4 sm:col-span-4">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h2 className="text-base font-extrabold text-slate-900">{text.dataTitle}</h2>
+                    <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-600">{text.dataText}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    <input
+                      ref={homeImportInputRef}
+                      type="file"
+                      accept="application/json,.json"
+                      onChange={importHome}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => homeImportInputRef.current?.click()}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-green-200 bg-white px-3.5 text-xs font-bold text-[var(--brand-green)] shadow-sm transition hover:-translate-y-0.5 hover:bg-green-50 hover:shadow-md"
+                    >
+                      <span aria-hidden="true">↑</span>
+                      {text.importHome}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={exportHome}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-green-200 bg-white px-3.5 text-xs font-bold text-[var(--brand-green)] shadow-sm transition hover:-translate-y-0.5 hover:bg-green-50 hover:shadow-md"
+                    >
+                      <span aria-hidden="true">↓</span>
+                      {text.exportHome}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetHome}
+                      className="inline-flex min-h-10 items-center rounded-xl border border-red-200 bg-white px-3.5 text-xs font-bold text-red-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-md"
+                    >
+                      {text.resetHome}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </section>
           )}
           {notice && <p role="status" className="mt-3 text-sm font-bold text-[var(--brand-green)]">{notice}</p>}
@@ -579,9 +796,73 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
 
           <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-2xl font-extrabold tracking-[-0.035em]">{text.roomsTitle}</h2><p className="mt-1 text-sm text-slate-600">{profile.rooms.length} {text.rooms.toLowerCase()}</p></div><button type="button" onClick={addRoom} className="w-fit text-sm font-bold text-[var(--brand-green)]">+ {text.addRoom}</button></div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-2xl font-extrabold tracking-[-0.035em] sm:text-3xl">{text.roomsTitle}</h2><p className="mt-1 text-sm text-slate-600">{profile.rooms.length} {text.rooms.toLowerCase()}</p></div><button type="button" onClick={addRoom} className="w-fit text-sm font-bold text-[var(--brand-green)]">+ {text.addRoom}</button></div>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {summary?.roomTotals.map((room) => <article key={room.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">{editingRoomId === room.id ? <form onSubmit={(event) => { event.preventDefault(); saveRoomName(room.id); }}><label className="grid gap-1.5 text-xs font-bold text-slate-600"><span>{text.roomName}</span><input autoFocus value={roomNameDraft} onChange={(event) => setRoomNameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") cancelEditingRoom(); }} className="min-h-10 rounded-lg border border-green-300 bg-white px-3 text-sm text-slate-900 outline-none ring-green-100 focus:ring-4" /></label><div className="mt-3 flex flex-wrap gap-2"><button type="submit" disabled={!roomNameDraft.trim()} className="rounded-full bg-[var(--brand-green)] px-3 py-1.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{text.saveRoom}</button><button type="button" onClick={cancelEditingRoom} className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600">{text.cancelRoomEdit}</button></div></form> : <><div className="flex items-center justify-between gap-4"><h3 className="font-extrabold">{localizeDefaultRoomName(room.name, locale)}</h3><span className="text-xs font-bold text-slate-500">{room.deviceCount}</span></div><p className="mt-3 text-xl font-extrabold">{formatMoney(room.annualCost, locale, profile.currency)}</p><p className="mt-1 text-xs text-slate-500">{text.yearly.toLowerCase()}</p><div className="mt-4 flex items-center gap-3 border-t border-slate-200 pt-3"><button type="button" onClick={() => startEditingRoom(room.id, localizeDefaultRoomName(room.name, locale))} aria-label={`${text.editRoom}: ${localizeDefaultRoomName(room.name, locale)}`} className="text-xs font-bold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.editRoom}</button><button type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${localizeDefaultRoomName(room.name, locale)}`} className="text-xs font-bold text-red-600 hover:text-red-700">{text.deleteRoom}</button></div></>}</article>)}
+              {summary?.roomTotals.map((room, index) => {
+                const roomName = localizeDefaultRoomName(room.name, locale);
+                const isDropTarget = dragOverRoomId === room.id;
+                return (
+                  <article
+                    key={room.id}
+                    data-room-card
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
+                      if (draggedRoomId !== room.id) setDragOverRoomId(room.id);
+                    }}
+                    onDragLeave={() => setDragOverRoomId(null)}
+                    onDrop={(event) => dropRoom(event, room.id)}
+                    className={`rounded-xl border p-4 transition ${isDropTarget ? "border-green-400 bg-green-50 ring-4 ring-green-100" : "border-slate-200 bg-slate-50"}`}
+                  >
+                    {editingRoomId === room.id ? (
+                      <form onSubmit={(event) => { event.preventDefault(); saveRoomName(room.id); }}>
+                        <label className="grid gap-1.5 text-xs font-bold text-slate-600">
+                          <span>{text.roomName}</span>
+                          <input autoFocus value={roomNameDraft} onChange={(event) => setRoomNameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") cancelEditingRoom(); }} className="min-h-10 rounded-lg border border-green-300 bg-white px-3 text-sm text-slate-900 outline-none ring-green-100 focus:ring-4" />
+                        </label>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <button type="submit" disabled={!roomNameDraft.trim()} className="rounded-full bg-[var(--brand-green)] px-3 py-1.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{text.saveRoom}</button>
+                          <button type="button" onClick={cancelEditingRoom} className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600">{text.cancelRoomEdit}</button>
+                        </div>
+                      </form>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <span
+                              draggable
+                              onDragStart={(event) => startRoomDrag(event, room.id)}
+                              onDragEnd={() => {
+                                setDraggedRoomId(null);
+                                setDragOverRoomId(null);
+                              }}
+                              title={`${text.dragRoom}: ${roomName}`}
+                              aria-hidden="true"
+                              className="cursor-grab select-none rounded-md px-1.5 py-1 text-base font-bold tracking-[-0.2em] text-slate-400 transition hover:bg-white hover:text-[var(--brand-green)] active:cursor-grabbing"
+                            >
+                              ⠿
+                            </span>
+                            <h3 className="truncate font-extrabold">{roomName}</h3>
+                          </div>
+                          <span className="text-xs font-bold text-slate-500">{room.deviceCount}</span>
+                        </div>
+                        <p className="mt-3 text-xl font-extrabold">{formatMoney(room.annualCost, locale, profile.currency)}</p>
+                        <p className="mt-1 text-xs text-slate-500">{text.yearly.toLowerCase()}</p>
+                        <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+                          <div className="flex items-center gap-3">
+                            <button type="button" onClick={() => startEditingRoom(room.id, roomName)} aria-label={`${text.editRoom}: ${roomName}`} className="text-xs font-bold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.editRoom}</button>
+                            <button type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${roomName}`} className="text-xs font-bold text-red-600 hover:text-red-700">{text.deleteRoom}</button>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button type="button" onClick={() => moveRoom(room.id, -1)} disabled={index === 0} aria-label={`${text.moveRoomEarlier}: ${roomName}`} title={text.moveRoomEarlier} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-bold text-slate-500 transition hover:border-green-300 hover:text-[var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30">↑</button>
+                            <button type="button" onClick={() => moveRoom(room.id, 1)} disabled={index === profile.rooms.length - 1} aria-label={`${text.moveRoomLater}: ${roomName}`} title={text.moveRoomLater} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-bold text-slate-500 transition hover:border-green-300 hover:text-[var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30">↓</button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </article>
+                );
+              })}
             </div>
             <div className="mt-6 divide-y divide-slate-100 border-t border-slate-200">
               {savedDevices.length === 0 ? <p className="py-5 text-sm text-slate-500">{text.noDevices}</p> : savedDevices.map((device) => <div key={device.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold">{localizedSavedDeviceName(device, locale)}</p><p className="mt-1 text-xs text-slate-500">{formatMoney(device.yearlyKwh * profile.electricityPrice, locale, profile.currency)} {text.yearly.toLowerCase()}</p></div><label className="flex items-center gap-3 text-xs font-bold text-slate-500"><span>{text.assign}</span><select value={profile.deviceRooms[device.id] ?? ""} onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"><option value="">{text.unassigned}</option>{profile.rooms.map((room) => <option key={room.id} value={room.id}>{localizeDefaultRoomName(room.name, locale)}</option>)}</select></label></div>)}
@@ -589,8 +870,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
 
           <section className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-2xl font-extrabold tracking-[-0.035em]">{text.monthlyCheckIn}</h2><p className="mt-2 text-sm leading-6 text-slate-600">{text.checkInText}</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="grid gap-1.5 text-xs font-bold text-slate-600 sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label><label className="grid gap-1.5 text-xs font-bold text-slate-600">{text.kwh}<input type="number" min="0" value={monthKwh} onChange={(event) => setMonthKwh(event.target.value)} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label><label className="grid gap-1.5 text-xs font-bold text-slate-600">{text.cost}<input type="number" min="0" step="0.01" value={monthCost} onChange={(event) => setMonthCost(event.target.value)} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label></div><button type="button" onClick={saveMonthlyCheckIn} className="mt-5 min-h-11 rounded-full bg-[var(--brand-green)] px-5 text-sm font-bold text-white">{text.saveCheckIn}</button></div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-6"><div className="flex items-center justify-between gap-4"><h2 className="text-2xl font-extrabold tracking-[-0.035em]">{text.history}</h2>{historyDelta !== null && <span className={`rounded-full px-3 py-1 text-xs font-bold ${historyDelta <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{historyDelta > 0 ? "+" : ""}{formatNumber(historyDelta, locale, 1)}%</span>}</div>{history.length === 0 ? <p className="mt-6 text-sm text-slate-500">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 rounded-xl bg-slate-50 px-4 py-3"><span className="text-sm font-bold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-sm text-slate-500">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-sm font-extrabold">{formatMoney(entry.cost, locale, profile.currency)}</span>{index === 0 && historyDelta !== null && <span className="col-span-3 text-xs text-slate-500">{text.comparedWithPrevious}</span>}</div>)}</div>}</div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-2xl font-extrabold tracking-[-0.035em] sm:text-3xl">{text.monthlyCheckIn}</h2><p className="mt-2 text-sm leading-6 text-slate-600">{text.checkInText}</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="grid gap-1.5 text-xs font-bold text-slate-600 sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label><label className="grid gap-1.5 text-xs font-bold text-slate-600">{text.kwh}<input type="number" min="0" value={monthKwh} onChange={(event) => setMonthKwh(event.target.value)} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label><label className="grid gap-1.5 text-xs font-bold text-slate-600">{text.cost}<input type="number" min="0" step="0.01" value={monthCost} onChange={(event) => setMonthCost(event.target.value)} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label></div><button type="button" onClick={saveMonthlyCheckIn} className="mt-5 min-h-11 rounded-full bg-[var(--brand-green)] px-5 text-sm font-bold text-white">{text.saveCheckIn}</button></div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6"><div className="flex items-center justify-between gap-4"><h2 className="text-2xl font-extrabold tracking-[-0.035em] sm:text-3xl">{text.history}</h2>{historyDelta !== null && <span className={`rounded-full px-3 py-1 text-xs font-bold ${historyDelta <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{historyDelta > 0 ? "+" : ""}{formatNumber(historyDelta, locale, 1)}%</span>}</div>{history.length === 0 ? <p className="mt-6 text-sm text-slate-500">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 rounded-xl bg-slate-50 px-4 py-3"><span className="text-sm font-bold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-sm text-slate-500">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-sm font-extrabold">{formatMoney(entry.cost, locale, profile.currency)}</span>{index === 0 && historyDelta !== null && <span className="col-span-3 text-xs text-slate-500">{text.comparedWithPrevious}</span>}</div>)}</div>}</div>
           </section>
 
           <section className="mt-10 overflow-hidden rounded-[2rem] bg-[#17211f] p-6 text-white sm:p-10">

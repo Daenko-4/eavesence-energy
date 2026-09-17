@@ -122,6 +122,11 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.getByLabel("Room name").fill("Cooking");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Cooking" })).toBeVisible();
+  const roomCards = page.locator("[data-room-card]");
+  await page
+    .getByTitle("Reorder room: Cooking")
+    .dragTo(roomCards.nth(1));
+  await expect(roomCards.nth(1).getByRole("heading", { name: "Cooking" })).toBeVisible();
 
   await page.evaluate(() => {
     const template = {
@@ -170,6 +175,24 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(
     page.getByRole("button", { name: "Beta interest saved" }),
   ).toBeDisabled();
+
+  await page.getByRole("button", { name: "Settings" }).click();
+  await expect(page.getByRole("heading", { name: "Manage data" })).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export backup" }).click();
+  await downloadPromise;
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Reset My home" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Set up your home" }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      JSON.parse(
+        window.localStorage.getItem("eavesence-saved-devices-v1") ?? "[]",
+      ).length,
+    ),
+  ).toBe(3);
 });
 
 test("calculator updates live and a saved calculation can be deleted", async ({

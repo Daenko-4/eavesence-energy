@@ -30,6 +30,14 @@ export type MonthlyEnergyEntry = {
   updatedAt: string;
 };
 
+export type HouseholdBackup = {
+  version: 1;
+  exportedAt: string;
+  profile: HouseholdProfile;
+  devices: SavedDevice[];
+  history: MonthlyEnergyEntry[];
+};
+
 export type HouseholdVisitState = {
   firstVisitAt: string;
   lastVisitAt: string;
@@ -186,6 +194,116 @@ export function readMonthlyEnergyEntries(value: string | null) {
     });
   } catch {
     return [];
+  }
+}
+
+export function createHouseholdBackup({
+  profile,
+  devices,
+  history,
+  now = new Date(),
+}: {
+  profile: HouseholdProfile;
+  devices: SavedDevice[];
+  history: MonthlyEnergyEntry[];
+  now?: Date;
+}): HouseholdBackup {
+  return {
+    version: 1,
+    exportedAt: now.toISOString(),
+    profile,
+    devices,
+    history,
+  };
+}
+
+function readBackupDevices(value: unknown): SavedDevice[] | null {
+  if (!Array.isArray(value)) return null;
+  const currencies: SavedDeviceCurrency[] = [
+    "EUR",
+    "CHF",
+    "GBP",
+    "PLN",
+    "CZK",
+    "HUF",
+    "DKK",
+    "SEK",
+    "NOK",
+    "RON",
+  ];
+  const devices = value.filter((item): item is SavedDevice => {
+    if (!item || typeof item !== "object") return false;
+    const candidate = item as Partial<SavedDevice>;
+    return (
+      typeof candidate.id === "string" &&
+      typeof candidate.device === "string" &&
+      typeof candidate.customDeviceName === "string" &&
+      (candidate.mode === "estimate" || candidate.mode === "exact") &&
+      currencies.includes(candidate.currency as SavedDeviceCurrency) &&
+      typeof candidate.price === "number" &&
+      typeof candidate.watts === "number" &&
+      typeof candidate.minutesPerUse === "number" &&
+      typeof candidate.usesPerWeek === "number" &&
+      (candidate.usagePeriod === undefined ||
+        candidate.usagePeriod === "week" ||
+        candidate.usagePeriod === "month") &&
+      (candidate.usageAmount === undefined ||
+        typeof candidate.usageAmount === "number") &&
+      typeof candidate.estimatedKwhPerUse === "number" &&
+      typeof candidate.measuredKwhPerUse === "number" &&
+      typeof candidate.yearlyKwh === "number" &&
+      typeof candidate.yearlyCost === "number" &&
+      typeof candidate.monthlyCost === "number" &&
+      typeof candidate.updatedAt === "string"
+    );
+  });
+  return devices.length === value.length ? devices : null;
+}
+
+export function readHouseholdBackup(value: string): HouseholdBackup | null {
+  try {
+    const candidate: unknown = JSON.parse(value);
+    if (!candidate || typeof candidate !== "object") return null;
+
+    const backup = candidate as Partial<HouseholdBackup>;
+    if (
+      backup.version !== 1 ||
+      typeof backup.exportedAt !== "string" ||
+      !Array.isArray(backup.devices) ||
+      !Array.isArray(backup.history)
+    ) {
+      return null;
+    }
+
+    const profile = readHouseholdProfile(JSON.stringify(backup.profile));
+    const devices = readBackupDevices(backup.devices);
+    const history = readMonthlyEnergyEntries(JSON.stringify(backup.history));
+    if (
+      !profile ||
+      !devices ||
+      history.length !== backup.history.length
+    ) {
+      return null;
+    }
+
+    const roomIds = new Set(profile.rooms.map((room) => room.id));
+    const deviceIds = new Set(devices.map((device) => device.id));
+    const deviceRooms = Object.fromEntries(
+      Object.entries(profile.deviceRooms).filter(
+        ([deviceId, roomId]) =>
+          deviceIds.has(deviceId) && roomIds.has(roomId),
+      ),
+    );
+
+    return {
+      version: 1,
+      exportedAt: backup.exportedAt,
+      profile: { ...profile, deviceRooms },
+      devices,
+      history,
+    };
+  } catch {
+    return null;
   }
 }
 
