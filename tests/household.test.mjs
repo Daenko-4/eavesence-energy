@@ -3,10 +3,12 @@ import test from "node:test";
 
 import {
   calculateHouseholdSummary,
+  createHouseholdBackup,
   createHouseholdProfile,
   localizeDefaultHouseholdName,
   localizeDefaultRoomName,
   readHouseholdProfile,
+  readHouseholdBackup,
   readMonthlyEnergyEntries,
   upsertMonthlyEnergyEntry,
 } from "../src/lib/household.ts";
@@ -34,6 +36,64 @@ test("creates and validates a household profile", () => {
   assert.equal(profile.rooms.length, 2);
   assert.equal(profile.rooms[0].id, "kuche-1");
   assert.deepEqual(readHouseholdProfile(JSON.stringify(profile)), profile);
+});
+
+test("creates and validates a complete household backup", () => {
+  const profile = createHouseholdProfile({
+    name: "Home",
+    currency: "EUR",
+    electricityPrice: 0.3,
+    savingsGoalPercent: 10,
+    roomNames: ["Kitchen"],
+    now: new Date("2026-09-16T12:00:00.000Z"),
+  });
+  const device = {
+    id: "coffee",
+    device: "Kaffeemaschine",
+    customDeviceName: "",
+    mode: "estimate",
+    currency: "EUR",
+    price: 0.3,
+    watts: 1200,
+    minutesPerUse: 10,
+    usesPerWeek: 7,
+    estimatedKwhPerUse: 0.2,
+    measuredKwhPerUse: 0,
+    yearlyKwh: 72.8,
+    yearlyCost: 21.84,
+    monthlyCost: 1.82,
+    updatedAt: "2026-09-16T12:00:00.000Z",
+  };
+  profile.deviceRooms = { coffee: profile.rooms[0].id, missing: "missing" };
+  const backup = createHouseholdBackup({
+    profile,
+    devices: [device],
+    history: [
+      {
+        month: "2026-09",
+        kwh: 210,
+        cost: 63,
+        updatedAt: "2026-09-16T12:00:00.000Z",
+      },
+    ],
+    now: new Date("2026-09-17T10:00:00.000Z"),
+  });
+  const restored = readHouseholdBackup(JSON.stringify(backup));
+
+  assert.equal(restored?.devices.length, 1);
+  assert.equal(restored?.history.length, 1);
+  assert.deepEqual(restored?.profile.deviceRooms, {
+    coffee: profile.rooms[0].id,
+  });
+});
+
+test("rejects an incomplete household backup", () => {
+  assert.equal(
+    readHouseholdBackup(
+      JSON.stringify({ version: 1, exportedAt: "2026-09-17T10:00:00.000Z" }),
+    ),
+    null,
+  );
 });
 
 test("summarizes saved devices and savings target", () => {
