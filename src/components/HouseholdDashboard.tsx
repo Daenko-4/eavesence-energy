@@ -46,6 +46,12 @@ import {
 } from "@/lib/savedDevices";
 
 const BETA_INTEREST_STORAGE_KEY = "eavesence-home-beta-interest-v1";
+const homeSurfaceClass =
+  "rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)]";
+const homeFieldClass =
+  "min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-[13px] font-medium text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
+const homePrimaryActionClass =
+  "inline-flex min-h-10 items-center justify-center rounded-lg border border-[var(--brand-green)] bg-[var(--brand-green)] px-4 text-[13px] font-semibold text-[var(--brand-off-white)] transition hover:bg-[var(--brand-green-dark)] active:scale-[0.98]";
 const currencies: SavedDeviceCurrency[] = [
   "EUR",
   "CHF",
@@ -351,10 +357,10 @@ function MonthlyHistoryChart({
   });
 
   return (
-    <div className="mt-6 border-t border-slate-100 pt-5" aria-label={labels.title}>
+    <div className="mt-6 border-t border-[#dfe5dd] pt-5" aria-label={labels.title}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-sm font-extrabold text-slate-900">{labels.title}</h3>
-        <div className="flex gap-4 text-[11px] font-semibold text-slate-500">
+        <h3 className="text-[13px] font-bold text-[#17211f]">{labels.title}</h3>
+        <div className="flex gap-4 text-[11px] font-semibold text-[#65716d]">
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[var(--brand-green)]" />{labels.consumption}</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-sky-400" />{labels.cost}</span>
         </div>
@@ -362,17 +368,17 @@ function MonthlyHistoryChart({
       <div className="mt-4 space-y-3">
         {chartEntries.map((entry) => (
           <div key={entry.month} className="grid grid-cols-[4.25rem_1fr] items-center gap-3">
-            <span className="text-xs font-bold text-slate-500">
+            <span className="text-xs font-semibold text-[#65716d]">
               {dateFormatter.format(new Date(`${entry.month}-01T00:00:00Z`))}
             </span>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[var(--brand-green)]" style={{ width: `${Math.max(3, (entry.kwh / maxKwh) * 100)}%` }} /></div>
-                <span className="w-20 text-right text-[11px] tabular-nums text-slate-500">{formatNumber(entry.kwh, locale, 1)} kWh</span>
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)]" style={{ width: `${Math.max(3, (entry.kwh / maxKwh) * 100)}%` }} /></div>
+                <span className="w-20 text-right text-[11px] tabular-nums text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-sky-400" style={{ width: `${Math.max(3, (entry.cost / maxCost) * 100)}%` }} /></div>
-                <span className="w-20 text-right text-[11px] tabular-nums text-slate-500">{formatMoney(entry.cost, locale, currency)}</span>
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-sky-400" style={{ width: `${Math.max(3, (entry.cost / maxCost) * 100)}%` }} /></div>
+                <span className="w-20 text-right text-[11px] tabular-nums text-[#65716d]">{formatMoney(entry.cost, locale, currency)}</span>
               </div>
             </div>
           </div>
@@ -823,34 +829,34 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       <div lang={locale} className="min-h-screen bg-[var(--background)] text-[#07111f]">
         <Header locale={locale} languageHrefOverride={languageHref} />
         <main className="px-5 py-12 sm:px-6 sm:py-20">
-          <section className="mx-auto max-w-3xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_28px_80px_-52px_rgba(15,23,42,0.45)] sm:p-10">
+          <section className={`mx-auto max-w-3xl p-6 sm:p-8 ${homeSurfaceClass}`}>
             <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">{text.onboardingEyebrow}</p>
             <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.045em] sm:text-4xl">{text.onboardingTitle}</h1>
-            <p className="mt-4 max-w-2xl leading-7 text-slate-600">{text.onboardingText}</p>
+            <p className="mt-4 max-w-2xl text-[14px] leading-7 text-[#65716d]">{text.onboardingText}</p>
 
             <div className="mt-8 grid gap-5 sm:grid-cols-2">
-              <label className="grid gap-2 text-sm font-bold text-slate-700 sm:col-span-2">
+              <label className="grid gap-2 text-[13px] font-semibold text-[#52605b] sm:col-span-2">
                 {text.householdName}
-                <input value={name} onChange={(event) => setName(event.target.value)} placeholder={text.householdNamePlaceholder} className="min-h-12 rounded-xl border border-slate-200 bg-white px-4 font-medium outline-none focus:border-[var(--brand-green)] focus:ring-2 focus:ring-green-100" />
+                <input value={name} onChange={(event) => setName(event.target.value)} placeholder={text.householdNamePlaceholder} className={homeFieldClass} />
               </label>
-              <label className="grid gap-2 text-sm font-bold text-slate-700">
+              <label className="grid gap-2 text-[13px] font-semibold text-[#52605b]">
                 {text.price}
-                <input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="min-h-12 rounded-xl border border-slate-200 bg-white px-4 font-medium outline-none focus:border-[var(--brand-green)] focus:ring-2 focus:ring-green-100" />
+                <input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} />
               </label>
-              <label className="grid gap-2 text-sm font-bold text-slate-700">
+              <label className="grid gap-2 text-[13px] font-semibold text-[#52605b]">
                 {text.currency}
-                <select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className="min-h-12 rounded-xl border border-slate-200 bg-white px-4 font-medium outline-none focus:border-[var(--brand-green)] focus:ring-2 focus:ring-green-100">
+                <select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>
                   {currencies.map((item) => <option key={item}>{item}</option>)}
                 </select>
               </label>
-              <label className="grid gap-2 text-sm font-bold text-slate-700 sm:col-span-2">
+              <label className="grid gap-2 text-[13px] font-semibold text-[#52605b] sm:col-span-2">
                 <span className="flex items-center justify-between"><span>{text.goal}</span><span className="text-[var(--brand-green)]">{goal}{text.goalSuffix}</span></span>
                 <input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="accent-[var(--brand-green)]" />
               </label>
             </div>
 
-            <button type="button" onClick={completeOnboarding} className="mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[var(--brand-green)] px-6 text-sm font-extrabold text-white transition hover:bg-[var(--brand-green-dark)] sm:w-auto">{text.start}</button>
-            <p className="mt-4 text-xs font-semibold text-slate-500">{text.private}</p>
+            <button type="button" onClick={completeOnboarding} className={`mt-8 w-full sm:w-auto ${homePrimaryActionClass}`}>{text.start}</button>
+            <p className="mt-4 text-xs font-medium text-[#65716d]">{text.private}</p>
           </section>
         </main>
         <Footer locale={locale} />
@@ -896,23 +902,23 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         }}
         onDragLeave={() => setDragOverRoomId(null)}
         onDrop={(event) => dropRoom(event, room.id)}
-        className={`rounded-xl border transition ${compact ? "p-3" : "p-4"} ${
+        className={`rounded-xl border text-[#17211f] transition ${compact ? "p-3" : "p-4"} ${
           isDropTarget
-            ? "border-green-400 bg-green-50 ring-4 ring-green-100"
+            ? "border-[var(--brand-green-mint)] bg-[#e4f7ec] ring-4 ring-[#dcfce8]"
             : compact
-              ? "border-slate-200 bg-white"
-              : "border-slate-200 bg-slate-50"
+              ? "border-[#dfe5dd] bg-[#fbfcf8]"
+              : "border-[#dfe5dd] bg-white/70"
         }`}
       >
         {editingRoomId === room.id ? (
           <form onSubmit={(event) => { event.preventDefault(); saveRoomName(room.id); }}>
-            <label className="grid gap-1.5 text-xs font-bold text-slate-600">
+            <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]">
               <span>{text.roomName}</span>
-              <input autoFocus value={roomNameDraft} onChange={(event) => setRoomNameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") cancelEditingRoom(); }} className="min-h-10 rounded-lg border border-green-300 bg-white px-3 text-sm text-slate-900 outline-none ring-green-100 focus:ring-4" />
+              <input autoFocus value={roomNameDraft} onChange={(event) => setRoomNameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") cancelEditingRoom(); }} className={homeFieldClass} />
             </label>
             <div className="mt-3 flex flex-wrap gap-2">
-              <button type="submit" disabled={!roomNameDraft.trim()} className="rounded-full bg-[var(--brand-green)] px-3 py-1.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{text.saveRoom}</button>
-              <button type="button" onClick={cancelEditingRoom} className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600">{text.cancelRoomEdit}</button>
+              <button type="submit" disabled={!roomNameDraft.trim()} className={`${homePrimaryActionClass} min-h-8 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-40`}>{text.saveRoom}</button>
+              <button type="button" onClick={cancelEditingRoom} className="min-h-8 rounded-lg border border-[#dfe5dd] bg-white px-3 text-xs font-semibold text-[#52605b] transition hover:border-green-200 hover:text-[var(--brand-green-dark)]">{text.cancelRoomEdit}</button>
             </div>
           </form>
         ) : (
@@ -925,29 +931,29 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   onDragEnd={() => { setDraggedRoomId(null); setDragOverRoomId(null); }}
                   title={`${text.dragRoom}: ${roomName}`}
                   aria-hidden="true"
-                  className="cursor-grab select-none rounded-md px-1.5 py-1 text-base font-bold tracking-[-0.2em] text-slate-400 transition hover:bg-white hover:text-[var(--brand-green)] active:cursor-grabbing"
+                  className="cursor-grab select-none rounded-md px-1.5 py-1 text-base font-bold tracking-[-0.2em] text-[#8b9792] transition hover:bg-white hover:text-[var(--brand-green)] active:cursor-grabbing"
                 >
                   ⠿
                 </span>
-                <h3 className="truncate font-extrabold">{roomName}</h3>
+                <h3 className="truncate text-[14px] font-bold">{roomName}</h3>
               </div>
-              <span className="text-xs font-bold text-slate-500">{room.deviceCount}</span>
+              <span className="text-[11px] font-semibold text-[#65716d]">{room.deviceCount}</span>
             </div>
             {!compact && (
               <>
                 <p className="mt-3 text-lg font-extrabold">{formatMoney(room.annualCost, locale, activeProfile.currency)}</p>
-                <p className="mt-1 text-xs text-slate-500">{text.yearly}</p>
+                <p className="mt-1 text-xs text-[#65716d]">{text.yearly}</p>
                 {roomDevices.length > 0 && (
-                  <div className="mt-4 space-y-2 border-t border-slate-200 pt-3">
+                  <div className="mt-4 space-y-2 border-t border-[#dfe5dd] pt-3">
                     {roomDevices.map((device) => (
                       <div key={device.id} className="rounded-lg bg-white px-3 py-2.5">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-bold">{localizedSavedDeviceName(device, locale)}</p>
-                            <p className="mt-0.5 text-xs text-slate-500">{formatMoney(device.yearlyKwh * activeProfile.electricityPrice, locale, activeProfile.currency)} {text.yearly}</p>
+                            <p className="truncate text-[13px] font-semibold">{localizedSavedDeviceName(device, locale)}</p>
+                            <p className="mt-0.5 text-[11px] text-[#65716d]">{formatMoney(device.yearlyKwh * activeProfile.electricityPrice, locale, activeProfile.currency)} {text.yearly}</p>
                           </div>
                           <label className="sr-only" htmlFor={`room-${device.id}`}>{text.assign}</label>
-                          <select id={`room-${device.id}`} aria-label={`${text.assign}: ${localizedSavedDeviceName(device, locale)}`} value={room.id} onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-8 max-w-28 rounded-md border border-slate-200 bg-white px-2 text-[11px] text-slate-600">
+                          <select id={`room-${device.id}`} aria-label={`${text.assign}: ${localizedSavedDeviceName(device, locale)}`} value={room.id} onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-8 max-w-28 rounded-lg border border-[#dfe5dd] bg-white px-2 text-[11px] font-medium text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20">
                             <option value="">{text.unassigned}</option>
                             {activeProfile.rooms.map((option) => <option key={option.id} value={option.id}>{localizeDefaultRoomName(option.name, locale)}</option>)}
                           </select>
@@ -958,14 +964,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 )}
               </>
             )}
-            <div className={`${compact ? "mt-2" : "mt-4 border-t border-slate-200 pt-3"} flex items-center justify-between gap-3`}>
+            <div className={`${compact ? "mt-2" : "mt-4 border-t border-[#dfe5dd] pt-3"} flex items-center justify-between gap-3`}>
               <div className="flex items-center gap-2.5">
-                <button type="button" onClick={() => startEditingRoom(room.id, roomName)} aria-label={`${text.editRoom}: ${roomName}`} className="text-[11px] font-semibold text-slate-500 transition hover:text-[var(--brand-green-dark)]">{text.editRoom}</button>
-                <button type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${roomName}`} className="text-[11px] font-semibold text-slate-400 transition hover:text-red-600">{text.deleteRoom}</button>
+                <button type="button" onClick={() => startEditingRoom(room.id, roomName)} aria-label={`${text.editRoom}: ${roomName}`} className="text-[11px] font-semibold text-[#65716d] transition hover:text-[var(--brand-green-dark)]">{text.editRoom}</button>
+                <button type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${roomName}`} className="text-[11px] font-medium text-[#8b9792] transition hover:text-red-600">{text.deleteRoom}</button>
               </div>
               <div className="flex items-center gap-1">
-                <button type="button" onClick={() => moveRoom(room.id, -1)} disabled={index === 0} aria-label={`${text.moveRoomEarlier}: ${roomName}`} title={text.moveRoomEarlier} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-bold text-slate-500 transition hover:border-green-300 hover:text-[var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30">↑</button>
-                <button type="button" onClick={() => moveRoom(room.id, 1)} disabled={index === activeProfile.rooms.length - 1} aria-label={`${text.moveRoomLater}: ${roomName}`} title={text.moveRoomLater} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-bold text-slate-500 transition hover:border-green-300 hover:text-[var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30">↓</button>
+                <button type="button" onClick={() => moveRoom(room.id, -1)} disabled={index === 0} aria-label={`${text.moveRoomEarlier}: ${roomName}`} title={text.moveRoomEarlier} className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#dfe5dd] bg-white text-sm font-semibold text-[#65716d] transition hover:border-green-200 hover:text-[var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30">↑</button>
+                <button type="button" onClick={() => moveRoom(room.id, 1)} disabled={index === activeProfile.rooms.length - 1} aria-label={`${text.moveRoomLater}: ${roomName}`} title={text.moveRoomLater} className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#dfe5dd] bg-white text-sm font-semibold text-[#65716d] transition hover:border-green-200 hover:text-[var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30">↓</button>
               </div>
             </div>
           </>
@@ -975,7 +981,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   return (
-    <div lang={locale} className="min-h-screen bg-[var(--background)] text-[#07111f]">
+    <div lang={locale} className="min-h-screen bg-[var(--background)] text-[#17211f]">
       <Header locale={locale} languageHrefOverride={languageHref} />
       <main className="px-5 pb-20 pt-10 sm:px-6 sm:pt-14">
         <div className="mx-auto max-w-7xl">
@@ -983,25 +989,25 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">EAVESENCE Home</p>
               <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
-              <p className="mt-2 text-slate-600">{text.pageSubtitle}</p>
+              <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
-            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className="w-fit rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-green-300 hover:text-[var(--brand-green)]">{text.settings}</button>
+            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className="w-fit rounded-lg border border-[#dfe5dd] bg-[#fbfcf8] px-3.5 py-2 text-xs font-semibold text-[#52605b] transition hover:border-green-200 hover:bg-white hover:text-[var(--brand-green-dark)]">{text.settings}</button>
           </div>
 
           {settingsOpen && (
-            <section className="mt-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:grid-cols-4">
-              <label className="grid gap-1.5 text-xs font-bold text-slate-600"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label>
-              <label className="grid gap-1.5 text-xs font-bold text-slate-600"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label>
-              <label className="grid gap-1.5 text-xs font-bold text-slate-600"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm">{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
-              <label className="grid gap-1.5 text-xs font-bold text-slate-600"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
-              <button type="button" onClick={saveSettings} className="min-h-11 rounded-full bg-[var(--brand-green)] px-5 text-sm font-bold text-white sm:col-span-4 sm:justify-self-start">{text.saveSettings}</button>
-              <div className="rounded-2xl border border-green-200 bg-[#f0faf4] p-4 sm:col-span-4">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <section className={`mt-6 grid gap-4 p-5 sm:grid-cols-4 ${homeSurfaceClass}`}>
+              <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
+              <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
+              <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
+              <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
+              <button type="button" onClick={saveSettings} className={`${homePrimaryActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
+              <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                   <div>
-                    <h2 className="text-base font-extrabold text-slate-900">{text.dataTitle}</h2>
-                    <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-600">{text.dataText}</p>
+                    <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
+                    <p className="mt-1 max-w-2xl text-xs leading-5 text-[#65716d]">{text.dataText}</p>
                   </div>
-                  <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
+                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2 lg:pb-0.5">
                     <input
                       ref={homeImportInputRef}
                       type="file"
@@ -1012,13 +1018,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <button
                       type="button"
                       onClick={() => homeImportInputRef.current?.click()}
-                      className="group/import-home relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                      className="group/import-home relative saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                     >
                       {text.importHome}
                       <svg
                         viewBox="0 0 12 8"
                         fill="none"
-                        className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/import-home:translate-y-0 group-hover/import-home:opacity-100"
+                        className="pointer-events-none absolute left-0 top-full mt-0.5 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/import-home:translate-y-0 group-hover/import-home:opacity-100"
                         stroke="currentColor"
                         strokeWidth="1.5"
                         strokeLinecap="round"
@@ -1031,13 +1037,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <button
                       type="button"
                       onClick={exportHome}
-                      className="group/export-home relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                      className="group/export-home relative saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                     >
                       {text.exportHome}
                       <svg
                         viewBox="0 0 12 8"
                         fill="none"
-                        className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/export-home:translate-y-0 group-hover/export-home:opacity-100"
+                        className="pointer-events-none absolute left-0 top-full mt-0.5 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/export-home:translate-y-0 group-hover/export-home:opacity-100"
                         stroke="currentColor"
                         strokeWidth="1.5"
                         strokeLinecap="round"
@@ -1050,13 +1056,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <button
                       type="button"
                       onClick={resetHome}
-                      className="group/reset-home relative pb-3 saved-device-utility-action text-slate-400 transition hover:text-red-700"
+                      className="group/reset-home relative saved-device-utility-action text-[#8b9792] transition hover:text-red-700"
                     >
                       {text.resetHome}
                       <svg
                         viewBox="0 0 12 12"
                         fill="none"
-                        className="pointer-events-none absolute bottom-0 left-0 h-2.5 w-2.5 translate-y-1 text-red-600 opacity-0 transition duration-150 group-hover/reset-home:translate-y-0 group-hover/reset-home:opacity-100"
+                        className="pointer-events-none absolute left-0 top-full mt-0.5 h-2.5 w-2.5 translate-y-1 text-red-600 opacity-0 transition duration-150 group-hover/reset-home:translate-y-0 group-hover/reset-home:opacity-100"
                         stroke="currentColor"
                         strokeWidth="1.7"
                         strokeLinecap="round"
@@ -1079,8 +1085,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               [text.consumption, `${formatNumber(summary?.annualKwh ?? 0, locale)} kWh`, ""],
               [text.target, formatMoneyPrecise(summary?.targetMonthlyCost ?? 0, locale, profile.currency), `${formatMoneyPrecise(monthlySavings, locale, profile.currency)} ${text.targetDifference}`],
             ].map(([label, value, detail], index) => (
-              <article key={label} className={`rounded-2xl border p-4 ${index === 0 ? "border-green-200 bg-[#eaf8ef]" : "border-slate-200 bg-white"}`}>
-                <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500">{label}</p>
+              <article key={label} className={`rounded-xl border p-4 ${index === 0 ? "border-[#b8efcc] bg-[#dcfce8]" : "border-[#dfe5dd] bg-[#fbfcf8]"}`}>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#65716d]">{label}</p>
                 <p className="mt-2.5 text-xl font-extrabold tracking-[-0.035em]">{value}</p>
                 {detail && <p className="mt-1 text-xs font-semibold text-[var(--brand-green)]">{detail}</p>}
               </article>
@@ -1088,14 +1094,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
 
           <section className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className={`${homeSurfaceClass} p-5`}>
               <div className="flex items-start justify-between gap-4">
-                <div><p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500">{text.activation}</p><h2 className="mt-2 text-xl font-extrabold tracking-[-0.03em]">{savedDevices.length >= 3 ? text.activationReady : `${savedDevices.length} ${locale === "de" ? "von" : "of"} 3 ${text.activationProgress}`}</h2></div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-lg font-extrabold text-[var(--brand-green)]">{Math.min(3, savedDevices.length)}</div>
+                <div><p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#65716d]">{text.activation}</p><h2 className="mt-2 text-xl font-bold tracking-[-0.03em]">{savedDevices.length >= 3 ? text.activationReady : `${savedDevices.length} ${locale === "de" ? "von" : "of"} 3 ${text.activationProgress}`}</h2></div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#dcf5e6] text-base font-bold text-[var(--brand-green)]">{Math.min(3, savedDevices.length)}</div>
               </div>
-              <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[var(--brand-green)] transition-all" style={{ width: `${Math.min(100, (savedDevices.length / 3) * 100)}%` }} /></div>
-              <p className="mt-4 text-sm leading-6 text-slate-600">{text.activationText}</p>
-              <Link href={calculatorHref} className="mt-5 inline-flex text-sm font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.addDevice} {">"}</Link>
+              <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)] transition-all" style={{ width: `${Math.min(100, (savedDevices.length / 3) * 100)}%` }} /></div>
+              <p className="mt-4 text-[13px] leading-6 text-[#65716d]">{text.activationText}</p>
+              <Link href={calculatorHref} className="mt-5 inline-flex text-[13px] font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]">{text.addDevice} {">"}</Link>
             </div>
             <div className="rounded-2xl bg-[#17211f] p-5 text-white">
               <p className="text-xs font-bold uppercase tracking-[0.1em] text-[var(--brand-green-mint)]">{text.targetSavings}</p>
@@ -1105,13 +1111,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
           </section>
 
-          <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5">
+          <section className={`mt-8 p-5 ${homeSurfaceClass}`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.roomsTitle}</h2>
-                <p className="mt-1 text-sm text-slate-600">{profile.rooms.length} {profile.rooms.length === 1 ? text.roomSingular : text.roomPlural}</p>
+                <p className="mt-1 text-[13px] text-[#65716d]">{profile.rooms.length} {profile.rooms.length === 1 ? text.roomSingular : text.roomPlural}</p>
               </div>
-              <button type="button" onClick={addRoom} className="inline-flex min-h-8 w-fit items-center rounded-lg border border-transparent px-2.5 text-xs font-extrabold text-[var(--brand-green)] transition duration-200 hover:-translate-y-0.5 hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] hover:shadow-sm">+ {text.addRoom}</button>
+              <button type="button" onClick={addRoom} className="inline-flex min-h-9 w-fit items-center rounded-lg border border-[#dfe5dd] bg-[#fbfcf8] px-3 text-xs font-semibold text-[var(--brand-green)] transition hover:border-green-200 hover:bg-white hover:text-[var(--brand-green-dark)] active:scale-[0.98]">+ {text.addRoom}</button>
             </div>
 
             {roomNotice && <p role="status" className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-sm font-bold text-[var(--brand-green)]">{roomNotice}</p>}
@@ -1121,20 +1127,20 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 {occupiedRooms.map((room) => roomCard(room, profile.rooms.findIndex((item) => item.id === room.id)))}
               </div>
             ) : (
-              <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center">
-                <p className="text-sm text-slate-600">{text.noDevices}</p>
-                <Link href={calculatorHref} className="mt-2 inline-flex text-sm font-bold text-[var(--brand-green)]">{text.addDevice} {">"}</Link>
+              <div className="mt-6 rounded-xl border border-dashed border-[#cbd4cf] bg-[#fbfcf8] px-4 py-5 text-center">
+                <p className="text-[13px] text-[#65716d]">{text.noDevices}</p>
+                <Link href={calculatorHref} className="mt-2 inline-flex text-[13px] font-semibold text-[var(--brand-green)]">{text.addDevice} {">"}</Link>
               </div>
             )}
 
             {unassignedDevices.length > 0 && (
               <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
-                <h3 className="text-sm font-extrabold text-slate-900">{text.unassigned}</h3>
+                <h3 className="text-[13px] font-bold text-[#17211f]">{text.unassigned}</h3>
                 <div className="mt-2 divide-y divide-amber-100">
                   {unassignedDevices.map((device) => (
                     <div key={device.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div><p className="font-bold">{localizedSavedDeviceName(device, locale)}</p><p className="mt-1 text-xs text-slate-500">{formatMoney(device.yearlyKwh * profile.electricityPrice, locale, profile.currency)} {text.yearly}</p></div>
-                      <label className="flex items-center gap-2 text-[11px] font-bold text-slate-500"><span>{text.assign}</span><select value="" onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-8 max-w-32 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-600"><option value="">{text.unassigned}</option>{profile.rooms.map((room) => <option key={room.id} value={room.id}>{localizeDefaultRoomName(room.name, locale)}</option>)}</select></label>
+                      <div><p className="text-[13px] font-semibold">{localizedSavedDeviceName(device, locale)}</p><p className="mt-1 text-xs text-[#65716d]">{formatMoney(device.yearlyKwh * profile.electricityPrice, locale, profile.currency)} {text.yearly}</p></div>
+                      <label className="flex items-center gap-2 text-[11px] font-semibold text-[#65716d]"><span>{text.assign}</span><select value="" onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-8 max-w-32 rounded-lg border border-[#dfe5dd] bg-white px-2 text-xs font-medium text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20"><option value="">{text.unassigned}</option>{profile.rooms.map((room) => <option key={room.id} value={room.id}>{localizeDefaultRoomName(room.name, locale)}</option>)}</select></label>
                     </div>
                   ))}
                 </div>
@@ -1145,10 +1151,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <details
                 open={emptyRoomsOpen || Boolean(editingRoomId && emptyRooms.some((room) => room.id === editingRoomId))}
                 onToggle={(event) => setEmptyRoomsOpen(event.currentTarget.open)}
-                className="group mt-6 rounded-xl border border-slate-200 bg-slate-50"
+                className="group mt-6 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8]"
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-xs font-bold text-slate-700 [&::-webkit-details-marker]:hidden">
-                  <span>{text.otherRooms} ({emptyRooms.length}) <span className="ml-2 font-normal text-slate-500">{text.emptyRoomsHint}</span></span>
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-xs font-semibold text-[#52605b] transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
+                  <span>{text.otherRooms} ({emptyRooms.length}) <span className="ml-2 font-normal text-[#7a8782]">{text.emptyRoomsHint}</span></span>
                   <svg
                     viewBox="0 0 20 20"
                     fill="none"
@@ -1162,7 +1168,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <path d="m7.5 5 5 5-5 5" />
                   </svg>
                 </summary>
-                <div className="grid gap-3 border-t border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 border-t border-[#dfe5dd] p-3 sm:grid-cols-2 lg:grid-cols-3">
                   {emptyRooms.map((room) => roomCard(room, profile.rooms.findIndex((item) => item.id === room.id), true))}
                 </div>
               </details>
@@ -1170,57 +1176,57 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
 
           <section className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className={`${homeSurfaceClass} p-5`}>
               <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.monthlyCheckIn}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{text.checkInText}</p>
-              <div className="mt-5 grid grid-cols-2 rounded-full bg-slate-100 p-1">
-                <button type="button" aria-pressed={checkInMode === "consumption"} onClick={() => { setCheckInMode("consumption"); setCheckInFeedback(null); }} className={`rounded-full px-3 py-2 text-xs font-bold transition ${checkInMode === "consumption" ? "bg-white text-[var(--brand-green)] shadow-sm" : "text-slate-500"}`}>{text.consumptionEntry}</button>
-                <button type="button" aria-pressed={checkInMode === "bill"} onClick={() => { setCheckInMode("bill"); setCheckInFeedback(null); }} className={`rounded-full px-3 py-2 text-xs font-bold transition ${checkInMode === "bill" ? "bg-white text-[var(--brand-green)] shadow-sm" : "text-slate-500"}`}>{text.billEntry}</button>
+              <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{text.checkInText}</p>
+              <div className="mt-5 grid grid-cols-2 rounded-xl border border-[#dfe5dd] bg-[#eef1ed] p-1">
+                <button type="button" aria-pressed={checkInMode === "consumption"} onClick={() => { setCheckInMode("consumption"); setCheckInFeedback(null); }} className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${checkInMode === "consumption" ? "bg-white text-[var(--brand-green)] shadow-sm" : "text-[#65716d] hover:text-[#17211f]"}`}>{text.consumptionEntry}</button>
+                <button type="button" aria-pressed={checkInMode === "bill"} onClick={() => { setCheckInMode("bill"); setCheckInFeedback(null); }} className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${checkInMode === "bill" ? "bg-white text-[var(--brand-green)] shadow-sm" : "text-[#65716d] hover:text-[#17211f]"}`}>{text.billEntry}</button>
               </div>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <label className="grid gap-1.5 text-xs font-bold text-slate-600 sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setCheckInFeedback(null); }} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label>
+                <label className="grid gap-1.5 text-xs font-semibold text-[#52605b] sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                 {checkInMode === "consumption" ? (
                   <>
-                    <label className="grid gap-1.5 text-xs font-bold text-slate-600">{text.kwh}<input type="text" inputMode="decimal" value={monthKwh} onChange={(event) => { setMonthKwh(event.target.value); setCheckInFeedback(null); }} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label>
-                    <div className="rounded-xl bg-slate-50 px-3 py-2"><p className="text-xs font-bold text-slate-500">{text.calculatedCost}</p><p className="mt-1 font-extrabold">{formatMoneyPrecise((positiveNumber(monthKwh) ?? 0) * profile.electricityPrice, locale, profile.currency)}</p></div>
+                    <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]">{text.kwh}<input type="text" inputMode="decimal" value={monthKwh} onChange={(event) => { setMonthKwh(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
+                    <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedCost}</p><p className="mt-1 font-bold">{formatMoneyPrecise((positiveNumber(monthKwh) ?? 0) * profile.electricityPrice, locale, profile.currency)}</p></div>
                   </>
                 ) : (
                   <>
-                    <label className="grid gap-1.5 text-xs font-bold text-slate-600">{text.cost}<input type="text" inputMode="decimal" value={monthCost} onChange={(event) => { setMonthCost(event.target.value); setCheckInFeedback(null); }} className="min-h-11 rounded-xl border border-slate-200 px-3 text-sm" /></label>
-                    <div className="rounded-xl bg-slate-50 px-3 py-2"><p className="text-xs font-bold text-slate-500">{text.estimatedConsumption}</p><p className="mt-1 font-extrabold">{formatNumber(profile.electricityPrice > 0 ? (positiveNumber(monthCost) ?? 0) / profile.electricityPrice : 0, locale, 1)} kWh</p></div>
+                    <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]">{text.cost}<input type="text" inputMode="decimal" value={monthCost} onChange={(event) => { setMonthCost(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
+                    <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.estimatedConsumption}</p><p className="mt-1 font-bold">{formatNumber(profile.electricityPrice > 0 ? (positiveNumber(monthCost) ?? 0) / profile.electricityPrice : 0, locale, 1)} kWh</p></div>
                   </>
                 )}
               </div>
               {checkInFeedback && <p role={checkInFeedback.kind === "error" ? "alert" : "status"} className={`mt-4 rounded-xl px-3 py-2.5 text-sm font-bold ${checkInFeedback.kind === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-[var(--brand-green)]"}`}>{checkInFeedback.message}</p>}
-              <button type="button" onClick={saveMonthlyCheckIn} className="mt-5 min-h-11 rounded-full bg-[var(--brand-green)] px-5 text-sm font-bold text-white">{text.saveCheckIn}</button>
+              <button type="button" onClick={saveMonthlyCheckIn} className={`mt-5 ${homePrimaryActionClass}`}>{text.saveCheckIn}</button>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className={`${homeSurfaceClass} p-5`}>
               <div className="flex items-center justify-between gap-4"><h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.history}</h2>{historyDelta !== null && <span className={`rounded-full px-3 py-1 text-xs font-bold ${historyDelta <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{historyDelta > 0 ? "+" : ""}{formatNumber(historyDelta, locale, 1)}%</span>}</div>
-              {history.length === 0 ? <p className="mt-6 text-sm text-slate-500">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} data-monthly-history-entry={entry.month} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 rounded-xl bg-slate-50 px-4 py-3"><span className="text-sm font-bold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-sm text-slate-500">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-sm font-extrabold">{formatMoney(entry.cost, locale, profile.currency)}</span>{index === 0 && historyDelta !== null && <span className="col-span-3 text-xs text-slate-500">{text.comparedWithPrevious}</span>}</div>)}</div>}
+              {history.length === 0 ? <p className="mt-6 text-[13px] text-[#65716d]">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} data-monthly-history-entry={entry.month} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3"><span className="text-[13px] font-semibold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span>{index === 0 && historyDelta !== null && <span className="col-span-3 text-xs text-[#65716d]">{text.comparedWithPrevious}</span>}</div>)}</div>}
               <MonthlyHistoryChart entries={history} locale={locale} currency={profile.currency} labels={{ title: text.chartTitle, consumption: text.chartConsumption, cost: text.chartCost }} />
             </div>
           </section>
 
-          <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5">
+          <section className={`mt-5 p-5 ${homeSurfaceClass}`}>
             <h2 className="text-lg font-extrabold tracking-[-0.02em] sm:text-xl">{text.comparisonTitle}</h2>
             {latestActual && savedDevices.length > 0 ? (
               <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold text-slate-500">{text.calculatedEstimate}</p><p className="mt-2 text-xl font-extrabold">{formatNumber(summary?.monthlyKwh ?? 0, locale, 1)} kWh</p></div>
-                <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold text-slate-500">{text.actualRecorded}</p><p className="mt-2 text-xl font-extrabold">{formatNumber(latestActual.kwh, locale, 1)} kWh</p></div>
-                <div className="rounded-xl bg-green-50 p-4"><p className="text-xs font-bold text-[var(--brand-green)]">{text.comparisonDifference}</p><p className="mt-2 text-xl font-extrabold text-[var(--brand-green)]">{comparisonDifference !== null && comparisonDifference > 0 ? "+" : ""}{formatNumber(comparisonDifference ?? 0, locale, 1)} kWh</p></div>
+                <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedEstimate}</p><p className="mt-2 text-xl font-bold">{formatNumber(summary?.monthlyKwh ?? 0, locale, 1)} kWh</p></div>
+                <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"><p className="text-[11px] font-semibold text-[#65716d]">{text.actualRecorded}</p><p className="mt-2 text-xl font-bold">{formatNumber(latestActual.kwh, locale, 1)} kWh</p></div>
+                <div className="rounded-xl border border-[#b8efcc] bg-[#dcfce8] p-4"><p className="text-[11px] font-semibold text-[var(--brand-green)]">{text.comparisonDifference}</p><p className="mt-2 text-xl font-bold text-[var(--brand-green)]">{comparisonDifference !== null && comparisonDifference > 0 ? "+" : ""}{formatNumber(comparisonDifference ?? 0, locale, 1)} kWh</p></div>
               </div>
-            ) : <p className="mt-3 text-sm leading-6 text-slate-600">{text.noComparison}</p>}
+            ) : <p className="mt-3 text-[13px] leading-6 text-[#65716d]">{text.noComparison}</p>}
           </section>
 
           {proReady ? (
-            <section className="mt-8 overflow-hidden rounded-[2rem] bg-[#17211f] p-6 text-white sm:p-8">
+            <section className="mt-8 overflow-hidden rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] p-6 text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] sm:p-8">
               <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green-mint)]">{text.proEyebrow}</p><h2 className="mt-3 text-2xl font-extrabold tracking-[-0.04em] sm:text-3xl">{text.proTitle}</h2><p className="mt-4 max-w-2xl leading-7 text-slate-300">{text.proText}</p><p className="mt-5 text-xs leading-5 text-slate-400">{text.betaDetail}</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-5"><div className="grid grid-cols-2 rounded-full bg-black/20 p-1"><button type="button" onClick={() => { setPlan("monthly"); track("Home Pro Preview Opened", { locale, plan: "monthly" }); }} className={`rounded-full px-4 py-2 text-sm font-bold ${plan === "monthly" ? "bg-white text-[#17211f]" : "text-slate-300"}`}>{text.monthlyPlan}</button><button type="button" onClick={() => { setPlan("yearly"); track("Home Pro Preview Opened", { locale, plan: "yearly" }); }} className={`rounded-full px-4 py-2 text-sm font-bold ${plan === "yearly" ? "bg-white text-[#17211f]" : "text-slate-300"}`}>{text.yearlyPlan}</button></div><div className="mt-5 flex min-h-8 flex-wrap items-center justify-center gap-4"><p className="text-center text-2xl font-extrabold">{plan === "yearly" ? text.yearlyPrice : text.monthlyPrice}</p>{plan === "yearly" && <span className="rounded-full border border-[var(--brand-green-mint)]/30 bg-[var(--brand-green-mint)]/10 px-2.5 py-1 text-[11px] font-extrabold text-[var(--brand-green-mint)]">{text.yearlyHint}</span>}</div><p className="mt-2 text-center text-[11px] font-semibold text-slate-400">{text.proBilling}</p><button type="button" onClick={submitBetaInterest} disabled={betaInterested} className="mt-5 min-h-12 w-full rounded-full bg-[var(--brand-green-mint)] px-5 text-sm font-extrabold text-[#10231b] transition hover:bg-[#9bedc0] disabled:cursor-default disabled:bg-white/15 disabled:text-slate-300">{betaInterested ? text.betaSaved : text.beta}</button></div></div>
             </section>
           ) : (
-            <section className="mt-10 rounded-2xl border border-green-200 bg-green-50 px-5 py-4">
+            <section className="mt-8 rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-5 py-4">
               <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.proEyebrow}</p>
-              <h2 className="mt-1 text-lg font-extrabold text-slate-900">{text.proPreviewTitle}</h2>
-              <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">{text.proPreviewText}</p>
+              <h2 className="mt-1 text-lg font-bold text-[#17211f]">{text.proPreviewTitle}</h2>
+              <p className="mt-1 max-w-3xl text-[13px] leading-6 text-[#52605b]">{text.proPreviewText}</p>
             </section>
           )}
         </div>
