@@ -474,7 +474,7 @@ function MyDevicesPanel(
                   ? text.savedDevice
                   : text.savedDevices}
               </span>
-              <a href={locale === "de" ? "/de/zuhause" : "/home"} className="text-xs font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.openHome} →</a>
+              <a href={locale === "de" ? "/de/zuhause" : "/home"} className="text-xs font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.openHome} {">"}</a>
             </div>
           )}
         </div>

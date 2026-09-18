@@ -805,7 +805,7 @@ export default function HomePage({
                 {locale === "de"
                   ? "Neu: Mein Zuhause einrichten"
                   : "New: Set up My home"}
-                <span aria-hidden="true">→</span>
+                <span aria-hidden="true">&gt;</span>
               </a>
             </div>
 
@@ -829,7 +829,7 @@ export default function HomePage({
                 href={devicesHref}
                 className="inline-flex items-center gap-2 text-sm font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
               >
-                {hero.allDevices} <span aria-hidden="true">→</span>
+                {hero.allDevices} <span aria-hidden="true">&gt;</span>
               </a>
             </div>
 
@@ -961,7 +961,7 @@ export default function HomePage({
                 href={feedbackHref}
                 className="-my-2 inline-flex min-h-10 items-center py-2 font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
               >
-                {text.faq.feedbackLink} →
+                {text.faq.feedbackLink} {">"}
               </a>
             </div>
           </div>

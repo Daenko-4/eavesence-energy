@@ -97,7 +97,7 @@ const deviceSeoContent: Record<
         title: "Wasser effizient erhitzen",
         text: "Für kleine Wassermengen ist der Wasserkocher oft praktischer als das Erhitzen im Topf. Entscheidend bleibt, nur die tatsächlich benötigte Menge aufzukochen.",
         href: "/geraete/backofen",
-        linkLabel: "Weitere Küchengeräte ansehen →",
+        linkLabel: "Weitere Küchengeräte ansehen >",
       },
       faqTitle: "Häufige Fragen zum Wasserkocher",
       faqs: [
@@ -141,7 +141,7 @@ const deviceSeoContent: Record<
         title: "Heat water efficiently",
         text: "For small quantities, a kettle is often more practical than heating water in a pan. The most important step is to boil only the amount you actually need.",
         href: "/en/devices/oven",
-        linkLabel: "Explore more kitchen devices →",
+        linkLabel: "Explore more kitchen devices >",
       },
       faqTitle: "Frequently asked questions about kettles",
       faqs: [
@@ -188,7 +188,7 @@ const deviceSeoContent: Record<
         title: "Auch das Trocknen mitdenken",
         text: "Wenn die Wäsche anschließend maschinell getrocknet wird, kann der Trockner einen größeren Anteil an den Gesamtkosten haben.",
         href: "/geraete/waeschetrockner",
-        linkLabel: "Wärmepumpentrockner berechnen →",
+        linkLabel: "Wärmepumpentrockner berechnen >",
       },
       faqTitle: "Häufige Fragen zur Waschmaschine",
       faqs: [
@@ -232,7 +232,7 @@ const deviceSeoContent: Record<
         title: "Include drying in the picture",
         text: "If laundry is tumble-dried afterwards, the dryer may account for a larger share of the combined electricity cost.",
         href: "/en/devices/heat-pump-dryer",
-        linkLabel: "Calculate a heat-pump dryer's cost →",
+        linkLabel: "Calculate a heat-pump dryer's cost >",
       },
       faqTitle: "Frequently asked questions about washing machines",
       faqs: [
@@ -279,7 +279,7 @@ const deviceSeoContent: Record<
         title: "Airfryer oder Backofen?",
         text: "Der Airfryer ist nicht automatisch immer sparsamer. Vergleiche für dein Gericht Leistung, gesamte Laufzeit und Portionsgröße beider Geräte.",
         href: "/geraete/backofen",
-        linkLabel: "Stromkosten des Backofens berechnen →",
+        linkLabel: "Stromkosten des Backofens berechnen >",
       },
       faqTitle: "Häufige Fragen zum Airfryer",
       faqs: [
@@ -323,7 +323,7 @@ const deviceSeoContent: Record<
         title: "Air fryer or oven?",
         text: "An air fryer is not automatically cheaper every time. Compare the power, total runtime and portion size for the same meal.",
         href: "/en/devices/oven",
-        linkLabel: "Calculate the oven's electricity cost →",
+        linkLabel: "Calculate the oven's electricity cost >",
       },
       faqTitle: "Frequently asked questions about air fryers",
       faqs: [
@@ -370,7 +370,7 @@ const deviceSeoContent: Record<
         title: "Backofen oder Airfryer?",
         text: "Für eine kleine Portion kann ein Airfryer wegen des kleineren Garraums weniger Energie benötigen. Ein gut gefüllter Backofen kann bei mehreren Portionen effizienter sein als mehrere einzelne Durchgänge.",
         href: "/geraete/heissluftfritteuse",
-        linkLabel: "Airfryer-Stromkosten berechnen →",
+        linkLabel: "Airfryer-Stromkosten berechnen >",
       },
       faqTitle: "Häufige Fragen zum Backofen",
       faqs: [
@@ -414,7 +414,7 @@ const deviceSeoContent: Record<
         title: "Oven or air fryer?",
         text: "For one small portion, an air fryer may use less energy because of its smaller chamber. A well-loaded oven can be more practical than several separate air-fryer batches.",
         href: "/en/devices/air-fryer",
-        linkLabel: "Calculate air-fryer electricity cost →",
+        linkLabel: "Calculate air-fryer electricity cost >",
       },
       faqTitle: "Frequently asked questions about ovens",
       faqs: [
@@ -461,7 +461,7 @@ const deviceSeoContent: Record<
         title: "Mobile oder Split-Klimaanlage?",
         text: "Splitgeräte können effizienter und leiser arbeiten, benötigen aber eine feste Installation. Vergleiche nicht nur Watt, sondern auch Laufzeit, Raumwirkung und saisonale Effizienz.",
         href: "/geraete/split-klimaanlage",
-        linkLabel: "Split-Klimaanlage berechnen →",
+        linkLabel: "Split-Klimaanlage berechnen >",
       },
       faqTitle: "Häufige Fragen zu mobilen Klimaanlagen",
       faqs: [
@@ -505,7 +505,7 @@ const deviceSeoContent: Record<
         title: "Portable or split air conditioner?",
         text: "Split systems can be more efficient and quieter, but require permanent installation. Compare runtime, room performance and seasonal efficiency as well as wattage.",
         href: "/en/devices/split-air-conditioner",
-        linkLabel: "Calculate a split air conditioner's cost →",
+        linkLabel: "Calculate a split air conditioner's cost >",
       },
       faqTitle: "Frequently asked questions about portable air conditioners",
       faqs: [
@@ -552,7 +552,7 @@ const deviceSeoContent: Record<
         title: "Splitgerät oder mobile Klimaanlage?",
         text: "Ein mobiles Gerät ist flexibel, verliert über Abluftschlauch und Fensteröffnung aber häufig Effizienz. Stelle für einen fairen Vergleich dieselbe Raumgröße und gewünschte Nutzungsdauer gegenüber.",
         href: "/geraete/mobile-klimaanlage",
-        linkLabel: "Mobile Klimaanlage berechnen →",
+        linkLabel: "Mobile Klimaanlage berechnen >",
       },
       faqTitle: "Häufige Fragen zu Split-Klimaanlagen",
       faqs: [
@@ -596,7 +596,7 @@ const deviceSeoContent: Record<
         title: "Split system or portable air conditioner?",
         text: "A portable unit is flexible, but often loses efficiency through its exhaust hose and window opening. Compare the same room size and intended usage time.",
         href: "/en/devices/portable-air-conditioner",
-        linkLabel: "Calculate a portable unit's cost →",
+        linkLabel: "Calculate a portable unit's cost >",
       },
       faqTitle: "Frequently asked questions about split air conditioners",
       faqs: [
