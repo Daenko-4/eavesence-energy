@@ -105,7 +105,7 @@ export default function ImpressumPage() {
             scroll
             className="inline-flex text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
           >
-            ← Zur EAVESENCE Startseite
+            {"<"} Zur EAVESENCE Startseite
           </Link>
         </div>
       </main>
