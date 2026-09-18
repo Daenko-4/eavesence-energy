@@ -223,6 +223,8 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     return {
       action: textTop("[data-manage-data-import]"),
       description: textTop("[data-manage-data-description]"),
+      exportAction: textTop("[data-manage-data-export]"),
+      resetAction: textTop("[data-manage-data-reset]"),
     };
   });
   expect(manageDataTextTops.action).not.toBeNull();
@@ -230,6 +232,8 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   expect(
     Math.abs(manageDataTextTops.action! - manageDataTextTops.description!),
   ).toBeLessThanOrEqual(1);
+  expect(manageDataTextTops.exportAction).toBe(manageDataTextTops.action);
+  expect(manageDataTextTops.resetAction).toBe(manageDataTextTops.action);
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export backup" }).click();
   await downloadPromise;
