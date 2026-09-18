@@ -171,7 +171,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(firstRoomAssignment).toHaveValue("");
   await expect(page.getByRole("heading", { name: "Cooking" })).toHaveCount(0);
 
-  await page.getByLabel("Month").fill("2026-09");
+  await page.getByLabel("Month", { exact: true }).fill("2026-09");
   await page.getByRole("button", { name: "Save month" }).click();
   await expect(
     page.getByText("Enter a value greater than 0.", { exact: true }),
@@ -185,7 +185,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(septemberEntry.getByText("€73.50", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Enter bill amount" }).click();
-  await page.getByLabel("Month").fill("2026-10");
+  await page.getByLabel("Month", { exact: true }).fill("2026-10");
   await page.getByLabel("Cost").fill("75");
   await page.getByRole("button", { name: "Save month" }).click();
   await expect(
