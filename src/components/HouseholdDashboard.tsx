@@ -991,7 +991,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
-            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className="w-fit rounded-lg border border-[#dfe5dd] bg-[#fbfcf8] px-3.5 py-2 text-xs font-semibold text-[#52605b] transition hover:border-green-200 hover:bg-white hover:text-[var(--brand-green-dark)]">{text.settings}</button>
+            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className="w-fit rounded-md border border-[#dfe5dd] bg-[#fbfcf8] px-2.5 py-1.5 text-[11px] font-semibold leading-4 text-[#52605b] transition hover:border-green-200 hover:bg-white hover:text-[var(--brand-green-dark)]">{text.settings}</button>
           </div>
 
           {settingsOpen && (
@@ -1000,14 +1000,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
               <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
-              <button type="button" onClick={saveSettings} className={`${homePrimaryActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
+              <button type="button" onClick={saveSettings} className="inline-flex min-h-8 items-center justify-center rounded-lg border border-[var(--brand-green)] bg-[var(--brand-green)] px-3 text-xs font-semibold text-[var(--brand-off-white)] transition hover:bg-[var(--brand-green-dark)] active:scale-[0.98] sm:col-span-4 sm:justify-self-start">{text.saveSettings}</button>
               <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                  <div>
-                    <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
-                    <p className="mt-1 max-w-2xl text-xs leading-5 text-[#65716d]">{text.dataText}</p>
-                  </div>
-                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2 lg:pb-0.5">
+                <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
+                <div className="mt-1 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-baseline">
+                  <p className="max-w-3xl text-xs leading-5 text-[#65716d]">{text.dataText}</p>
+                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
                     <input
                       ref={homeImportInputRef}
                       type="file"
