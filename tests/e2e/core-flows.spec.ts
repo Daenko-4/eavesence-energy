@@ -116,11 +116,15 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(
     page.getByRole("heading", { name: "Test home", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("0 / 3 Devices", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("0 of 3 devices for a meaningful overview", { exact: true }),
+  ).toBeVisible();
 
+  await page.getByText("Other rooms (5)", { exact: false }).click();
   await page.getByRole("button", { name: "Rename: Kitchen" }).click();
   await page.getByLabel("Room name").fill("Cooking");
   await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Room renamed.", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Cooking" })).toBeVisible();
   const roomCards = page.locator("[data-room-card]");
   await page
@@ -158,6 +162,9 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByText("Foundation complete", { exact: true })).toBeVisible();
   const firstRoomAssignment = page.getByLabel("Assign room").first();
   await firstRoomAssignment.selectOption({ label: "Cooking" });
+  await expect(
+    page.getByText("Device assigned to the room.", { exact: true }),
+  ).toBeVisible();
   await expect(firstRoomAssignment).toHaveValue(/.+/);
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Delete: Cooking" }).click();
@@ -165,11 +172,26 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByRole("heading", { name: "Cooking" })).toHaveCount(0);
 
   await page.getByLabel("Month").fill("2026-09");
-  await page.getByLabel("Consumption in kWh").fill("210");
-  await page.getByLabel("Cost").fill("73.50");
   await page.getByRole("button", { name: "Save month" }).click();
+  await expect(
+    page.getByText("Enter a value greater than 0.", { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Consumption in kWh").fill("210");
+  await expect(page.getByText("€73.50", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Save month" }).click();
+  await expect(page.getByText("Monthly value saved.", { exact: true })).toBeVisible();
   await expect(page.getByText("210 kWh", { exact: true })).toBeVisible();
   await expect(page.getByText("€73.50", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Enter bill amount" }).click();
+  await page.getByLabel("Month").fill("2026-10");
+  await page.getByLabel("Cost").fill("75");
+  await page.getByRole("button", { name: "Save month" }).click();
+  await expect(page.getByText("214.3 kWh", { exact: true })).toBeVisible();
+  await expect(page.getByText("Monthly trend", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Estimate and actual consumption" }),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Reserve a beta place" }).click();
   await expect(
@@ -635,20 +657,18 @@ test("device search never shows a different device than the calculation", async 
   await expect(page.getByText(/coffee machine off/i)).toHaveCount(0);
 });
 
-test("search and measured-input states do not stay open together", async ({
+test("device search preserves measured-input mode and values", async ({
   page,
 }) => {
   await disableHeaderIntro(page);
   await page.goto("/");
 
   await page.getByRole("button", { name: "Enter measured consumption" }).click();
+  await page.getByLabel("Actual consumption per use").fill("0.42");
   await page.getByRole("button", { name: "Search devices" }).click();
   await expect(page.getByRole("searchbox", { name: "Search devices" })).toBeVisible();
-  await expect(page.getByLabel("Power", { exact: true })).toBeVisible();
-
-  await page.getByRole("button", { name: "Enter measured consumption" }).click();
-  await expect(page.getByRole("searchbox", { name: "Search devices" })).toHaveCount(0);
   await expect(page.getByLabel("Actual consumption per use")).toBeVisible();
+  await expect(page.getByLabel("Actual consumption per use")).toHaveValue("0.42");
 });
 
 test("German pages expose German as the document language", async ({ page }) => {
@@ -719,6 +739,28 @@ test.describe("mobile", () => {
     await expect(
       page.getByRole("button", { name: /Answers about your calculator/ }),
     ).toHaveAttribute("aria-expanded", "true");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+  });
+
+  test("My home onboarding and compact room layout fit on a phone", async ({
+    page,
+  }) => {
+    await disableHeaderIntro(page);
+    await page.goto("/home");
+    await page.getByRole("button", { name: "Create my home" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Discover EAVESENCE Pro later" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Reserve a beta place" }),
+    ).toHaveCount(0);
+    await page.getByText("Other rooms (5)", { exact: false }).click();
+    await expect(page.getByRole("heading", { name: "Kitchen" })).toBeVisible();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
