@@ -427,6 +427,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
   const [betaInterested, setBetaInterested] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [emptyRoomsOpen, setEmptyRoomsOpen] = useState(false);
   const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
   const [roomNameDraft, setRoomNameDraft] = useState("");
   const [draggedRoomId, setDraggedRoomId] = useState<string | null>(null);
@@ -1108,7 +1109,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             )}
 
             {emptyRooms.length > 0 && (
-              <details open={Boolean(editingRoomId && emptyRooms.some((room) => room.id === editingRoomId)) || undefined} className="group mt-6 rounded-xl border border-slate-200 bg-slate-50">
+              <details
+                open={emptyRoomsOpen || Boolean(editingRoomId && emptyRooms.some((room) => room.id === editingRoomId))}
+                onToggle={(event) => setEmptyRoomsOpen(event.currentTarget.open)}
+                className="group mt-6 rounded-xl border border-slate-200 bg-slate-50"
+              >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-bold text-slate-700 [&::-webkit-details-marker]:hidden">
                   <span>{text.otherRooms} ({emptyRooms.length}) <span className="ml-2 font-normal text-slate-500">{text.emptyRoomsHint}</span></span>
                   <span aria-hidden="true" className="text-[var(--brand-green)] transition-transform group-open:rotate-180">⌄</span>
