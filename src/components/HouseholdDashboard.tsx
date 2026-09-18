@@ -1010,7 +1010,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <span className="block">{text.dataText}</span>
                     <span className="block">{text.dataPrivacy}</span>
                   </p>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:pt-px">
+                  <div className="flex flex-nowrap items-start gap-x-3 whitespace-nowrap lg:pt-[3px]">
                     <input
                       ref={homeImportInputRef}
                       type="file"
@@ -1022,12 +1022,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       type="button"
                       onClick={() => homeImportInputRef.current?.click()}
                       data-manage-data-import
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold leading-5 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                      className="saved-device-utility-action relative inline-flex shrink-0 items-center gap-0.5 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                     >
                       <svg
                         viewBox="0 0 12 12"
                         fill="none"
-                        className="h-2.5 w-2.5 shrink-0"
+                        className="h-2 w-2 shrink-0"
                         stroke="currentColor"
                         strokeWidth="1.5"
                         strokeLinecap="round"
@@ -1041,12 +1041,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <button
                       type="button"
                       onClick={exportHome}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold leading-5 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                      data-manage-data-export
+                      className="saved-device-utility-action relative inline-flex shrink-0 items-center gap-0.5 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                     >
                       <svg
                         viewBox="0 0 12 12"
                         fill="none"
-                        className="h-2.5 w-2.5 shrink-0"
+                        className="h-2 w-2 shrink-0"
                         stroke="currentColor"
                         strokeWidth="1.5"
                         strokeLinecap="round"
@@ -1060,12 +1061,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <button
                       type="button"
                       onClick={resetHome}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold leading-5 text-[#8b9792] transition hover:text-red-700"
+                      data-manage-data-reset
+                      className="saved-device-utility-action relative inline-flex shrink-0 items-center gap-0.5 text-[#8b9792] transition hover:text-red-700"
                     >
                       <svg
                         viewBox="0 0 12 12"
                         fill="none"
-                        className="h-2.5 w-2.5 shrink-0 text-red-600"
+                        className="h-2 w-2 shrink-0 text-red-600"
                         stroke="currentColor"
                         strokeWidth="1.7"
                         strokeLinecap="round"
