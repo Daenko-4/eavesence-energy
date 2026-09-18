@@ -825,7 +825,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         <main className="px-5 py-12 sm:px-6 sm:py-20">
           <section className="mx-auto max-w-3xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_28px_80px_-52px_rgba(15,23,42,0.45)] sm:p-10">
             <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">{text.onboardingEyebrow}</p>
-            <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.045em] sm:text-5xl">{text.onboardingTitle}</h1>
+            <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.045em] sm:text-4xl">{text.onboardingTitle}</h1>
             <p className="mt-4 max-w-2xl leading-7 text-slate-600">{text.onboardingText}</p>
 
             <div className="mt-8 grid gap-5 sm:grid-cols-2">
@@ -935,7 +935,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
             {!compact && (
               <>
-                <p className="mt-3 text-xl font-extrabold">{formatMoney(room.annualCost, locale, activeProfile.currency)}</p>
+                <p className="mt-3 text-lg font-extrabold">{formatMoney(room.annualCost, locale, activeProfile.currency)}</p>
                 <p className="mt-1 text-xs text-slate-500">{text.yearly}</p>
                 {roomDevices.length > 0 && (
                   <div className="mt-4 space-y-2 border-t border-slate-200 pt-3">
@@ -947,7 +947,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                             <p className="mt-0.5 text-xs text-slate-500">{formatMoney(device.yearlyKwh * activeProfile.electricityPrice, locale, activeProfile.currency)} {text.yearly}</p>
                           </div>
                           <label className="sr-only" htmlFor={`room-${device.id}`}>{text.assign}</label>
-                          <select id={`room-${device.id}`} aria-label={`${text.assign}: ${localizedSavedDeviceName(device, locale)}`} value={room.id} onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-9 max-w-32 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700">
+                          <select id={`room-${device.id}`} aria-label={`${text.assign}: ${localizedSavedDeviceName(device, locale)}`} value={room.id} onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-8 max-w-28 rounded-md border border-slate-200 bg-white px-2 text-[11px] text-slate-600">
                             <option value="">{text.unassigned}</option>
                             {activeProfile.rooms.map((option) => <option key={option.id} value={option.id}>{localizeDefaultRoomName(option.name, locale)}</option>)}
                           </select>
@@ -982,10 +982,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">EAVESENCE Home</p>
-              <h1 className="mt-2 text-[clamp(2.25rem,4.1vw,3.75rem)] font-extrabold leading-[1.02] tracking-[-0.05em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
+              <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
               <p className="mt-2 text-slate-600">{text.pageSubtitle}</p>
             </div>
-            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className="w-fit rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:border-green-300 hover:text-[var(--brand-green)]">{text.settings}</button>
+            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className="w-fit rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-green-300 hover:text-[var(--brand-green)]">{text.settings}</button>
           </div>
 
           {settingsOpen && (
@@ -1079,39 +1079,39 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               [text.consumption, `${formatNumber(summary?.annualKwh ?? 0, locale)} kWh`, ""],
               [text.target, formatMoneyPrecise(summary?.targetMonthlyCost ?? 0, locale, profile.currency), `${formatMoneyPrecise(monthlySavings, locale, profile.currency)} ${text.targetDifference}`],
             ].map(([label, value, detail], index) => (
-              <article key={label} className={`rounded-2xl border p-5 ${index === 0 ? "border-green-200 bg-[#eaf8ef]" : "border-slate-200 bg-white"}`}>
+              <article key={label} className={`rounded-2xl border p-4 ${index === 0 ? "border-green-200 bg-[#eaf8ef]" : "border-slate-200 bg-white"}`}>
                 <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500">{label}</p>
-                <p className="mt-3 text-2xl font-extrabold tracking-[-0.04em]">{value}</p>
+                <p className="mt-2.5 text-xl font-extrabold tracking-[-0.035em]">{value}</p>
                 {detail && <p className="mt-1 text-xs font-semibold text-[var(--brand-green)]">{detail}</p>}
               </article>
             ))}
           </section>
 
           <section className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
               <div className="flex items-start justify-between gap-4">
-                <div><p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500">{text.activation}</p><h2 className="mt-2 text-2xl font-extrabold tracking-[-0.035em]">{savedDevices.length >= 3 ? text.activationReady : `${savedDevices.length} ${locale === "de" ? "von" : "of"} 3 ${text.activationProgress}`}</h2></div>
+                <div><p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500">{text.activation}</p><h2 className="mt-2 text-xl font-extrabold tracking-[-0.03em]">{savedDevices.length >= 3 ? text.activationReady : `${savedDevices.length} ${locale === "de" ? "von" : "of"} 3 ${text.activationProgress}`}</h2></div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-lg font-extrabold text-[var(--brand-green)]">{Math.min(3, savedDevices.length)}</div>
               </div>
               <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[var(--brand-green)] transition-all" style={{ width: `${Math.min(100, (savedDevices.length / 3) * 100)}%` }} /></div>
               <p className="mt-4 text-sm leading-6 text-slate-600">{text.activationText}</p>
-              <Link href={calculatorHref} className="mt-5 inline-flex text-sm font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.addDevice} →</Link>
+              <Link href={calculatorHref} className="mt-5 inline-flex text-sm font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.addDevice} {">"}</Link>
             </div>
-            <div className="rounded-2xl bg-[#17211f] p-6 text-white">
+            <div className="rounded-2xl bg-[#17211f] p-5 text-white">
               <p className="text-xs font-bold uppercase tracking-[0.1em] text-[var(--brand-green-mint)]">{text.targetSavings}</p>
-              <p className="mt-3 text-3xl font-extrabold tracking-[-0.045em]">{formatMoney(summary?.targetSavings ?? 0, locale, profile.currency)}</p>
+              <p className="mt-3 text-2xl font-extrabold tracking-[-0.04em]">{formatMoney(summary?.targetSavings ?? 0, locale, profile.currency)}</p>
               <p className="mt-6 text-xs font-bold uppercase tracking-[0.1em] text-slate-400">{text.topConsumer}</p>
               <p className="mt-2 font-bold">{summary?.topDevice ? localizedSavedDeviceName(summary.topDevice, locale) : "—"}</p>
             </div>
           </section>
 
-          <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-6">
+          <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-2xl font-extrabold tracking-[-0.035em] sm:text-3xl">{text.roomsTitle}</h2>
+                <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.roomsTitle}</h2>
                 <p className="mt-1 text-sm text-slate-600">{profile.rooms.length} {profile.rooms.length === 1 ? text.roomSingular : text.roomPlural}</p>
               </div>
-              <button type="button" onClick={addRoom} className="inline-flex min-h-9 w-fit items-center rounded-lg border border-transparent px-3 text-sm font-extrabold text-[var(--brand-green)] transition duration-200 hover:-translate-y-0.5 hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] hover:shadow-sm">+ {text.addRoom}</button>
+              <button type="button" onClick={addRoom} className="inline-flex min-h-8 w-fit items-center rounded-lg border border-transparent px-2.5 text-xs font-extrabold text-[var(--brand-green)] transition duration-200 hover:-translate-y-0.5 hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] hover:shadow-sm">+ {text.addRoom}</button>
             </div>
 
             {roomNotice && <p role="status" className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-sm font-bold text-[var(--brand-green)]">{roomNotice}</p>}
@@ -1123,7 +1123,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             ) : (
               <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center">
                 <p className="text-sm text-slate-600">{text.noDevices}</p>
-                <Link href={calculatorHref} className="mt-2 inline-flex text-sm font-bold text-[var(--brand-green)]">{text.addDevice} →</Link>
+                <Link href={calculatorHref} className="mt-2 inline-flex text-sm font-bold text-[var(--brand-green)]">{text.addDevice} {">"}</Link>
               </div>
             )}
 
@@ -1134,7 +1134,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   {unassignedDevices.map((device) => (
                     <div key={device.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
                       <div><p className="font-bold">{localizedSavedDeviceName(device, locale)}</p><p className="mt-1 text-xs text-slate-500">{formatMoney(device.yearlyKwh * profile.electricityPrice, locale, profile.currency)} {text.yearly}</p></div>
-                      <label className="flex items-center gap-3 text-xs font-bold text-slate-500"><span>{text.assign}</span><select value="" onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"><option value="">{text.unassigned}</option>{profile.rooms.map((room) => <option key={room.id} value={room.id}>{localizeDefaultRoomName(room.name, locale)}</option>)}</select></label>
+                      <label className="flex items-center gap-2 text-[11px] font-bold text-slate-500"><span>{text.assign}</span><select value="" onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-8 max-w-32 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-600"><option value="">{text.unassigned}</option>{profile.rooms.map((room) => <option key={room.id} value={room.id}>{localizeDefaultRoomName(room.name, locale)}</option>)}</select></label>
                     </div>
                   ))}
                 </div>
@@ -1147,7 +1147,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 onToggle={(event) => setEmptyRoomsOpen(event.currentTarget.open)}
                 className="group mt-6 rounded-xl border border-slate-200 bg-slate-50"
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-bold text-slate-700 [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-xs font-bold text-slate-700 [&::-webkit-details-marker]:hidden">
                   <span>{text.otherRooms} ({emptyRooms.length}) <span className="ml-2 font-normal text-slate-500">{text.emptyRoomsHint}</span></span>
                   <svg
                     viewBox="0 0 20 20"
@@ -1169,9 +1169,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             )}
           </section>
 
-          <section className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6">
-              <h2 className="text-2xl font-extrabold tracking-[-0.035em] sm:text-3xl">{text.monthlyCheckIn}</h2>
+          <section className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.monthlyCheckIn}</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">{text.checkInText}</p>
               <div className="mt-5 grid grid-cols-2 rounded-full bg-slate-100 p-1">
                 <button type="button" aria-pressed={checkInMode === "consumption"} onClick={() => { setCheckInMode("consumption"); setCheckInFeedback(null); }} className={`rounded-full px-3 py-2 text-xs font-bold transition ${checkInMode === "consumption" ? "bg-white text-[var(--brand-green)] shadow-sm" : "text-slate-500"}`}>{text.consumptionEntry}</button>
@@ -1194,15 +1194,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               {checkInFeedback && <p role={checkInFeedback.kind === "error" ? "alert" : "status"} className={`mt-4 rounded-xl px-3 py-2.5 text-sm font-bold ${checkInFeedback.kind === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-[var(--brand-green)]"}`}>{checkInFeedback.message}</p>}
               <button type="button" onClick={saveMonthlyCheckIn} className="mt-5 min-h-11 rounded-full bg-[var(--brand-green)] px-5 text-sm font-bold text-white">{text.saveCheckIn}</button>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-6">
-              <div className="flex items-center justify-between gap-4"><h2 className="text-2xl font-extrabold tracking-[-0.035em] sm:text-3xl">{text.history}</h2>{historyDelta !== null && <span className={`rounded-full px-3 py-1 text-xs font-bold ${historyDelta <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{historyDelta > 0 ? "+" : ""}{formatNumber(historyDelta, locale, 1)}%</span>}</div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="flex items-center justify-between gap-4"><h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.history}</h2>{historyDelta !== null && <span className={`rounded-full px-3 py-1 text-xs font-bold ${historyDelta <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{historyDelta > 0 ? "+" : ""}{formatNumber(historyDelta, locale, 1)}%</span>}</div>
               {history.length === 0 ? <p className="mt-6 text-sm text-slate-500">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} data-monthly-history-entry={entry.month} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 rounded-xl bg-slate-50 px-4 py-3"><span className="text-sm font-bold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-sm text-slate-500">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-sm font-extrabold">{formatMoney(entry.cost, locale, profile.currency)}</span>{index === 0 && historyDelta !== null && <span className="col-span-3 text-xs text-slate-500">{text.comparedWithPrevious}</span>}</div>)}</div>}
               <MonthlyHistoryChart entries={history} locale={locale} currency={profile.currency} labels={{ title: text.chartTitle, consumption: text.chartConsumption, cost: text.chartCost }} />
             </div>
           </section>
 
-          <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
-            <h2 className="text-xl font-extrabold tracking-[-0.025em] sm:text-2xl">{text.comparisonTitle}</h2>
+          <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 className="text-lg font-extrabold tracking-[-0.02em] sm:text-xl">{text.comparisonTitle}</h2>
             {latestActual && savedDevices.length > 0 ? (
               <div className="mt-5 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold text-slate-500">{text.calculatedEstimate}</p><p className="mt-2 text-xl font-extrabold">{formatNumber(summary?.monthlyKwh ?? 0, locale, 1)} kWh</p></div>
@@ -1213,8 +1213,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
 
           {proReady ? (
-            <section className="mt-10 overflow-hidden rounded-[2rem] bg-[#17211f] p-6 text-white sm:p-10">
-              <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green-mint)]">{text.proEyebrow}</p><h2 className="mt-3 text-3xl font-extrabold tracking-[-0.045em] sm:text-4xl">{text.proTitle}</h2><p className="mt-4 max-w-2xl leading-7 text-slate-300">{text.proText}</p><p className="mt-5 text-xs leading-5 text-slate-400">{text.betaDetail}</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-5"><div className="grid grid-cols-2 rounded-full bg-black/20 p-1"><button type="button" onClick={() => { setPlan("monthly"); track("Home Pro Preview Opened", { locale, plan: "monthly" }); }} className={`rounded-full px-4 py-2 text-sm font-bold ${plan === "monthly" ? "bg-white text-[#17211f]" : "text-slate-300"}`}>{text.monthlyPlan}</button><button type="button" onClick={() => { setPlan("yearly"); track("Home Pro Preview Opened", { locale, plan: "yearly" }); }} className={`rounded-full px-4 py-2 text-sm font-bold ${plan === "yearly" ? "bg-white text-[#17211f]" : "text-slate-300"}`}>{text.yearlyPlan}</button></div><div className="mt-5 flex min-h-8 flex-wrap items-center justify-center gap-4"><p className="text-center text-2xl font-extrabold">{plan === "yearly" ? text.yearlyPrice : text.monthlyPrice}</p>{plan === "yearly" && <span className="rounded-full border border-[var(--brand-green-mint)]/30 bg-[var(--brand-green-mint)]/10 px-2.5 py-1 text-[11px] font-extrabold text-[var(--brand-green-mint)]">{text.yearlyHint}</span>}</div><p className="mt-2 text-center text-[11px] font-semibold text-slate-400">{text.proBilling}</p><button type="button" onClick={submitBetaInterest} disabled={betaInterested} className="mt-5 min-h-12 w-full rounded-full bg-[var(--brand-green-mint)] px-5 text-sm font-extrabold text-[#10231b] transition hover:bg-[#9bedc0] disabled:cursor-default disabled:bg-white/15 disabled:text-slate-300">{betaInterested ? text.betaSaved : text.beta}</button></div></div>
+            <section className="mt-8 overflow-hidden rounded-[2rem] bg-[#17211f] p-6 text-white sm:p-8">
+              <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green-mint)]">{text.proEyebrow}</p><h2 className="mt-3 text-2xl font-extrabold tracking-[-0.04em] sm:text-3xl">{text.proTitle}</h2><p className="mt-4 max-w-2xl leading-7 text-slate-300">{text.proText}</p><p className="mt-5 text-xs leading-5 text-slate-400">{text.betaDetail}</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-5"><div className="grid grid-cols-2 rounded-full bg-black/20 p-1"><button type="button" onClick={() => { setPlan("monthly"); track("Home Pro Preview Opened", { locale, plan: "monthly" }); }} className={`rounded-full px-4 py-2 text-sm font-bold ${plan === "monthly" ? "bg-white text-[#17211f]" : "text-slate-300"}`}>{text.monthlyPlan}</button><button type="button" onClick={() => { setPlan("yearly"); track("Home Pro Preview Opened", { locale, plan: "yearly" }); }} className={`rounded-full px-4 py-2 text-sm font-bold ${plan === "yearly" ? "bg-white text-[#17211f]" : "text-slate-300"}`}>{text.yearlyPlan}</button></div><div className="mt-5 flex min-h-8 flex-wrap items-center justify-center gap-4"><p className="text-center text-2xl font-extrabold">{plan === "yearly" ? text.yearlyPrice : text.monthlyPrice}</p>{plan === "yearly" && <span className="rounded-full border border-[var(--brand-green-mint)]/30 bg-[var(--brand-green-mint)]/10 px-2.5 py-1 text-[11px] font-extrabold text-[var(--brand-green-mint)]">{text.yearlyHint}</span>}</div><p className="mt-2 text-center text-[11px] font-semibold text-slate-400">{text.proBilling}</p><button type="button" onClick={submitBetaInterest} disabled={betaInterested} className="mt-5 min-h-12 w-full rounded-full bg-[var(--brand-green-mint)] px-5 text-sm font-extrabold text-[#10231b] transition hover:bg-[#9bedc0] disabled:cursor-default disabled:bg-white/15 disabled:text-slate-300">{betaInterested ? text.betaSaved : text.beta}</button></div></div>
             </section>
           ) : (
             <section className="mt-10 rounded-2xl border border-green-200 bg-green-50 px-5 py-4">
