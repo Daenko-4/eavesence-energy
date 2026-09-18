@@ -104,7 +104,7 @@ export default function ImprintPage() {
             scroll
             className="inline-flex text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
           >
-            ← Back to the EAVESENCE home page
+            {"<"} Back to the EAVESENCE home page
           </Link>
         </div>
       </main>
