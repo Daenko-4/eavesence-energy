@@ -1520,7 +1520,6 @@ export default function EnergyCalculator({
             onClick={() => {
               const nextOpen = !deviceSearchOpen;
               setDeviceSearchOpen(nextOpen);
-              if (nextOpen && mode === "exact") setMode("estimate");
             }}
             className="calculator-secondary-action inline-flex min-h-10 cursor-pointer items-center gap-2 text-[var(--brand-green-mint)] transition hover:text-[#a0ecc2]"
           >

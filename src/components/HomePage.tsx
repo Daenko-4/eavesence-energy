@@ -850,8 +850,6 @@ export default function HomePage({
           </div>
         </section>
 
-        <AppInterestPrompt locale={locale} />
-
         <section
           id="so-funktionierts"
           className="scroll-mt-24 px-5 py-10 sm:px-6 sm:py-12"
@@ -891,7 +889,7 @@ export default function HomePage({
               {text.about.label}
             </h2>
             <p className="mt-3 max-w-4xl text-[15px] leading-7 text-slate-600">
-              {text.about.text} {text.about.closing}
+              {text.about.closing}
             </p>
           </div>
         </section>
@@ -968,6 +966,8 @@ export default function HomePage({
             </div>
           </div>
         </section>
+
+        <AppInterestPrompt locale={locale} />
 
       </main>
 

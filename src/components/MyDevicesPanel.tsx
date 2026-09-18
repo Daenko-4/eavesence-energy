@@ -47,7 +47,9 @@ const copy = {
     updated: "Änderungen wurden lokal gespeichert.",
     alreadySaved: "Dieses Gerät ist bereits lokal gespeichert.",
     empty:
-      "Noch keine Geräte gespeichert. Berechne ein Gerät und füge es hier hinzu.",
+      "Berechne oben dein erstes Gerät und speichere es hier.",
+    calculateFirst: "Zum Rechner",
+    openHome: "In Mein Zuhause einordnen",
     monthlyTotal: "Gesamtkosten pro Monat",
     yearlyTotal: "Gesamtkosten pro Jahr",
     total: "Gesamtsumme",
@@ -92,7 +94,9 @@ const copy = {
     updated: "Changes saved locally.",
     alreadySaved: "This device is already saved locally.",
     empty:
-      "No devices saved yet. Calculate a device and add it here.",
+      "Calculate your first device above and save it here.",
+    calculateFirst: "Go to calculator",
+    openHome: "Organize in My home",
     monthlyTotal: "Total cost per month",
     yearlyTotal: "Total cost per year",
     total: "Total costs",
@@ -463,12 +467,15 @@ function MyDevicesPanel(
             </div>
           </div>
           {savedDevices.length > 0 && (
-            <span className="w-fit rounded-full bg-[#ddf8e9] px-3 py-1 text-[11px] font-bold text-[var(--brand-green)]">
-              {savedDevices.length}{" "}
-              {savedDevices.length === 1
-                ? text.savedDevice
-                : text.savedDevices}
-            </span>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="w-fit rounded-full bg-[#ddf8e9] px-3 py-1 text-[11px] font-bold text-[var(--brand-green)]">
+                {savedDevices.length}{" "}
+                {savedDevices.length === 1
+                  ? text.savedDevice
+                  : text.savedDevices}
+              </span>
+              <a href={locale === "de" ? "/de/zuhause" : "/home"} className="text-xs font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.openHome} →</a>
+            </div>
           )}
         </div>
         {notice && (
@@ -484,6 +491,13 @@ function MyDevicesPanel(
           onChange={importDevices}
           className="hidden"
         />
+
+        {storageReady && savedDevices.length === 0 && (
+          <div className="mt-3 flex flex-col gap-2 rounded-xl border border-dashed border-slate-300 bg-white/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs leading-5 text-slate-500">{text.empty}</p>
+            <a href="#rechner" className="shrink-0 text-xs font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.calculateFirst} ↑</a>
+          </div>
+        )}
 
         {savedDevices.length > 0 ? (
           <details
