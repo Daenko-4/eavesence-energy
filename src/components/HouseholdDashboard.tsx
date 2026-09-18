@@ -1005,7 +1005,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
                 <div className="mt-1 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
                   <p data-manage-data-description className="max-w-3xl text-xs leading-5 text-[#65716d]">{text.dataText}</p>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:pt-[7px]">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:pt-px">
                     <input
                       ref={homeImportInputRef}
                       type="file"
