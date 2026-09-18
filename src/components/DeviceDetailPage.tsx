@@ -78,9 +78,9 @@ const pageText = {
 
     moreFrom: "Mehr aus",
     relatedDevices: "Verwandte Geräte",
-    viewAllDevices: "Alle Geräte ansehen →",
+    viewAllDevices: "Alle Geräte ansehen >",
     calculateCosts:
-      "Stromkosten berechnen →",
+      "Stromkosten berechnen >",
 
     anotherDevice:
       "Noch ein Gerät prüfen?",
@@ -134,9 +134,9 @@ const pageText = {
 
     moreFrom: "More from",
     relatedDevices: "Related devices",
-    viewAllDevices: "View all devices →",
+    viewAllDevices: "View all devices >",
     calculateCosts:
-      "Calculate electricity costs →",
+      "Calculate electricity costs >",
 
     anotherDevice:
       "Want to check another device?",
