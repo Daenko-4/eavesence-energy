@@ -993,7 +993,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
-            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className="inline-flex min-h-8 w-fit items-center px-1 text-[11px] font-semibold leading-4 text-[#65716d] transition hover:text-[var(--brand-green-dark)]">{text.settings}</button>
+            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className="inline-flex min-h-7 w-fit items-center justify-center rounded-md border border-[var(--brand-green)] bg-[var(--brand-green)] px-2.5 text-[11px] font-semibold leading-4 text-[var(--brand-off-white)] transition hover:bg-[var(--brand-green-dark)] active:scale-[0.98]">{text.settings}</button>
           </div>
 
           {settingsOpen && (
@@ -1022,52 +1022,53 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       type="button"
                       onClick={() => homeImportInputRef.current?.click()}
                       data-manage-data-import
-                      className="saved-device-utility-action relative inline-flex shrink-0 items-center gap-0.5 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                      className="group/import-home saved-device-utility-action relative shrink-0 pb-3 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                     >
+                      {text.importHome}
                       <svg
-                        viewBox="0 0 12 12"
+                        viewBox="0 0 12 8"
                         fill="none"
-                        className="h-2 w-2 shrink-0"
+                        className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/import-home:translate-y-0 group-hover/import-home:opacity-100"
                         stroke="currentColor"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         aria-hidden="true"
                       >
-                        <path d="M6 10V2M3.5 4.5 6 2l2.5 2.5" />
+                        <path d="m2.5 5.5 3.5-3 3.5 3" />
                       </svg>
-                      {text.importHome}
                     </button>
                     <button
                       type="button"
                       onClick={exportHome}
                       data-manage-data-export
-                      className="saved-device-utility-action relative inline-flex shrink-0 items-center gap-0.5 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                      className="group/export-home saved-device-utility-action relative shrink-0 pb-3 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                     >
+                      {text.exportHome}
                       <svg
-                        viewBox="0 0 12 12"
+                        viewBox="0 0 12 8"
                         fill="none"
-                        className="h-2 w-2 shrink-0"
+                        className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/export-home:translate-y-0 group-hover/export-home:opacity-100"
                         stroke="currentColor"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         aria-hidden="true"
                       >
-                        <path d="M6 2v8M3.5 7.5 6 10l2.5-2.5" />
+                        <path d="m2.5 2.5 3.5 3 3.5-3" />
                       </svg>
-                      {text.exportHome}
                     </button>
                     <button
                       type="button"
                       onClick={resetHome}
                       data-manage-data-reset
-                      className="saved-device-utility-action relative inline-flex shrink-0 items-center gap-0.5 text-[#8b9792] transition hover:text-red-700"
+                      className="group/reset-home saved-device-utility-action relative shrink-0 pb-3 text-[#8b9792] transition hover:text-red-700"
                     >
+                      {text.resetHome}
                       <svg
                         viewBox="0 0 12 12"
                         fill="none"
-                        className="h-2 w-2 shrink-0 text-red-600"
+                        className="pointer-events-none absolute bottom-0 left-0 h-2.5 w-2.5 translate-y-1 text-red-600 opacity-0 transition duration-150 group-hover/reset-home:translate-y-0 group-hover/reset-home:opacity-100"
                         stroke="currentColor"
                         strokeWidth="1.7"
                         strokeLinecap="round"
@@ -1075,7 +1076,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       >
                         <path d="m3 3 6 6M9 3 3 9" />
                       </svg>
-                      {text.resetHome}
                     </button>
                   </div>
                 </div>
