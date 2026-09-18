@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   calculateHouseholdSummary,
   createHouseholdBackup,
+  createMonthlyEnergyEntry,
   createHouseholdProfile,
   localizeDefaultHouseholdName,
   localizeDefaultRoomName,
@@ -151,4 +152,38 @@ test("monthly history keeps the latest value per month", () => {
 
   assert.deepEqual(entries, [replacement]);
   assert.deepEqual(readMonthlyEnergyEntries(JSON.stringify(entries)), entries);
+});
+
+test("monthly consumption calculates cost from the household electricity price", () => {
+  const entry = createMonthlyEnergyEntry({
+    month: "2026-09",
+    mode: "consumption",
+    value: 250,
+    electricityPrice: 0.3,
+    now: new Date("2026-09-18T12:00:00.000Z"),
+  });
+
+  assert.equal(entry?.kwh, 250);
+  assert.equal(entry?.cost, 75);
+});
+
+test("monthly bill amount estimates consumption from the household price", () => {
+  const entry = createMonthlyEnergyEntry({
+    month: "2026-09",
+    mode: "bill",
+    value: 75,
+    electricityPrice: 0.3,
+  });
+
+  assert.equal(entry?.cost, 75);
+  assert.equal(entry?.kwh, 250);
+  assert.equal(
+    createMonthlyEnergyEntry({
+      month: "2026-09",
+      mode: "bill",
+      value: 75,
+      electricityPrice: 0,
+    }),
+    null,
+  );
 });
