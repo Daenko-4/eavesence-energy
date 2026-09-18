@@ -959,9 +959,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </>
             )}
             <div className={`${compact ? "mt-2" : "mt-4 border-t border-slate-200 pt-3"} flex items-center justify-between gap-3`}>
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={() => startEditingRoom(room.id, roomName)} aria-label={`${text.editRoom}: ${roomName}`} className="text-xs font-bold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.editRoom}</button>
-                <button type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${roomName}`} className="text-xs font-bold text-red-600 hover:text-red-700">{text.deleteRoom}</button>
+              <div className="flex items-center gap-2.5">
+                <button type="button" onClick={() => startEditingRoom(room.id, roomName)} aria-label={`${text.editRoom}: ${roomName}`} className="text-[11px] font-semibold text-slate-500 transition hover:text-[var(--brand-green-dark)]">{text.editRoom}</button>
+                <button type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${roomName}`} className="text-[11px] font-semibold text-slate-400 transition hover:text-red-600">{text.deleteRoom}</button>
               </div>
               <div className="flex items-center gap-1">
                 <button type="button" onClick={() => moveRoom(room.id, -1)} disabled={index === 0} aria-label={`${text.moveRoomEarlier}: ${roomName}`} title={text.moveRoomEarlier} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-bold text-slate-500 transition hover:border-green-300 hover:text-[var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30">↑</button>
@@ -1012,7 +1012,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <button
                       type="button"
                       onClick={() => homeImportInputRef.current?.click()}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-green-200 bg-white px-3.5 text-xs font-bold text-[var(--brand-green)] shadow-sm transition hover:-translate-y-0.5 hover:bg-green-50 hover:shadow-md"
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-[var(--brand-green)] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b8efcc] hover:bg-[#dcfce8] hover:shadow-md"
                     >
                       <span aria-hidden="true">↑</span>
                       {text.importHome}
@@ -1020,7 +1020,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <button
                       type="button"
                       onClick={exportHome}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-green-200 bg-white px-3.5 text-xs font-bold text-[var(--brand-green)] shadow-sm transition hover:-translate-y-0.5 hover:bg-green-50 hover:shadow-md"
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-[var(--brand-green)] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b8efcc] hover:bg-[#dcfce8] hover:shadow-md"
                     >
                       <span aria-hidden="true">↓</span>
                       {text.exportHome}
@@ -1028,7 +1028,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <button
                       type="button"
                       onClick={resetHome}
-                      className="inline-flex min-h-10 items-center rounded-xl border border-red-200 bg-white px-3.5 text-xs font-bold text-red-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-md"
+                      className="inline-flex min-h-9 items-center rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[11px] font-bold text-red-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-50 hover:shadow-md"
                     >
                       {text.resetHome}
                     </button>
@@ -1078,7 +1078,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <h2 className="text-2xl font-extrabold tracking-[-0.035em] sm:text-3xl">{text.roomsTitle}</h2>
                 <p className="mt-1 text-sm text-slate-600">{profile.rooms.length} {profile.rooms.length === 1 ? text.roomSingular : text.roomPlural}</p>
               </div>
-              <button type="button" onClick={addRoom} className="w-fit text-sm font-bold text-[var(--brand-green)]">+ {text.addRoom}</button>
+              <button type="button" onClick={addRoom} className="inline-flex min-h-9 w-fit items-center rounded-lg border border-transparent px-3 text-sm font-extrabold text-[var(--brand-green)] transition duration-200 hover:-translate-y-0.5 hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] hover:shadow-sm">+ {text.addRoom}</button>
             </div>
 
             {roomNotice && <p role="status" className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-sm font-bold text-[var(--brand-green)]">{roomNotice}</p>}
@@ -1116,7 +1116,18 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-bold text-slate-700 [&::-webkit-details-marker]:hidden">
                   <span>{text.otherRooms} ({emptyRooms.length}) <span className="ml-2 font-normal text-slate-500">{text.emptyRoomsHint}</span></span>
-                  <span aria-hidden="true" className="text-[var(--brand-green)] transition-transform group-open:rotate-180">⌄</span>
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="h-4 w-4 shrink-0 text-[var(--brand-green)] transition-transform duration-200 group-open:rotate-90"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m7.5 5 5 5-5 5" />
+                  </svg>
                 </summary>
                 <div className="grid gap-3 border-t border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-3">
                   {emptyRooms.map((room) => roomCard(room, profile.rooms.findIndex((item) => item.id === room.id), true))}
