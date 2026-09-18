@@ -1001,7 +1001,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <h2 className="text-base font-extrabold text-slate-900">{text.dataTitle}</h2>
                     <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-600">{text.dataText}</p>
                   </div>
-                  <div className="flex flex-wrap gap-2.5">
+                  <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
                     <input
                       ref={homeImportInputRef}
                       type="file"
@@ -1012,25 +1012,58 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <button
                       type="button"
                       onClick={() => homeImportInputRef.current?.click()}
-                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-[var(--brand-green)] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b8efcc] hover:bg-[#dcfce8] hover:shadow-md"
+                      className="group/import-home relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                     >
-                      <span aria-hidden="true">↑</span>
                       {text.importHome}
+                      <svg
+                        viewBox="0 0 12 8"
+                        fill="none"
+                        className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/import-home:translate-y-0 group-hover/import-home:opacity-100"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="m2.5 5.5 3.5-3 3.5 3" />
+                      </svg>
                     </button>
                     <button
                       type="button"
                       onClick={exportHome}
-                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-[11px] font-bold text-[var(--brand-green)] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b8efcc] hover:bg-[#dcfce8] hover:shadow-md"
+                      className="group/export-home relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                     >
-                      <span aria-hidden="true">↓</span>
                       {text.exportHome}
+                      <svg
+                        viewBox="0 0 12 8"
+                        fill="none"
+                        className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/export-home:translate-y-0 group-hover/export-home:opacity-100"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="m2.5 2.5 3.5 3 3.5-3" />
+                      </svg>
                     </button>
                     <button
                       type="button"
                       onClick={resetHome}
-                      className="inline-flex min-h-9 items-center rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[11px] font-bold text-red-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-50 hover:shadow-md"
+                      className="group/reset-home relative pb-3 saved-device-utility-action text-slate-400 transition hover:text-red-700"
                     >
                       {text.resetHome}
+                      <svg
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        className="pointer-events-none absolute bottom-0 left-0 h-2.5 w-2.5 translate-y-1 text-red-600 opacity-0 transition duration-150 group-hover/reset-home:translate-y-0 group-hover/reset-home:opacity-100"
+                        stroke="currentColor"
+                        strokeWidth="1.7"
+                        strokeLinecap="round"
+                        aria-hidden="true"
+                      >
+                        <path d="m3 3 6 6M9 3 3 9" />
+                      </svg>
                     </button>
                   </div>
                 </div>
