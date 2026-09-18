@@ -166,7 +166,8 @@ const copy = {
     saved: "Gespeichert",
     dataTitle: "Daten verwalten",
     dataText:
-      "Die Sicherung enthält Einstellungen, Räume, Zuordnungen, gespeicherte Geräte und den Monatsverlauf. Sie enthält keine Konto- oder Cloud-Daten.",
+      "Die Sicherung enthält Einstellungen, Räume, Zuordnungen, gespeicherte Geräte und den Monatsverlauf.",
+    dataPrivacy: "Sie enthält keine Konto- oder Cloud-Daten.",
     importHome: "Sicherung importieren",
     exportHome: "Sicherung exportieren",
     resetHome: "My Home zurücksetzen",
@@ -280,7 +281,8 @@ const copy = {
     saved: "Saved",
     dataTitle: "Manage data",
     dataText:
-      "The backup contains settings, rooms, assignments, saved devices and monthly history. It contains no account or cloud data.",
+      "The backup contains settings, rooms, assignments, saved devices and monthly history.",
+    dataPrivacy: "It contains no account or cloud data.",
     importHome: "Import backup",
     exportHome: "Export backup",
     resetHome: "Reset My home",
@@ -1004,7 +1006,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
                 <div className="mt-1 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-                  <p data-manage-data-description className="max-w-3xl text-xs leading-5 text-[#65716d]">{text.dataText}</p>
+                  <p data-manage-data-description className="max-w-3xl text-xs leading-5 text-[#65716d]">
+                    <span className="block">{text.dataText}</span>
+                    <span className="block">{text.dataPrivacy}</span>
+                  </p>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:pt-px">
                     <input
                       ref={homeImportInputRef}
