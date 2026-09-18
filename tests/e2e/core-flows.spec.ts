@@ -205,6 +205,31 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
 
   await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Manage data" })).toBeVisible();
+  const manageDataTextTops = await page.evaluate(() => {
+    const textTop = (selector: string) => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      let node = walker.nextNode();
+      while (node && !node.textContent?.trim()) node = walker.nextNode();
+      if (!node) return null;
+
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      return range.getBoundingClientRect().top;
+    };
+
+    return {
+      action: textTop("[data-manage-data-import]"),
+      description: textTop("[data-manage-data-description]"),
+    };
+  });
+  expect(manageDataTextTops.action).not.toBeNull();
+  expect(manageDataTextTops.description).not.toBeNull();
+  expect(
+    Math.abs(manageDataTextTops.action! - manageDataTextTops.description!),
+  ).toBeLessThanOrEqual(1);
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export backup" }).click();
   await downloadPromise;

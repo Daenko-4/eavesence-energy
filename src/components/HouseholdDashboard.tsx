@@ -1004,8 +1004,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
                 <div className="mt-1 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-                  <p className="max-w-3xl text-xs leading-5 text-[#65716d]">{text.dataText}</p>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <p data-manage-data-description className="max-w-3xl text-xs leading-5 text-[#65716d]">{text.dataText}</p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:pt-px">
                     <input
                       ref={homeImportInputRef}
                       type="file"
@@ -1016,6 +1016,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <button
                       type="button"
                       onClick={() => homeImportInputRef.current?.click()}
+                      data-manage-data-import
                       className="inline-flex items-center gap-1 text-[11px] font-semibold leading-5 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
                     >
                       <svg
