@@ -30,6 +30,8 @@ export type MonthlyEnergyEntry = {
   updatedAt: string;
 };
 
+export type MonthlyEntryMode = "consumption" | "bill";
+
 export type HouseholdBackup = {
   version: 1;
   exportedAt: string;
@@ -195,6 +197,37 @@ export function readMonthlyEnergyEntries(value: string | null) {
   } catch {
     return [];
   }
+}
+
+export function createMonthlyEnergyEntry({
+  month,
+  mode,
+  value,
+  electricityPrice,
+  now = new Date(),
+}: {
+  month: string;
+  mode: MonthlyEntryMode;
+  value: number;
+  electricityPrice: number;
+  now?: Date;
+}): MonthlyEnergyEntry | null {
+  if (
+    !/^\d{4}-\d{2}$/.test(month) ||
+    !Number.isFinite(value) ||
+    value <= 0 ||
+    !Number.isFinite(electricityPrice) ||
+    electricityPrice <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    month,
+    kwh: mode === "consumption" ? value : value / electricityPrice,
+    cost: mode === "bill" ? value : value * electricityPrice,
+    updatedAt: now.toISOString(),
+  };
 }
 
 export function createHouseholdBackup({
