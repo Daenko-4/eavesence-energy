@@ -145,6 +145,9 @@ test("PWA metadata, service worker and offline fallback are available", async ({
   await expect
     .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
     .toBe(true);
+  await expect
+    .poll(() => page.evaluate(() => caches.match("/home").then(Boolean)))
+    .toBe(true);
   await context.setOffline(true);
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(

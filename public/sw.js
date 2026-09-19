@@ -64,18 +64,19 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
+      (async () => {
+        try {
+          const response = await fetch(request);
           if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(request, response.clone());
           }
           return response;
-        })
-        .catch(async () => {
+        } catch {
           const cachedPage = await caches.match(request, { ignoreSearch: true });
           return cachedPage ?? caches.match(OFFLINE_URL);
-        }),
+        }
+      })(),
     );
     return;
   }
