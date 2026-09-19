@@ -22,6 +22,7 @@ import {
   calculateMonthlyConsumptionComparison,
   calculateMonthlyEnergyTrend,
   calculateMonthlyHistoryStreak,
+  calculateMonthlySavingsGoalProgress,
   createHouseholdBackup,
   createMonthlyEnergyEntry,
   createHouseholdProfile,
@@ -53,13 +54,15 @@ const BETA_INTEREST_STORAGE_KEY = "eavesence-home-beta-interest-v1";
 const homeSurfaceClass =
   "rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)]";
 const homeFieldClass =
-  "min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-[13px] font-medium text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
+  "home-field min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
 const homePrimaryActionClass =
-  "inline-flex min-h-10 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-4 text-[13px] font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]";
+  "home-primary-action inline-flex min-h-10 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-4 text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]";
 const homeCompactActionClass =
-  "inline-flex min-h-7 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-2.5 font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]";
+  "home-compact-action inline-flex min-h-7 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-2.5 text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]";
 const homeDangerActionClass =
-  "inline-flex min-h-7 items-center justify-center gap-1 rounded-full border border-red-100 bg-red-50 px-2.5 font-semibold text-red-600 transition hover:border-red-200 hover:bg-red-100 hover:text-red-700 active:scale-[0.98]";
+  "home-danger-action inline-flex min-h-7 items-center justify-center gap-1 rounded-full border border-red-100 bg-red-50 px-2.5 text-red-600 transition hover:border-red-200 hover:bg-red-100 hover:text-red-700 active:scale-[0.98]";
+const homeSectionTitleClass =
+  "text-xl font-extrabold tracking-[-0.03em]";
 const currencies: SavedDeviceCurrency[] = [
   "EUR",
   "CHF",
@@ -152,6 +155,12 @@ const copy = {
     chartTitle: "Monatsentwicklung",
     chartConsumption: "Verbrauch",
     chartCost: "Kosten",
+    chartSixMonths: "6 Monate",
+    chartTwelveMonths: "12 Monate",
+    monthlyGoalTitle: "Monatliches Sparziel",
+    monthlyGoalProgress: "{percent}% erreicht",
+    monthlyGoalValues: "Ziel: höchstens {target} · letzter Monat: {current}",
+    monthlyGoalReached: "Monatsziel erreicht",
     comparisonTitle: "Schätzung und tatsächlicher Verbrauch",
     calculatedEstimate: "Berechnete Geräte pro Monat",
     actualRecorded: "Tatsächlicher Monatswert",
@@ -300,6 +309,12 @@ const copy = {
     chartTitle: "Monthly trend",
     chartConsumption: "Consumption",
     chartCost: "Cost",
+    chartSixMonths: "6 months",
+    chartTwelveMonths: "12 months",
+    monthlyGoalTitle: "Monthly savings goal",
+    monthlyGoalProgress: "{percent}% reached",
+    monthlyGoalValues: "Target: no more than {target} · latest month: {current}",
+    monthlyGoalReached: "Monthly goal reached",
     comparisonTitle: "Estimate and actual consumption",
     calculatedEstimate: "Calculated devices per month",
     actualRecorded: "Actual monthly value",
@@ -415,13 +430,17 @@ function MonthlyHistoryChart({
   locale,
   currency,
   labels,
+  range,
+  onRangeChange,
 }: {
   entries: MonthlyEnergyEntry[];
   locale: Locale;
   currency: SavedDeviceCurrency;
-  labels: { title: string; consumption: string; cost: string };
+  labels: { title: string; consumption: string; cost: string; sixMonths: string; twelveMonths: string };
+  range: 6 | 12;
+  onRangeChange: (range: 6 | 12) => void;
 }) {
-  const chartEntries = entries.slice(0, 6).reverse();
+  const chartEntries = entries.slice(0, range).reverse();
   if (chartEntries.length === 0) return null;
 
   const maxKwh = Math.max(...chartEntries.map((entry) => entry.kwh), 1);
@@ -436,15 +455,18 @@ function MonthlyHistoryChart({
     <div className="mt-6 border-t border-[#dfe5dd] pt-5" aria-label={labels.title}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-[13px] font-bold text-[#17211f]">{labels.title}</h3>
-        <div className="flex gap-4 text-[11px] font-semibold text-[#65716d]">
+        <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-[#65716d]">
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[var(--brand-green)]" />{labels.consumption}</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-sky-400" />{labels.cost}</span>
+          <span className="inline-flex rounded-full border border-[#dfe5dd] bg-white p-0.5">
+            {[6, 12].map((months) => <button key={months} type="button" aria-pressed={range === months} onClick={() => onRangeChange(months as 6 | 12)} className={`saved-device-utility-action relative rounded-full px-2 py-0.5 transition ${range === months ? "bg-[#dcfce8] text-[var(--brand-green)]" : "text-[#65716d] hover:text-[#17211f]"}`}>{months === 6 ? labels.sixMonths : labels.twelveMonths}</button>)}
+          </span>
         </div>
       </div>
       <div className="mt-4 space-y-3">
         {chartEntries.map((entry) => (
-          <div key={entry.month} className="grid grid-cols-[4.25rem_1fr] items-center gap-3">
-            <span className="text-xs font-semibold text-[#65716d]">
+          <div key={entry.month} data-chart-entry={entry.month} className="grid grid-cols-[4.25rem_1fr] items-center gap-3">
+            <span className="text-[11px] font-semibold text-[#65716d]">
               {dateFormatter.format(new Date(`${entry.month}-01T00:00:00Z`))}
             </span>
             <div className="space-y-1.5">
@@ -507,6 +529,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [monthKwh, setMonthKwh] = useState("");
   const [monthCost, setMonthCost] = useState("");
   const [editingMonth, setEditingMonth] = useState<string | null>(null);
+  const [chartMonths, setChartMonths] = useState<6 | 12>(6);
   const [checkInMode, setCheckInMode] = useState<"consumption" | "bill">("consumption");
   const [checkInFeedback, setCheckInFeedback] = useState<{
     kind: "success" | "error";
@@ -959,7 +982,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         <Header locale={locale} languageHrefOverride={languageHref} />
         <main className="px-5 py-12 sm:px-6 sm:py-20">
           <section className={`mx-auto max-w-3xl p-6 sm:p-8 ${homeSurfaceClass}`}>
-            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">{text.onboardingEyebrow}</p>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">{text.onboardingEyebrow}</p>
             <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.045em] sm:text-4xl">{text.onboardingTitle}</h1>
             <p className="mt-4 max-w-2xl text-[14px] leading-7 text-[#65716d]">{text.onboardingText}</p>
 
@@ -985,7 +1008,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
 
             <button type="button" onClick={completeOnboarding} className={`mt-8 w-full sm:w-auto ${homePrimaryActionClass}`}>{text.start}</button>
-            <p className="mt-4 text-xs font-medium text-[#65716d]">{text.private}</p>
+            <p className="mt-4 text-[11px] font-medium text-[#65716d]">{text.private}</p>
           </section>
         </main>
         <Footer locale={locale} />
@@ -995,6 +1018,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   const activeProfile = profile;
   const monthlyTrend = calculateMonthlyEnergyTrend(history);
+  const monthlyGoalProgress = calculateMonthlySavingsGoalProgress({
+    entries: history,
+    savingsGoalPercent: profile.savingsGoalPercent,
+  });
   const historyStreak = calculateMonthlyHistoryStreak(history);
   const thisMonth = currentMonth();
   const currentMonthEntry = history.find((entry) => entry.month === thisMonth) ?? null;
@@ -1126,13 +1153,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       >
         {editingRoomId === room.id ? (
           <form onSubmit={(event) => { event.preventDefault(); saveRoomName(room.id); }}>
-            <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]">
+            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">
               <span>{text.roomName}</span>
               <input autoFocus value={roomNameDraft} onChange={(event) => setRoomNameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") cancelEditingRoom(); }} className={homeFieldClass} />
             </label>
             <div className="mt-3 flex flex-wrap gap-2">
-              <button type="submit" disabled={!roomNameDraft.trim()} className={`${homePrimaryActionClass} min-h-8 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-40`}>{text.saveRoom}</button>
-              <button type="button" onClick={cancelEditingRoom} className={`${homeCompactActionClass} min-h-8 px-3 text-xs`}>{text.cancelRoomEdit}</button>
+              <button type="submit" disabled={!roomNameDraft.trim()} className={`${homePrimaryActionClass} min-h-8 px-3 disabled:cursor-not-allowed disabled:opacity-40`}>{text.saveRoom}</button>
+              <button type="button" onClick={cancelEditingRoom} className={`${homeCompactActionClass} min-h-8 px-3`}>{text.cancelRoomEdit}</button>
             </div>
           </form>
         ) : (
@@ -1155,8 +1182,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
             {!compact && (
               <>
-                <p className="mt-3 text-lg font-extrabold">{formatMoney(room.annualCost, locale, activeProfile.currency)}</p>
-                <p className="mt-1 text-xs text-[#65716d]">{text.yearly}</p>
+                <p className="mt-3 text-xl font-extrabold">{formatMoney(room.annualCost, locale, activeProfile.currency)}</p>
+                <p className="mt-1 text-[11px] text-[#65716d]">{text.yearly}</p>
                 {roomDevices.length > 0 && (
                   <div className="mt-4 space-y-2 border-t border-[#dfe5dd] pt-3">
                     {roomDevices.map((device) => (
@@ -1201,7 +1228,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">EAVESENCE Home</p>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">EAVESENCE Home</p>
               <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
@@ -1210,15 +1237,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           {settingsOpen && (
             <section className={`mt-6 grid gap-4 p-5 sm:grid-cols-4 ${homeSurfaceClass}`}>
-              <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
-              <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
-              <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
-              <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
+              <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
+              <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
+              <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
+              <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
               <button type="button" onClick={saveSettings} className={`${homeCompactActionClass} text-[11px] leading-4 sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
               <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
                 <div className="mt-1 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-                  <p data-manage-data-description className="max-w-3xl text-xs leading-5 text-[#65716d]">
+                  <p data-manage-data-description className="max-w-3xl text-[13px] leading-5 text-[#65716d]">
                     <span className="block">{text.dataText}</span>
                     <span className="block">{text.dataPrivacy}</span>
                   </p>
@@ -1294,7 +1321,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
             </section>
           )}
-          {notice && <p role="status" className="mt-3 text-sm font-bold text-[var(--brand-green)]">{notice}</p>}
+          {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
 
           <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label={text.overview}>
             {[
@@ -1306,7 +1333,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <article key={label} className={`rounded-xl border p-4 ${index === 0 ? "border-[#b8efcc] bg-[#dcfce8]" : "border-[#dfe5dd] bg-[#fbfcf8]"}`}>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#65716d]">{label}</p>
                 <p className="mt-2.5 text-xl font-extrabold tracking-[-0.035em]">{value}</p>
-                {detail && <p className="mt-1 text-xs font-semibold text-[var(--brand-green)]">{detail}</p>}
+                {detail && <p className="mt-1 text-[11px] font-semibold text-[var(--brand-green)]">{detail}</p>}
               </article>
             ))}
           </section>
@@ -1315,16 +1342,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <div className={`${homeSurfaceClass} p-5`}>
               <div className="flex items-start justify-between gap-4">
                 <div><p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#65716d]">{text.activation}</p><h2 className="mt-2 text-xl font-bold tracking-[-0.03em]">{savedDevices.length >= 3 ? text.activationReady : `${savedDevices.length} ${locale === "de" ? "von" : "of"} 3 ${text.activationProgress}`}</h2></div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#dcf5e6] text-base font-bold text-[var(--brand-green)]">{Math.min(3, savedDevices.length)}</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#dcf5e6] text-[14px] font-bold text-[var(--brand-green)]">{Math.min(3, savedDevices.length)}</div>
               </div>
               <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)] transition-all" style={{ width: `${Math.min(100, (savedDevices.length / 3) * 100)}%` }} /></div>
               <p className="mt-4 text-[13px] leading-6 text-[#65716d]">{text.activationText}</p>
               <Link href={calculatorHref} className="mt-5 inline-flex text-[13px] font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]">{text.addDevice} {">"}</Link>
             </div>
             <div className="rounded-2xl bg-[#17211f] p-5 text-white">
-              <p className="text-xs font-bold uppercase tracking-[0.1em] text-[var(--brand-green-mint)]">{text.targetSavings}</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--brand-green-mint)]">{text.targetSavings}</p>
               <p className="mt-3 text-2xl font-extrabold tracking-[-0.04em]">{formatMoney(summary?.targetSavings ?? 0, locale, profile.currency)}</p>
-              <p className="mt-6 text-xs font-bold uppercase tracking-[0.1em] text-slate-400">{text.topConsumer}</p>
+              <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.1em] text-slate-400">{text.topConsumer}</p>
               <p className="mt-2 font-bold">{summary?.topDevice ? localizedSavedDeviceName(summary.topDevice, locale) : "—"}</p>
             </div>
           </section>
@@ -1332,13 +1359,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <section className={`mt-8 p-5 ${homeSurfaceClass}`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.roomsTitle}</h2>
+                <h2 className={homeSectionTitleClass}>{text.roomsTitle}</h2>
                 <p className="mt-1 text-[13px] text-[#65716d]">{profile.rooms.length} {profile.rooms.length === 1 ? text.roomSingular : text.roomPlural}</p>
               </div>
               <button type="button" onClick={addRoom} className={`${homeCompactActionClass} saved-device-utility-action relative min-h-9 w-fit px-3`}>+ {text.addRoom}</button>
             </div>
 
-            {roomNotice && <p role="status" className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-sm font-bold text-[var(--brand-green)]">{roomNotice}</p>}
+            {roomNotice && <p role="status" className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-[13px] font-bold text-[var(--brand-green)]">{roomNotice}</p>}
 
             {occupiedRooms.length > 0 ? (
               <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -1357,7 +1384,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <div className="mt-2 divide-y divide-amber-100">
                   {unassignedDevices.map((device) => (
                     <div key={device.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div><p className="text-[13px] font-semibold">{localizedSavedDeviceName(device, locale)}</p><p className="mt-1 text-xs text-[#65716d]">{formatMoney(device.yearlyKwh * profile.electricityPrice, locale, profile.currency)} {text.yearly}</p></div>
+                      <div><p className="text-[14px] font-bold">{localizedSavedDeviceName(device, locale)}</p><p className="mt-1 text-[11px] text-[#65716d]">{formatMoney(device.yearlyKwh * profile.electricityPrice, locale, profile.currency)} {text.yearly}</p></div>
                       <label className="flex items-center gap-2 text-[11px] font-semibold text-[#65716d]"><span>{text.assign}</span><select data-room-assignment value="" onChange={(event) => assignRoom(device.id, event.target.value)} className="home-room-select h-7 max-w-24 rounded-md border border-[#dfe5dd] bg-white px-1.5 text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20"><option value="">{text.unassigned}</option>{profile.rooms.map((room) => <option key={room.id} value={room.id}>{localizeDefaultRoomName(room.name, locale)}</option>)}</select></label>
                     </div>
                   ))}
@@ -1371,7 +1398,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 onToggle={(event) => setEmptyRoomsOpen(event.currentTarget.open)}
                 className="group mt-6 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8]"
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-xs font-semibold text-[#52605b] transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-[13px] font-semibold text-[#52605b] transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
                   <span>{text.otherRooms} ({emptyRooms.length}) <span className="ml-2 font-normal text-[#7a8782]">{text.emptyRoomsHint}</span></span>
                   <svg
                     viewBox="0 0 20 20"
@@ -1395,42 +1422,42 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           <section className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <div id="monthly-check-in" className={`${homeSurfaceClass} scroll-mt-24 p-5`}>
-              <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.monthlyCheckIn}</h2>
+              <h2 className={homeSectionTitleClass}>{text.monthlyCheckIn}</h2>
               <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{text.checkInText}</p>
               <div data-monthly-checkin-status className={`mt-4 rounded-xl border px-3 py-2.5 ${currentMonthEntry ? "border-[#b8efcc] bg-[#eefbf3]" : "border-amber-200 bg-amber-50"}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-[13px] font-bold text-[#17211f]">{(currentMonthEntry ? text.currentMonthComplete : text.currentMonthOpen).replace("{month}", currentMonthLabel)}</p>
                   {historyStreak > 1 && <span className="rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-bold text-[var(--brand-green)]">{text.checkInStreak.replace("{count}", formatNumber(historyStreak, locale))}</span>}
                 </div>
-                <p className="mt-1 text-xs leading-5 text-[#65716d]">{currentMonthEntry ? text.currentMonthCompleteText.replace("{kwh}", formatNumber(currentMonthEntry.kwh, locale, 1)).replace("{cost}", formatMoney(currentMonthEntry.cost, locale, profile.currency)) : text.currentMonthOpenText}</p>
+                <p className="mt-1 text-[13px] leading-5 text-[#65716d]">{currentMonthEntry ? text.currentMonthCompleteText.replace("{kwh}", formatNumber(currentMonthEntry.kwh, locale, 1)).replace("{cost}", formatMoney(currentMonthEntry.cost, locale, profile.currency)) : text.currentMonthOpenText}</p>
               </div>
               <div className="mt-5 grid grid-cols-2 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
-                <button type="button" aria-pressed={checkInMode === "consumption"} onClick={() => { setCheckInMode("consumption"); setCheckInFeedback(null); }} className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${checkInMode === "consumption" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.consumptionEntry}</button>
-                <button type="button" aria-pressed={checkInMode === "bill"} onClick={() => { setCheckInMode("bill"); setCheckInFeedback(null); }} className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${checkInMode === "bill" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.billEntry}</button>
+                <button type="button" aria-pressed={checkInMode === "consumption"} onClick={() => { setCheckInMode("consumption"); setCheckInFeedback(null); }} className={`home-primary-action rounded-full border px-3 py-2 transition ${checkInMode === "consumption" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.consumptionEntry}</button>
+                <button type="button" aria-pressed={checkInMode === "bill"} onClick={() => { setCheckInMode("bill"); setCheckInFeedback(null); }} className={`home-primary-action rounded-full border px-3 py-2 transition ${checkInMode === "bill" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.billEntry}</button>
               </div>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <label className="grid gap-1.5 text-xs font-semibold text-[#52605b] sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setEditingMonth(null); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
+                <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setEditingMonth(null); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                 {checkInMode === "consumption" ? (
                   <>
-                    <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]">{text.kwh}<input type="text" inputMode="decimal" value={monthKwh} onChange={(event) => { setMonthKwh(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
+                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.kwh}<input type="text" inputMode="decimal" value={monthKwh} onChange={(event) => { setMonthKwh(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                     <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedCost}</p><p className="mt-1 font-bold">{formatMoneyPrecise((positiveNumber(monthKwh) ?? 0) * profile.electricityPrice, locale, profile.currency)}</p></div>
                   </>
                 ) : (
                   <>
-                    <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]">{text.cost}<input type="text" inputMode="decimal" value={monthCost} onChange={(event) => { setMonthCost(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
+                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.cost}<input type="text" inputMode="decimal" value={monthCost} onChange={(event) => { setMonthCost(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                     <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.estimatedConsumption}</p><p className="mt-1 font-bold">{formatNumber(profile.electricityPrice > 0 ? (positiveNumber(monthCost) ?? 0) / profile.electricityPrice : 0, locale, 1)} kWh</p></div>
                   </>
                 )}
               </div>
-              {checkInFeedback && <p role={checkInFeedback.kind === "error" ? "alert" : "status"} className={`mt-4 rounded-xl px-3 py-2.5 text-sm font-bold ${checkInFeedback.kind === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-[var(--brand-green)]"}`}>{checkInFeedback.message}</p>}
+              {checkInFeedback && <p role={checkInFeedback.kind === "error" ? "alert" : "status"} className={`mt-4 rounded-xl px-3 py-2.5 text-[13px] font-bold ${checkInFeedback.kind === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-[var(--brand-green)]"}`}>{checkInFeedback.message}</p>}
               <div className="mt-5 flex flex-wrap items-center gap-2">
                 <button type="button" onClick={saveMonthlyCheckIn} className={homePrimaryActionClass}>{editingMonth ? text.updateCheckIn : text.saveCheckIn}</button>
-                {editingMonth && <button type="button" onClick={cancelMonthlyCheckInEdit} className={`${homeCompactActionClass} text-xs`}>{text.cancelCheckInEdit}</button>}
+                {editingMonth && <button type="button" onClick={cancelMonthlyCheckInEdit} className={homeCompactActionClass}>{text.cancelCheckInEdit}</button>}
               </div>
             </div>
             <div className={`${homeSurfaceClass} p-5`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.history}</h2>
+                <h2 className={homeSectionTitleClass}>{text.history}</h2>
                 {monthlyTrend && (
                   <div className="flex flex-wrap gap-2" aria-label={text.comparedWithPrevious}>
                     <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${monthlyTrend.consumptionChangePercent <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
@@ -1443,14 +1470,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 )}
               </div>
               {historyNotice && <p role="status" className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-[13px] font-bold text-[var(--brand-green)]">{historyNotice}</p>}
-              {history.length === 0 ? <p className="mt-6 text-[13px] text-[#65716d]">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} data-monthly-history-entry={entry.month} className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3"><div className="grid grid-cols-[1fr_auto_auto] items-center gap-4"><span className="text-[13px] font-semibold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span></div><div className="mt-2 flex flex-wrap items-center justify-between gap-2">{index === 0 && monthlyTrend !== null ? <span className="text-xs text-[#65716d]">{text.comparedWithPrevious}</span> : <span />}<div className="flex gap-1.5"><button type="button" onClick={() => editMonthlyCheckIn(entry)} className={`${homeCompactActionClass} min-h-7 px-2.5 text-[11px]`}>{text.editMonth}</button><button type="button" onClick={() => deleteMonthlyCheckIn(entry)} className={`${homeDangerActionClass} min-h-7 px-2.5 text-[11px]`}><span aria-hidden="true">×</span>{text.deleteMonth}</button></div></div></div>)}</div>}
-              <MonthlyHistoryChart entries={history} locale={locale} currency={profile.currency} labels={{ title: text.chartTitle, consumption: text.chartConsumption, cost: text.chartCost }} />
+              {history.length === 0 ? <p className="mt-6 text-[13px] text-[#65716d]">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} data-monthly-history-entry={entry.month} className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3"><div className="grid grid-cols-[1fr_auto_auto] items-center gap-4"><span className="text-[13px] font-semibold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span></div><div className="mt-2 flex flex-wrap items-center justify-between gap-2">{index === 0 && monthlyTrend !== null ? <span className="text-[11px] text-[#65716d]">{text.comparedWithPrevious}</span> : <span />}<div className="flex gap-1.5"><button type="button" onClick={() => editMonthlyCheckIn(entry)} className={`${homeCompactActionClass} min-h-7 px-2.5`}>{text.editMonth}</button><button type="button" onClick={() => deleteMonthlyCheckIn(entry)} className={`${homeDangerActionClass} min-h-7 px-2.5`}><span aria-hidden="true">×</span>{text.deleteMonth}</button></div></div></div>)}</div>}
+              {monthlyGoalProgress && <div data-monthly-goal-progress className="mt-5 rounded-xl border border-[#dfe5dd] bg-white/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[13px] font-bold text-[#17211f]">{text.monthlyGoalTitle}</p><span className="text-[11px] font-bold text-[var(--brand-green)]">{monthlyGoalProgress.reached ? text.monthlyGoalReached : text.monthlyGoalProgress.replace("{percent}", formatNumber(monthlyGoalProgress.progressPercent, locale, 0))}</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)] transition-all" style={{ width: `${monthlyGoalProgress.progressPercent}%` }} /></div><p className="mt-2 text-[11px] leading-5 text-[#65716d]">{text.monthlyGoalValues.replace("{target}", formatMoney(monthlyGoalProgress.targetCost, locale, profile.currency)).replace("{current}", formatMoney(monthlyGoalProgress.currentCost, locale, profile.currency))}</p></div>}
+              <MonthlyHistoryChart entries={history} locale={locale} currency={profile.currency} range={chartMonths} onRangeChange={setChartMonths} labels={{ title: text.chartTitle, consumption: text.chartConsumption, cost: text.chartCost, sixMonths: text.chartSixMonths, twelveMonths: text.chartTwelveMonths }} />
             </div>
           </section>
 
           <section className={`mt-5 p-5 ${homeSurfaceClass}`}>
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="text-lg font-extrabold tracking-[-0.02em] sm:text-xl">{text.comparisonTitle}</h2>
+              <h2 className={homeSectionTitleClass}>{text.comparisonTitle}</h2>
               {latestActual && <span className="rounded-full bg-[#eef1ed] px-2.5 py-1 text-[11px] font-semibold text-[#65716d]">{text.comparisonMonth.replace("{month}", latestActualMonth)}</span>}
             </div>
             {latestActual && savedDevices.length > 0 ? (
@@ -1463,7 +1491,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 {comparisonContent && (
                   <div data-consumption-insight className={`mt-4 rounded-xl border p-4 ${comparisonContent.tone === "green" ? "border-[#b8efcc] bg-[#eefbf3]" : "border-amber-200 bg-amber-50"}`}>
                     <p className="text-[13px] font-bold text-[#17211f]">{comparisonContent.summary}</p>
-                    <p className="mt-1 text-xs font-semibold text-[#65716d]">{comparisonContent.coverage}</p>
+                    <p className="mt-1 text-[11px] font-semibold text-[#65716d]">{comparisonContent.coverage}</p>
                     <p className="mt-3 text-[13px] leading-6 text-[#52605b]">{comparisonContent.tip}</p>
                     <Link href={comparisonContent.href} onClick={() => track("Home Comparison Action Clicked", { locale, status: monthlyComparison?.status ?? "unknown" })} className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]">
                       {comparisonContent.action}<span aria-hidden="true">›</span>
@@ -1480,8 +1508,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div>
                   <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.savingTipEyebrow}</p>
-                  <h2 className="mt-1 text-lg font-extrabold tracking-[-0.02em]">{text.savingTipTitle.replace("{device}", localizedSavedDeviceName(summary.topDevice, locale))}</h2>
-                  <p className="mt-1 text-xs font-semibold text-[#65716d]">{text.savingTipShare.replace("{share}", formatNumber(topDeviceShare, locale, 0))}</p>
+                  <h2 className={`mt-1 ${homeSectionTitleClass}`}>{text.savingTipTitle.replace("{device}", localizedSavedDeviceName(summary.topDevice, locale))}</h2>
+                  <p className="mt-1 text-[11px] font-semibold text-[#65716d]">{text.savingTipShare.replace("{share}", formatNumber(topDeviceShare, locale, 0))}</p>
                   <p className="mt-3 max-w-3xl text-[13px] leading-6 text-[#52605b]">{topDeviceTip}</p>
                 </div>
                 <Link href={topDeviceHref} onClick={() => track("Home Saving Tip Opened", { locale, has_device_page: Boolean(topDeviceSource) })} className={`${homeCompactActionClass} w-fit text-[11px]`}>
@@ -1493,12 +1521,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           {proReady ? (
             <section className="mt-8 overflow-hidden rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] p-6 text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] sm:p-8">
-              <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green-mint)]">{text.proEyebrow}</p><h2 className="mt-3 text-2xl font-extrabold tracking-[-0.04em] sm:text-3xl">{text.proTitle}</h2><p className="mt-4 max-w-2xl leading-7 text-slate-300">{text.proText}</p><p className="mt-5 text-xs leading-5 text-slate-400">{text.betaDetail}</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-5"><div className="grid grid-cols-2 rounded-full bg-black/20 p-1"><button type="button" onClick={() => { setPlan("monthly"); track("Home Pro Preview Opened", { locale, plan: "monthly" }); }} className={`rounded-full border px-4 py-2 text-sm font-bold transition ${plan === "monthly" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-slate-300 hover:bg-white/10"}`}>{text.monthlyPlan}</button><button type="button" onClick={() => { setPlan("yearly"); track("Home Pro Preview Opened", { locale, plan: "yearly" }); }} className={`rounded-full border px-4 py-2 text-sm font-bold transition ${plan === "yearly" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-slate-300 hover:bg-white/10"}`}>{text.yearlyPlan}</button></div><div className="mt-5 flex min-h-8 flex-wrap items-center justify-center gap-4"><p className="text-center text-2xl font-extrabold">{plan === "yearly" ? text.yearlyPrice : text.monthlyPrice}</p>{plan === "yearly" && <span className="rounded-full border border-[var(--brand-green-mint)]/30 bg-[var(--brand-green-mint)]/10 px-2.5 py-1 text-[11px] font-extrabold text-[var(--brand-green-mint)]">{text.yearlyHint}</span>}</div><p className="mt-2 text-center text-[11px] font-semibold text-slate-400">{text.proBilling}</p><button type="button" onClick={submitBetaInterest} disabled={betaInterested} className="mt-5 min-h-12 w-full rounded-full border border-[#b8efcc] bg-[#dcfce8] px-5 text-sm font-extrabold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-default disabled:border-white/10 disabled:bg-white/15 disabled:text-slate-300">{betaInterested ? text.betaSaved : text.beta}</button></div></div>
+              <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end"><div><p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green-mint)]">{text.proEyebrow}</p><h2 className="mt-3 text-2xl font-extrabold tracking-[-0.04em]">{text.proTitle}</h2><p className="mt-4 max-w-2xl text-[13px] leading-6 text-slate-300">{text.proText}</p><p className="mt-5 text-[11px] leading-5 text-slate-400">{text.betaDetail}</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-5"><div className="grid grid-cols-2 rounded-full bg-black/20 p-1"><button type="button" onClick={() => { setPlan("monthly"); track("Home Pro Preview Opened", { locale, plan: "monthly" }); }} className={`home-primary-action rounded-full border px-4 py-2 font-bold transition ${plan === "monthly" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-slate-300 hover:bg-white/10"}`}>{text.monthlyPlan}</button><button type="button" onClick={() => { setPlan("yearly"); track("Home Pro Preview Opened", { locale, plan: "yearly" }); }} className={`home-primary-action rounded-full border px-4 py-2 font-bold transition ${plan === "yearly" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-slate-300 hover:bg-white/10"}`}>{text.yearlyPlan}</button></div><div className="mt-5 flex min-h-8 flex-wrap items-center justify-center gap-4"><p className="text-center text-2xl font-extrabold">{plan === "yearly" ? text.yearlyPrice : text.monthlyPrice}</p>{plan === "yearly" && <span className="rounded-full border border-[var(--brand-green-mint)]/30 bg-[var(--brand-green-mint)]/10 px-2.5 py-1 text-[11px] font-extrabold text-[var(--brand-green-mint)]">{text.yearlyHint}</span>}</div><p className="mt-2 text-center text-[11px] font-semibold text-slate-400">{text.proBilling}</p><button type="button" onClick={submitBetaInterest} disabled={betaInterested} className="home-primary-action mt-5 min-h-12 w-full rounded-full border border-[#b8efcc] bg-[#dcfce8] px-5 font-extrabold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-default disabled:border-white/10 disabled:bg-white/15 disabled:text-slate-300">{betaInterested ? text.betaSaved : text.beta}</button></div></div>
             </section>
           ) : (
             <section className="mt-8 rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-5 py-4">
-              <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.proEyebrow}</p>
-              <h2 className="mt-1 text-lg font-bold text-[#17211f]">{text.proPreviewTitle}</h2>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.proEyebrow}</p>
+              <h2 className={`mt-1 ${homeSectionTitleClass}`}>{text.proPreviewTitle}</h2>
               <p className="mt-1 max-w-3xl text-[13px] leading-6 text-[#52605b]">{text.proPreviewText}</p>
             </section>
           )}
