@@ -6,6 +6,7 @@ import {
   calculateMonthlyConsumptionComparison,
   calculateMonthlyEnergyTrend,
   calculateMonthlyHistoryStreak,
+  calculateMonthlySavingsGoalProgress,
   createHouseholdBackup,
   createMonthlyEnergyEntry,
   createHouseholdProfile,
@@ -270,4 +271,33 @@ test("counts consecutive monthly check-ins from the latest entry", () => {
     2,
   );
   assert.equal(calculateMonthlyHistoryStreak([]), 0);
+});
+
+test("calculates progress toward the monthly savings goal", () => {
+  const entry = (month, cost) => ({
+    month,
+    kwh: cost / 0.3,
+    cost,
+    updatedAt: "2026-09-30T12:00:00.000Z",
+  });
+  const halfway = calculateMonthlySavingsGoalProgress({
+    entries: [entry("2026-09", 95), entry("2026-08", 100)],
+    savingsGoalPercent: 10,
+  });
+  const reached = calculateMonthlySavingsGoalProgress({
+    entries: [entry("2026-09", 85), entry("2026-08", 100)],
+    savingsGoalPercent: 10,
+  });
+
+  assert.equal(halfway?.targetCost, 90);
+  assert.equal(halfway?.savedAmount, 5);
+  assert.equal(halfway?.remainingAmount, 5);
+  assert.equal(halfway?.progressPercent, 50);
+  assert.equal(halfway?.reached, false);
+  assert.equal(reached?.progressPercent, 100);
+  assert.equal(reached?.reached, true);
+  assert.equal(
+    calculateMonthlySavingsGoalProgress({ entries: [], savingsGoalPercent: 10 }),
+    null,
+  );
 });

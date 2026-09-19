@@ -49,6 +49,16 @@ export type MonthlyEnergyTrend = {
   costChangePercent: number;
 };
 
+export type MonthlySavingsGoalProgress = {
+  baselineCost: number;
+  currentCost: number;
+  targetCost: number;
+  savedAmount: number;
+  remainingAmount: number;
+  progressPercent: number;
+  reached: boolean;
+};
+
 export type HouseholdBackup = {
   version: 1;
   exportedAt: string;
@@ -454,6 +464,40 @@ export function calculateMonthlyHistoryStreak(entries: MonthlyEnergyEntry[]) {
   }
 
   return streak;
+}
+
+export function calculateMonthlySavingsGoalProgress({
+  entries,
+  savingsGoalPercent,
+}: {
+  entries: MonthlyEnergyEntry[];
+  savingsGoalPercent: number;
+}): MonthlySavingsGoalProgress | null {
+  if (entries.length < 2 || savingsGoalPercent <= 0) return null;
+
+  const [current, previous] = [...entries].sort((a, b) =>
+    b.month.localeCompare(a.month),
+  );
+  if (current.cost < 0 || previous.cost <= 0) return null;
+
+  const targetReduction = previous.cost * (savingsGoalPercent / 100);
+  const targetCost = previous.cost - targetReduction;
+  const savedAmount = Math.max(0, previous.cost - current.cost);
+  const remainingAmount = Math.max(0, current.cost - targetCost);
+  const progressPercent = Math.min(
+    100,
+    Math.max(0, (savedAmount / targetReduction) * 100),
+  );
+
+  return {
+    baselineCost: previous.cost,
+    currentCost: current.cost,
+    targetCost,
+    savedAmount,
+    remainingAmount,
+    progressPercent,
+    reached: current.cost <= targetCost,
+  };
 }
 
 export function calculateHouseholdSummary(

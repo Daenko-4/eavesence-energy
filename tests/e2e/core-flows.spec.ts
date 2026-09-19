@@ -212,6 +212,9 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
       .getByText("214.3 kWh", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Monthly trend", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "12 months" }).click();
+  await expect(page.getByRole("button", { name: "12 months" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("[data-monthly-goal-progress]")).toBeVisible();
   await expect(page.getByText("kWh +2%", { exact: true })).toBeVisible();
   await expect(page.getByText("cost +2%", { exact: true })).toBeVisible();
   await expect(
@@ -233,6 +236,15 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(savingTip).toContainText("Review Coffee machine first");
   await expect(savingTip).toContainText("33% of calculated device consumption");
   await expect(savingTip.getByRole("link", { name: "Open device details" })).toHaveAttribute("href", "/en/devices/coffee-machine");
+  for (const heading of [
+    "Cost by room",
+    "Monthly check-in",
+    "History",
+    "Estimate and actual consumption",
+    "Review Coffee machine first",
+  ]) {
+    await expect(page.getByRole("heading", { name: heading })).toHaveCSS("font-size", "20px");
+  }
 
   await septemberEntry.getByRole("button", { name: "Edit" }).click();
   await expect(page.getByLabel("Consumption in kWh")).toHaveValue("210");
@@ -255,8 +267,8 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
   const compactActions = [
-    { action: page.getByRole("button", { name: "Settings", exact: true }), fontSize: "16px" },
-    { action: page.getByRole("button", { name: "Save settings" }), fontSize: "16px" },
+    { action: page.getByRole("button", { name: "Settings", exact: true }), fontSize: "11px" },
+    { action: page.getByRole("button", { name: "Save settings" }), fontSize: "11px" },
     { action: page.getByRole("button", { name: "Import backup" }), fontSize: "11px" },
   ];
   for (const { action, fontSize } of compactActions) {
