@@ -172,11 +172,13 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     const actions = Array.from(document.querySelectorAll("[data-room-action]"));
     return {
       deviceNameFontSize: deviceName ? getComputedStyle(deviceName).fontSize : "",
+      assignmentFontSize: assignment ? getComputedStyle(assignment).fontSize : "",
       assignmentHeight: assignment?.getBoundingClientRect().height ?? 0,
       actionHeights: actions.map((action) => action.getBoundingClientRect().height),
     };
   });
   expect(roomDeviceProportions.deviceNameFontSize).toBe("14px");
+  expect(roomDeviceProportions.assignmentFontSize).toBe("11px");
   expect(roomDeviceProportions.assignmentHeight).toBeLessThanOrEqual(28);
   expect(Math.max(...roomDeviceProportions.actionHeights)).toBeLessThanOrEqual(24);
   page.once("dialog", (dialog) => dialog.accept());
@@ -918,7 +920,9 @@ test.describe("mobile", () => {
     });
     await page.goto("/home");
 
-    await expect(page.getByRole("heading", { name: "Mobile home" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mobile home" })).toBeVisible();
+  await expect(page.locator("[data-monthly-checkin-status]")).toBeVisible();
+  await expect(page.getByText("2 consecutive months", { exact: true })).toBeVisible();
     await expect(page.getByText("Comparison month: September 2026", { exact: true })).toBeVisible();
     const septemberEntry = page.locator('[data-monthly-history-entry="2026-09"]');
     await septemberEntry.getByRole("button", { name: "Edit" }).click();
