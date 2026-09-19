@@ -927,6 +927,33 @@ test.describe("mobile", () => {
     await page.goto("/home");
     await page.getByRole("button", { name: "Create my home" }).click();
 
+    const appNavigation = page.getByRole("navigation", {
+      name: "App navigation",
+    });
+    await expect(appNavigation).toBeHidden();
+    await page.addStyleTag({
+      content: ".pwa-mobile-navigation { display: grid !important; }",
+    });
+    await expect(appNavigation).toBeVisible();
+    await expect(
+      appNavigation.getByRole("link", { name: "Overview" }),
+    ).toHaveAttribute("href", "#home-overview");
+    await expect(
+      appNavigation.getByRole("link", { name: "Monthly value" }),
+    ).toHaveAttribute("href", "#monthly-check-in");
+    await expect(
+      appNavigation.getByRole("link", { name: "Device" }),
+    ).toHaveAttribute("href", "/#rechner");
+    await expect(
+      appNavigation.getByRole("button", { name: "Settings" }),
+    ).toHaveCSS("font-size", "11px");
+    await appNavigation.getByRole("button", { name: "Settings" }).click();
+    await expect(page.getByLabel("Home name")).toBeFocused();
+
+    const navigationBounds = await appNavigation.boundingBox();
+    expect(navigationBounds?.x ?? -1).toBeGreaterThanOrEqual(0);
+    expect((navigationBounds?.x ?? 0) + (navigationBounds?.width ?? 0)).toBeLessThanOrEqual(390);
+
     await expect(
       page.getByRole("heading", { name: "Discover EAVESENCE Pro later" }),
     ).toBeVisible();
