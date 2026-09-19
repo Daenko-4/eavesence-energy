@@ -1026,7 +1026,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       type="button"
                       onClick={() => homeImportInputRef.current?.click()}
                       data-manage-data-import
-                      className={`${homeCompactActionClass} shrink-0 gap-1 py-1 text-[11px] leading-4`}
+                      className={`${homeCompactActionClass} saved-device-utility-action shrink-0 gap-1 py-1`}
                     >
                       <svg
                         viewBox="0 0 12 12"
@@ -1046,7 +1046,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       type="button"
                       onClick={exportHome}
                       data-manage-data-export
-                      className={`${homeCompactActionClass} shrink-0 gap-1 py-1 text-[11px] leading-4`}
+                      className={`${homeCompactActionClass} saved-device-utility-action shrink-0 gap-1 py-1`}
                     >
                       <svg
                         viewBox="0 0 12 12"
@@ -1066,7 +1066,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       type="button"
                       onClick={resetHome}
                       data-manage-data-reset
-                      className={`${homeDangerActionClass} shrink-0 gap-1 py-1 text-[11px] leading-4`}
+                      className={`${homeDangerActionClass} saved-device-utility-action shrink-0 gap-1 py-1`}
                     >
                       <svg
                         viewBox="0 0 12 12"
