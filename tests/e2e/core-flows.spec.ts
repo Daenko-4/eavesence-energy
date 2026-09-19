@@ -164,6 +164,18 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeVisible();
   await installCard.getByRole("button", { name: "Maybe later" }).click();
   await expect(installCard).toHaveCount(0);
+  const nextStep = page.getByRole("region", { name: "Next step" });
+  await expect(nextStep).toContainText("September 2026 still open");
+  await nextStep.getByRole("button", { name: "Add monthly value" }).click();
+  await expect(page.getByLabel("Consumption in kWh")).toBeFocused();
+  const reminderDownload = page.waitForEvent("download");
+  await nextStep.getByRole("button", { name: "Monthly reminder" }).click();
+  expect((await reminderDownload).suggestedFilename()).toBe(
+    "eavesence-monthly-reminder.ics",
+  );
+  await expect(
+    page.getByText("The monthly calendar reminder was downloaded."),
+  ).toBeVisible();
   await expect(
     page.getByText("0 of 3 devices for a meaningful overview", { exact: true }),
   ).toBeVisible();
@@ -246,6 +258,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByText("€73.50", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Save month" }).click();
   await expect(page.getByText("Monthly value saved.", { exact: true })).toBeVisible();
+  await expect(page.locator("[data-home-next-step]")).toHaveCount(0);
   const septemberEntry = page.locator('[data-monthly-history-entry="2026-09"]');
   await expect(septemberEntry.getByText("210 kWh", { exact: true })).toBeVisible();
   await expect(septemberEntry.getByText("€73.50", { exact: true })).toBeVisible();
