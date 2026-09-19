@@ -228,6 +228,13 @@ textarea {
   backdrop-filter: blur(18px);
 }
 
+.pwa-mobile-navigation a,
+.pwa-mobile-navigation button {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1rem;
+}
+
 @media (display-mode: standalone) and (max-width: 767px) {
   [data-pwa-shell] > header {
     padding-top: env(safe-area-inset-top);
