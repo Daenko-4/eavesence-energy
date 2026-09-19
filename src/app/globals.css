@@ -186,6 +186,12 @@ textarea {
   font: inherit;
 }
 
+.home-room-select {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1rem;
+}
+
 a {
   text-underline-offset: 3px;
 }
