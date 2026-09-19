@@ -211,6 +211,55 @@ textarea {
   line-height: 1rem;
 }
 
+.pwa-mobile-navigation {
+  position: fixed;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  z-index: 90;
+  display: none;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.25rem;
+  padding: 0.4rem 0.45rem max(0.4rem, env(safe-area-inset-bottom));
+  border: 1px solid rgba(207, 231, 215, 0.96);
+  border-radius: 1.1rem;
+  background: rgba(251, 253, 249, 0.96);
+  box-shadow: 0 18px 50px -24px rgba(16, 40, 58, 0.55);
+  backdrop-filter: blur(18px);
+}
+
+@media (display-mode: standalone) and (max-width: 767px) {
+  [data-pwa-shell] > header {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  [data-pwa-shell] > header [data-header-menu-button] {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  [data-pwa-shell] > header [data-header-mobile-logo] {
+    height: 56px;
+  }
+
+  [data-pwa-shell] > header > div > div {
+    min-height: 56px;
+  }
+
+  [data-pwa-shell] > main {
+    padding-top: 1.5rem;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  }
+
+  [data-pwa-shell] > footer {
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+  }
+
+  .pwa-mobile-navigation {
+    display: grid;
+  }
+}
+
 a {
   text-underline-offset: 3px;
 }
