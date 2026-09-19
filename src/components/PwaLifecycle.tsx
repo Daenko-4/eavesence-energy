@@ -22,6 +22,7 @@ export default function PwaLifecycle() {
   const [registration, setRegistration] =
     useState<ServiceWorkerRegistration | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const updateRequestedRef = useRef(false);
   const refreshingRef = useRef(false);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export default function PwaLifecycle() {
     let disposed = false;
 
     const handleControllerChange = () => {
-      if (refreshingRef.current) return;
+      if (!updateRequestedRef.current || refreshingRef.current) return;
       refreshingRef.current = true;
       window.location.reload();
     };
@@ -95,6 +96,7 @@ export default function PwaLifecycle() {
       return;
     }
 
+    updateRequestedRef.current = true;
     waitingWorker.postMessage({ type: "SKIP_WAITING" });
   }
 
