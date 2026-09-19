@@ -83,17 +83,17 @@ self.addEventListener("fetch", (event) => {
 
   if (["font", "image", "script", "style"].includes(request.destination)) {
     event.respondWith(
-      caches.match(request).then(
-        (cachedResponse) =>
-          cachedResponse ??
-          fetch(request).then((response) => {
-            if (response.ok) {
-              const copy = response.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-            }
-            return response;
-          }),
-      ),
+      (async () => {
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) return cachedResponse;
+
+        const response = await fetch(request);
+        if (response.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
+        }
+        return response;
+      })(),
     );
   }
 });
