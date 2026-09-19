@@ -100,6 +100,45 @@ test("calculator engagement is tracked only on the first interaction", async ({
   ]);
 });
 
+test("PWA metadata, service worker and offline fallback are available", async ({
+  page,
+  request,
+}) => {
+  const manifestResponse = await request.get("/manifest.webmanifest");
+  expect(manifestResponse.ok()).toBe(true);
+  const manifest = await manifestResponse.json();
+  expect(manifest).toMatchObject({
+    display: "standalone",
+    id: "/home",
+    scope: "/",
+    start_url: "/home?source=pwa",
+    theme_color: "#087a45",
+  });
+  expect(manifest.icons).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        sizes: "192x192",
+        src: "/brand/eavesence-icon-approved-final-192.png",
+      }),
+      expect.objectContaining({
+        sizes: "512x512",
+        src: "/brand/eavesence-icon-approved-final-512.png",
+      }),
+    ]),
+  );
+
+  const serviceWorkerResponse = await request.get("/sw.js");
+  expect(serviceWorkerResponse.ok()).toBe(true);
+  expect(serviceWorkerResponse.headers()["cache-control"]).toContain("no-cache");
+  expect(await serviceWorkerResponse.text()).toContain('const OFFLINE_URL = "/offline"');
+
+  await page.goto("/offline");
+  await expect(page.getByRole("heading", { name: "Keine Verbindung" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Erneut versuchen · Try again" }),
+  ).toHaveAttribute("href", "/home");
+});
+
 test("EAVESENCE Home onboarding builds a household and records a monthly check-in", async ({
   page,
 }) => {
@@ -115,6 +154,27 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
 
   await expect(
     page.getByRole("heading", { name: "Test home", exact: true }),
+  ).toBeVisible();
+  const installCard = page.getByRole("region", {
+    name: "Install EAVESENCE as an app",
+  });
+  await expect(installCard).toBeVisible();
+  await expect(
+    installCard.getByText("Open My home directly from your home screen"),
+  ).toBeVisible();
+  await installCard.getByRole("button", { name: "Maybe later" }).click();
+  await expect(installCard).toHaveCount(0);
+  const nextStep = page.getByRole("region", { name: "Next step" });
+  await expect(nextStep).toContainText("September 2026 still open");
+  await nextStep.getByRole("button", { name: "Add monthly value" }).click();
+  await expect(page.getByLabel("Consumption in kWh")).toBeFocused();
+  const reminderDownload = page.waitForEvent("download");
+  await nextStep.getByRole("button", { name: "Monthly reminder" }).click();
+  expect((await reminderDownload).suggestedFilename()).toBe(
+    "eavesence-monthly-reminder.ics",
+  );
+  await expect(
+    page.getByText("The monthly calendar reminder was downloaded."),
   ).toBeVisible();
   await expect(
     page.getByText("0 of 3 devices for a meaningful overview", { exact: true }),
@@ -198,6 +258,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByText("€73.50", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Save month" }).click();
   await expect(page.getByText("Monthly value saved.", { exact: true })).toBeVisible();
+  await expect(page.locator("[data-home-next-step]")).toHaveCount(0);
   const septemberEntry = page.locator('[data-monthly-history-entry="2026-09"]');
   await expect(septemberEntry.getByText("210 kWh", { exact: true })).toBeVisible();
   await expect(septemberEntry.getByText("€73.50", { exact: true })).toBeVisible();

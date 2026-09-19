@@ -14,6 +14,7 @@ import {
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import PwaInstallCard from "@/components/PwaInstallCard";
 import { devices } from "@/data/devices";
 import type { Locale } from "@/i18n/config";
 import { getLocalizedDevice } from "@/i18n/devices";
@@ -43,6 +44,7 @@ import {
   type HouseholdVisitState,
   type MonthlyEnergyEntry,
 } from "@/lib/household";
+import { createMonthlyReminderCalendar } from "@/lib/monthlyReminder";
 import {
   readSavedDevices,
   SAVED_DEVICES_STORAGE_KEY,
@@ -124,6 +126,11 @@ const copy = {
     currentMonthOpenText: "Erfasse Verbrauch oder Rechnungsbetrag, sobald dein Monatswert vorliegt.",
     currentMonthComplete: "{month} erfasst",
     currentMonthCompleteText: "{kwh} kWh und {cost} sind gespeichert. Änderungen sind jederzeit im Verlauf möglich.",
+    nextStep: "Nächster Schritt",
+    recordCurrentMonth: "Monatswert eintragen",
+    calendarReminder: "Monatlich erinnern",
+    calendarReminderTitle: "Wiederkehrende Erinnerung am 5. jedes Monats zum Kalender hinzufügen",
+    calendarReminderDownloaded: "Die monatliche Kalender-Erinnerung wurde heruntergeladen.",
     checkInStreak: "{count} Monate in Folge",
     checkInText:
       "Wähle Verbrauch oder Rechnungsbetrag. Den zweiten Wert berechnen wir automatisch mit deinem Strompreis.",
@@ -278,6 +285,11 @@ const copy = {
     currentMonthOpenText: "Add consumption or the bill amount once your monthly value is available.",
     currentMonthComplete: "{month} recorded",
     currentMonthCompleteText: "{kwh} kWh and {cost} are saved. You can edit the entry from the history at any time.",
+    nextStep: "Next step",
+    recordCurrentMonth: "Add monthly value",
+    calendarReminder: "Monthly reminder",
+    calendarReminderTitle: "Add a recurring reminder on the fifth of every month to your calendar",
+    calendarReminderDownloaded: "The monthly calendar reminder was downloaded.",
     checkInStreak: "{count} consecutive months",
     checkInText:
       "Choose consumption or bill amount. We calculate the second value automatically using your electricity price.",
@@ -928,6 +940,36 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     });
   }
 
+  function openCurrentMonthCheckIn() {
+    setMonth(currentMonth());
+    setEditingMonth(null);
+    setCheckInFeedback(null);
+    document.getElementById("monthly-check-in")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    window.requestAnimationFrame(() => {
+      document.getElementById("monthly-consumption-input")?.focus();
+    });
+    track("Home Next Step Opened", { locale, step: "monthly_check_in" });
+  }
+
+  function downloadMonthlyReminder() {
+    const reminder = createMonthlyReminderCalendar({ locale });
+    const url = window.URL.createObjectURL(
+      new Blob([reminder.content], { type: "text/calendar;charset=utf-8" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = reminder.fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    setNotice(text.calendarReminderDownloaded);
+    track("Home Monthly Reminder Downloaded", { locale, reminder_day: 5 });
+  }
+
   function editMonthlyCheckIn(entry: MonthlyEnergyEntry) {
     setMonth(entry.month);
     setCheckInMode("consumption");
@@ -1323,6 +1365,45 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
           {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
 
+          <PwaInstallCard locale={locale} />
+
+          {!currentMonthEntry && (
+            <section
+              aria-label={text.nextStep}
+              data-home-next-step
+              className="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-amber-700">
+                  {text.nextStep}
+                </p>
+                <p className="mt-1 text-[14px] font-bold text-[#17211f]">
+                  {text.currentMonthOpen.replace("{month}", currentMonthLabel)}
+                </p>
+                <p className="mt-0.5 text-[13px] leading-5 text-[#65716d]">
+                  {text.currentMonthOpenText}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={openCurrentMonthCheckIn}
+                  className={homePrimaryActionClass}
+                >
+                  {text.recordCurrentMonth}
+                </button>
+                <button
+                  type="button"
+                  onClick={downloadMonthlyReminder}
+                  title={text.calendarReminderTitle}
+                  className={homeCompactActionClass}
+                >
+                  {text.calendarReminder}
+                </button>
+              </div>
+            </section>
+          )}
+
           <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label={text.overview}>
             {[
               [text.monthly, formatMoneyPrecise(summary?.monthlyCost ?? 0, locale, profile.currency), ""],
@@ -1439,7 +1520,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setEditingMonth(null); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                 {checkInMode === "consumption" ? (
                   <>
-                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.kwh}<input type="text" inputMode="decimal" value={monthKwh} onChange={(event) => { setMonthKwh(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
+                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.kwh}<input id="monthly-consumption-input" type="text" inputMode="decimal" value={monthKwh} onChange={(event) => { setMonthKwh(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                     <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedCost}</p><p className="mt-1 font-bold">{formatMoneyPrecise((positiveNumber(monthKwh) ?? 0) * profile.electricityPrice, locale, profile.currency)}</p></div>
                   </>
                 ) : (
