@@ -15,6 +15,7 @@ import {
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import PwaInstallCard from "@/components/PwaInstallCard";
+import PwaMobileNavigation from "@/components/PwaMobileNavigation";
 import { devices } from "@/data/devices";
 import type { Locale } from "@/i18n/config";
 import { getLocalizedDevice } from "@/i18n/devices";
@@ -970,6 +971,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     track("Home Monthly Reminder Downloaded", { locale, reminder_day: 5 });
   }
 
+  function openAppSettings() {
+    setSettingsOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.requestAnimationFrame(() => {
+      document.querySelector<HTMLInputElement>("[data-home-settings] input")?.focus();
+    });
+    track("Home App Navigation Used", { locale, destination: "settings" });
+  }
+
   function editMonthlyCheckIn(entry: MonthlyEnergyEntry) {
     setMonth(entry.month);
     setCheckInMode("consumption");
@@ -1264,9 +1274,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   return (
-    <div lang={locale} className="min-h-screen bg-[var(--background)] text-[#17211f]">
+    <div lang={locale} data-pwa-shell className="min-h-screen bg-[var(--background)] text-[#17211f]">
       <Header locale={locale} languageHrefOverride={languageHref} />
-      <main className="px-5 pb-20 pt-10 sm:px-6 sm:pt-14">
+      <main id="home-overview" className="scroll-mt-20 px-5 pb-20 pt-10 sm:px-6 sm:pt-14">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -1278,7 +1288,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </div>
 
           {settingsOpen && (
-            <section className={`mt-6 grid gap-4 p-5 sm:grid-cols-4 ${homeSurfaceClass}`}>
+            <section data-home-settings className={`mt-6 grid gap-4 p-5 sm:grid-cols-4 ${homeSurfaceClass}`}>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
@@ -1613,6 +1623,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
         </div>
       </main>
+      <PwaMobileNavigation
+        locale={locale}
+        calculatorHref={calculatorHref}
+        onOpenSettings={openAppSettings}
+      />
       <Footer locale={locale} />
     </div>
   );
