@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 
 import BrandStructuredData from "@/components/BrandStructuredData";
+import PwaLifecycle from "@/components/PwaLifecycle";
 
 import "./globals.css";
 
@@ -24,6 +25,14 @@ export const metadata: Metadata = {
 
   applicationName: "EAVESENCE Energy",
   manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "EAVESENCE",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 
   title: {
     default: "EAVESENCE Energy – Stromkosten einfach verstehen",
@@ -85,12 +94,17 @@ export const metadata: Metadata = {
     shortcut: "/icon.png",
     apple: [
       {
-        url: "/icon.png",
+        url: "/brand/eavesence-icon-approved-final-192.png",
         type: "image/png",
-        sizes: "512x512",
+        sizes: "192x192",
       },
     ],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#087a45",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
@@ -105,6 +119,7 @@ export default function RootLayout({
       >
         <BrandStructuredData />
         {children}
+        <PwaLifecycle />
         <Analytics />
       </body>
     </html>
