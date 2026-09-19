@@ -51,7 +51,11 @@ const homeSurfaceClass =
 const homeFieldClass =
   "min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-[13px] font-medium text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
 const homePrimaryActionClass =
-  "inline-flex min-h-10 items-center justify-center rounded-lg border border-[var(--brand-green)] bg-[var(--brand-green)] px-4 text-[13px] font-semibold text-[var(--brand-off-white)] transition hover:bg-[var(--brand-green-dark)] active:scale-[0.98]";
+  "inline-flex min-h-10 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-4 text-[13px] font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]";
+const homeCompactActionClass =
+  "inline-flex min-h-7 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-2.5 font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]";
+const homeDangerActionClass =
+  "inline-flex min-h-7 items-center justify-center rounded-full border border-red-100 bg-red-50 px-2.5 font-semibold text-red-600 transition hover:border-red-200 hover:bg-red-100 hover:text-red-700 active:scale-[0.98]";
 const currencies: SavedDeviceCurrency[] = [
   "EUR",
   "CHF",
@@ -920,7 +924,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </label>
             <div className="mt-3 flex flex-wrap gap-2">
               <button type="submit" disabled={!roomNameDraft.trim()} className={`${homePrimaryActionClass} min-h-8 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-40`}>{text.saveRoom}</button>
-              <button type="button" onClick={cancelEditingRoom} className="min-h-8 rounded-lg border border-[#dfe5dd] bg-white px-3 text-xs font-semibold text-[#52605b] transition hover:border-green-200 hover:text-[var(--brand-green-dark)]">{text.cancelRoomEdit}</button>
+              <button type="button" onClick={cancelEditingRoom} className={`${homeCompactActionClass} min-h-8 px-3 text-xs`}>{text.cancelRoomEdit}</button>
             </div>
           </form>
         ) : (
@@ -968,12 +972,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             )}
             <div className={`${compact ? "mt-2" : "mt-4 border-t border-[#dfe5dd] pt-3"} flex items-center justify-between gap-3`}>
               <div className="flex items-center gap-2.5">
-                <button type="button" onClick={() => startEditingRoom(room.id, roomName)} aria-label={`${text.editRoom}: ${roomName}`} className="text-[11px] font-semibold text-[#65716d] transition hover:text-[var(--brand-green-dark)]">{text.editRoom}</button>
-                <button type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${roomName}`} className="text-[11px] font-medium text-[#8b9792] transition hover:text-red-600">{text.deleteRoom}</button>
+                <button type="button" onClick={() => startEditingRoom(room.id, roomName)} aria-label={`${text.editRoom}: ${roomName}`} className={`${homeCompactActionClass} min-h-6 px-2.5 text-[11px]`}>{text.editRoom}</button>
+                <button type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${roomName}`} className={`${homeDangerActionClass} min-h-6 px-2.5 text-[11px] font-medium`}>{text.deleteRoom}</button>
               </div>
               <div className="flex items-center gap-1">
-                <button type="button" onClick={() => moveRoom(room.id, -1)} disabled={index === 0} aria-label={`${text.moveRoomEarlier}: ${roomName}`} title={text.moveRoomEarlier} className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#dfe5dd] bg-white text-sm font-semibold text-[#65716d] transition hover:border-green-200 hover:text-[var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30">↑</button>
-                <button type="button" onClick={() => moveRoom(room.id, 1)} disabled={index === activeProfile.rooms.length - 1} aria-label={`${text.moveRoomLater}: ${roomName}`} title={text.moveRoomLater} className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#dfe5dd] bg-white text-sm font-semibold text-[#65716d] transition hover:border-green-200 hover:text-[var(--brand-green)] disabled:cursor-not-allowed disabled:opacity-30">↓</button>
+                <button type="button" onClick={() => moveRoom(room.id, -1)} disabled={index === 0} aria-label={`${text.moveRoomEarlier}: ${roomName}`} title={text.moveRoomEarlier} className="flex h-7 w-7 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] text-sm font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-not-allowed disabled:opacity-30">↑</button>
+                <button type="button" onClick={() => moveRoom(room.id, 1)} disabled={index === activeProfile.rooms.length - 1} aria-label={`${text.moveRoomLater}: ${roomName}`} title={text.moveRoomLater} className="flex h-7 w-7 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] text-sm font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-not-allowed disabled:opacity-30">↓</button>
               </div>
             </div>
           </>
@@ -993,7 +997,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
-            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className="inline-flex min-h-7 w-fit items-center justify-center rounded-md border border-[var(--brand-green)] bg-[var(--brand-green)] px-2.5 text-[11px] font-semibold leading-4 text-[var(--brand-off-white)] transition hover:bg-[var(--brand-green-dark)] active:scale-[0.98]">{text.settings}</button>
+            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className={`${homeCompactActionClass} w-fit text-[11px] leading-4`}>{text.settings}</button>
           </div>
 
           {settingsOpen && (
@@ -1002,7 +1006,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
               <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
-              <button type="button" onClick={saveSettings} className="inline-flex min-h-7 items-center justify-center rounded-md border border-[var(--brand-green)] bg-[var(--brand-green)] px-2.5 text-[11px] font-semibold leading-4 text-[var(--brand-off-white)] transition hover:bg-[var(--brand-green-dark)] active:scale-[0.98] sm:col-span-4 sm:justify-self-start">{text.saveSettings}</button>
+              <button type="button" onClick={saveSettings} className={`${homeCompactActionClass} text-[11px] leading-4 sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
               <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
                 <div className="mt-1 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
@@ -1010,7 +1014,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <span className="block">{text.dataText}</span>
                     <span className="block">{text.dataPrivacy}</span>
                   </p>
-                  <div className="flex flex-nowrap items-start gap-x-3 whitespace-nowrap lg:pt-px">
+                  <div className="flex flex-nowrap items-start gap-x-2 whitespace-nowrap lg:-mt-[5px]">
                     <input
                       ref={homeImportInputRef}
                       type="file"
@@ -1022,53 +1026,52 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       type="button"
                       onClick={() => homeImportInputRef.current?.click()}
                       data-manage-data-import
-                      className="group/import-home saved-device-utility-action relative shrink-0 pb-3 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                      className={`${homeCompactActionClass} saved-device-utility-action relative shrink-0 gap-1 py-1`}
                     >
-                      {text.importHome}
                       <svg
-                        viewBox="0 0 12 8"
+                        viewBox="0 0 12 12"
                         fill="none"
-                        className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/import-home:translate-y-0 group-hover/import-home:opacity-100"
+                        className="h-2.5 w-2.5 shrink-0"
                         stroke="currentColor"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         aria-hidden="true"
                       >
-                        <path d="m2.5 5.5 3.5-3 3.5 3" />
+                        <path d="M6 10V2M3.5 4.5 6 2l2.5 2.5" />
                       </svg>
+                      {text.importHome}
                     </button>
                     <button
                       type="button"
                       onClick={exportHome}
                       data-manage-data-export
-                      className="group/export-home saved-device-utility-action relative shrink-0 pb-3 text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                      className={`${homeCompactActionClass} saved-device-utility-action relative shrink-0 gap-1 py-1`}
                     >
-                      {text.exportHome}
                       <svg
-                        viewBox="0 0 12 8"
+                        viewBox="0 0 12 12"
                         fill="none"
-                        className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/export-home:translate-y-0 group-hover/export-home:opacity-100"
+                        className="h-2.5 w-2.5 shrink-0"
                         stroke="currentColor"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         aria-hidden="true"
                       >
-                        <path d="m2.5 2.5 3.5 3 3.5-3" />
+                        <path d="M6 2v8M3.5 7.5 6 10l2.5-2.5" />
                       </svg>
+                      {text.exportHome}
                     </button>
                     <button
                       type="button"
                       onClick={resetHome}
                       data-manage-data-reset
-                      className="group/reset-home saved-device-utility-action relative shrink-0 pb-3 text-[#8b9792] transition hover:text-red-700"
+                      className={`${homeDangerActionClass} saved-device-utility-action relative shrink-0 gap-1 py-1`}
                     >
-                      {text.resetHome}
                       <svg
                         viewBox="0 0 12 12"
                         fill="none"
-                        className="pointer-events-none absolute bottom-0 left-0 h-2.5 w-2.5 translate-y-1 text-red-600 opacity-0 transition duration-150 group-hover/reset-home:translate-y-0 group-hover/reset-home:opacity-100"
+                        className="h-2.5 w-2.5 shrink-0"
                         stroke="currentColor"
                         strokeWidth="1.7"
                         strokeLinecap="round"
@@ -1076,6 +1079,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       >
                         <path d="m3 3 6 6M9 3 3 9" />
                       </svg>
+                      {text.resetHome}
                     </button>
                   </div>
                 </div>
@@ -1123,7 +1127,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.roomsTitle}</h2>
                 <p className="mt-1 text-[13px] text-[#65716d]">{profile.rooms.length} {profile.rooms.length === 1 ? text.roomSingular : text.roomPlural}</p>
               </div>
-              <button type="button" onClick={addRoom} className="inline-flex min-h-9 w-fit items-center rounded-lg border border-[#dfe5dd] bg-[#fbfcf8] px-3 text-xs font-semibold text-[var(--brand-green)] transition hover:border-green-200 hover:bg-white hover:text-[var(--brand-green-dark)] active:scale-[0.98]">+ {text.addRoom}</button>
+              <button type="button" onClick={addRoom} className={`${homeCompactActionClass} min-h-9 w-fit px-3 text-xs`}>+ {text.addRoom}</button>
             </div>
 
             {roomNotice && <p role="status" className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-sm font-bold text-[var(--brand-green)]">{roomNotice}</p>}
@@ -1185,9 +1189,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <div className={`${homeSurfaceClass} p-5`}>
               <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.monthlyCheckIn}</h2>
               <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{text.checkInText}</p>
-              <div className="mt-5 grid grid-cols-2 rounded-xl border border-[#dfe5dd] bg-[#eef1ed] p-1">
-                <button type="button" aria-pressed={checkInMode === "consumption"} onClick={() => { setCheckInMode("consumption"); setCheckInFeedback(null); }} className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${checkInMode === "consumption" ? "bg-white text-[var(--brand-green)] shadow-sm" : "text-[#65716d] hover:text-[#17211f]"}`}>{text.consumptionEntry}</button>
-                <button type="button" aria-pressed={checkInMode === "bill"} onClick={() => { setCheckInMode("bill"); setCheckInFeedback(null); }} className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${checkInMode === "bill" ? "bg-white text-[var(--brand-green)] shadow-sm" : "text-[#65716d] hover:text-[#17211f]"}`}>{text.billEntry}</button>
+              <div className="mt-5 grid grid-cols-2 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
+                <button type="button" aria-pressed={checkInMode === "consumption"} onClick={() => { setCheckInMode("consumption"); setCheckInFeedback(null); }} className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${checkInMode === "consumption" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.consumptionEntry}</button>
+                <button type="button" aria-pressed={checkInMode === "bill"} onClick={() => { setCheckInMode("bill"); setCheckInFeedback(null); }} className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${checkInMode === "bill" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.billEntry}</button>
               </div>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-1.5 text-xs font-semibold text-[#52605b] sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
@@ -1226,7 +1230,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           {proReady ? (
             <section className="mt-8 overflow-hidden rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] p-6 text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] sm:p-8">
-              <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green-mint)]">{text.proEyebrow}</p><h2 className="mt-3 text-2xl font-extrabold tracking-[-0.04em] sm:text-3xl">{text.proTitle}</h2><p className="mt-4 max-w-2xl leading-7 text-slate-300">{text.proText}</p><p className="mt-5 text-xs leading-5 text-slate-400">{text.betaDetail}</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-5"><div className="grid grid-cols-2 rounded-full bg-black/20 p-1"><button type="button" onClick={() => { setPlan("monthly"); track("Home Pro Preview Opened", { locale, plan: "monthly" }); }} className={`rounded-full px-4 py-2 text-sm font-bold ${plan === "monthly" ? "bg-white text-[#17211f]" : "text-slate-300"}`}>{text.monthlyPlan}</button><button type="button" onClick={() => { setPlan("yearly"); track("Home Pro Preview Opened", { locale, plan: "yearly" }); }} className={`rounded-full px-4 py-2 text-sm font-bold ${plan === "yearly" ? "bg-white text-[#17211f]" : "text-slate-300"}`}>{text.yearlyPlan}</button></div><div className="mt-5 flex min-h-8 flex-wrap items-center justify-center gap-4"><p className="text-center text-2xl font-extrabold">{plan === "yearly" ? text.yearlyPrice : text.monthlyPrice}</p>{plan === "yearly" && <span className="rounded-full border border-[var(--brand-green-mint)]/30 bg-[var(--brand-green-mint)]/10 px-2.5 py-1 text-[11px] font-extrabold text-[var(--brand-green-mint)]">{text.yearlyHint}</span>}</div><p className="mt-2 text-center text-[11px] font-semibold text-slate-400">{text.proBilling}</p><button type="button" onClick={submitBetaInterest} disabled={betaInterested} className="mt-5 min-h-12 w-full rounded-full bg-[var(--brand-green-mint)] px-5 text-sm font-extrabold text-[#10231b] transition hover:bg-[#9bedc0] disabled:cursor-default disabled:bg-white/15 disabled:text-slate-300">{betaInterested ? text.betaSaved : text.beta}</button></div></div>
+              <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green-mint)]">{text.proEyebrow}</p><h2 className="mt-3 text-2xl font-extrabold tracking-[-0.04em] sm:text-3xl">{text.proTitle}</h2><p className="mt-4 max-w-2xl leading-7 text-slate-300">{text.proText}</p><p className="mt-5 text-xs leading-5 text-slate-400">{text.betaDetail}</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-5"><div className="grid grid-cols-2 rounded-full bg-black/20 p-1"><button type="button" onClick={() => { setPlan("monthly"); track("Home Pro Preview Opened", { locale, plan: "monthly" }); }} className={`rounded-full border px-4 py-2 text-sm font-bold transition ${plan === "monthly" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-slate-300 hover:bg-white/10"}`}>{text.monthlyPlan}</button><button type="button" onClick={() => { setPlan("yearly"); track("Home Pro Preview Opened", { locale, plan: "yearly" }); }} className={`rounded-full border px-4 py-2 text-sm font-bold transition ${plan === "yearly" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-slate-300 hover:bg-white/10"}`}>{text.yearlyPlan}</button></div><div className="mt-5 flex min-h-8 flex-wrap items-center justify-center gap-4"><p className="text-center text-2xl font-extrabold">{plan === "yearly" ? text.yearlyPrice : text.monthlyPrice}</p>{plan === "yearly" && <span className="rounded-full border border-[var(--brand-green-mint)]/30 bg-[var(--brand-green-mint)]/10 px-2.5 py-1 text-[11px] font-extrabold text-[var(--brand-green-mint)]">{text.yearlyHint}</span>}</div><p className="mt-2 text-center text-[11px] font-semibold text-slate-400">{text.proBilling}</p><button type="button" onClick={submitBetaInterest} disabled={betaInterested} className="mt-5 min-h-12 w-full rounded-full border border-[#b8efcc] bg-[#dcfce8] px-5 text-sm font-extrabold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-default disabled:border-white/10 disabled:bg-white/15 disabled:text-slate-300">{betaInterested ? text.betaSaved : text.beta}</button></div></div>
             </section>
           ) : (
             <section className="mt-8 rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-5 py-4">

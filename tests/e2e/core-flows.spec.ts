@@ -205,6 +205,26 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
 
   await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Manage data" })).toBeVisible();
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(250);
+  const compactActions = [
+    { action: page.getByRole("button", { name: "Settings", exact: true }), fontSize: "16px" },
+    { action: page.getByRole("button", { name: "Save settings" }), fontSize: "16px" },
+    { action: page.getByRole("button", { name: "Import backup" }), fontSize: "11px" },
+  ];
+  for (const { action, fontSize } of compactActions) {
+    const style = await action.evaluate((element) => {
+      const computed = getComputedStyle(element);
+      return {
+        backgroundColor: computed.backgroundColor,
+        borderRadius: Number.parseFloat(computed.borderRadius),
+        fontSize: computed.fontSize,
+      };
+    });
+    expect(style.backgroundColor).toBe("rgb(220, 252, 232)");
+    expect(style.borderRadius).toBeGreaterThan(10);
+    expect(style.fontSize).toBe(fontSize);
+  }
   const manageDataTextTops = await page.evaluate(() => {
     const textTop = (selector: string) => {
       const element = document.querySelector(selector);
