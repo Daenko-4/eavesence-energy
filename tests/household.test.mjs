@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   calculateHouseholdSummary,
+  calculateMonthlyConsumptionComparison,
   createHouseholdBackup,
   createMonthlyEnergyEntry,
   createHouseholdProfile,
@@ -184,6 +185,33 @@ test("monthly bill amount estimates consumption from the household price", () =>
       value: 75,
       electricityPrice: 0,
     }),
+    null,
+  );
+});
+
+test("classifies the difference between estimated and actual consumption", () => {
+  const missingConsumption = calculateMonthlyConsumptionComparison({
+    estimatedKwh: 150,
+    actualKwh: 200,
+  });
+  const overestimated = calculateMonthlyConsumptionComparison({
+    estimatedKwh: 250,
+    actualKwh: 200,
+  });
+  const close = calculateMonthlyConsumptionComparison({
+    estimatedKwh: 190,
+    actualKwh: 200,
+  });
+
+  assert.equal(missingConsumption?.status, "actual-higher");
+  assert.equal(missingConsumption?.differenceKwh, 50);
+  assert.equal(missingConsumption?.differencePercent, 25);
+  assert.equal(missingConsumption?.explainedPercent, 75);
+  assert.equal(overestimated?.status, "estimate-higher");
+  assert.equal(overestimated?.differenceKwh, -50);
+  assert.equal(close?.status, "close");
+  assert.equal(
+    calculateMonthlyConsumptionComparison({ estimatedKwh: 0, actualKwh: 200 }),
     null,
   );
 });

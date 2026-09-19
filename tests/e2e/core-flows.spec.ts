@@ -197,6 +197,16 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(
     page.getByRole("heading", { name: "Estimate and actual consumption" }),
   ).toBeVisible();
+  const consumptionInsight = page.locator("[data-consumption-insight]");
+  await expect(consumptionInsight).toContainText(
+    "96% of your actual consumption is not yet covered by your saved devices.",
+  );
+  await expect(consumptionInsight).toContainText(
+    "Saved devices explain 4% of your actual monthly consumption.",
+  );
+  await expect(
+    consumptionInsight.getByRole("link", { name: "Add a missing device" }),
+  ).toHaveAttribute("href", "/#rechner");
 
   await page.getByRole("button", { name: "Reserve a beta place" }).click();
   await expect(

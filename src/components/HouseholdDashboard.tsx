@@ -19,6 +19,7 @@ import type { Locale } from "@/i18n/config";
 import { getLocalizedDevice } from "@/i18n/devices";
 import {
   calculateHouseholdSummary,
+  calculateMonthlyConsumptionComparison,
   createHouseholdBackup,
   createMonthlyEnergyEntry,
   createHouseholdProfile,
@@ -137,6 +138,16 @@ const copy = {
     calculatedEstimate: "Berechnete Geräte pro Monat",
     actualRecorded: "Tatsächlicher Monatswert",
     comparisonDifference: "Abweichung",
+    comparisonActualHigher: "{percent}% deines tatsächlichen Verbrauchs werden von den gespeicherten Geräten noch nicht abgedeckt.",
+    comparisonEstimateHigher: "Die Schätzung deiner gespeicherten Geräte liegt {percent}% über deinem tatsächlichen Verbrauch.",
+    comparisonClose: "Schätzung und tatsächlicher Verbrauch liegen nah beieinander.",
+    comparisonCoverage: "Erfasste Geräte erklären {percent}% des tatsächlichen Monatsverbrauchs.",
+    comparisonActualHigherTip: "Prüfe zuerst große oder dauerhaft laufende Verbraucher, die noch nicht gespeichert sind – zum Beispiel Heizung, Warmwasser, Kühlgeräte oder Homeoffice.",
+    comparisonEstimateHigherTip: "Prüfe Laufzeiten und Nutzungshäufigkeit deiner gespeicherten Geräte. Mindestens eine Schätzung ist wahrscheinlich zu hoch.",
+    comparisonCloseTip: "Deine Übersicht bildet den Monatsverbrauch bereits gut ab. Speichere den nächsten Monatswert, um den Trend zu bestätigen.",
+    comparisonAddDevice: "Fehlendes Gerät hinzufügen",
+    comparisonReviewDevices: "Gespeicherte Geräte prüfen",
+    comparisonNextMonth: "Nächsten Monatswert vormerken",
     noComparison:
       "Speichere Geräte und einen Monatswert, um Schätzung und tatsächlichen Verbrauch zu vergleichen.",
     proEyebrow: "EAVESENCE Pro",
@@ -252,6 +263,16 @@ const copy = {
     calculatedEstimate: "Calculated devices per month",
     actualRecorded: "Actual monthly value",
     comparisonDifference: "Difference",
+    comparisonActualHigher: "{percent}% of your actual consumption is not yet covered by your saved devices.",
+    comparisonEstimateHigher: "The estimate from your saved devices is {percent}% above your actual consumption.",
+    comparisonClose: "The estimate and actual consumption are close.",
+    comparisonCoverage: "Saved devices explain {percent}% of your actual monthly consumption.",
+    comparisonActualHigherTip: "Start with large or always-on consumers that are not saved yet, such as heating, hot water, refrigeration or home-office equipment.",
+    comparisonEstimateHigherTip: "Review runtimes and usage frequency for your saved devices. At least one estimate is probably too high.",
+    comparisonCloseTip: "Your overview already reflects the monthly consumption well. Save the next month to confirm the trend.",
+    comparisonAddDevice: "Add a missing device",
+    comparisonReviewDevices: "Review saved devices",
+    comparisonNextMonth: "Prepare next monthly value",
     noComparison:
       "Save devices and a monthly value to compare the estimate with actual consumption.",
     proEyebrow: "EAVESENCE Pro",
@@ -419,6 +440,7 @@ function readVisitState(value: string | null): HouseholdVisitState | null {
 export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const text = copy[locale];
   const calculatorHref = locale === "de" ? "/de#rechner" : "/#rechner";
+  const savedDevicesHref = locale === "de" ? "/de#meine-geraete" : "/#meine-geraete";
   const languageHref = locale === "de" ? "/home" : "/de/zuhause";
   const [ready, setReady] = useState(false);
   const [profile, setProfile] = useState<HouseholdProfile | null>(null);
@@ -879,6 +901,55 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const comparisonDifference = latestActual
     ? latestActual.kwh - (summary?.monthlyKwh ?? 0)
     : null;
+  const monthlyComparison = latestActual
+    ? calculateMonthlyConsumptionComparison({
+        estimatedKwh: summary?.monthlyKwh ?? 0,
+        actualKwh: latestActual.kwh,
+      })
+    : null;
+  const comparisonContent = monthlyComparison
+    ? monthlyComparison.status === "actual-higher"
+      ? {
+          summary: text.comparisonActualHigher.replace(
+            "{percent}",
+            formatNumber(monthlyComparison.differencePercent, locale, 0),
+          ),
+          coverage: text.comparisonCoverage.replace(
+            "{percent}",
+            formatNumber(monthlyComparison.explainedPercent, locale, 0),
+          ),
+          tip: text.comparisonActualHigherTip,
+          action: text.comparisonAddDevice,
+          href: calculatorHref,
+          tone: "amber" as const,
+        }
+      : monthlyComparison.status === "estimate-higher"
+        ? {
+            summary: text.comparisonEstimateHigher.replace(
+              "{percent}",
+              formatNumber(monthlyComparison.differencePercent, locale, 0),
+            ),
+            coverage: text.comparisonCoverage.replace(
+              "{percent}",
+              formatNumber(monthlyComparison.explainedPercent, locale, 0),
+            ),
+            tip: text.comparisonEstimateHigherTip,
+            action: text.comparisonReviewDevices,
+            href: savedDevicesHref,
+            tone: "amber" as const,
+          }
+        : {
+            summary: text.comparisonClose,
+            coverage: text.comparisonCoverage.replace(
+              "{percent}",
+              formatNumber(monthlyComparison.explainedPercent, locale, 0),
+            ),
+            tip: text.comparisonCloseTip,
+            action: text.comparisonNextMonth,
+            href: "#monthly-check-in",
+            tone: "green" as const,
+          }
+    : null;
   const proReady = savedDevices.length >= 3 || history.length >= 2;
   const occupiedRooms = summary?.roomTotals.filter((room) => room.deviceCount > 0) ?? [];
   const emptyRooms = summary?.roomTotals.filter((room) => room.deviceCount === 0) ?? [];
@@ -1186,7 +1257,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
 
           <section className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className={`${homeSurfaceClass} p-5`}>
+            <div id="monthly-check-in" className={`${homeSurfaceClass} scroll-mt-24 p-5`}>
               <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.monthlyCheckIn}</h2>
               <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{text.checkInText}</p>
               <div className="mt-5 grid grid-cols-2 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
@@ -1220,10 +1291,22 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <section className={`mt-5 p-5 ${homeSurfaceClass}`}>
             <h2 className="text-lg font-extrabold tracking-[-0.02em] sm:text-xl">{text.comparisonTitle}</h2>
             {latestActual && savedDevices.length > 0 ? (
-              <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedEstimate}</p><p className="mt-2 text-xl font-bold">{formatNumber(summary?.monthlyKwh ?? 0, locale, 1)} kWh</p></div>
-                <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"><p className="text-[11px] font-semibold text-[#65716d]">{text.actualRecorded}</p><p className="mt-2 text-xl font-bold">{formatNumber(latestActual.kwh, locale, 1)} kWh</p></div>
-                <div className="rounded-xl border border-[#b8efcc] bg-[#dcfce8] p-4"><p className="text-[11px] font-semibold text-[var(--brand-green)]">{text.comparisonDifference}</p><p className="mt-2 text-xl font-bold text-[var(--brand-green)]">{comparisonDifference !== null && comparisonDifference > 0 ? "+" : ""}{formatNumber(comparisonDifference ?? 0, locale, 1)} kWh</p></div>
+              <div className="mt-5">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedEstimate}</p><p className="mt-2 text-xl font-bold">{formatNumber(summary?.monthlyKwh ?? 0, locale, 1)} kWh</p></div>
+                  <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"><p className="text-[11px] font-semibold text-[#65716d]">{text.actualRecorded}</p><p className="mt-2 text-xl font-bold">{formatNumber(latestActual.kwh, locale, 1)} kWh</p></div>
+                  <div className="rounded-xl border border-[#b8efcc] bg-[#dcfce8] p-4"><p className="text-[11px] font-semibold text-[var(--brand-green)]">{text.comparisonDifference}</p><p className="mt-2 text-xl font-bold text-[var(--brand-green)]">{comparisonDifference !== null && comparisonDifference > 0 ? "+" : ""}{formatNumber(comparisonDifference ?? 0, locale, 1)} kWh</p></div>
+                </div>
+                {comparisonContent && (
+                  <div data-consumption-insight className={`mt-4 rounded-xl border p-4 ${comparisonContent.tone === "green" ? "border-[#b8efcc] bg-[#eefbf3]" : "border-amber-200 bg-amber-50"}`}>
+                    <p className="text-[13px] font-bold text-[#17211f]">{comparisonContent.summary}</p>
+                    <p className="mt-1 text-xs font-semibold text-[#65716d]">{comparisonContent.coverage}</p>
+                    <p className="mt-3 text-[13px] leading-6 text-[#52605b]">{comparisonContent.tip}</p>
+                    <Link href={comparisonContent.href} onClick={() => track("Home Comparison Action Clicked", { locale, status: monthlyComparison?.status ?? "unknown" })} className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]">
+                      {comparisonContent.action}<span aria-hidden="true">›</span>
+                    </Link>
+                  </div>
+                )}
               </div>
             ) : <p className="mt-3 text-[13px] leading-6 text-[#65716d]">{text.noComparison}</p>}
           </section>
