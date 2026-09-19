@@ -218,7 +218,7 @@ textarea {
   left: 0.75rem;
   z-index: 90;
   display: none;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.25rem;
   padding: 0.4rem 0.45rem max(0.4rem, env(safe-area-inset-bottom));
   border: 1px solid rgba(207, 231, 215, 0.96);
@@ -233,6 +233,12 @@ textarea {
   font-size: 0.6875rem;
   font-weight: 600;
   line-height: 1rem;
+}
+
+.connectivity-status {
+  bottom: 1rem;
+  max-width: calc(100vw - 2rem);
+  text-align: center;
 }
 
 @media (display-mode: standalone) and (max-width: 767px) {
@@ -264,6 +270,10 @@ textarea {
 
   .pwa-mobile-navigation {
     display: grid;
+  }
+
+  .connectivity-status {
+    bottom: calc(5.9rem + env(safe-area-inset-bottom));
   }
 }
 

@@ -101,6 +101,7 @@ test("calculator engagement is tracked only on the first interaction", async ({
 });
 
 test("PWA metadata, service worker and offline fallback are available", async ({
+  context,
   page,
   request,
 }) => {
@@ -130,7 +131,26 @@ test("PWA metadata, service worker and offline fallback are available", async ({
   const serviceWorkerResponse = await request.get("/sw.js");
   expect(serviceWorkerResponse.ok()).toBe(true);
   expect(serviceWorkerResponse.headers()["cache-control"]).toContain("no-cache");
-  expect(await serviceWorkerResponse.text()).toContain('const OFFLINE_URL = "/offline"');
+  const serviceWorker = await serviceWorkerResponse.text();
+  expect(serviceWorker).toContain('const OFFLINE_URL = "/offline"');
+  expect(serviceWorker).toContain('"/home"');
+  expect(serviceWorker).toContain('"/de/zuhause"');
+
+  await page.goto("/home");
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    await navigator.serviceWorker.ready;
+  });
+  await page.reload();
+  await expect
+    .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+    .toBe(true);
+  await context.setOffline(true);
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(
+    page.getByRole("heading", { name: "Set up your home" }),
+  ).toBeVisible();
+  await context.setOffline(false);
 
   await page.goto("/offline");
   await expect(page.getByRole("heading", { name: "Keine Verbindung" })).toBeVisible();
@@ -223,6 +243,11 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.reload();
 
   await expect(page.getByText("Foundation complete", { exact: true })).toBeVisible();
+  const quickAccess = page.getByRole("region", { name: "Quick access" });
+  await expect(quickAccess).toBeVisible();
+  await expect(
+    quickAccess.getByRole("link", { name: "Coffee machine" }),
+  ).toHaveAttribute("href", "/en/devices/coffee-machine");
   const firstRoomAssignment = page.getByLabel("Assign room").first();
   await firstRoomAssignment.selectOption({ label: "Cooking" });
   await expect(
@@ -921,6 +946,7 @@ test.describe("mobile", () => {
   });
 
   test("My home onboarding and compact room layout fit on a phone", async ({
+    context,
     page,
   }) => {
     await disableHeaderIntro(page);
@@ -937,18 +963,36 @@ test.describe("mobile", () => {
     await expect(appNavigation).toBeVisible();
     await expect(
       appNavigation.getByRole("link", { name: "Overview" }),
-    ).toHaveAttribute("href", "#home-overview");
+    ).toHaveAttribute("aria-current", "location");
     await expect(
-      appNavigation.getByRole("link", { name: "Monthly value" }),
+      appNavigation.getByRole("link", { name: "Month" }),
     ).toHaveAttribute("href", "#monthly-check-in");
     await expect(
-      appNavigation.getByRole("link", { name: "Device" }),
+      appNavigation.getByRole("link", { name: "Add" }),
     ).toHaveAttribute("href", "/#rechner");
+    const devicesDestination = appNavigation.getByRole("link", {
+      name: "Devices",
+    });
+    await expect(devicesDestination).toHaveAttribute("href", "#home-devices");
+    await devicesDestination.click();
+    await expect(devicesDestination).toHaveAttribute("aria-current", "location");
     await expect(
       appNavigation.getByRole("button", { name: "Settings" }),
     ).toHaveCSS("font-size", "11px");
     await appNavigation.getByRole("button", { name: "Settings" }).click();
     await expect(page.getByLabel("Home name")).toBeFocused();
+    await expect(
+      appNavigation.getByRole("button", { name: "Settings" }),
+    ).toHaveAttribute("aria-current", "location");
+
+    await context.setOffline(true);
+    await expect(
+      page.getByRole("status").filter({ hasText: "Offline" }),
+    ).toContainText("Your local data remains available");
+    await context.setOffline(false);
+    await expect(
+      page.getByRole("status").filter({ hasText: "Back online" }),
+    ).toBeVisible();
 
     const navigationBounds = await appNavigation.boundingBox();
     expect(navigationBounds?.x ?? -1).toBeGreaterThanOrEqual(0);
