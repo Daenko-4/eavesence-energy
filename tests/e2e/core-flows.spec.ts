@@ -119,6 +119,9 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(
     page.getByText("0 of 3 devices for a meaningful overview", { exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Add room" }),
+  ).toHaveCSS("font-size", "11px");
 
   await page.getByText("Other rooms (5)", { exact: false }).click();
   await page.getByRole("button", { name: "Rename: Kitchen" }).click();

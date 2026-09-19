@@ -1335,7 +1335,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.roomsTitle}</h2>
                 <p className="mt-1 text-[13px] text-[#65716d]">{profile.rooms.length} {profile.rooms.length === 1 ? text.roomSingular : text.roomPlural}</p>
               </div>
-              <button type="button" onClick={addRoom} className={`${homeCompactActionClass} min-h-9 w-fit px-3 text-xs`}>+ {text.addRoom}</button>
+              <button type="button" onClick={addRoom} className={`${homeCompactActionClass} saved-device-utility-action relative min-h-9 w-fit px-3`}>+ {text.addRoom}</button>
             </div>
 
             {roomNotice && <p role="status" className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-sm font-bold text-[var(--brand-green)]">{roomNotice}</p>}
