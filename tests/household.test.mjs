@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   calculateHouseholdSummary,
   calculateMonthlyConsumptionComparison,
+  calculateMonthlyEnergyTrend,
   createHouseholdBackup,
   createMonthlyEnergyEntry,
   createHouseholdProfile,
@@ -12,6 +13,7 @@ import {
   readHouseholdProfile,
   readHouseholdBackup,
   readMonthlyEnergyEntries,
+  removeMonthlyEnergyEntry,
   upsertMonthlyEnergyEntry,
 } from "../src/lib/household.ts";
 
@@ -155,6 +157,19 @@ test("monthly history keeps the latest value per month", () => {
   assert.deepEqual(readMonthlyEnergyEntries(JSON.stringify(entries)), entries);
 });
 
+test("removes only the selected monthly history entry", () => {
+  const august = {
+    month: "2026-08",
+    kwh: 200,
+    cost: 60,
+    updatedAt: "2026-08-31T12:00:00.000Z",
+  };
+  const september = { ...august, month: "2026-09" };
+
+  assert.deepEqual(removeMonthlyEnergyEntry([september, august], "2026-09"), [august]);
+  assert.deepEqual(removeMonthlyEnergyEntry([september, august], "2026-10"), [september, august]);
+});
+
 test("monthly consumption calculates cost from the household electricity price", () => {
   const entry = createMonthlyEnergyEntry({
     month: "2026-09",
@@ -214,4 +229,20 @@ test("classifies the difference between estimated and actual consumption", () =>
     calculateMonthlyConsumptionComparison({ estimatedKwh: 0, actualKwh: 200 }),
     null,
   );
+});
+
+test("calculates consumption and cost trends from the latest two months", () => {
+  const trend = calculateMonthlyEnergyTrend([
+    { month: "2026-08", kwh: 200, cost: 60, updatedAt: "2026-08-31T12:00:00.000Z" },
+    { month: "2026-10", kwh: 180, cost: 54, updatedAt: "2026-10-31T12:00:00.000Z" },
+    { month: "2026-09", kwh: 240, cost: 72, updatedAt: "2026-09-30T12:00:00.000Z" },
+  ]);
+
+  assert.equal(trend?.currentMonth, "2026-10");
+  assert.equal(trend?.previousMonth, "2026-09");
+  assert.equal(trend?.consumptionDifferenceKwh, -60);
+  assert.equal(trend?.consumptionChangePercent, -25);
+  assert.equal(trend?.costDifference, -18);
+  assert.equal(trend?.costChangePercent, -25);
+  assert.equal(calculateMonthlyEnergyTrend([]), null);
 });

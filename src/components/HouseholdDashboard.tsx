@@ -20,6 +20,7 @@ import { getLocalizedDevice } from "@/i18n/devices";
 import {
   calculateHouseholdSummary,
   calculateMonthlyConsumptionComparison,
+  calculateMonthlyEnergyTrend,
   createHouseholdBackup,
   createMonthlyEnergyEntry,
   createHouseholdProfile,
@@ -34,6 +35,7 @@ import {
   readHouseholdProfile,
   readHouseholdBackup,
   readMonthlyEnergyEntries,
+  removeMonthlyEnergyEntry,
   upsertMonthlyEnergyEntry,
   type HouseholdProfile,
   type HouseholdVisitState,
@@ -56,7 +58,7 @@ const homePrimaryActionClass =
 const homeCompactActionClass =
   "inline-flex min-h-7 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-2.5 font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]";
 const homeDangerActionClass =
-  "inline-flex min-h-7 items-center justify-center rounded-full border border-red-100 bg-red-50 px-2.5 font-semibold text-red-600 transition hover:border-red-200 hover:bg-red-100 hover:text-red-700 active:scale-[0.98]";
+  "inline-flex min-h-7 items-center justify-center gap-1 rounded-full border border-red-100 bg-red-50 px-2.5 font-semibold text-red-600 transition hover:border-red-200 hover:bg-red-100 hover:text-red-700 active:scale-[0.98]";
 const currencies: SavedDeviceCurrency[] = [
   "EUR",
   "CHF",
@@ -124,13 +126,23 @@ const copy = {
     calculatedCost: "Automatisch berechnete Kosten",
     estimatedConsumption: "Geschätzter Verbrauch",
     saveCheckIn: "Monat speichern",
+    updateCheckIn: "Monatswert aktualisieren",
+    cancelCheckInEdit: "Bearbeitung abbrechen",
     checkInSaved: "Monatswert wurde gespeichert.",
+    checkInUpdated: "Monatswert wurde aktualisiert.",
+    checkInLoaded: "Monatswert wurde zum Bearbeiten geladen.",
     checkInRequired: "Bitte gib einen Wert größer als 0 ein.",
     checkInPriceRequired:
       "Bitte hinterlege zuerst einen Strompreis größer als 0 in den Einstellungen.",
     history: "Verlauf",
     noHistory: "Noch kein Monatswert vorhanden.",
     comparedWithPrevious: "gegenüber dem vorherigen Eintrag",
+    editMonth: "Bearbeiten",
+    deleteMonth: "Löschen",
+    monthDeleted: "Monatswert wurde gelöscht.",
+    deleteMonthConfirm: "Diesen Monatswert wirklich löschen?",
+    trendConsumptionShort: "kWh",
+    trendCostShort: "Kosten",
     chartTitle: "Monatsentwicklung",
     chartConsumption: "Verbrauch",
     chartCost: "Kosten",
@@ -138,16 +150,24 @@ const copy = {
     calculatedEstimate: "Berechnete Geräte pro Monat",
     actualRecorded: "Tatsächlicher Monatswert",
     comparisonDifference: "Abweichung",
+    comparisonMonth: "Vergleichsmonat: {month}",
+    comparisonDataBasis: "Die Schätzung berücksichtigt {devices} gespeicherte Geräte. Nicht erfasste Verbraucher erscheinen als Abweichung.",
     comparisonActualHigher: "{percent}% deines tatsächlichen Verbrauchs werden von den gespeicherten Geräten noch nicht abgedeckt.",
     comparisonEstimateHigher: "Die Schätzung deiner gespeicherten Geräte liegt {percent}% über deinem tatsächlichen Verbrauch.",
     comparisonClose: "Schätzung und tatsächlicher Verbrauch liegen nah beieinander.",
     comparisonCoverage: "Erfasste Geräte erklären {percent}% des tatsächlichen Monatsverbrauchs.",
     comparisonActualHigherTip: "Prüfe zuerst große oder dauerhaft laufende Verbraucher, die noch nicht gespeichert sind – zum Beispiel Heizung, Warmwasser, Kühlgeräte oder Homeoffice.",
-    comparisonEstimateHigherTip: "Prüfe Laufzeiten und Nutzungshäufigkeit deiner gespeicherten Geräte. Mindestens eine Schätzung ist wahrscheinlich zu hoch.",
+    comparisonEstimateHigherTip: "Prüfe zuerst Laufzeit und Nutzung von {device}, deinem aktuell größten berechneten Verbraucher.",
     comparisonCloseTip: "Deine Übersicht bildet den Monatsverbrauch bereits gut ab. Speichere den nächsten Monatswert, um den Trend zu bestätigen.",
     comparisonAddDevice: "Fehlendes Gerät hinzufügen",
     comparisonReviewDevices: "Gespeicherte Geräte prüfen",
     comparisonNextMonth: "Nächsten Monatswert vormerken",
+    savingTipEyebrow: "Nächster Spartipp",
+    savingTipTitle: "{device} zuerst prüfen",
+    savingTipShare: "{share}% des berechneten Geräteverbrauchs",
+    savingTipCustom: "Prüfe Laufzeit, Leistungsaufnahme und Nutzungshäufigkeit. Schon eine kleine Korrektur verbessert deine Haushaltsprognose.",
+    savingTipDetails: "Gerätedetails öffnen",
+    savingTipReview: "Gespeichertes Gerät prüfen",
     noComparison:
       "Speichere Geräte und einen Monatswert, um Schätzung und tatsächlichen Verbrauch zu vergleichen.",
     proEyebrow: "EAVESENCE Pro",
@@ -249,13 +269,23 @@ const copy = {
     calculatedCost: "Automatically calculated cost",
     estimatedConsumption: "Estimated consumption",
     saveCheckIn: "Save month",
+    updateCheckIn: "Update monthly value",
+    cancelCheckInEdit: "Cancel editing",
     checkInSaved: "Monthly value saved.",
+    checkInUpdated: "Monthly value updated.",
+    checkInLoaded: "Monthly value loaded for editing.",
     checkInRequired: "Enter a value greater than 0.",
     checkInPriceRequired:
       "First add an electricity price greater than 0 in Settings.",
     history: "History",
     noHistory: "No monthly value yet.",
     comparedWithPrevious: "compared with the previous entry",
+    editMonth: "Edit",
+    deleteMonth: "Delete",
+    monthDeleted: "Monthly value deleted.",
+    deleteMonthConfirm: "Delete this monthly value?",
+    trendConsumptionShort: "kWh",
+    trendCostShort: "cost",
     chartTitle: "Monthly trend",
     chartConsumption: "Consumption",
     chartCost: "Cost",
@@ -263,16 +293,24 @@ const copy = {
     calculatedEstimate: "Calculated devices per month",
     actualRecorded: "Actual monthly value",
     comparisonDifference: "Difference",
+    comparisonMonth: "Comparison month: {month}",
+    comparisonDataBasis: "The estimate includes {devices} saved devices. Consumers not yet saved appear as a difference.",
     comparisonActualHigher: "{percent}% of your actual consumption is not yet covered by your saved devices.",
     comparisonEstimateHigher: "The estimate from your saved devices is {percent}% above your actual consumption.",
     comparisonClose: "The estimate and actual consumption are close.",
     comparisonCoverage: "Saved devices explain {percent}% of your actual monthly consumption.",
     comparisonActualHigherTip: "Start with large or always-on consumers that are not saved yet, such as heating, hot water, refrigeration or home-office equipment.",
-    comparisonEstimateHigherTip: "Review runtimes and usage frequency for your saved devices. At least one estimate is probably too high.",
+    comparisonEstimateHigherTip: "First review the runtime and usage of {device}, currently your largest calculated consumer.",
     comparisonCloseTip: "Your overview already reflects the monthly consumption well. Save the next month to confirm the trend.",
     comparisonAddDevice: "Add a missing device",
     comparisonReviewDevices: "Review saved devices",
     comparisonNextMonth: "Prepare next monthly value",
+    savingTipEyebrow: "Next saving tip",
+    savingTipTitle: "Review {device} first",
+    savingTipShare: "{share}% of calculated device consumption",
+    savingTipCustom: "Review runtime, power and usage frequency. Even a small correction improves your household forecast.",
+    savingTipDetails: "Open device details",
+    savingTipReview: "Review saved device",
     noComparison:
       "Save devices and a monthly value to compare the estimate with actual consumption.",
     proEyebrow: "EAVESENCE Pro",
@@ -423,6 +461,10 @@ function localizedSavedDeviceName(device: SavedDevice, locale: Locale) {
   return source ? getLocalizedDevice(source, locale).name : device.device;
 }
 
+function savedDeviceSource(device: SavedDevice) {
+  return devices.find((item) => item.name === device.device) ?? null;
+}
+
 function readVisitState(value: string | null): HouseholdVisitState | null {
   if (!value) return null;
   try {
@@ -453,11 +495,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [month, setMonth] = useState(currentMonth());
   const [monthKwh, setMonthKwh] = useState("");
   const [monthCost, setMonthCost] = useState("");
+  const [editingMonth, setEditingMonth] = useState<string | null>(null);
   const [checkInMode, setCheckInMode] = useState<"consumption" | "bill">("consumption");
   const [checkInFeedback, setCheckInFeedback] = useState<{
     kind: "success" | "error";
     message: string;
   } | null>(null);
+  const [historyNotice, setHistoryNotice] = useState("");
   const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
   const [betaInterested, setBetaInterested] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -836,12 +880,58 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setHistory(nextHistory);
     setMonthKwh("");
     setMonthCost("");
-    setCheckInFeedback({ kind: "success", message: text.checkInSaved });
+    setCheckInFeedback({
+      kind: "success",
+      message: editingMonth ? text.checkInUpdated : text.checkInSaved,
+    });
+    setHistoryNotice("");
+    setEditingMonth(null);
     track("Home Monthly Check In Saved", {
       locale,
       has_kwh: nextEntry.kwh > 0,
       has_cost: nextEntry.cost > 0,
+      updated_existing: Boolean(editingMonth),
     });
+  }
+
+  function editMonthlyCheckIn(entry: MonthlyEnergyEntry) {
+    setMonth(entry.month);
+    setCheckInMode("consumption");
+    setMonthKwh(String(entry.kwh));
+    setMonthCost("");
+    setEditingMonth(entry.month);
+    setCheckInFeedback({ kind: "success", message: text.checkInLoaded });
+    setHistoryNotice("");
+    window.requestAnimationFrame(() => {
+      document.getElementById("monthly-check-in")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+    track("Home Monthly Check In Edit Started", { locale, month: entry.month });
+  }
+
+  function cancelMonthlyCheckInEdit() {
+    setEditingMonth(null);
+    setMonthKwh("");
+    setMonthCost("");
+    setCheckInFeedback(null);
+  }
+
+  function deleteMonthlyCheckIn(entry: MonthlyEnergyEntry) {
+    if (!window.confirm(text.deleteMonthConfirm)) return;
+    const nextHistory = removeMonthlyEnergyEntry(history, entry.month);
+    window.localStorage.setItem(
+      HOUSEHOLD_HISTORY_STORAGE_KEY,
+      JSON.stringify(nextHistory),
+    );
+    setHistory(nextHistory);
+    if (editingMonth === entry.month) cancelMonthlyCheckInEdit();
+    setRoomNotice("");
+    setNotice("");
+    setCheckInFeedback(null);
+    setHistoryNotice(text.monthDeleted);
+    track("Home Monthly Check In Deleted", { locale, month: entry.month });
   }
 
   function submitBetaInterest() {
@@ -893,11 +983,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   const activeProfile = profile;
-  const historyDelta = history.length > 1 && history[1].cost > 0
-    ? ((history[0].cost - history[1].cost) / history[1].cost) * 100
-    : null;
+  const monthlyTrend = calculateMonthlyEnergyTrend(history);
   const monthlySavings = (summary?.targetSavings ?? 0) / 12;
   const latestActual = history[0] ?? null;
+  const latestActualMonth = latestActual
+    ? new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", {
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(`${latestActual.month}-01T00:00:00Z`))
+    : "";
   const comparisonDifference = latestActual
     ? latestActual.kwh - (summary?.monthlyKwh ?? 0)
     : null;
@@ -933,7 +1028,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               "{percent}",
               formatNumber(monthlyComparison.explainedPercent, locale, 0),
             ),
-            tip: text.comparisonEstimateHigherTip,
+            tip: text.comparisonEstimateHigherTip.replace(
+              "{device}",
+              summary?.topDevice
+                ? localizedSavedDeviceName(summary.topDevice, locale)
+                : locale === "de"
+                  ? "deinem größten Gerät"
+                  : "your largest device",
+            ),
             action: text.comparisonReviewDevices,
             href: savedDevicesHref,
             tone: "amber" as const,
@@ -950,6 +1052,23 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             tone: "green" as const,
           }
     : null;
+  const topDeviceSource = summary?.topDevice
+    ? savedDeviceSource(summary.topDevice)
+    : null;
+  const topDeviceShare =
+    summary?.topDevice && summary.annualKwh > 0
+      ? (summary.topDevice.yearlyKwh / summary.annualKwh) * 100
+      : 0;
+  const topDeviceTip = summary?.topDevice
+    ? topDeviceSource
+      ? getLocalizedDevice(topDeviceSource, locale).tip
+      : text.savingTipCustom
+    : null;
+  const topDeviceHref = topDeviceSource
+    ? locale === "de"
+      ? `/geraete/${getLocalizedDevice(topDeviceSource, locale).slug}`
+      : `/en/devices/${getLocalizedDevice(topDeviceSource, locale).slug}`
+    : savedDevicesHref;
   const proReady = savedDevices.length >= 3 || history.length >= 2;
   const occupiedRooms = summary?.roomTotals.filter((room) => room.deviceCount > 0) ?? [];
   const emptyRooms = summary?.roomTotals.filter((room) => room.deviceCount === 0) ?? [];
@@ -1026,11 +1145,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       <div key={device.id} className="rounded-lg bg-white px-3 py-2.5">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="truncate text-[13px] font-semibold">{localizedSavedDeviceName(device, locale)}</p>
+                            <p data-room-device-name className="truncate text-[14px] font-bold">{localizedSavedDeviceName(device, locale)}</p>
                             <p className="mt-0.5 text-[11px] text-[#65716d]">{formatMoney(device.yearlyKwh * activeProfile.electricityPrice, locale, activeProfile.currency)} {text.yearly}</p>
                           </div>
                           <label className="sr-only" htmlFor={`room-${device.id}`}>{text.assign}</label>
-                          <select id={`room-${device.id}`} aria-label={`${text.assign}: ${localizedSavedDeviceName(device, locale)}`} value={room.id} onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-8 max-w-28 rounded-lg border border-[#dfe5dd] bg-white px-2 text-[11px] font-medium text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20">
+                          <select data-room-assignment id={`room-${device.id}`} aria-label={`${text.assign}: ${localizedSavedDeviceName(device, locale)}`} value={room.id} onChange={(event) => assignRoom(device.id, event.target.value)} className="h-7 max-w-24 rounded-md border border-[#dfe5dd] bg-white px-1.5 text-[11px] font-medium text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20">
                             <option value="">{text.unassigned}</option>
                             {activeProfile.rooms.map((option) => <option key={option.id} value={option.id}>{localizeDefaultRoomName(option.name, locale)}</option>)}
                           </select>
@@ -1043,12 +1162,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             )}
             <div className={`${compact ? "mt-2" : "mt-4 border-t border-[#dfe5dd] pt-3"} flex items-center justify-between gap-3`}>
               <div className="flex items-center gap-2.5">
-                <button type="button" onClick={() => startEditingRoom(room.id, roomName)} aria-label={`${text.editRoom}: ${roomName}`} className={`${homeCompactActionClass} min-h-6 px-2.5 text-[11px]`}>{text.editRoom}</button>
-                <button type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${roomName}`} className={`${homeDangerActionClass} min-h-6 px-2.5 text-[11px] font-medium`}>{text.deleteRoom}</button>
+                <button data-room-action type="button" onClick={() => startEditingRoom(room.id, roomName)} aria-label={`${text.editRoom}: ${roomName}`} className="saved-device-utility-action relative inline-flex h-6 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-2 text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)]">{text.editRoom}</button>
+                <button data-room-action type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${roomName}`} className="saved-device-utility-action relative inline-flex h-6 items-center justify-center rounded-full border border-red-100 bg-red-50 px-2 font-medium text-red-600 transition hover:border-red-200 hover:bg-red-100 hover:text-red-700">{text.deleteRoom}</button>
               </div>
               <div className="flex items-center gap-1">
-                <button type="button" onClick={() => moveRoom(room.id, -1)} disabled={index === 0} aria-label={`${text.moveRoomEarlier}: ${roomName}`} title={text.moveRoomEarlier} className="flex h-7 w-7 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] text-sm font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-not-allowed disabled:opacity-30">↑</button>
-                <button type="button" onClick={() => moveRoom(room.id, 1)} disabled={index === activeProfile.rooms.length - 1} aria-label={`${text.moveRoomLater}: ${roomName}`} title={text.moveRoomLater} className="flex h-7 w-7 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] text-sm font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-not-allowed disabled:opacity-30">↓</button>
+                <button data-room-action type="button" onClick={() => moveRoom(room.id, -1)} disabled={index === 0} aria-label={`${text.moveRoomEarlier}: ${roomName}`} title={text.moveRoomEarlier} className="saved-device-utility-action relative flex h-6 w-6 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-not-allowed disabled:opacity-30">↑</button>
+                <button data-room-action type="button" onClick={() => moveRoom(room.id, 1)} disabled={index === activeProfile.rooms.length - 1} aria-label={`${text.moveRoomLater}: ${roomName}`} title={text.moveRoomLater} className="saved-device-utility-action relative flex h-6 w-6 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-not-allowed disabled:opacity-30">↓</button>
               </div>
             </div>
           </>
@@ -1265,7 +1384,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <button type="button" aria-pressed={checkInMode === "bill"} onClick={() => { setCheckInMode("bill"); setCheckInFeedback(null); }} className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${checkInMode === "bill" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.billEntry}</button>
               </div>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <label className="grid gap-1.5 text-xs font-semibold text-[#52605b] sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
+                <label className="grid gap-1.5 text-xs font-semibold text-[#52605b] sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setEditingMonth(null); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                 {checkInMode === "consumption" ? (
                   <>
                     <label className="grid gap-1.5 text-xs font-semibold text-[#52605b]">{text.kwh}<input type="text" inputMode="decimal" value={monthKwh} onChange={(event) => { setMonthKwh(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
@@ -1279,17 +1398,36 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 )}
               </div>
               {checkInFeedback && <p role={checkInFeedback.kind === "error" ? "alert" : "status"} className={`mt-4 rounded-xl px-3 py-2.5 text-sm font-bold ${checkInFeedback.kind === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-[var(--brand-green)]"}`}>{checkInFeedback.message}</p>}
-              <button type="button" onClick={saveMonthlyCheckIn} className={`mt-5 ${homePrimaryActionClass}`}>{text.saveCheckIn}</button>
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                <button type="button" onClick={saveMonthlyCheckIn} className={homePrimaryActionClass}>{editingMonth ? text.updateCheckIn : text.saveCheckIn}</button>
+                {editingMonth && <button type="button" onClick={cancelMonthlyCheckInEdit} className={`${homeCompactActionClass} text-xs`}>{text.cancelCheckInEdit}</button>}
+              </div>
             </div>
             <div className={`${homeSurfaceClass} p-5`}>
-              <div className="flex items-center justify-between gap-4"><h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.history}</h2>{historyDelta !== null && <span className={`rounded-full px-3 py-1 text-xs font-bold ${historyDelta <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{historyDelta > 0 ? "+" : ""}{formatNumber(historyDelta, locale, 1)}%</span>}</div>
-              {history.length === 0 ? <p className="mt-6 text-[13px] text-[#65716d]">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} data-monthly-history-entry={entry.month} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3"><span className="text-[13px] font-semibold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span>{index === 0 && historyDelta !== null && <span className="col-span-3 text-xs text-[#65716d]">{text.comparedWithPrevious}</span>}</div>)}</div>}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.history}</h2>
+                {monthlyTrend && (
+                  <div className="flex flex-wrap gap-2" aria-label={text.comparedWithPrevious}>
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${monthlyTrend.consumptionChangePercent <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                      {text.trendConsumptionShort} {monthlyTrend.consumptionChangePercent > 0 ? "+" : ""}{formatNumber(monthlyTrend.consumptionChangePercent, locale, 1)}%
+                    </span>
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${monthlyTrend.costChangePercent <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                      {text.trendCostShort} {monthlyTrend.costChangePercent > 0 ? "+" : ""}{formatNumber(monthlyTrend.costChangePercent, locale, 1)}%
+                    </span>
+                  </div>
+                )}
+              </div>
+              {historyNotice && <p role="status" className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-[13px] font-bold text-[var(--brand-green)]">{historyNotice}</p>}
+              {history.length === 0 ? <p className="mt-6 text-[13px] text-[#65716d]">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} data-monthly-history-entry={entry.month} className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3"><div className="grid grid-cols-[1fr_auto_auto] items-center gap-4"><span className="text-[13px] font-semibold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span></div><div className="mt-2 flex flex-wrap items-center justify-between gap-2">{index === 0 && monthlyTrend !== null ? <span className="text-xs text-[#65716d]">{text.comparedWithPrevious}</span> : <span />}<div className="flex gap-1.5"><button type="button" onClick={() => editMonthlyCheckIn(entry)} className={`${homeCompactActionClass} min-h-7 px-2.5 text-[11px]`}>{text.editMonth}</button><button type="button" onClick={() => deleteMonthlyCheckIn(entry)} className={`${homeDangerActionClass} min-h-7 px-2.5 text-[11px]`}><span aria-hidden="true">×</span>{text.deleteMonth}</button></div></div></div>)}</div>}
               <MonthlyHistoryChart entries={history} locale={locale} currency={profile.currency} labels={{ title: text.chartTitle, consumption: text.chartConsumption, cost: text.chartCost }} />
             </div>
           </section>
 
           <section className={`mt-5 p-5 ${homeSurfaceClass}`}>
-            <h2 className="text-lg font-extrabold tracking-[-0.02em] sm:text-xl">{text.comparisonTitle}</h2>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h2 className="text-lg font-extrabold tracking-[-0.02em] sm:text-xl">{text.comparisonTitle}</h2>
+              {latestActual && <span className="rounded-full bg-[#eef1ed] px-2.5 py-1 text-[11px] font-semibold text-[#65716d]">{text.comparisonMonth.replace("{month}", latestActualMonth)}</span>}
+            </div>
             {latestActual && savedDevices.length > 0 ? (
               <div className="mt-5">
                 <div className="grid gap-4 sm:grid-cols-3">
@@ -1307,9 +1445,26 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     </Link>
                   </div>
                 )}
+                <p className="mt-3 text-[11px] leading-5 text-[#7a8782]">{text.comparisonDataBasis.replace("{devices}", formatNumber(savedDevices.length, locale))}</p>
               </div>
             ) : <p className="mt-3 text-[13px] leading-6 text-[#65716d]">{text.noComparison}</p>}
           </section>
+
+          {summary?.topDevice && topDeviceTip && (
+            <section data-saving-tip className="mt-5 rounded-[1.45rem] border border-[#b8efcc] bg-[#eefbf3] p-5">
+              <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div>
+                  <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.savingTipEyebrow}</p>
+                  <h2 className="mt-1 text-lg font-extrabold tracking-[-0.02em]">{text.savingTipTitle.replace("{device}", localizedSavedDeviceName(summary.topDevice, locale))}</h2>
+                  <p className="mt-1 text-xs font-semibold text-[#65716d]">{text.savingTipShare.replace("{share}", formatNumber(topDeviceShare, locale, 0))}</p>
+                  <p className="mt-3 max-w-3xl text-[13px] leading-6 text-[#52605b]">{topDeviceTip}</p>
+                </div>
+                <Link href={topDeviceHref} onClick={() => track("Home Saving Tip Opened", { locale, has_device_page: Boolean(topDeviceSource) })} className={`${homeCompactActionClass} w-fit text-[11px]`}>
+                  {topDeviceSource ? text.savingTipDetails : text.savingTipReview}<span aria-hidden="true">›</span>
+                </Link>
+              </div>
+            </section>
+          )}
 
           {proReady ? (
             <section className="mt-8 overflow-hidden rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] p-6 text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] sm:p-8">

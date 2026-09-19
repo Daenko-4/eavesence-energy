@@ -166,6 +166,19 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     page.getByText("Device assigned to the room.", { exact: true }),
   ).toBeVisible();
   await expect(firstRoomAssignment).toHaveValue(/.+/);
+  const roomDeviceProportions = await page.evaluate(() => {
+    const deviceName = document.querySelector("[data-room-device-name]");
+    const assignment = document.querySelector("[data-room-assignment]");
+    const actions = Array.from(document.querySelectorAll("[data-room-action]"));
+    return {
+      deviceNameFontSize: deviceName ? getComputedStyle(deviceName).fontSize : "",
+      assignmentHeight: assignment?.getBoundingClientRect().height ?? 0,
+      actionHeights: actions.map((action) => action.getBoundingClientRect().height),
+    };
+  });
+  expect(roomDeviceProportions.deviceNameFontSize).toBe("14px");
+  expect(roomDeviceProportions.assignmentHeight).toBeLessThanOrEqual(28);
+  expect(Math.max(...roomDeviceProportions.actionHeights)).toBeLessThanOrEqual(24);
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Delete: Cooking" }).click();
   await expect(firstRoomAssignment).toHaveValue("");
@@ -194,9 +207,12 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
       .getByText("214.3 kWh", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Monthly trend", { exact: true })).toBeVisible();
+  await expect(page.getByText("kWh +2%", { exact: true })).toBeVisible();
+  await expect(page.getByText("cost +2%", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Estimate and actual consumption" }),
   ).toBeVisible();
+  await expect(page.getByText("Comparison month: October 2026", { exact: true })).toBeVisible();
   const consumptionInsight = page.locator("[data-consumption-insight]");
   await expect(consumptionInsight).toContainText(
     "96% of your actual consumption is not yet covered by your saved devices.",
@@ -204,9 +220,25 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(consumptionInsight).toContainText(
     "Saved devices explain 4% of your actual monthly consumption.",
   );
+  await expect(page.getByText("The estimate includes 3 saved devices. Consumers not yet saved appear as a difference.", { exact: true })).toBeVisible();
   await expect(
     consumptionInsight.getByRole("link", { name: "Add a missing device" }),
   ).toHaveAttribute("href", "/#rechner");
+  const savingTip = page.locator("[data-saving-tip]");
+  await expect(savingTip).toContainText("Review Coffee machine first");
+  await expect(savingTip).toContainText("33% of calculated device consumption");
+  await expect(savingTip.getByRole("link", { name: "Open device details" })).toHaveAttribute("href", "/en/devices/coffee-machine");
+
+  await septemberEntry.getByRole("button", { name: "Edit" }).click();
+  await expect(page.getByLabel("Consumption in kWh")).toHaveValue("210");
+  await page.getByLabel("Consumption in kWh").fill("205");
+  await page.getByRole("button", { name: "Update monthly value" }).click();
+  await expect(page.getByText("Monthly value updated.", { exact: true })).toBeVisible();
+  await expect(septemberEntry.getByText("205 kWh", { exact: true })).toBeVisible();
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await septemberEntry.getByRole("button", { name: "Delete" }).click();
+  await expect(septemberEntry).toHaveCount(0);
 
   await page.getByRole("button", { name: "Reserve a beta place" }).click();
   await expect(
@@ -830,6 +862,88 @@ test.describe("mobile", () => {
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
+  });
+
+  test("My home history, comparison and edit controls fit on a small phone", async ({
+    page,
+  }) => {
+    await disableHeaderIntro(page);
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.addInitScript(() => {
+      const timestamp = "2026-09-19T12:00:00.000Z";
+      window.localStorage.setItem(
+        "eavesence-home-profile-v1",
+        JSON.stringify({
+          version: 1,
+          name: "Mobile home",
+          currency: "EUR",
+          electricityPrice: 0.3,
+          savingsGoalPercent: 10,
+          rooms: [{ id: "kitchen-1", name: "Kitchen" }],
+          deviceRooms: { fridge: "kitchen-1" },
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          onboardingCompletedAt: timestamp,
+        }),
+      );
+      window.localStorage.setItem(
+        "eavesence-saved-devices-v1",
+        JSON.stringify([
+          {
+            id: "fridge",
+            device: "Kühlschrank",
+            customDeviceName: "",
+            mode: "estimate",
+            currency: "EUR",
+            price: 0.3,
+            watts: 100,
+            minutesPerUse: 60,
+            usesPerWeek: 168,
+            estimatedKwhPerUse: 0.1,
+            measuredKwhPerUse: 0,
+            yearlyKwh: 180,
+            yearlyCost: 54,
+            monthlyCost: 4.5,
+            updatedAt: timestamp,
+          },
+        ]),
+      );
+      window.localStorage.setItem(
+        "eavesence-home-history-v1",
+        JSON.stringify([
+          { month: "2026-09", kwh: 210, cost: 63, updatedAt: timestamp },
+          { month: "2026-08", kwh: 200, cost: 60, updatedAt: timestamp },
+        ]),
+      );
+    });
+    await page.goto("/home");
+
+    await expect(page.getByRole("heading", { name: "Mobile home" })).toBeVisible();
+    await expect(page.getByText("Comparison month: September 2026", { exact: true })).toBeVisible();
+    const septemberEntry = page.locator('[data-monthly-history-entry="2026-09"]');
+    await septemberEntry.getByRole("button", { name: "Edit" }).click();
+    await expect(page.getByRole("button", { name: "Update monthly value" })).toBeVisible();
+
+    const mobileLayout = await page.evaluate(() => {
+      const viewportWidth = document.documentElement.clientWidth;
+      const controls = Array.from(
+        document.querySelectorAll(
+          '[data-monthly-history-entry] button, [data-consumption-insight] a, #monthly-check-in input, #monthly-check-in button',
+        ),
+      );
+      return {
+        documentOverflows: document.documentElement.scrollWidth > viewportWidth,
+        overflowingControls: controls
+          .filter((element) => {
+            const rect = element.getBoundingClientRect();
+            return rect.left < -0.5 || rect.right > viewportWidth + 0.5;
+          })
+          .map((element) => element.textContent?.trim() || element.tagName),
+      };
+    });
+
+    expect(mobileLayout.documentOverflows).toBe(false);
+    expect(mobileLayout.overflowingControls).toEqual([]);
   });
 });
 

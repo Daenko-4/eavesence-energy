@@ -40,6 +40,15 @@ export type MonthlyConsumptionComparison = {
   explainedPercent: number;
 };
 
+export type MonthlyEnergyTrend = {
+  currentMonth: string;
+  previousMonth: string;
+  consumptionDifferenceKwh: number;
+  consumptionChangePercent: number;
+  costDifference: number;
+  costChangePercent: number;
+};
+
 export type HouseholdBackup = {
   version: 1;
   exportedAt: string;
@@ -357,6 +366,13 @@ export function upsertMonthlyEnergyEntry(
     .slice(0, 24);
 }
 
+export function removeMonthlyEnergyEntry(
+  entries: MonthlyEnergyEntry[],
+  month: string,
+) {
+  return entries.filter((entry) => entry.month !== month);
+}
+
 export function calculateMonthlyConsumptionComparison({
   estimatedKwh,
   actualKwh,
@@ -391,6 +407,30 @@ export function calculateMonthlyConsumptionComparison({
     absoluteDifferenceKwh,
     differencePercent,
     explainedPercent,
+  };
+}
+
+export function calculateMonthlyEnergyTrend(
+  entries: MonthlyEnergyEntry[],
+): MonthlyEnergyTrend | null {
+  if (entries.length < 2) return null;
+
+  const [current, previous] = [...entries].sort((a, b) =>
+    b.month.localeCompare(a.month),
+  );
+  if (previous.kwh <= 0 || previous.cost <= 0) return null;
+
+  const consumptionDifferenceKwh = current.kwh - previous.kwh;
+  const costDifference = current.cost - previous.cost;
+
+  return {
+    currentMonth: current.month,
+    previousMonth: previous.month,
+    consumptionDifferenceKwh,
+    consumptionChangePercent:
+      (consumptionDifferenceKwh / previous.kwh) * 100,
+    costDifference,
+    costChangePercent: (costDifference / previous.cost) * 100,
   };
 }
 
