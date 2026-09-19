@@ -426,6 +426,7 @@ export default function Header({
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6">
         <div className="relative flex min-h-[68px] items-center justify-between">
           <button
+            data-header-menu-button
             type="button"
             onClick={() => setMenuOpen((current) => !current)}
             className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] lg:hidden"
@@ -436,6 +437,7 @@ export default function Header({
           </button>
 
           <Link
+            data-header-mobile-logo
             href={homeHref}
             onClick={handleLogoClick}
             className="absolute left-1/2 top-1/2 flex h-[68px] -translate-x-1/2 -translate-y-1/2 items-center lg:hidden"
@@ -546,6 +548,7 @@ export default function Header({
           </div>
 
           <Link
+            data-header-language
             href={languageHref}
             scroll={false}
             onClick={() => {
