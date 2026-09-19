@@ -434,6 +434,28 @@ export function calculateMonthlyEnergyTrend(
   };
 }
 
+export function calculateMonthlyHistoryStreak(entries: MonthlyEnergyEntry[]) {
+  const months = [...new Set(entries.map((entry) => entry.month))]
+    .filter((month) => /^\d{4}-\d{2}$/.test(month))
+    .sort((a, b) => b.localeCompare(a));
+  if (months.length === 0) return 0;
+
+  let streak = 1;
+  let [year, month] = months[0].split("-").map(Number);
+  for (let index = 1; index < months.length; index += 1) {
+    month -= 1;
+    if (month === 0) {
+      month = 12;
+      year -= 1;
+    }
+    const expected = `${year}-${String(month).padStart(2, "0")}`;
+    if (months[index] !== expected) break;
+    streak += 1;
+  }
+
+  return streak;
+}
+
 export function calculateHouseholdSummary(
   savedDevices: SavedDevice[],
   profile: HouseholdProfile,

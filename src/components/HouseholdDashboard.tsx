@@ -21,6 +21,7 @@ import {
   calculateHouseholdSummary,
   calculateMonthlyConsumptionComparison,
   calculateMonthlyEnergyTrend,
+  calculateMonthlyHistoryStreak,
   createHouseholdBackup,
   createMonthlyEnergyEntry,
   createHouseholdProfile,
@@ -116,6 +117,11 @@ const copy = {
     roomRenamed: "Raum wurde umbenannt.",
     topConsumer: "Größter Kostenpunkt",
     monthlyCheckIn: "Monatlicher Check-in",
+    currentMonthOpen: "{month} noch offen",
+    currentMonthOpenText: "Erfasse Verbrauch oder Rechnungsbetrag, sobald dein Monatswert vorliegt.",
+    currentMonthComplete: "{month} erfasst",
+    currentMonthCompleteText: "{kwh} kWh und {cost} sind gespeichert. Änderungen sind jederzeit im Verlauf möglich.",
+    checkInStreak: "{count} Monate in Folge",
     checkInText:
       "Wähle Verbrauch oder Rechnungsbetrag. Den zweiten Wert berechnen wir automatisch mit deinem Strompreis.",
     consumptionEntry: "Verbrauch erfassen",
@@ -259,6 +265,11 @@ const copy = {
     roomRenamed: "Room renamed.",
     topConsumer: "Highest cost",
     monthlyCheckIn: "Monthly check-in",
+    currentMonthOpen: "{month} still open",
+    currentMonthOpenText: "Add consumption or the bill amount once your monthly value is available.",
+    currentMonthComplete: "{month} recorded",
+    currentMonthCompleteText: "{kwh} kWh and {cost} are saved. You can edit the entry from the history at any time.",
+    checkInStreak: "{count} consecutive months",
     checkInText:
       "Choose consumption or bill amount. We calculate the second value automatically using your electricity price.",
     consumptionEntry: "Enter consumption",
@@ -984,6 +995,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   const activeProfile = profile;
   const monthlyTrend = calculateMonthlyEnergyTrend(history);
+  const historyStreak = calculateMonthlyHistoryStreak(history);
+  const thisMonth = currentMonth();
+  const currentMonthEntry = history.find((entry) => entry.month === thisMonth) ?? null;
+  const currentMonthLabel = new Intl.DateTimeFormat(
+    locale === "de" ? "de-DE" : "en-GB",
+    { month: "long", year: "numeric", timeZone: "UTC" },
+  ).format(new Date(`${thisMonth}-01T00:00:00Z`));
   const monthlySavings = (summary?.targetSavings ?? 0) / 12;
   const latestActual = history[0] ?? null;
   const latestActualMonth = latestActual
@@ -1149,7 +1167,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                             <p className="mt-0.5 text-[11px] text-[#65716d]">{formatMoney(device.yearlyKwh * activeProfile.electricityPrice, locale, activeProfile.currency)} {text.yearly}</p>
                           </div>
                           <label className="sr-only" htmlFor={`room-${device.id}`}>{text.assign}</label>
-                          <select data-room-assignment id={`room-${device.id}`} aria-label={`${text.assign}: ${localizedSavedDeviceName(device, locale)}`} value={room.id} onChange={(event) => assignRoom(device.id, event.target.value)} className="h-7 max-w-24 rounded-md border border-[#dfe5dd] bg-white px-1.5 text-[11px] font-medium text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20">
+                          <select data-room-assignment id={`room-${device.id}`} aria-label={`${text.assign}: ${localizedSavedDeviceName(device, locale)}`} value={room.id} onChange={(event) => assignRoom(device.id, event.target.value)} className="home-room-select h-7 max-w-24 rounded-md border border-[#dfe5dd] bg-white px-1.5 text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20">
                             <option value="">{text.unassigned}</option>
                             {activeProfile.rooms.map((option) => <option key={option.id} value={option.id}>{localizeDefaultRoomName(option.name, locale)}</option>)}
                           </select>
@@ -1340,7 +1358,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   {unassignedDevices.map((device) => (
                     <div key={device.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
                       <div><p className="text-[13px] font-semibold">{localizedSavedDeviceName(device, locale)}</p><p className="mt-1 text-xs text-[#65716d]">{formatMoney(device.yearlyKwh * profile.electricityPrice, locale, profile.currency)} {text.yearly}</p></div>
-                      <label className="flex items-center gap-2 text-[11px] font-semibold text-[#65716d]"><span>{text.assign}</span><select value="" onChange={(event) => assignRoom(device.id, event.target.value)} className="min-h-8 max-w-32 rounded-lg border border-[#dfe5dd] bg-white px-2 text-xs font-medium text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20"><option value="">{text.unassigned}</option>{profile.rooms.map((room) => <option key={room.id} value={room.id}>{localizeDefaultRoomName(room.name, locale)}</option>)}</select></label>
+                      <label className="flex items-center gap-2 text-[11px] font-semibold text-[#65716d]"><span>{text.assign}</span><select data-room-assignment value="" onChange={(event) => assignRoom(device.id, event.target.value)} className="home-room-select h-7 max-w-24 rounded-md border border-[#dfe5dd] bg-white px-1.5 text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20"><option value="">{text.unassigned}</option>{profile.rooms.map((room) => <option key={room.id} value={room.id}>{localizeDefaultRoomName(room.name, locale)}</option>)}</select></label>
                     </div>
                   ))}
                 </div>
@@ -1379,6 +1397,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <div id="monthly-check-in" className={`${homeSurfaceClass} scroll-mt-24 p-5`}>
               <h2 className="text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">{text.monthlyCheckIn}</h2>
               <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{text.checkInText}</p>
+              <div data-monthly-checkin-status className={`mt-4 rounded-xl border px-3 py-2.5 ${currentMonthEntry ? "border-[#b8efcc] bg-[#eefbf3]" : "border-amber-200 bg-amber-50"}`}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[13px] font-bold text-[#17211f]">{(currentMonthEntry ? text.currentMonthComplete : text.currentMonthOpen).replace("{month}", currentMonthLabel)}</p>
+                  {historyStreak > 1 && <span className="rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-bold text-[var(--brand-green)]">{text.checkInStreak.replace("{count}", formatNumber(historyStreak, locale))}</span>}
+                </div>
+                <p className="mt-1 text-xs leading-5 text-[#65716d]">{currentMonthEntry ? text.currentMonthCompleteText.replace("{kwh}", formatNumber(currentMonthEntry.kwh, locale, 1)).replace("{cost}", formatMoney(currentMonthEntry.cost, locale, profile.currency)) : text.currentMonthOpenText}</p>
+              </div>
               <div className="mt-5 grid grid-cols-2 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
                 <button type="button" aria-pressed={checkInMode === "consumption"} onClick={() => { setCheckInMode("consumption"); setCheckInFeedback(null); }} className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${checkInMode === "consumption" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.consumptionEntry}</button>
                 <button type="button" aria-pressed={checkInMode === "bill"} onClick={() => { setCheckInMode("bill"); setCheckInFeedback(null); }} className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${checkInMode === "bill" ? "border-[#b8efcc] bg-[#dcfce8] text-[var(--brand-green)]" : "border-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.billEntry}</button>

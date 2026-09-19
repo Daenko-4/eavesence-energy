@@ -5,6 +5,7 @@ import {
   calculateHouseholdSummary,
   calculateMonthlyConsumptionComparison,
   calculateMonthlyEnergyTrend,
+  calculateMonthlyHistoryStreak,
   createHouseholdBackup,
   createMonthlyEnergyEntry,
   createHouseholdProfile,
@@ -245,4 +246,28 @@ test("calculates consumption and cost trends from the latest two months", () => 
   assert.equal(trend?.costDifference, -18);
   assert.equal(trend?.costChangePercent, -25);
   assert.equal(calculateMonthlyEnergyTrend([]), null);
+});
+
+test("counts consecutive monthly check-ins from the latest entry", () => {
+  const entry = (month) => ({
+    month,
+    kwh: 200,
+    cost: 60,
+    updatedAt: "2026-09-30T12:00:00.000Z",
+  });
+
+  assert.equal(
+    calculateMonthlyHistoryStreak([
+      entry("2026-09"),
+      entry("2026-08"),
+      entry("2026-07"),
+      entry("2026-05"),
+    ]),
+    3,
+  );
+  assert.equal(
+    calculateMonthlyHistoryStreak([entry("2026-01"), entry("2025-12")]),
+    2,
+  );
+  assert.equal(calculateMonthlyHistoryStreak([]), 0);
 });
