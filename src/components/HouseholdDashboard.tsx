@@ -14,6 +14,7 @@ import {
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import PwaInstallCard from "@/components/PwaInstallCard";
 import { devices } from "@/data/devices";
 import type { Locale } from "@/i18n/config";
 import { getLocalizedDevice } from "@/i18n/devices";
@@ -1322,6 +1323,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </section>
           )}
           {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
+
+          <PwaInstallCard locale={locale} />
 
           <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label={text.overview}>
             {[
