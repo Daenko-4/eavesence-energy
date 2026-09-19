@@ -1,5 +1,6 @@
-const CACHE_NAME = "eavesence-pwa-v1";
+const CACHE_NAME = "eavesence-pwa-v2";
 const OFFLINE_URL = "/offline";
+const APP_ROUTES = ["/home", "/de/zuhause"];
 const PRECACHE_URLS = [
   OFFLINE_URL,
   "/manifest.webmanifest",
@@ -7,10 +8,33 @@ const PRECACHE_URLS = [
   "/brand/eavesence-icon-approved-final-512.png",
 ];
 
+async function precacheAppShell() {
+  const cache = await caches.open(CACHE_NAME);
+  await cache.addAll(PRECACHE_URLS);
+
+  for (const route of APP_ROUTES) {
+    const response = await fetch(route);
+    if (!response.ok) continue;
+
+    await cache.put(route, response.clone());
+    const html = await response.text();
+    const assetUrls = [...html.matchAll(/(?:src|href)="([^"]+)"/g)]
+      .map((match) => new URL(match[1], self.location.origin))
+      .filter(
+        (url) =>
+          url.origin === self.location.origin &&
+          (url.pathname.startsWith("/_next/static/") ||
+            url.pathname.startsWith("/brand/") ||
+            url.pathname === "/icon.png"),
+      )
+      .map((url) => url.href);
+
+    await Promise.allSettled(assetUrls.map((url) => cache.add(url)));
+  }
+}
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)),
-  );
+  event.waitUntil(precacheAppShell());
 });
 
 self.addEventListener("activate", (event) => {
@@ -40,35 +64,36 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
+      (async () => {
+        try {
+          const response = await fetch(request);
           if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(request, response.clone());
           }
           return response;
-        })
-        .catch(async () => {
+        } catch {
           const cachedPage = await caches.match(request, { ignoreSearch: true });
           return cachedPage ?? caches.match(OFFLINE_URL);
-        }),
+        }
+      })(),
     );
     return;
   }
 
   if (["font", "image", "script", "style"].includes(request.destination)) {
     event.respondWith(
-      caches.match(request).then(
-        (cachedResponse) =>
-          cachedResponse ??
-          fetch(request).then((response) => {
-            if (response.ok) {
-              const copy = response.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-            }
-            return response;
-          }),
-      ),
+      (async () => {
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) return cachedResponse;
+
+        const response = await fetch(request);
+        if (response.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
+        }
+        return response;
+      })(),
     );
   }
 });

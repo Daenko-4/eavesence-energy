@@ -1,5 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const webServerCommand = process.env.CI
+  ? "npm run start -- --hostname 127.0.0.1 --port 3100"
+  : "npm run dev -- --hostname 127.0.0.1 --port 3100";
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false,
@@ -16,7 +20,7 @@ export default defineConfig({
     viewport: { width: 1365, height: 900 },
   },
   webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
+    command: webServerCommand,
     url: "http://127.0.0.1:3100",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

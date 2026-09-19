@@ -14,6 +14,7 @@ import {
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import ConnectivityStatus from "@/components/ConnectivityStatus";
 import PwaInstallCard from "@/components/PwaInstallCard";
 import PwaMobileNavigation from "@/components/PwaMobileNavigation";
 import { devices } from "@/data/devices";
@@ -110,6 +111,8 @@ const copy = {
     activationProgress: "Geräten für eine aussagekräftige Übersicht",
     activationText: "Speichere drei Geräte, damit die Übersicht aussagekräftig wird.",
     addDevice: "Gerät berechnen und speichern",
+    quickAccess: "Schnellzugriff",
+    quickAccessAll: "Alle Geräte",
     roomsTitle: "Kosten nach Raum",
     roomSingular: "Raum",
     roomPlural: "Räume",
@@ -269,6 +272,8 @@ const copy = {
     activationProgress: "devices for a meaningful overview",
     activationText: "Save three devices to make your overview meaningful.",
     addDevice: "Calculate and save a device",
+    quickAccess: "Quick access",
+    quickAccessAll: "All devices",
     roomsTitle: "Cost by room",
     roomSingular: "room",
     roomPlural: "rooms",
@@ -509,6 +514,18 @@ function localizedSavedDeviceName(device: SavedDevice, locale: Locale) {
 
 function savedDeviceSource(device: SavedDevice) {
   return devices.find((item) => item.name === device.device) ?? null;
+}
+
+function savedDeviceDetailHref(
+  device: SavedDevice,
+  locale: Locale,
+  fallbackHref: string,
+) {
+  const source = savedDeviceSource(device);
+  if (!source) return fallbackHref;
+
+  const slug = getLocalizedDevice(source, locale).slug;
+  return locale === "de" ? `/geraete/${slug}` : `/en/devices/${slug}`;
 }
 
 function readVisitState(value: string | null): HouseholdVisitState | null {
@@ -1172,6 +1189,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const unassignedDevices = savedDevices.filter(
     (device) => !activeProfile.deviceRooms[device.id],
   );
+  const quickAccessDevices = [...savedDevices]
+    .sort(
+      (first, second) =>
+        new Date(second.updatedAt).getTime() - new Date(first.updatedAt).getTime(),
+    )
+    .slice(0, 3);
 
   function roomCard(
     room: NonNullable<typeof summary>["roomTotals"][number],
@@ -1429,6 +1452,35 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             ))}
           </section>
 
+          {quickAccessDevices.length > 0 && (
+            <section
+              aria-label={text.quickAccess}
+              data-device-quick-access
+              className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <h2 className="mr-1 text-[14px] font-bold text-[#17211f]">
+                  {text.quickAccess}
+                </h2>
+                {quickAccessDevices.map((device) => (
+                  <Link
+                    key={device.id}
+                    href={savedDeviceDetailHref(device, locale, savedDevicesHref)}
+                    className="inline-flex min-w-0 items-center gap-1 rounded-full border border-[#dfe5dd] bg-white px-2.5 py-1.5 text-[13px] font-semibold text-[#52605b] transition hover:border-[#b8efcc] hover:text-[var(--brand-green)]"
+                  >
+                    <span className="max-w-36 truncate">
+                      {localizedSavedDeviceName(device, locale)}
+                    </span>
+                    <span aria-hidden="true">›</span>
+                  </Link>
+                ))}
+              </div>
+              <a href="#home-devices" className="shrink-0 text-[11px] font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]">
+                {text.quickAccessAll} <span aria-hidden="true">›</span>
+              </a>
+            </section>
+          )}
+
           <section className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
             <div className={`${homeSurfaceClass} p-5`}>
               <div className="flex items-start justify-between gap-4">
@@ -1447,7 +1499,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
           </section>
 
-          <section className={`mt-8 p-5 ${homeSurfaceClass}`}>
+          <section id="home-devices" className={`mt-8 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className={homeSectionTitleClass}>{text.roomsTitle}</h2>
@@ -1626,8 +1678,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       <PwaMobileNavigation
         locale={locale}
         calculatorHref={calculatorHref}
+        settingsOpen={settingsOpen}
         onOpenSettings={openAppSettings}
       />
+      <ConnectivityStatus locale={locale} />
       <Footer locale={locale} />
     </div>
   );
