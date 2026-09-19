@@ -32,6 +32,14 @@ export type MonthlyEnergyEntry = {
 
 export type MonthlyEntryMode = "consumption" | "bill";
 
+export type MonthlyConsumptionComparison = {
+  status: "actual-higher" | "estimate-higher" | "close";
+  differenceKwh: number;
+  absoluteDifferenceKwh: number;
+  differencePercent: number;
+  explainedPercent: number;
+};
+
 export type HouseholdBackup = {
   version: 1;
   exportedAt: string;
@@ -347,6 +355,43 @@ export function upsertMonthlyEnergyEntry(
   return [nextEntry, ...entries.filter((entry) => entry.month !== nextEntry.month)]
     .sort((a, b) => b.month.localeCompare(a.month))
     .slice(0, 24);
+}
+
+export function calculateMonthlyConsumptionComparison({
+  estimatedKwh,
+  actualKwh,
+  closeThresholdPercent = 10,
+}: {
+  estimatedKwh: number;
+  actualKwh: number;
+  closeThresholdPercent?: number;
+}): MonthlyConsumptionComparison | null {
+  if (
+    !Number.isFinite(estimatedKwh) ||
+    estimatedKwh <= 0 ||
+    !Number.isFinite(actualKwh) ||
+    actualKwh <= 0
+  ) {
+    return null;
+  }
+
+  const differenceKwh = actualKwh - estimatedKwh;
+  const absoluteDifferenceKwh = Math.abs(differenceKwh);
+  const differencePercent = (absoluteDifferenceKwh / actualKwh) * 100;
+  const explainedPercent = (estimatedKwh / actualKwh) * 100;
+
+  return {
+    status:
+      differencePercent <= closeThresholdPercent
+        ? "close"
+        : differenceKwh > 0
+          ? "actual-higher"
+          : "estimate-higher",
+    differenceKwh,
+    absoluteDifferenceKwh,
+    differencePercent,
+    explainedPercent,
+  };
 }
 
 export function calculateHouseholdSummary(
