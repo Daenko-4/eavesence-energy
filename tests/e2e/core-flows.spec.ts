@@ -260,7 +260,12 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByText("€73.50", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Save month" }).click();
   await expect(page.getByText("Monthly value saved.", { exact: true })).toBeVisible();
-  await expect(page.locator("[data-home-next-step]")).toHaveCount(0);
+  const monthlyPulse = page.getByRole("region", { name: "Monthly overview" });
+  await expect(monthlyPulse).toBeVisible();
+  await expect(monthlyPulse).toContainText("Your first monthly baseline is ready");
+  await expect(monthlyPulse).toContainText("Largest calculated consumer");
+  await expect(monthlyPulse.getByRole("link", { name: "Review consumer" }))
+    .toHaveAttribute("href", "#home-devices");
   const septemberEntry = page.locator('[data-monthly-history-entry="2026-09"]');
   await expect(septemberEntry.getByText("210 kWh", { exact: true })).toBeVisible();
   await expect(septemberEntry.getByText("€73.50", { exact: true })).toBeVisible();
