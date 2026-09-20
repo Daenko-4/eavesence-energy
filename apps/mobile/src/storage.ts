@@ -21,7 +21,7 @@ export type MobileDevice = {
   yearlyKwh: number;
   yearlyCost: number;
   monthlyCost: number;
-  room: string;
+  room?: string;
   updatedAt: string;
 };
 
