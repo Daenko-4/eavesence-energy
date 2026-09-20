@@ -274,6 +274,12 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.locator("[data-room-assignment]")).toHaveCount(0);
   await expect(householdDevices.locator("summary")).toBeHidden();
 
+  const monthlyDetails = page.getByRole("button", {
+    name: /Monthly values & history/,
+  });
+  await expect(monthlyDetails).toHaveAttribute("aria-expanded", "false");
+  await monthlyDetails.click();
+  await expect(monthlyDetails).toHaveAttribute("aria-expanded", "true");
   await page.getByLabel("Month", { exact: true }).fill("2026-09");
   await page.getByRole("button", { name: "Save month" }).click();
   await expect(
@@ -308,6 +314,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.locator("[data-monthly-goal-progress]")).toBeVisible();
   await expect(page.getByText("kWh +2%", { exact: true })).toBeVisible();
   await expect(page.getByText("cost +2%", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /Compare consumption/ }).click();
   await expect(
     page.getByRole("heading", { name: "Estimate and actual consumption" }),
   ).toBeVisible();
@@ -323,20 +330,19 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(
     consumptionInsight.getByRole("link", { name: "Add a missing device" }),
   ).toHaveAttribute("href", "/#rechner");
+  await page.getByRole("button", { name: /Saving tip/ }).click();
   const savingTip = page.locator("[data-saving-tip]");
   await expect(savingTip).toContainText("Review Coffee machine first");
   await expect(savingTip).toContainText("33% of calculated device consumption");
   await expect(savingTip.getByRole("link", { name: "Open device details" })).toHaveAttribute("href", "/en/devices/coffee-machine");
-  for (const heading of [
-    "All household devices",
-    "Monthly check-in",
-    "History",
-    "Estimate and actual consumption",
-    "Review Coffee machine first",
-  ]) {
+  for (const heading of ["All household devices", "Review Coffee machine first"]) {
     await expect(page.getByRole("heading", { name: heading })).toHaveCSS("font-size", "20px");
   }
 
+  await monthlyDetails.click();
+  for (const heading of ["Monthly check-in", "History"]) {
+    await expect(page.getByRole("heading", { name: heading })).toHaveCSS("font-size", "20px");
+  }
   await septemberEntry.getByRole("button", { name: "Edit" }).click();
   await expect(page.getByLabel("Consumption in kWh")).toHaveValue("210");
   await page.getByLabel("Consumption in kWh").fill("205");
@@ -1140,8 +1146,10 @@ test.describe("mobile", () => {
   await expect(page.locator("#home-devices").getByText("Refrigerator", { exact: true }))
     .toBeVisible();
   await expect(page.getByRole("heading", { name: "Kitchen" })).toHaveCount(0);
+  await page.getByRole("button", { name: /Compare consumption/ }).click();
   await expect(page.getByText("The estimate includes 1 saved device. Consumers not yet saved appear as a difference.", { exact: true }))
     .toBeVisible();
+  await page.getByRole("button", { name: /Monthly values & history/ }).click();
   await expect(page.locator("[data-monthly-checkin-status]")).toBeVisible();
   await expect(page.getByText("2 consecutive months", { exact: true })).toBeVisible();
     await expect(page.getByText("Comparison month: September 2026", { exact: true })).toBeVisible();
