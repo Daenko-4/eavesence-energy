@@ -494,7 +494,7 @@ function MyDevicesPanel(
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-950 sm:text-2xl">
+              <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-950">
                 {household ? text.householdTitle : text.title}
               </h2>
               <span className="text-[11px] font-bold text-[var(--brand-green)]">
