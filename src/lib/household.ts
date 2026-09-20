@@ -1,4 +1,5 @@
 import type { SavedDevice, SavedDeviceCurrency } from "@/lib/savedDevices";
+import type { HouseholdCost } from "@/lib/householdCosts";
 
 export const HOUSEHOLD_PROFILE_STORAGE_KEY = "eavesence-home-profile-v1";
 export const HOUSEHOLD_HISTORY_STORAGE_KEY = "eavesence-home-history-v1";
@@ -15,6 +16,11 @@ export type HouseholdProfile = {
   name: string;
   currency: SavedDeviceCurrency;
   electricityPrice: number;
+  electricityInputMode?: "price" | "annual-bill" | "monthly-payment";
+  annualElectricityBill?: number;
+  annualElectricityKwh?: number;
+  monthlyElectricityPayment?: number;
+  electricityBillIncludesBonus?: boolean;
   savingsGoalPercent: number;
   rooms: HouseholdRoom[];
   deviceRooms: Record<string, string>;
@@ -65,6 +71,7 @@ export type HouseholdBackup = {
   profile: HouseholdProfile;
   devices: SavedDevice[];
   history: MonthlyEnergyEntry[];
+  costs: HouseholdCost[];
 };
 
 export type HouseholdVisitState = {
@@ -152,6 +159,11 @@ export function createHouseholdProfile({
     name: name.trim() || "Home",
     currency,
     electricityPrice: Math.max(0, electricityPrice),
+    electricityInputMode: "price",
+    annualElectricityBill: 0,
+    annualElectricityKwh: 0,
+    monthlyElectricityPayment: 0,
+    electricityBillIncludesBonus: false,
     savingsGoalPercent: Math.min(50, Math.max(1, savingsGoalPercent)),
     rooms: roomNames.map((roomName, index) => ({
       id: createRoomId(roomName, index),
@@ -191,6 +203,30 @@ export function readHouseholdProfile(value: string | null) {
       typeof candidate.createdAt !== "string" ||
       typeof candidate.updatedAt !== "string" ||
       typeof candidate.onboardingCompletedAt !== "string"
+    ) {
+      return null;
+    }
+
+    if (
+      candidate.electricityInputMode !== undefined &&
+      candidate.electricityInputMode !== "price" &&
+      candidate.electricityInputMode !== "annual-bill" &&
+      candidate.electricityInputMode !== "monthly-payment"
+    ) {
+      return null;
+    }
+    for (const value of [
+      candidate.annualElectricityBill,
+      candidate.annualElectricityKwh,
+      candidate.monthlyElectricityPayment,
+    ]) {
+      if (value !== undefined && (typeof value !== "number" || value < 0)) {
+        return null;
+      }
+    }
+    if (
+      candidate.electricityBillIncludesBonus !== undefined &&
+      typeof candidate.electricityBillIncludesBonus !== "boolean"
     ) {
       return null;
     }
@@ -261,11 +297,13 @@ export function createHouseholdBackup({
   profile,
   devices,
   history,
+  costs = [],
   now = new Date(),
 }: {
   profile: HouseholdProfile;
   devices: SavedDevice[];
   history: MonthlyEnergyEntry[];
+  costs?: HouseholdCost[];
   now?: Date;
 }): HouseholdBackup {
   return {
@@ -274,6 +312,7 @@ export function createHouseholdBackup({
     profile,
     devices,
     history,
+    costs,
   };
 }
 
@@ -320,6 +359,38 @@ function readBackupDevices(value: unknown): SavedDevice[] | null {
   return devices.length === value.length ? devices : null;
 }
 
+function readBackupCosts(value: unknown): HouseholdCost[] | null {
+  if (!Array.isArray(value)) return null;
+  const categories = [
+    "housing",
+    "energy",
+    "insurance",
+    "mobility",
+    "subscriptions",
+    "financing",
+    "leisure",
+    "other",
+  ];
+  const frequencies = ["weekly", "monthly", "quarterly", "yearly"];
+  const costs = value.filter((item): item is HouseholdCost => {
+    if (!item || typeof item !== "object") return false;
+    const candidate = item as Partial<HouseholdCost>;
+    return (
+      typeof candidate.id === "string" &&
+      typeof candidate.name === "string" &&
+      categories.includes(candidate.category ?? "") &&
+      typeof candidate.amount === "number" &&
+      candidate.amount > 0 &&
+      frequencies.includes(candidate.frequency ?? "") &&
+      typeof candidate.nextDueDate === "string" &&
+      (candidate.nextDueDate === "" ||
+        /^\d{4}-\d{2}-\d{2}$/.test(candidate.nextDueDate)) &&
+      typeof candidate.updatedAt === "string"
+    );
+  });
+  return costs.length === value.length ? costs : null;
+}
+
 export function readHouseholdBackup(value: string): HouseholdBackup | null {
   try {
     const candidate: unknown = JSON.parse(value);
@@ -338,10 +409,15 @@ export function readHouseholdBackup(value: string): HouseholdBackup | null {
     const profile = readHouseholdProfile(JSON.stringify(backup.profile));
     const devices = readBackupDevices(backup.devices);
     const history = readMonthlyEnergyEntries(JSON.stringify(backup.history));
+    const costs = readBackupCosts(
+      Array.isArray(backup.costs) ? backup.costs : [],
+    );
     if (
       !profile ||
       !devices ||
-      history.length !== backup.history.length
+      !costs ||
+      history.length !== backup.history.length ||
+      (Array.isArray(backup.costs) && costs.length !== backup.costs.length)
     ) {
       return null;
     }
@@ -361,6 +437,7 @@ export function readHouseholdBackup(value: string): HouseholdBackup | null {
       profile: { ...profile, deviceRooms },
       devices,
       history,
+      costs,
     };
   } catch {
     return null;
