@@ -23,17 +23,23 @@ import { HOUSEHOLD_CHANGED_EVENT } from "@/lib/household";
 
 type MyDevicesPanelProps = {
   locale: Locale;
-  currentDevice: Omit<SavedDevice, "id" | "updatedAt">;
-  canSave: boolean;
-  activeSavedDeviceId: string | null;
-  onActiveSavedDeviceChange: (id: string | null) => void;
-  onOpen: (device: SavedDevice) => void;
+  currentDevice?: Omit<SavedDevice, "id" | "updatedAt">;
+  canSave?: boolean;
+  activeSavedDeviceId?: string | null;
+  onActiveSavedDeviceChange?: (id: string | null) => void;
+  onOpen?: (device: SavedDevice) => void;
   compact?: boolean;
+  household?: boolean;
+  teaser?: boolean;
+  calculatorHref?: string;
 };
 
 export type MyDevicesPanelHandle = {
   saveCurrentDevice: () => string | undefined;
 };
+
+export const SAVED_DEVICE_EDIT_REQUEST_KEY =
+  "eavesence-saved-device-edit-request-v1";
 
 const copy = {
   de: {
@@ -82,6 +88,11 @@ const copy = {
     importError: "Die Datei konnte nicht als EAVESENCE-Sicherung gelesen werden.",
     privateBadge: "Privat auf diesem Gerät gespeichert",
     fallbackDevice: "Gerät",
+    householdTitle: "Alle Verbraucher im Haushalt",
+    householdDescription:
+      "Hier findest du alle gespeicherten Geräte mit ihren monatlichen und jährlichen Kosten.",
+    viewHome: "In Mein Zuhause ansehen",
+    addDevice: "Gerät hinzufügen",
   },
   en: {
     title: "My devices",
@@ -129,6 +140,11 @@ const copy = {
     importError: "This file could not be read as an EAVESENCE backup.",
     privateBadge: "Stored privately on this device",
     fallbackDevice: "Device",
+    householdTitle: "All household devices",
+    householdDescription:
+      "All saved devices are collected here with their monthly and yearly costs.",
+    viewHome: "View in My home",
+    addDevice: "Add device",
   },
 } as const;
 
@@ -214,6 +230,9 @@ function MyDevicesPanel(
     onActiveSavedDeviceChange,
     onOpen,
     compact = false,
+    household = false,
+    teaser = false,
+    calculatorHref = "#rechner",
   },
   ref,
 ) {
@@ -224,6 +243,8 @@ function MyDevicesPanel(
   const [sortBy, setSortBy] = useState<"newest" | "cost" | "name">("newest");
   const [listOpen, setListOpen] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const onOpenRef = useRef(onOpen);
+  onOpenRef.current = onOpen;
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -233,6 +254,17 @@ function MyDevicesPanel(
       setSavedDevices(storedDevices);
       setListOpen(storedDevices.length > 0);
       setStorageReady(true);
+
+      const requestedDeviceId = window.sessionStorage.getItem(
+        SAVED_DEVICE_EDIT_REQUEST_KEY,
+      );
+      const requestedDevice = storedDevices.find(
+        (device) => device.id === requestedDeviceId,
+      );
+      if (requestedDevice && onOpenRef.current) {
+        window.sessionStorage.removeItem(SAVED_DEVICE_EDIT_REQUEST_KEY);
+        onOpenRef.current(requestedDevice);
+      }
     });
 
     return () => window.cancelAnimationFrame(frame);
@@ -248,7 +280,7 @@ function MyDevicesPanel(
   }
 
   function saveCurrentDevice() {
-    if (!canSave) {
+    if (!canSave || !currentDevice) {
       return;
     }
 
@@ -261,7 +293,7 @@ function MyDevicesPanel(
 
     if (identicalDevice) {
       setListOpen(true);
-      onActiveSavedDeviceChange(identicalDevice.id);
+      onActiveSavedDeviceChange?.(identicalDevice.id);
       return text.alreadySaved;
     }
 
@@ -280,7 +312,7 @@ function MyDevicesPanel(
 
     persist(nextDevices);
     setListOpen(true);
-    onActiveSavedDeviceChange(id);
+    onActiveSavedDeviceChange?.(id);
     const message = activeDevice ? text.updated : text.saved;
     return message;
   }
@@ -301,7 +333,7 @@ function MyDevicesPanel(
     persist(nextDevices);
 
     if (activeSavedDeviceId === id) {
-      onActiveSavedDeviceChange(null);
+      onActiveSavedDeviceChange?.(null);
     }
 
     setNotice("");
@@ -313,7 +345,7 @@ function MyDevicesPanel(
     }
 
     persist([]);
-    onActiveSavedDeviceChange(null);
+    onActiveSavedDeviceChange?.(null);
     setNotice("");
   }
 
@@ -349,7 +381,7 @@ function MyDevicesPanel(
 
       persist(imported);
       setListOpen(imported.length > 0);
-      onActiveSavedDeviceChange(null);
+      onActiveSavedDeviceChange?.(null);
       setNotice(text.imported);
     } catch {
       setNotice(text.importError);
@@ -423,17 +455,47 @@ function MyDevicesPanel(
     return b.updatedAt.localeCompare(a.updatedAt);
   });
 
-  if (compact) {
+  if (teaser) {
+    if (!storageReady || savedDevices.length === 0) return null;
+
     return (
       <section
         id="meine-geraete"
-        className="mt-9 scroll-mt-[104px] border-t border-slate-200/80 pt-7"
+        className="mt-6 scroll-mt-[104px] border-t border-slate-200/80 pt-5"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="w-fit rounded-full bg-[#ddf8e9] px-3 py-1 text-[11px] font-bold text-[var(--brand-green)]">
+            {savedDevices.length}{" "}
+            {savedDevices.length === 1
+              ? text.savedDevice
+              : text.savedDevices}
+          </span>
+          <a
+            href={locale === "de" ? "/de/zuhause#home-devices" : "/home#home-devices"}
+            className="text-xs font-extrabold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+          >
+            {text.viewHome} <span aria-hidden="true">›</span>
+          </a>
+        </div>
+      </section>
+    );
+  }
+
+  if (compact) {
+    return (
+      <section
+        id={household ? "home-devices" : "meine-geraete"}
+        className={
+          household
+            ? "mt-8 scroll-mt-24 rounded-2xl border border-[#d8ded8] bg-[#eef0ec] p-5 sm:p-6"
+            : "mt-9 scroll-mt-[104px] border-t border-slate-200/80 pt-7"
+        }
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-950 sm:text-2xl">
-                {text.title}
+              <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-950">
+                {household ? text.householdTitle : text.title}
               </h2>
               <span className="text-[11px] font-bold text-[var(--brand-green)]">
                 {text.compareTotal}
@@ -441,7 +503,7 @@ function MyDevicesPanel(
             </div>
             <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-4">
               <p className="max-w-2xl text-[12px] leading-5 text-slate-500">
-                {text.description}
+                {household ? text.householdDescription : text.description}
               </p>
               {savedDevices.length === 0 && (
                 <button
@@ -474,7 +536,14 @@ function MyDevicesPanel(
                   ? text.savedDevice
                   : text.savedDevices}
               </span>
-              <a href={locale === "de" ? "/de/zuhause" : "/home"} className="text-xs font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.openHome} {">"}</a>
+              {!household && (
+                <a href={locale === "de" ? "/de/zuhause" : "/home"} className="text-xs font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.openHome} {">"}</a>
+              )}
+              {household && (
+                <a href={calculatorHref} className="text-xs font-extrabold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]">
+                  {text.addDevice} <span aria-hidden="true">›</span>
+                </a>
+              )}
             </div>
           )}
         </div>
@@ -495,34 +564,38 @@ function MyDevicesPanel(
         {storageReady && savedDevices.length === 0 && (
           <div className="mt-3 flex flex-col gap-2 rounded-xl border border-dashed border-slate-300 bg-white/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs leading-5 text-slate-500">{text.empty}</p>
-            <a href="#rechner" className="shrink-0 text-xs font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.calculateFirst} ↑</a>
+            <a href={calculatorHref} className="shrink-0 text-xs font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.calculateFirst} {household ? ">" : "↑"}</a>
           </div>
         )}
 
         {savedDevices.length > 0 ? (
           <details
-            open={listOpen}
-            onToggle={(event) => setListOpen(event.currentTarget.open)}
+            open={household || listOpen}
+            onToggle={(event) => {
+              if (!household) setListOpen(event.currentTarget.open);
+            }}
             className="group mt-3"
           >
-            <summary className="flex cursor-pointer list-none justify-end py-1 text-[11px] font-bold text-slate-500 transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
-              <span className="flex items-center gap-1.5">
-                <span className="group-open:hidden">{text.showList}</span>
-                <span className="hidden group-open:inline">{text.hideList}</span>
-                <svg
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  className="h-3 w-3 transition-transform group-open:rotate-180"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m5 7.5 5 5 5-5" />
-                </svg>
-              </span>
-            </summary>
+            {!household && (
+              <summary className="flex cursor-pointer list-none justify-end py-1 text-[11px] font-bold text-slate-500 transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
+                <span className="flex items-center gap-1.5">
+                  <span className="group-open:hidden">{text.showList}</span>
+                  <span className="hidden group-open:inline">{text.hideList}</span>
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="h-3 w-3 transition-transform group-open:rotate-180"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m5 7.5 5 5 5-5" />
+                  </svg>
+                </span>
+              </summary>
+            )}
 
             <div className="pb-2 pt-2">
               <div className="space-y-2">
@@ -582,7 +655,7 @@ function MyDevicesPanel(
                     <div className="flex shrink-0 items-center gap-1 sm:justify-end">
                         <button
                           type="button"
-                          onClick={() => onOpen(item)}
+                          onClick={() => onOpen?.(item)}
                           className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#ddf8e9] hover:text-[var(--brand-green)] sm:h-7 sm:w-7"
                           aria-label={`${text.open}: ${getDeviceName(item)}`}
                           title={text.open}
@@ -895,7 +968,7 @@ function MyDevicesPanel(
                   <button
                     type="button"
                     onClick={() => {
-                      onOpen(item);
+                      onOpen?.(item);
                       setNotice("");
                     }}
                     className="min-h-7 rounded px-2 py-1 text-[11px] font-bold text-[var(--brand-green)] transition hover:bg-[#dcfce8]"

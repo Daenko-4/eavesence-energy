@@ -208,23 +208,11 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     page.getByText("The monthly calendar reminder was downloaded."),
   ).toBeVisible();
   await expect(
-    page.getByText("0 of 3 devices for a meaningful overview", { exact: true }),
+    page.getByRole("heading", { name: "All household devices" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Add room" }),
-  ).toHaveCSS("font-size", "11px");
-
-  await page.getByText("Other rooms (5)", { exact: false }).click();
-  await page.getByRole("button", { name: "Rename: Kitchen" }).click();
-  await page.getByLabel("Room name").fill("Cooking");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.getByText("Room renamed.", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Cooking" })).toBeVisible();
-  const roomCards = page.locator("[data-room-card]");
-  await page
-    .getByTitle("Reorder room: Cooking")
-    .dragTo(roomCards.nth(1));
-  await expect(roomCards.nth(1).getByRole("heading", { name: "Cooking" })).toBeVisible();
+  await expect(page.getByText("Calculate your first device above and save it here."))
+    .toBeVisible();
+  await expect(page.getByRole("button", { name: "Add room" })).toHaveCount(0);
 
   await page.evaluate(() => {
     const template = {
@@ -253,37 +241,14 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   });
   await page.reload();
 
-  await expect(page.getByText("Foundation complete", { exact: true })).toBeVisible();
-  const quickAccess = page.getByRole("region", { name: "Quick access" });
-  await expect(quickAccess).toBeVisible();
-  await expect(
-    quickAccess.getByRole("link", { name: "Coffee machine" }),
-  ).toHaveAttribute("href", "/en/devices/coffee-machine");
-  const firstRoomAssignment = page.getByLabel("Assign room").first();
-  await firstRoomAssignment.selectOption({ label: "Cooking" });
-  await expect(
-    page.getByText("Device assigned to the room.", { exact: true }),
-  ).toBeVisible();
-  await expect(firstRoomAssignment).toHaveValue(/.+/);
-  const roomDeviceProportions = await page.evaluate(() => {
-    const deviceName = document.querySelector("[data-room-device-name]");
-    const assignment = document.querySelector("[data-room-assignment]");
-    const actions = Array.from(document.querySelectorAll("[data-room-action]"));
-    return {
-      deviceNameFontSize: deviceName ? getComputedStyle(deviceName).fontSize : "",
-      assignmentFontSize: assignment ? getComputedStyle(assignment).fontSize : "",
-      assignmentHeight: assignment?.getBoundingClientRect().height ?? 0,
-      actionHeights: actions.map((action) => action.getBoundingClientRect().height),
-    };
-  });
-  expect(roomDeviceProportions.deviceNameFontSize).toBe("14px");
-  expect(roomDeviceProportions.assignmentFontSize).toBe("11px");
-  expect(roomDeviceProportions.assignmentHeight).toBeLessThanOrEqual(28);
-  expect(Math.max(...roomDeviceProportions.actionHeights)).toBeLessThanOrEqual(24);
-  page.once("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: "Delete: Cooking" }).click();
-  await expect(firstRoomAssignment).toHaveValue("");
-  await expect(page.getByRole("heading", { name: "Cooking" })).toHaveCount(0);
+  const householdDevices = page.locator("#home-devices");
+  await expect(householdDevices).toContainText("3 saved devices");
+  await expect(householdDevices.getByText("Coffee machine", { exact: true })).toBeVisible();
+  await expect(householdDevices.getByText("Television", { exact: true })).toBeVisible();
+  await expect(householdDevices.getByText("Kettle", { exact: true })).toBeVisible();
+  await expect(householdDevices.getByRole("link", { name: "Add device" }))
+    .toHaveAttribute("href", "/#rechner");
+  await expect(page.locator("[data-room-assignment]")).toHaveCount(0);
 
   await page.getByLabel("Month", { exact: true }).fill("2026-09");
   await page.getByRole("button", { name: "Save month" }).click();
@@ -334,7 +299,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(savingTip).toContainText("33% of calculated device consumption");
   await expect(savingTip.getByRole("link", { name: "Open device details" })).toHaveAttribute("href", "/en/devices/coffee-machine");
   for (const heading of [
-    "Cost by room",
+    "All household devices",
     "Monthly check-in",
     "History",
     "Estimate and actual consumption",
@@ -373,7 +338,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   const compactActions = [
     { action: page.getByRole("button", { name: "Settings", exact: true }), fontSize: "11px" },
     { action: page.getByRole("button", { name: "Save settings" }), fontSize: "11px" },
-    { action: page.getByRole("button", { name: "Import backup" }), fontSize: "11px" },
+    { action: page.locator("[data-manage-data-import]"), fontSize: "11px" },
   ];
   for (const { action, fontSize } of compactActions) {
     const style = await action.evaluate((element) => {
@@ -418,7 +383,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   expect(manageDataTextTops.exportAction).toBe(manageDataTextTops.action);
   expect(manageDataTextTops.resetAction).toBe(manageDataTextTops.action);
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export backup" }).click();
+  await page.locator("[data-manage-data-export]").click();
   await downloadPromise;
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Reset My home" }).click();
@@ -517,11 +482,13 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await expect(page.locator("[data-save-action-icon]")).toHaveCount(0);
   const savedDevices = page.locator("#meine-geraete");
   await expect(
-    savedDevices.getByText("Coffee machine", { exact: true }),
+    savedDevices.getByText("1 saved device", { exact: true }),
   ).toBeVisible();
   await expect(
-    savedDevices.getByText("€12.74", { exact: true }).first(),
-  ).toBeVisible();
+    savedDevices.getByRole("link", { name: "View in My home" }),
+  ).toHaveAttribute("href", "/home#home-devices");
+  await expect(savedDevices.getByText("Coffee machine", { exact: true }))
+    .toHaveCount(0);
 
   await expect(
     page.getByRole("button", { name: "Update saved device" }),
@@ -535,16 +502,39 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await expect(
     page.getByRole("button", { name: "Update saved device" }),
   ).toBeVisible({ timeout: 4_000 });
+  await page.evaluate(() => {
+    const timestamp = new Date().toISOString();
+    window.localStorage.setItem(
+      "eavesence-home-profile-v1",
+      JSON.stringify({
+        version: 1,
+        name: "My home",
+        currency: "EUR",
+        electricityPrice: 0.3,
+        savingsGoalPercent: 10,
+        rooms: [],
+        deviceRooms: {},
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        onboardingCompletedAt: timestamp,
+      }),
+    );
+  });
+  await savedDevices.getByRole("link", { name: "View in My home" }).click();
+  await expect(page).toHaveURL(/\/home#home-devices$/);
+  const householdDevices = page.locator("#home-devices");
+  await expect(householdDevices.getByText("Coffee machine", { exact: true }))
+    .toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Delete: Coffee machine" }),
+    householdDevices.getByRole("button", { name: "Delete: Coffee machine" }),
   ).toHaveCount(1);
 
   page.once("dialog", (dialog) => dialog.accept());
-  await page
+  await householdDevices
     .getByRole("button", { name: "Delete: Coffee machine" })
     .click();
   await expect(
-    page.getByRole("button", { name: "Delete: Coffee machine" }),
+    householdDevices.getByRole("button", { name: "Delete: Coffee machine" }),
   ).toHaveCount(0);
 });
 
@@ -963,7 +953,7 @@ test.describe("mobile", () => {
     ).toBe(true);
   });
 
-  test("My home onboarding and compact room layout fit on a phone", async ({
+  test("My home onboarding and household device area fit on a phone", async ({
     context,
     page,
   }) => {
@@ -1022,8 +1012,12 @@ test.describe("mobile", () => {
     await expect(
       page.getByRole("button", { name: "Reserve a beta place" }),
     ).toHaveCount(0);
-    await page.getByText("Other rooms (5)", { exact: false }).click();
-    await expect(page.getByRole("heading", { name: "Kitchen" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "All household devices" }),
+    ).toBeVisible();
+    await expect(page.getByText("Calculate your first device above and save it here."))
+      .toBeVisible();
+    await expect(page.getByText("Other rooms", { exact: false })).toHaveCount(0);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -1086,6 +1080,9 @@ test.describe("mobile", () => {
     await page.goto("/home");
 
   await expect(page.getByRole("heading", { name: "Mobile home" })).toBeVisible();
+  await expect(page.locator("#home-devices").getByText("Refrigerator", { exact: true }))
+    .toBeVisible();
+  await expect(page.getByRole("heading", { name: "Kitchen" })).toHaveCount(0);
   await expect(page.locator("[data-monthly-checkin-status]")).toBeVisible();
   await expect(page.getByText("2 consecutive months", { exact: true })).toBeVisible();
     await expect(page.getByText("Comparison month: September 2026", { exact: true })).toBeVisible();
