@@ -126,7 +126,7 @@ export default function PwaInstallCard({ locale }: { locale: Locale }) {
           <button
             type="button"
             onClick={install}
-            className="home-primary-action inline-flex min-h-9 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-3 text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9]"
+            className="home-dashboard-action inline-flex h-9 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-3 text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]"
           >
             {text.install}
           </button>

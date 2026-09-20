@@ -189,10 +189,18 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(installCard).toHaveCount(0);
   const nextStep = page.getByRole("region", { name: "Next step" });
   await expect(nextStep).toContainText("September 2026 still open");
-  await nextStep.getByRole("button", { name: "Add monthly value" }).click();
+  const addMonthlyValue = nextStep.getByRole("button", {
+    name: "Add monthly value",
+  });
+  const monthlyReminder = nextStep.getByRole("button", {
+    name: "Monthly reminder",
+  });
+  await expect(addMonthlyValue).toHaveCSS("height", "36px");
+  await expect(monthlyReminder).toHaveCSS("height", "36px");
+  await addMonthlyValue.click();
   await expect(page.getByLabel("Consumption in kWh")).toBeFocused();
   const reminderDownload = page.waitForEvent("download");
-  await nextStep.getByRole("button", { name: "Monthly reminder" }).click();
+  await monthlyReminder.click();
   expect((await reminderDownload).suggestedFilename()).toBe(
     "eavesence-monthly-reminder.ics",
   );
@@ -353,6 +361,13 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
 
   await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Manage data" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Settings", exact: true }),
+  ).toHaveCSS("height", "36px");
+  await expect(page.getByRole("button", { name: "Save settings" })).toHaveCSS(
+    "height",
+    "36px",
+  );
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
   const compactActions = [
