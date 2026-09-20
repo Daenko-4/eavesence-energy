@@ -9,12 +9,14 @@ import {
   useRef,
   useState,
   type ChangeEvent,
-  type DragEvent,
 } from "react";
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import ConnectivityStatus from "@/components/ConnectivityStatus";
+import MyDevicesPanel, {
+  SAVED_DEVICE_EDIT_REQUEST_KEY,
+} from "@/components/MyDevicesPanel";
 import PwaInstallCard from "@/components/PwaInstallCard";
 import PwaMobileNavigation from "@/components/PwaMobileNavigation";
 import { devices } from "@/data/devices";
@@ -29,14 +31,11 @@ import {
   createHouseholdBackup,
   createMonthlyEnergyEntry,
   createHouseholdProfile,
-  createRoomId,
-  DEFAULT_ROOM_NAMES,
   HOUSEHOLD_CHANGED_EVENT,
   HOUSEHOLD_HISTORY_STORAGE_KEY,
   HOUSEHOLD_PROFILE_STORAGE_KEY,
   HOUSEHOLD_VISIT_STORAGE_KEY,
   localizeDefaultHouseholdName,
-  localizeDefaultRoomName,
   readHouseholdProfile,
   readHouseholdBackup,
   readMonthlyEnergyEntries,
@@ -229,7 +228,7 @@ const copy = {
     saved: "Gespeichert",
     dataTitle: "Daten verwalten",
     dataText:
-      "Die Sicherung enthält Einstellungen, Räume, Zuordnungen, gespeicherte Geräte und den Monatsverlauf.",
+      "Die Sicherung enthält Einstellungen, gespeicherte Geräte und den Monatsverlauf.",
     dataPrivacy: "Sie enthält keine Konto- oder Cloud-Daten.",
     importHome: "Sicherung importieren",
     exportHome: "Sicherung exportieren",
@@ -239,7 +238,7 @@ const copy = {
     importHomeConfirm:
       "Diese Sicherung ersetzt dein aktuelles Zuhause, deine gespeicherten Geräte und den Monatsverlauf. Fortfahren?",
     resetHomeConfirm:
-      "My Home wirklich zurücksetzen? Räume, Zuordnungen und Monatsverlauf werden gelöscht. Deine gespeicherten Geräte bleiben erhalten.",
+      "My Home wirklich zurücksetzen? Einstellungen und Monatsverlauf werden gelöscht. Deine gespeicherten Geräte bleiben erhalten.",
     dragRoom: "Raum verschieben",
     moveRoomEarlier: "Weiter nach vorne",
     moveRoomLater: "Weiter nach hinten",
@@ -390,7 +389,7 @@ const copy = {
     saved: "Saved",
     dataTitle: "Manage data",
     dataText:
-      "The backup contains settings, rooms, assignments, saved devices and monthly history.",
+      "The backup contains settings, saved devices and monthly history.",
     dataPrivacy: "It contains no account or cloud data.",
     importHome: "Import backup",
     exportHome: "Export backup",
@@ -400,7 +399,7 @@ const copy = {
     importHomeConfirm:
       "This backup will replace your current home, saved devices and monthly history. Continue?",
     resetHomeConfirm:
-      "Reset My home? Rooms, assignments and monthly history will be deleted. Your saved devices will be kept.",
+      "Reset My home? Settings and monthly history will be deleted. Your saved devices will be kept.",
     dragRoom: "Reorder room",
     moveRoomEarlier: "Move earlier",
     moveRoomLater: "Move later",
@@ -518,18 +517,6 @@ function savedDeviceSource(device: SavedDevice) {
   return devices.find((item) => item.name === device.device) ?? null;
 }
 
-function savedDeviceDetailHref(
-  device: SavedDevice,
-  locale: Locale,
-  fallbackHref: string,
-) {
-  const source = savedDeviceSource(device);
-  if (!source) return fallbackHref;
-
-  const slug = getLocalizedDevice(source, locale).slug;
-  return locale === "de" ? `/geraete/${slug}` : `/en/devices/${slug}`;
-}
-
 function readVisitState(value: string | null): HouseholdVisitState | null {
   if (!value) return null;
   try {
@@ -547,7 +534,7 @@ function readVisitState(value: string | null): HouseholdVisitState | null {
 export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const text = copy[locale];
   const calculatorHref = locale === "de" ? "/de#rechner" : "/#rechner";
-  const savedDevicesHref = locale === "de" ? "/de#meine-geraete" : "/#meine-geraete";
+  const savedDevicesHref = locale === "de" ? "/de/zuhause#home-devices" : "/home#home-devices";
   const languageHref = locale === "de" ? "/home" : "/de/zuhause";
   const [ready, setReady] = useState(false);
   const [profile, setProfile] = useState<HouseholdProfile | null>(null);
@@ -571,12 +558,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
   const [betaInterested, setBetaInterested] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [emptyRoomsOpen, setEmptyRoomsOpen] = useState(false);
-  const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
-  const [roomNameDraft, setRoomNameDraft] = useState("");
-  const [draggedRoomId, setDraggedRoomId] = useState<string | null>(null);
-  const [dragOverRoomId, setDragOverRoomId] = useState<string | null>(null);
-  const [roomNotice, setRoomNotice] = useState("");
   const [notice, setNotice] = useState("");
   const homeImportInputRef = useRef<HTMLInputElement>(null);
 
@@ -670,7 +651,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       currency,
       electricityPrice: price,
       savingsGoalPercent: goal,
-      roomNames: DEFAULT_ROOM_NAMES[locale],
+      roomNames: [],
     });
     persistProfile(nextProfile);
     track("Home Onboarding Completed", {
@@ -769,146 +750,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setGoal(10);
     setBetaInterested(false);
     setCheckInFeedback(null);
-    setRoomNotice("");
     setSettingsOpen(false);
     setNotice("");
     window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
     track("Home Reset", { locale, devices_preserved: savedDevices.length });
-  }
-
-  function assignRoom(deviceId: string, roomId: string) {
-    if (!profile) return;
-    const deviceRooms = { ...profile.deviceRooms };
-    if (roomId) deviceRooms[deviceId] = roomId;
-    else delete deviceRooms[deviceId];
-    persistProfile({ ...profile, deviceRooms, updatedAt: new Date().toISOString() });
-    setRoomNotice(roomId ? text.deviceAssigned : text.deviceUnassigned);
-    track("Home Room Assigned", { locale, assigned: Boolean(roomId) });
-  }
-
-  function addRoom() {
-    if (!profile) return;
-    let roomNumber = profile.rooms.length + 1;
-    let roomName = `${text.newRoom} ${roomNumber}`;
-    while (profile.rooms.some((room) => room.name === roomName)) {
-      roomNumber += 1;
-      roomName = `${text.newRoom} ${roomNumber}`;
-    }
-    let roomIndex = profile.rooms.length;
-    let roomId = createRoomId(roomName, roomIndex);
-    while (profile.rooms.some((room) => room.id === roomId)) {
-      roomIndex += 1;
-      roomId = createRoomId(roomName, roomIndex);
-    }
-    persistProfile({
-      ...profile,
-      rooms: [
-        ...profile.rooms,
-        { id: roomId, name: roomName },
-      ],
-      updatedAt: new Date().toISOString(),
-    });
-    setEditingRoomId(roomId);
-    setRoomNameDraft(roomName);
-  }
-
-  function startEditingRoom(roomId: string, roomName: string) {
-    setEditingRoomId(roomId);
-    setRoomNameDraft(roomName);
-  }
-
-  function cancelEditingRoom() {
-    setEditingRoomId(null);
-    setRoomNameDraft("");
-  }
-
-  function saveRoomName(roomId: string) {
-    if (!profile) return;
-    const roomName = roomNameDraft.trim();
-    if (!roomName) return;
-    persistProfile({
-      ...profile,
-      rooms: profile.rooms.map((room) =>
-        room.id === roomId ? { ...room, name: roomName } : room,
-      ),
-      updatedAt: new Date().toISOString(),
-    });
-    cancelEditingRoom();
-    setRoomNotice(text.roomRenamed);
-    track("Home Room Renamed", { locale });
-  }
-
-  function deleteRoom(roomId: string) {
-    if (!profile || !window.confirm(text.deleteRoomConfirm)) return;
-    const deviceRooms = Object.fromEntries(
-      Object.entries(profile.deviceRooms).filter(
-        ([, assignedRoomId]) => assignedRoomId !== roomId,
-      ),
-    );
-    persistProfile({
-      ...profile,
-      rooms: profile.rooms.filter((room) => room.id !== roomId),
-      deviceRooms,
-      updatedAt: new Date().toISOString(),
-    });
-    if (editingRoomId === roomId) cancelEditingRoom();
-    track("Home Room Deleted", { locale });
-  }
-
-  function reorderRooms(sourceRoomId: string, targetRoomId: string) {
-    if (!profile || sourceRoomId === targetRoomId) return;
-    const sourceIndex = profile.rooms.findIndex(
-      (room) => room.id === sourceRoomId,
-    );
-    const targetIndex = profile.rooms.findIndex(
-      (room) => room.id === targetRoomId,
-    );
-    if (sourceIndex < 0 || targetIndex < 0) return;
-
-    const rooms = [...profile.rooms];
-    const [room] = rooms.splice(sourceIndex, 1);
-    rooms.splice(targetIndex, 0, room);
-    persistProfile({
-      ...profile,
-      rooms,
-      updatedAt: new Date().toISOString(),
-    });
-    track("Home Rooms Reordered", { locale, method: "drag" });
-  }
-
-  function moveRoom(roomId: string, offset: -1 | 1) {
-    if (!profile) return;
-    const sourceIndex = profile.rooms.findIndex((room) => room.id === roomId);
-    const targetIndex = sourceIndex + offset;
-    if (sourceIndex < 0 || targetIndex < 0 || targetIndex >= profile.rooms.length) {
-      return;
-    }
-    const rooms = [...profile.rooms];
-    [rooms[sourceIndex], rooms[targetIndex]] = [
-      rooms[targetIndex],
-      rooms[sourceIndex],
-    ];
-    persistProfile({
-      ...profile,
-      rooms,
-      updatedAt: new Date().toISOString(),
-    });
-    track("Home Rooms Reordered", { locale, method: "button" });
-  }
-
-  function startRoomDrag(event: DragEvent<HTMLElement>, roomId: string) {
-    setDraggedRoomId(roomId);
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", roomId);
-  }
-
-  function dropRoom(event: DragEvent<HTMLElement>, targetRoomId: string) {
-    event.preventDefault();
-    const sourceRoomId =
-      draggedRoomId || event.dataTransfer.getData("text/plain");
-    if (sourceRoomId) reorderRooms(sourceRoomId, targetRoomId);
-    setDraggedRoomId(null);
-    setDragOverRoomId(null);
   }
 
   function saveMonthlyCheckIn() {
@@ -1032,7 +877,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     );
     setHistory(nextHistory);
     if (editingMonth === entry.month) cancelMonthlyCheckInEdit();
-    setRoomNotice("");
     setNotice("");
     setCheckInFeedback(null);
     setHistoryNotice(text.monthDeleted);
@@ -1087,7 +931,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     );
   }
 
-  const activeProfile = profile;
   const monthlyTrend = calculateMonthlyEnergyTrend(history);
   const monthlyGoalProgress = calculateMonthlySavingsGoalProgress({
     entries: history,
@@ -1186,116 +1029,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       : `/en/devices/${getLocalizedDevice(topDeviceSource, locale).slug}`
     : savedDevicesHref;
   const proReady = savedDevices.length >= 3 || history.length >= 2;
-  const occupiedRooms = summary?.roomTotals.filter((room) => room.deviceCount > 0) ?? [];
-  const emptyRooms = summary?.roomTotals.filter((room) => room.deviceCount === 0) ?? [];
-  const unassignedDevices = savedDevices.filter(
-    (device) => !activeProfile.deviceRooms[device.id],
-  );
-  const quickAccessDevices = [...savedDevices]
-    .sort(
-      (first, second) =>
-        new Date(second.updatedAt).getTime() - new Date(first.updatedAt).getTime(),
-    )
-    .slice(0, 3);
 
-  function roomCard(
-    room: NonNullable<typeof summary>["roomTotals"][number],
-    index: number,
-    compact = false,
-  ) {
-    const roomName = localizeDefaultRoomName(room.name, locale);
-    const isDropTarget = dragOverRoomId === room.id;
-    const roomDevices = savedDevices.filter(
-      (device) => activeProfile.deviceRooms[device.id] === room.id,
-    );
-
-    return (
-      <article
-        key={room.id}
-        data-room-card
-        onDragOver={(event) => {
-          event.preventDefault();
-          event.dataTransfer.dropEffect = "move";
-          if (draggedRoomId !== room.id) setDragOverRoomId(room.id);
-        }}
-        onDragLeave={() => setDragOverRoomId(null)}
-        onDrop={(event) => dropRoom(event, room.id)}
-        className={`rounded-xl border text-[#17211f] transition ${compact ? "p-3" : "p-4"} ${
-          isDropTarget
-            ? "border-[var(--brand-green-mint)] bg-[#e4f7ec] ring-4 ring-[#dcfce8]"
-            : compact
-              ? "border-[#dfe5dd] bg-[#fbfcf8]"
-              : "border-[#dfe5dd] bg-white/70"
-        }`}
-      >
-        {editingRoomId === room.id ? (
-          <form onSubmit={(event) => { event.preventDefault(); saveRoomName(room.id); }}>
-            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">
-              <span>{text.roomName}</span>
-              <input autoFocus value={roomNameDraft} onChange={(event) => setRoomNameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") cancelEditingRoom(); }} className={homeFieldClass} />
-            </label>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button type="submit" disabled={!roomNameDraft.trim()} className={`${homePrimaryActionClass} min-h-8 px-3 disabled:cursor-not-allowed disabled:opacity-40`}>{text.saveRoom}</button>
-              <button type="button" onClick={cancelEditingRoom} className={`${homeCompactActionClass} min-h-8 px-3`}>{text.cancelRoomEdit}</button>
-            </div>
-          </form>
-        ) : (
-          <>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span
-                  draggable
-                  onDragStart={(event) => startRoomDrag(event, room.id)}
-                  onDragEnd={() => { setDraggedRoomId(null); setDragOverRoomId(null); }}
-                  title={`${text.dragRoom}: ${roomName}`}
-                  aria-hidden="true"
-                  className="cursor-grab select-none rounded-md px-1.5 py-1 text-base font-bold tracking-[-0.2em] text-[#8b9792] transition hover:bg-white hover:text-[var(--brand-green)] active:cursor-grabbing"
-                >
-                  ⠿
-                </span>
-                <h3 className="truncate text-[14px] font-bold">{roomName}</h3>
-              </div>
-              <span className="text-[11px] font-semibold text-[#65716d]">{room.deviceCount}</span>
-            </div>
-            {!compact && (
-              <>
-                <p className="mt-3 text-xl font-extrabold">{formatMoney(room.annualCost, locale, activeProfile.currency)}</p>
-                <p className="mt-1 text-[11px] text-[#65716d]">{text.yearly}</p>
-                {roomDevices.length > 0 && (
-                  <div className="mt-4 space-y-2 border-t border-[#dfe5dd] pt-3">
-                    {roomDevices.map((device) => (
-                      <div key={device.id} className="rounded-lg bg-white px-3 py-2.5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p data-room-device-name className="truncate text-[14px] font-bold">{localizedSavedDeviceName(device, locale)}</p>
-                            <p className="mt-0.5 text-[11px] text-[#65716d]">{formatMoney(device.yearlyKwh * activeProfile.electricityPrice, locale, activeProfile.currency)} {text.yearly}</p>
-                          </div>
-                          <label className="sr-only" htmlFor={`room-${device.id}`}>{text.assign}</label>
-                          <select data-room-assignment id={`room-${device.id}`} aria-label={`${text.assign}: ${localizedSavedDeviceName(device, locale)}`} value={room.id} onChange={(event) => assignRoom(device.id, event.target.value)} className="home-room-select h-7 max-w-24 rounded-md border border-[#dfe5dd] bg-white px-1.5 text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20">
-                            <option value="">{text.unassigned}</option>
-                            {activeProfile.rooms.map((option) => <option key={option.id} value={option.id}>{localizeDefaultRoomName(option.name, locale)}</option>)}
-                          </select>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-            <div className={`${compact ? "mt-2" : "mt-4 border-t border-[#dfe5dd] pt-3"} flex items-center justify-between gap-3`}>
-              <div className="flex items-center gap-2.5">
-                <button data-room-action type="button" onClick={() => startEditingRoom(room.id, roomName)} aria-label={`${text.editRoom}: ${roomName}`} className="saved-device-utility-action relative inline-flex h-6 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-2 text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)]">{text.editRoom}</button>
-                <button data-room-action type="button" onClick={() => deleteRoom(room.id)} aria-label={`${text.deleteRoom}: ${roomName}`} className="saved-device-utility-action relative inline-flex h-6 items-center justify-center rounded-full border border-red-100 bg-red-50 px-2 font-medium text-red-600 transition hover:border-red-200 hover:bg-red-100 hover:text-red-700">{text.deleteRoom}</button>
-              </div>
-              <div className="flex items-center gap-1">
-                <button data-room-action type="button" onClick={() => moveRoom(room.id, -1)} disabled={index === 0} aria-label={`${text.moveRoomEarlier}: ${roomName}`} title={text.moveRoomEarlier} className="saved-device-utility-action relative flex h-6 w-6 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-not-allowed disabled:opacity-30">↑</button>
-                <button data-room-action type="button" onClick={() => moveRoom(room.id, 1)} disabled={index === activeProfile.rooms.length - 1} aria-label={`${text.moveRoomLater}: ${roomName}`} title={text.moveRoomLater} className="saved-device-utility-action relative flex h-6 w-6 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] font-semibold text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] disabled:cursor-not-allowed disabled:opacity-30">↓</button>
-              </div>
-            </div>
-          </>
-        )}
-      </article>
-    );
+  function editSavedDevice(device: SavedDevice) {
+    window.sessionStorage.setItem(SAVED_DEVICE_EDIT_REQUEST_KEY, device.id);
+    window.location.assign(calculatorHref);
   }
 
   return (
@@ -1454,116 +1191,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             ))}
           </section>
 
-          {quickAccessDevices.length > 0 && (
-            <section
-              aria-label={text.quickAccess}
-              data-device-quick-access
-              className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <h2 className="mr-1 text-[14px] font-bold text-[#17211f]">
-                  {text.quickAccess}
-                </h2>
-                {quickAccessDevices.map((device) => (
-                  <Link
-                    key={device.id}
-                    href={savedDeviceDetailHref(device, locale, savedDevicesHref)}
-                    className="inline-flex min-w-0 items-center gap-1 rounded-full border border-[#dfe5dd] bg-white px-2.5 py-1.5 text-[13px] font-semibold text-[#52605b] transition hover:border-[#b8efcc] hover:text-[var(--brand-green)]"
-                  >
-                    <span className="max-w-36 truncate">
-                      {localizedSavedDeviceName(device, locale)}
-                    </span>
-                    <span aria-hidden="true">›</span>
-                  </Link>
-                ))}
-              </div>
-              <a href="#home-devices" className="shrink-0 text-[11px] font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]">
-                {text.quickAccessAll} <span aria-hidden="true">›</span>
-              </a>
-            </section>
-          )}
-
-          <section className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className={`${homeSurfaceClass} p-5`}>
-              <div className="flex items-start justify-between gap-4">
-                <div><p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#65716d]">{text.activation}</p><h2 className="mt-2 text-xl font-bold tracking-[-0.03em]">{savedDevices.length >= 3 ? text.activationReady : `${savedDevices.length} ${locale === "de" ? "von" : "of"} 3 ${text.activationProgress}`}</h2></div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#dcf5e6] text-[14px] font-bold text-[var(--brand-green)]">{Math.min(3, savedDevices.length)}</div>
-              </div>
-              <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)] transition-all" style={{ width: `${Math.min(100, (savedDevices.length / 3) * 100)}%` }} /></div>
-              <p className="mt-4 text-[13px] leading-6 text-[#65716d]">{text.activationText}</p>
-              <Link href={calculatorHref} className="mt-5 inline-flex text-[13px] font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]">{text.addDevice} {">"}</Link>
-            </div>
-            <div className="rounded-2xl bg-[#17211f] p-5 text-white">
-              <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--brand-green-mint)]">{text.targetSavings}</p>
-              <p className="mt-3 text-2xl font-extrabold tracking-[-0.04em]">{formatMoney(summary?.targetSavings ?? 0, locale, profile.currency)}</p>
-              <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.1em] text-slate-400">{text.topConsumer}</p>
-              <p className="mt-2 font-bold">{summary?.topDevice ? localizedSavedDeviceName(summary.topDevice, locale) : "—"}</p>
-            </div>
-          </section>
-
-          <section id="home-devices" className={`mt-8 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className={homeSectionTitleClass}>{text.roomsTitle}</h2>
-                <p className="mt-1 text-[13px] text-[#65716d]">{profile.rooms.length} {profile.rooms.length === 1 ? text.roomSingular : text.roomPlural}</p>
-              </div>
-              <button type="button" onClick={addRoom} className={`${homeCompactActionClass} saved-device-utility-action relative min-h-9 w-fit px-3`}>+ {text.addRoom}</button>
-            </div>
-
-            {roomNotice && <p role="status" className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-[13px] font-bold text-[var(--brand-green)]">{roomNotice}</p>}
-
-            {occupiedRooms.length > 0 ? (
-              <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                {occupiedRooms.map((room) => roomCard(room, profile.rooms.findIndex((item) => item.id === room.id)))}
-              </div>
-            ) : (
-              <div className="mt-6 rounded-xl border border-dashed border-[#cbd4cf] bg-[#fbfcf8] px-4 py-5 text-center">
-                <p className="text-[13px] text-[#65716d]">{text.noDevices}</p>
-                <Link href={calculatorHref} className="mt-2 inline-flex text-[13px] font-semibold text-[var(--brand-green)]">{text.addDevice} {">"}</Link>
-              </div>
-            )}
-
-            {unassignedDevices.length > 0 && (
-              <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
-                <h3 className="text-[13px] font-bold text-[#17211f]">{text.unassigned}</h3>
-                <div className="mt-2 divide-y divide-amber-100">
-                  {unassignedDevices.map((device) => (
-                    <div key={device.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div><p className="text-[14px] font-bold">{localizedSavedDeviceName(device, locale)}</p><p className="mt-1 text-[11px] text-[#65716d]">{formatMoney(device.yearlyKwh * profile.electricityPrice, locale, profile.currency)} {text.yearly}</p></div>
-                      <label className="flex items-center gap-2 text-[11px] font-semibold text-[#65716d]"><span>{text.assign}</span><select data-room-assignment value="" onChange={(event) => assignRoom(device.id, event.target.value)} className="home-room-select h-7 max-w-24 rounded-md border border-[#dfe5dd] bg-white px-1.5 text-[#52605b] outline-none transition hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20"><option value="">{text.unassigned}</option>{profile.rooms.map((room) => <option key={room.id} value={room.id}>{localizeDefaultRoomName(room.name, locale)}</option>)}</select></label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {emptyRooms.length > 0 && (
-              <details
-                open={emptyRoomsOpen || Boolean(editingRoomId && emptyRooms.some((room) => room.id === editingRoomId))}
-                onToggle={(event) => setEmptyRoomsOpen(event.currentTarget.open)}
-                className="group mt-6 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8]"
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-[13px] font-semibold text-[#52605b] transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
-                  <span>{text.otherRooms} ({emptyRooms.length}) <span className="ml-2 font-normal text-[#7a8782]">{text.emptyRoomsHint}</span></span>
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    className="h-4 w-4 shrink-0 text-[var(--brand-green)] transition-transform duration-200 group-open:rotate-90"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m7.5 5 5 5-5 5" />
-                  </svg>
-                </summary>
-                <div className="grid gap-3 border-t border-[#dfe5dd] p-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {emptyRooms.map((room) => roomCard(room, profile.rooms.findIndex((item) => item.id === room.id), true))}
-                </div>
-              </details>
-            )}
-          </section>
+          <MyDevicesPanel
+            locale={locale}
+            compact
+            household
+            calculatorHref={calculatorHref}
+            onOpen={editSavedDevice}
+          />
 
           <section className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <div id="monthly-check-in" className={`${homeSurfaceClass} scroll-mt-24 p-5`}>

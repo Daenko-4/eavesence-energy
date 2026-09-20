@@ -2511,6 +2511,7 @@ export default function EnergyCalculator({
       <MyDevicesPanel
         ref={myDevicesPanelRef}
         locale={activeLocale}
+        teaser
         canSave={calculationIsValid}
         activeSavedDeviceId={activeSavedDeviceId}
         onActiveSavedDeviceChange={setActiveSavedDeviceId}
