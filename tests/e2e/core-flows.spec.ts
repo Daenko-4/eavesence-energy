@@ -325,10 +325,12 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await septemberEntry.getByRole("button", { name: "Delete" }).click();
   await expect(septemberEntry).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Reserve a beta place" }).click();
   await expect(
-    page.getByRole("button", { name: "Beta interest saved" }),
-  ).toBeDisabled();
+    page.getByRole("heading", { name: "Discover EAVESENCE Pro later" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Reserve a beta place" }),
+  ).toHaveCount(0);
 
   await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Manage data" })).toBeVisible();
