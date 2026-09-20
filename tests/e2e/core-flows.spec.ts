@@ -879,10 +879,16 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
         return { color: style.color, fontWeight: style.fontWeight };
       }),
     );
-  expect(new Set(navigationStyles.map(({ color }) => color)).size).toBe(1);
+  expect(
+    new Set(navigationStyles.slice(1).map(({ color }) => color)).size,
+  ).toBe(1);
   expect(
     new Set(navigationStyles.map(({ fontWeight }) => fontWeight)).size,
   ).toBe(1);
+  await expect(page.locator('[data-navigation-key="household"]')).toHaveCSS(
+    "background-color",
+    "rgb(220, 252, 232)",
+  );
 
   const xAfterPointerLeave = await calculatorLink.evaluate((element) =>
     element.getBoundingClientRect().x,
@@ -1149,10 +1155,10 @@ test.describe("mobile", () => {
   await page.getByRole("button", { name: /Compare consumption/ }).click();
   await expect(page.getByText("The estimate includes 1 saved device. Consumers not yet saved appear as a difference.", { exact: true }))
     .toBeVisible();
+  await expect(page.getByText("Comparison month: September 2026", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Monthly values & history/ }).click();
   await expect(page.locator("[data-monthly-checkin-status]")).toBeVisible();
   await expect(page.getByText("2 consecutive months", { exact: true })).toBeVisible();
-    await expect(page.getByText("Comparison month: September 2026", { exact: true })).toBeVisible();
     const septemberEntry = page.locator('[data-monthly-history-entry="2026-09"]');
     await septemberEntry.getByRole("button", { name: "Edit" }).click();
     await expect(page.getByRole("button", { name: "Update monthly value" })).toBeVisible();
