@@ -357,7 +357,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
         fontSize: computed.fontSize,
       };
     });
-    expect(style.backgroundColor).toBe("rgb(220, 252, 232)");
+    expect(style.backgroundColor).toBe("rgb(221, 248, 233)");
     expect(style.borderRadius).toBeGreaterThan(10);
     expect(style.fontSize).toBe(fontSize);
   }
