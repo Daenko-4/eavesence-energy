@@ -63,6 +63,8 @@ const homePrimaryActionClass =
   "home-primary-action inline-flex min-h-10 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-4 text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]";
 const homeCompactActionClass =
   "home-compact-action inline-flex min-h-7 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-2.5 text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]";
+const homeDashboardActionClass =
+  "home-dashboard-action inline-flex h-9 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-3 text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]";
 const homeDangerActionClass =
   "home-danger-action inline-flex min-h-7 items-center justify-center gap-1 rounded-full border border-red-100 bg-red-50 px-2.5 text-red-600 transition hover:border-red-200 hover:bg-red-100 hover:text-red-700 active:scale-[0.98]";
 const homeSectionTitleClass =
@@ -1307,7 +1309,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
-            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className={`${homeCompactActionClass} w-fit text-[11px] leading-4`}>{text.settings}</button>
+            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className={`${homeDashboardActionClass} w-fit`}>{text.settings}</button>
           </div>
 
           {settingsOpen && (
@@ -1316,7 +1318,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
-              <button type="button" onClick={saveSettings} className={`${homeCompactActionClass} text-[11px] leading-4 sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
+              <button type="button" onClick={saveSettings} className={`${homeDashboardActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
               <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
                 <div className="mt-1 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
@@ -1421,7 +1423,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <button
                   type="button"
                   onClick={openCurrentMonthCheckIn}
-                  className={homePrimaryActionClass}
+                  className={homeDashboardActionClass}
                 >
                   {text.recordCurrentMonth}
                 </button>
@@ -1429,7 +1431,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   type="button"
                   onClick={downloadMonthlyReminder}
                   title={text.calendarReminderTitle}
-                  className={homeCompactActionClass}
+                  className={homeDashboardActionClass}
                 >
                   {text.calendarReminder}
                 </button>
