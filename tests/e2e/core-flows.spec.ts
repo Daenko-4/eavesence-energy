@@ -198,6 +198,10 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(addMonthlyValue).toHaveCSS("height", "24px");
   await expect(monthlyReminder).toHaveCSS("height", "24px");
   await addMonthlyValue.click();
+  const consumptionMode = page.getByRole("button", { name: "Enter consumption" });
+  await expect(consumptionMode).toHaveAttribute("aria-pressed", "true");
+  await expect(consumptionMode).toHaveCSS("background-color", "rgb(8, 122, 69)");
+  await expect(consumptionMode).toHaveCSS("color", "rgb(255, 255, 255)");
   await expect(page.getByLabel("Consumption in kWh")).toBeFocused();
   const reminderDownload = page.waitForEvent("download");
   await monthlyReminder.click();
