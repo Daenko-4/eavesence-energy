@@ -338,7 +338,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   const compactActions = [
     { action: page.getByRole("button", { name: "Settings", exact: true }), fontSize: "11px" },
     { action: page.getByRole("button", { name: "Save settings" }), fontSize: "11px" },
-    { action: page.getByRole("button", { name: "Import backup" }), fontSize: "11px" },
+    { action: page.locator("[data-manage-data-import]"), fontSize: "11px" },
   ];
   for (const { action, fontSize } of compactActions) {
     const style = await action.evaluate((element) => {
