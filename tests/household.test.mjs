@@ -82,12 +82,24 @@ test("creates and validates a complete household backup", () => {
         updatedAt: "2026-09-16T12:00:00.000Z",
       },
     ],
+    costs: [
+      {
+        id: "rent",
+        name: "Rent",
+        category: "housing",
+        amount: 900,
+        frequency: "monthly",
+        nextDueDate: "2026-10-01",
+        updatedAt: "2026-09-16T12:00:00.000Z",
+      },
+    ],
     now: new Date("2026-09-17T10:00:00.000Z"),
   });
   const restored = readHouseholdBackup(JSON.stringify(backup));
 
   assert.equal(restored?.devices.length, 1);
   assert.equal(restored?.history.length, 1);
+  assert.equal(restored?.costs.length, 1);
   assert.deepEqual(restored?.profile.deviceRooms, {
     coffee: profile.rooms[0].id,
   });
@@ -100,6 +112,27 @@ test("rejects an incomplete household backup", () => {
     ),
     null,
   );
+});
+
+test("keeps old household backups compatible before costs were added", () => {
+  const profile = createHouseholdProfile({
+    name: "Home",
+    currency: "EUR",
+    electricityPrice: 0.3,
+    savingsGoalPercent: 10,
+    roomNames: ["Kitchen"],
+  });
+  const restored = readHouseholdBackup(
+    JSON.stringify({
+      version: 1,
+      exportedAt: "2026-09-17T10:00:00.000Z",
+      profile,
+      devices: [],
+      history: [],
+    }),
+  );
+
+  assert.deepEqual(restored?.costs, []);
 });
 
 test("summarizes saved devices and savings target", () => {
