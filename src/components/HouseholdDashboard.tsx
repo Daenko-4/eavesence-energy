@@ -13,6 +13,7 @@ import {
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import HouseholdCostsPanel from "@/components/HouseholdCostsPanel";
 import ConnectivityStatus from "@/components/ConnectivityStatus";
 import MyDevicesPanel, {
   SAVED_DEVICE_EDIT_REQUEST_KEY,
@@ -46,6 +47,11 @@ import {
   type MonthlyEnergyEntry,
 } from "@/lib/household";
 import { createMonthlyReminderCalendar } from "@/lib/monthlyReminder";
+import {
+  HOUSEHOLD_COSTS_STORAGE_KEY,
+  readHouseholdCosts,
+  type HouseholdCost,
+} from "@/lib/householdCosts";
 import {
   readSavedDevices,
   SAVED_DEVICES_STORAGE_KEY,
@@ -84,7 +90,7 @@ const currencies: SavedDeviceCurrency[] = [
 const copy = {
   de: {
     pageTitle: "Mein Zuhause",
-    pageSubtitle: "Alle Geräte, Kosten und Sparziele an einem Ort.",
+    pageSubtitle: "Alle laufenden Haushaltskosten, Geräte und Sparziele an einem Ort.",
     onboardingEyebrow: "EAVESENCE Home",
     onboardingTitle: "Richte dein Zuhause ein",
     onboardingText:
@@ -92,6 +98,25 @@ const copy = {
     householdName: "Name des Zuhauses",
     householdNamePlaceholder: "Mein Zuhause",
     price: "Strompreis pro kWh",
+    energyBasis: "Stromkosten erfassen",
+    energyBasisText:
+      "Wähle einfach, welche Zahl du kennst. Anbieter, Netzpreis und Abgaben musst du nicht einzeln eingeben.",
+    energyPriceMode: "Preis pro kWh",
+    energyAnnualMode: "Jahresrechnung",
+    energyMonthlyMode: "Monatlicher Abschlag",
+    annualBill: "Bezahlter Jahresbetrag",
+    annualKwh: "Verbrauch laut Rechnung",
+    monthlyPayment: "Monatlicher Abschlag",
+    effectivePrice: "Persönlicher Gesamtpreis: {price} pro kWh",
+    monthlyBudgetOnly:
+      "Der Abschlag fließt als Strombudget ein. Gerätewerte bleiben eine Schätzung mit dem bisherigen kWh-Preis.",
+    bonusQuestion: "Die Rechnung enthält einen einmaligen Bonus oder eine Gutschrift",
+    bonusHint:
+      "Der errechnete Preis basiert auf dieser Rechnung und kann im nächsten Jahr höher ausfallen.",
+    energyAnnualRequired:
+      "Bitte gib Jahresbetrag und Jahresverbrauch größer als 0 ein.",
+    energyMonthlyRequired:
+      "Bitte gib einen monatlichen Abschlag größer als 0 ein.",
     currency: "Währung",
     goal: "Sparziel",
     goalSuffix: "% weniger Jahreskosten",
@@ -99,6 +124,9 @@ const copy = {
     start: "Zuhause erstellen",
     private: "Ohne Konto · lokal gespeichert · jederzeit löschbar",
     overview: "Deine Übersicht",
+    energyOverview: "Strom & Energie",
+    energyOverviewText:
+      "Geräte, tatsächlicher Monatsverbrauch und deine persönliche Stromkostenbasis.",
     editGoal: "Ziel anpassen",
     monthly: "Pro Monat",
     yearly: "Pro Jahr",
@@ -238,7 +266,7 @@ const copy = {
     saved: "Gespeichert",
     dataTitle: "Daten verwalten",
     dataText:
-      "Die Sicherung enthält Einstellungen, gespeicherte Geräte und den Monatsverlauf.",
+      "Die Sicherung enthält Einstellungen, Haushaltskosten, gespeicherte Geräte und den Monatsverlauf.",
     dataPrivacy: "Sie enthält keine Konto- oder Cloud-Daten.",
     importHome: "Sicherung importieren",
     exportHome: "Sicherung exportieren",
@@ -246,16 +274,16 @@ const copy = {
     importedHome: "My-Home-Sicherung importiert.",
     importHomeError: "Diese Sicherungsdatei ist ungültig oder unvollständig.",
     importHomeConfirm:
-      "Diese Sicherung ersetzt dein aktuelles Zuhause, deine gespeicherten Geräte und den Monatsverlauf. Fortfahren?",
+      "Diese Sicherung ersetzt dein aktuelles Zuhause, deine Haushaltskosten, gespeicherten Geräte und den Monatsverlauf. Fortfahren?",
     resetHomeConfirm:
-      "My Home wirklich zurücksetzen? Einstellungen und Monatsverlauf werden gelöscht. Deine gespeicherten Geräte bleiben erhalten.",
+      "My Home wirklich zurücksetzen? Einstellungen, Haushaltskosten und Monatsverlauf werden gelöscht. Deine gespeicherten Geräte bleiben erhalten.",
     dragRoom: "Raum verschieben",
     moveRoomEarlier: "Weiter nach vorne",
     moveRoomLater: "Weiter nach hinten",
   },
   en: {
     pageTitle: "My home",
-    pageSubtitle: "All devices, costs and savings goals in one place.",
+    pageSubtitle: "All recurring household costs, devices and savings goals in one place.",
     onboardingEyebrow: "EAVESENCE Home",
     onboardingTitle: "Set up your home",
     onboardingText:
@@ -263,6 +291,25 @@ const copy = {
     householdName: "Home name",
     householdNamePlaceholder: "My home",
     price: "Electricity price per kWh",
+    energyBasis: "Add electricity costs",
+    energyBasisText:
+      "Choose the number you know. You do not need to enter the provider, network fees or taxes separately.",
+    energyPriceMode: "Price per kWh",
+    energyAnnualMode: "Yearly bill",
+    energyMonthlyMode: "Monthly payment",
+    annualBill: "Total paid for the year",
+    annualKwh: "Consumption on the bill",
+    monthlyPayment: "Monthly payment",
+    effectivePrice: "Your all-in price: {price} per kWh",
+    monthlyBudgetOnly:
+      "The payment is used as your electricity budget. Device values remain an estimate using the previous kWh price.",
+    bonusQuestion: "The bill includes a one-off bonus or credit",
+    bonusHint:
+      "The calculated price is based on this bill and may be higher next year.",
+    energyAnnualRequired:
+      "Enter a yearly amount and yearly consumption greater than 0.",
+    energyMonthlyRequired:
+      "Enter a monthly payment greater than 0.",
     currency: "Currency",
     goal: "Savings goal",
     goalSuffix: "% lower yearly costs",
@@ -270,6 +317,9 @@ const copy = {
     start: "Create my home",
     private: "No account · stored locally · delete at any time",
     overview: "Your overview",
+    energyOverview: "Electricity & energy",
+    energyOverviewText:
+      "Devices, actual monthly consumption and your personal electricity-cost basis.",
     editGoal: "Adjust goal",
     monthly: "Per month",
     yearly: "Per year",
@@ -409,7 +459,7 @@ const copy = {
     saved: "Saved",
     dataTitle: "Manage data",
     dataText:
-      "The backup contains settings, saved devices and monthly history.",
+      "The backup contains settings, household costs, saved devices and monthly history.",
     dataPrivacy: "It contains no account or cloud data.",
     importHome: "Import backup",
     exportHome: "Export backup",
@@ -417,9 +467,9 @@ const copy = {
     importedHome: "My home backup imported.",
     importHomeError: "This backup file is invalid or incomplete.",
     importHomeConfirm:
-      "This backup will replace your current home, saved devices and monthly history. Continue?",
+      "This backup will replace your current home, household costs, saved devices and monthly history. Continue?",
     resetHomeConfirm:
-      "Reset My home? Settings and monthly history will be deleted. Your saved devices will be kept.",
+      "Reset My home? Settings, household costs and monthly history will be deleted. Your saved devices will be kept.",
     dragRoom: "Reorder room",
     moveRoomEarlier: "Move earlier",
     moveRoomLater: "Move later",
@@ -560,9 +610,18 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [profile, setProfile] = useState<HouseholdProfile | null>(null);
   const [savedDevices, setSavedDevices] = useState<SavedDevice[]>([]);
   const [history, setHistory] = useState<MonthlyEnergyEntry[]>([]);
+  const [householdCosts, setHouseholdCosts] = useState<HouseholdCost[]>([]);
   const [name, setName] = useState(locale === "de" ? "Mein Zuhause" : "My home");
   const [currency, setCurrency] = useState<SavedDeviceCurrency>("EUR");
   const [price, setPrice] = useState(0.3);
+  const [electricityInputMode, setElectricityInputMode] = useState<
+    "price" | "annual-bill" | "monthly-payment"
+  >("price");
+  const [annualElectricityBill, setAnnualElectricityBill] = useState("");
+  const [annualElectricityKwh, setAnnualElectricityKwh] = useState("");
+  const [monthlyElectricityPayment, setMonthlyElectricityPayment] = useState("");
+  const [electricityBillIncludesBonus, setElectricityBillIncludesBonus] =
+    useState(false);
   const [goal, setGoal] = useState(10);
   const [month, setMonth] = useState(currentMonth());
   const [monthKwh, setMonthKwh] = useState("");
@@ -590,10 +649,32 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       setName(localizeDefaultHouseholdName(storedProfile.name, locale));
       setCurrency(storedProfile.currency);
       setPrice(storedProfile.electricityPrice);
+      setElectricityInputMode(storedProfile.electricityInputMode ?? "price");
+      setAnnualElectricityBill(
+        storedProfile.annualElectricityBill
+          ? String(storedProfile.annualElectricityBill)
+          : "",
+      );
+      setAnnualElectricityKwh(
+        storedProfile.annualElectricityKwh
+          ? String(storedProfile.annualElectricityKwh)
+          : "",
+      );
+      setMonthlyElectricityPayment(
+        storedProfile.monthlyElectricityPayment
+          ? String(storedProfile.monthlyElectricityPayment)
+          : "",
+      );
+      setElectricityBillIncludesBonus(
+        storedProfile.electricityBillIncludesBonus ?? false,
+      );
       setGoal(storedProfile.savingsGoalPercent);
     }
     setSavedDevices(readSavedDevices(window.localStorage.getItem(SAVED_DEVICES_STORAGE_KEY)));
     setHistory(readMonthlyEnergyEntries(window.localStorage.getItem(HOUSEHOLD_HISTORY_STORAGE_KEY)));
+    setHouseholdCosts(
+      readHouseholdCosts(window.localStorage.getItem(HOUSEHOLD_COSTS_STORAGE_KEY)),
+    );
     setBetaInterested(window.localStorage.getItem(BETA_INTEREST_STORAGE_KEY) === "true");
   }, [locale]);
 
@@ -665,6 +746,19 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
   }
 
+  function persistHouseholdCosts(nextCosts: HouseholdCost[]) {
+    window.localStorage.setItem(
+      HOUSEHOLD_COSTS_STORAGE_KEY,
+      JSON.stringify(nextCosts),
+    );
+    setHouseholdCosts(nextCosts);
+    window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
+    track("Home Household Costs Updated", {
+      locale,
+      cost_count: nextCosts.length,
+    });
+  }
+
   function completeOnboarding() {
     const nextProfile = createHouseholdProfile({
       name,
@@ -684,15 +778,42 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   function saveSettings() {
     if (!profile) return;
+    const parsedAnnualBill = positiveNumber(annualElectricityBill);
+    const parsedAnnualKwh = positiveNumber(annualElectricityKwh);
+    const parsedMonthlyPayment = positiveNumber(monthlyElectricityPayment);
+    if (
+      electricityInputMode === "annual-bill" &&
+      (parsedAnnualBill === null || parsedAnnualKwh === null)
+    ) {
+      setNotice(text.energyAnnualRequired);
+      return;
+    }
+    if (
+      electricityInputMode === "monthly-payment" &&
+      parsedMonthlyPayment === null
+    ) {
+      setNotice(text.energyMonthlyRequired);
+      return;
+    }
+    const resolvedPrice =
+      electricityInputMode === "annual-bill"
+        ? (parsedAnnualBill ?? 0) / (parsedAnnualKwh ?? 1)
+        : Math.max(0, price);
     persistProfile({
       ...profile,
       name: name.trim() || profile.name,
       currency,
-      electricityPrice: Math.max(0, price),
+      electricityPrice: resolvedPrice,
+      electricityInputMode,
+      annualElectricityBill: parsedAnnualBill ?? 0,
+      annualElectricityKwh: parsedAnnualKwh ?? 0,
+      monthlyElectricityPayment: parsedMonthlyPayment ?? 0,
+      electricityBillIncludesBonus,
       savingsGoalPercent: Math.min(50, Math.max(1, goal)),
       updatedAt: new Date().toISOString(),
     });
     setNotice(text.saved);
+    setPrice(resolvedPrice);
     setSettingsOpen(false);
     track("Home Savings Goal Set", { locale, savings_goal: goal });
   }
@@ -703,6 +824,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       profile,
       devices: savedDevices,
       history,
+      costs: householdCosts,
     });
     const blob = new Blob([JSON.stringify(backup, null, 2)], {
       type: "application/json",
@@ -739,12 +861,36 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       HOUSEHOLD_HISTORY_STORAGE_KEY,
       JSON.stringify(backup.history),
     );
+    window.localStorage.setItem(
+      HOUSEHOLD_COSTS_STORAGE_KEY,
+      JSON.stringify(backup.costs),
+    );
     setProfile(backup.profile);
     setSavedDevices(backup.devices);
     setHistory(backup.history);
+    setHouseholdCosts(backup.costs);
     setName(localizeDefaultHouseholdName(backup.profile.name, locale));
     setCurrency(backup.profile.currency);
     setPrice(backup.profile.electricityPrice);
+    setElectricityInputMode(backup.profile.electricityInputMode ?? "price");
+    setAnnualElectricityBill(
+      backup.profile.annualElectricityBill
+        ? String(backup.profile.annualElectricityBill)
+        : "",
+    );
+    setAnnualElectricityKwh(
+      backup.profile.annualElectricityKwh
+        ? String(backup.profile.annualElectricityKwh)
+        : "",
+    );
+    setMonthlyElectricityPayment(
+      backup.profile.monthlyElectricityPayment
+        ? String(backup.profile.monthlyElectricityPayment)
+        : "",
+    );
+    setElectricityBillIncludesBonus(
+      backup.profile.electricityBillIncludesBonus ?? false,
+    );
     setGoal(backup.profile.savingsGoalPercent);
     setSettingsOpen(false);
     setNotice(text.importedHome);
@@ -760,13 +906,20 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     if (!window.confirm(text.resetHomeConfirm)) return;
     window.localStorage.removeItem(HOUSEHOLD_PROFILE_STORAGE_KEY);
     window.localStorage.removeItem(HOUSEHOLD_HISTORY_STORAGE_KEY);
+    window.localStorage.removeItem(HOUSEHOLD_COSTS_STORAGE_KEY);
     window.localStorage.removeItem(HOUSEHOLD_VISIT_STORAGE_KEY);
     window.localStorage.removeItem(BETA_INTEREST_STORAGE_KEY);
     setProfile(null);
     setHistory([]);
+    setHouseholdCosts([]);
     setName(locale === "de" ? "Mein Zuhause" : "My home");
     setCurrency("EUR");
     setPrice(0.3);
+    setElectricityInputMode("price");
+    setAnnualElectricityBill("");
+    setAnnualElectricityKwh("");
+    setMonthlyElectricityPayment("");
+    setElectricityBillIncludesBonus(false);
     setGoal(10);
     setBetaInterested(false);
     setCheckInFeedback(null);
@@ -926,11 +1079,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 {text.householdName}
                 <input value={name} onChange={(event) => setName(event.target.value)} placeholder={text.householdNamePlaceholder} className={homeFieldClass} />
               </label>
-              <label className="grid gap-2 text-[13px] font-semibold text-[#52605b]">
-                {text.price}
-                <input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} />
-              </label>
-              <label className="grid gap-2 text-[13px] font-semibold text-[#52605b]">
+              <label className="grid gap-2 text-[13px] font-semibold text-[#52605b] sm:col-span-2">
                 {text.currency}
                 <select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>
                   {currencies.map((item) => <option key={item}>{item}</option>)}
@@ -965,6 +1114,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   ).format(new Date(`${thisMonth}-01T00:00:00Z`));
   const monthlySavings = (summary?.targetSavings ?? 0) / 12;
   const latestActual = history[0] ?? null;
+  const electricityMonthlyBudget =
+    profile.electricityInputMode === "monthly-payment"
+      ? profile.monthlyElectricityPayment ?? 0
+      : profile.electricityInputMode === "annual-bill"
+        ? (profile.annualElectricityBill ?? 0) / 12
+        : latestActual?.cost ?? 0;
   const latestActualMonth = latestActual
     ? new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", {
         month: "long",
@@ -1107,10 +1262,39 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           {settingsOpen && (
             <section data-home-settings className={`mt-6 grid gap-4 p-5 sm:grid-cols-4 ${homeSurfaceClass}`}>
-              <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
-              <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
+              <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
+              <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
+                <h2 className="text-[14px] font-bold text-[#17211f]">{text.energyBasis}</h2>
+                <p className="mt-1 text-[13px] leading-5 text-[#65716d]">{text.energyBasisText}</p>
+                <div className="mt-4 grid grid-cols-3 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
+                  {([
+                    ["price", text.energyPriceMode],
+                    ["annual-bill", text.energyAnnualMode],
+                    ["monthly-payment", text.energyMonthlyMode],
+                  ] as const).map(([mode, label]) => (
+                    <button key={mode} type="button" aria-pressed={electricityInputMode === mode} onClick={() => setElectricityInputMode(mode)} className={`home-primary-action rounded-full border-0 px-2 py-1 transition ${electricityInputMode === mode ? "bg-[var(--brand-green)] text-white shadow-sm" : "bg-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{label}</button>
+                  ))}
+                </div>
+                {electricityInputMode === "price" && (
+                  <label className="mt-4 grid max-w-sm gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
+                )}
+                {electricityInputMode === "annual-bill" && (
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.annualBill}</span><input type="text" inputMode="decimal" value={annualElectricityBill} onChange={(event) => setAnnualElectricityBill(event.target.value)} className={homeFieldClass} /></label>
+                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.annualKwh}</span><input type="text" inputMode="decimal" value={annualElectricityKwh} onChange={(event) => setAnnualElectricityKwh(event.target.value)} className={homeFieldClass} /></label>
+                    {positiveNumber(annualElectricityBill) && positiveNumber(annualElectricityKwh) ? <p className="text-[13px] font-bold text-[var(--brand-green)] sm:col-span-2">{text.effectivePrice.replace("{price}", formatMoneyPrecise((positiveNumber(annualElectricityBill) ?? 0) / (positiveNumber(annualElectricityKwh) ?? 1), locale, currency))}</p> : null}
+                    <label className="flex items-start gap-2 text-[11px] font-semibold leading-5 text-[#52605b] sm:col-span-2"><input type="checkbox" checked={electricityBillIncludesBonus} onChange={(event) => setElectricityBillIncludesBonus(event.target.checked)} className="mt-1 accent-[var(--brand-green)]" /><span>{text.bonusQuestion}{electricityBillIncludesBonus ? <span className="mt-1 block font-normal text-[#65716d]">{text.bonusHint}</span> : null}</span></label>
+                  </div>
+                )}
+                {electricityInputMode === "monthly-payment" && (
+                  <div className="mt-4 grid max-w-lg gap-2">
+                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.monthlyPayment}</span><input type="text" inputMode="decimal" value={monthlyElectricityPayment} onChange={(event) => setMonthlyElectricityPayment(event.target.value)} className={homeFieldClass} /></label>
+                    <p className="text-[11px] leading-5 text-[#65716d]">{text.monthlyBudgetOnly}</p>
+                  </div>
+                )}
+              </div>
               <button type="button" onClick={saveSettings} className={`${homeDashboardActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
               <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
@@ -1248,7 +1432,20 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
           </section>
 
-          <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label={text.overview}>
+          <HouseholdCostsPanel
+            locale={locale}
+            currency={profile.currency}
+            savingsGoalPercent={profile.savingsGoalPercent}
+            costs={householdCosts}
+            electricityMonthlyBudget={electricityMonthlyBudget}
+            onChange={persistHouseholdCosts}
+          />
+
+          <div id="energy-overview" className="mt-8 scroll-mt-24">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.energyOverview}</p>
+            <p className="mt-1 text-[13px] leading-6 text-[#65716d]">{text.energyOverviewText}</p>
+          </div>
+          <section className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label={text.overview}>
             {[
               [text.monthly, formatMoneyPrecise(summary?.monthlyCost ?? 0, locale, profile.currency), ""],
               [text.yearly, formatMoney(summary?.annualCost ?? 0, locale, profile.currency), ""],

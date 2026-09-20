@@ -172,8 +172,10 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     page.getByRole("heading", { name: "Set up your home" }),
   ).toBeVisible();
   await page.getByLabel("Home name").fill("Test home");
-  await page.getByLabel("Electricity price per kWh").fill("0.35");
   await page.getByRole("button", { name: "Create my home" }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByLabel("Electricity price per kWh").fill("0.35");
+  await page.getByRole("button", { name: "Save settings" }).click();
 
   await expect(
     page.getByRole("heading", { name: "Test home", exact: true }),
@@ -187,6 +189,23 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeVisible();
   await installCard.getByRole("button", { name: "Maybe later" }).click();
   await expect(installCard).toHaveCount(0);
+  const householdCosts = page.locator("#household-costs");
+  await expect(
+    householdCosts.getByRole("heading", { name: "What does your home really cost?" }),
+  ).toBeVisible();
+  await householdCosts
+    .getByRole("button", { name: "Rent or mortgage payment" })
+    .click();
+  await householdCosts.getByLabel("Amount").fill("900");
+  await householdCosts.getByLabel("Next payment (optional)").fill("2026-10-01");
+  await householdCosts.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
+  await expect(householdCosts.getByText("€900.00", { exact: true }).first()).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      JSON.parse(window.localStorage.getItem("eavesence-home-costs-v1") ?? "[]"),
+    ),
+  ).toHaveLength(1);
   const nextStep = page.getByRole("region", { name: "Next step" });
   await expect(nextStep).toContainText("September 2026 still open");
   const addMonthlyValue = nextStep.getByRole("button", {
@@ -394,6 +413,13 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeLessThanOrEqual(1);
   expect(manageDataTextTops.exportAction).toBe(manageDataTextTops.action);
   expect(manageDataTextTops.resetAction).toBe(manageDataTextTops.action);
+  await page.getByRole("button", { name: "Yearly bill", exact: true }).click();
+  await page.getByLabel("Total paid for the year").fill("1200");
+  await page.getByLabel("Consumption on the bill").fill("4000");
+  await expect(page.getByText("Your all-in price: €0.30 per kWh", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Save settings" }).click();
+  await expect(page.getByText("Saved", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
   const downloadPromise = page.waitForEvent("download");
   await page.locator("[data-manage-data-export]").click();
   await downloadPromise;
@@ -402,6 +428,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(
     page.getByRole("heading", { name: "Set up your home" }),
   ).toBeVisible();
+  expect(await page.evaluate(() => window.localStorage.getItem("eavesence-home-costs-v1"))).toBeNull();
   expect(
     await page.evaluate(() =>
       JSON.parse(
@@ -990,17 +1017,17 @@ test.describe("mobile", () => {
       appNavigation.getByRole("link", { name: "Overview" }),
     ).toHaveAttribute("aria-current", "location");
     await expect(
-      appNavigation.getByRole("link", { name: "Month" }),
-    ).toHaveAttribute("href", "#monthly-check-in");
+      appNavigation.getByRole("link", { name: "Costs" }),
+    ).toHaveAttribute("href", "#household-costs");
     await expect(
       appNavigation.getByRole("link", { name: "Add" }),
     ).toHaveAttribute("href", "/#rechner");
-    const devicesDestination = appNavigation.getByRole("link", {
-      name: "Devices",
+    const energyDestination = appNavigation.getByRole("link", {
+      name: "Energy",
     });
-    await expect(devicesDestination).toHaveAttribute("href", "#home-devices");
-    await devicesDestination.click();
-    await expect(devicesDestination).toHaveAttribute("aria-current", "location");
+    await expect(energyDestination).toHaveAttribute("href", "#energy-overview");
+    await energyDestination.click();
+    await expect(energyDestination).toHaveAttribute("aria-current", "location");
     await expect(
       appNavigation.getByRole("button", { name: "Settings" }),
     ).toHaveCSS("font-size", "11px");
