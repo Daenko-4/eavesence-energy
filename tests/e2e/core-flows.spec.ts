@@ -173,6 +173,9 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeVisible();
   await page.getByLabel("Home name").fill("Test home");
   await page.getByRole("button", { name: "Create my home" }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByLabel("Electricity price per kWh").fill("0.35");
+  await page.getByRole("button", { name: "Save settings" }).click();
 
   await expect(
     page.getByRole("heading", { name: "Test home", exact: true }),
