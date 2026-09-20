@@ -516,9 +516,9 @@ function MyDevicesPanel(
           </span>
           <a
             href={locale === "de" ? "/de/zuhause#home-devices" : "/home#home-devices"}
-            className="text-xs font-extrabold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+            className="eavesence-pill-link"
           >
-            {text.viewHome} <span aria-hidden="true">›</span>
+            {text.viewHome}
           </a>
         </div>
       </section>
@@ -535,7 +535,7 @@ function MyDevicesPanel(
             : "mt-9 scroll-mt-[104px] border-t border-slate-200/80 pt-7"
         }
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-950">
@@ -572,21 +572,21 @@ function MyDevicesPanel(
               )}
             </div>
           </div>
-          {savedDevices.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="w-fit rounded-full bg-[#ddf8e9] px-3 py-1 text-[11px] font-bold text-[var(--brand-green)]">
+          {(savedDevices.length > 0 || household) && (
+            <div className="flex shrink-0 flex-col items-end gap-1.5">
+              {household && (
+                <a href={calculatorHref} className="eavesence-pill-link">
+                  {text.addDevice}
+                </a>
+              )}
+              {savedDevices.length > 0 && <span className="w-fit rounded-full bg-[#ddf8e9] px-3 py-1 text-[11px] font-bold leading-4 text-[var(--brand-green)]">
                 {savedDevices.length}{" "}
                 {savedDevices.length === 1
                   ? text.savedDevice
                   : text.savedDevices}
-              </span>
+              </span>}
               {!household && (
-                <a href={locale === "de" ? "/de/zuhause" : "/home"} className="text-xs font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.openHome} {">"}</a>
-              )}
-              {household && (
-                <a href={calculatorHref} className="text-xs font-extrabold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]">
-                  {text.addDevice} <span aria-hidden="true">›</span>
-                </a>
+                <a href={locale === "de" ? "/de/zuhause" : "/home"} className="eavesence-pill-link">{text.openHome}</a>
               )}
             </div>
           )}
@@ -608,7 +608,7 @@ function MyDevicesPanel(
         {storageReady && savedDevices.length === 0 && (
           <div className="mt-3 flex flex-col gap-2 rounded-xl border border-dashed border-slate-300 bg-white/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs leading-5 text-slate-500">{text.empty}</p>
-            <a href={calculatorHref} className="shrink-0 text-xs font-extrabold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]">{text.calculateFirst} {household ? ">" : "↑"}</a>
+            <a href={calculatorHref} className="eavesence-pill-link shrink-0">{text.calculateFirst}</a>
           </div>
         )}
 
@@ -654,12 +654,12 @@ function MyDevicesPanel(
                       <span className="block text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--brand-green)]">
                         {text.total}
                       </span>
-                      <span className="mt-0.5 block text-[10px] font-semibold tracking-[0.08em] text-slate-500">
+                      <span className="mt-0.5 block text-[11px] font-semibold tracking-[0.08em] text-slate-500">
                         {total.currency}
                       </span>
                     </div>
                     <div className="shrink-0 text-right">
-                      <span className="block text-xl font-extrabold tracking-[-0.035em] tabular-nums text-[#10283a] sm:text-2xl">
+                      <span className="block text-xl font-extrabold tracking-[-0.035em] tabular-nums text-[#10283a]">
                         {formatMoney(total.yearlyCost, locale, total.currency)}
                       </span>
                       <span className="block text-[11px] text-slate-500">
@@ -681,7 +681,7 @@ function MyDevicesPanel(
                         <DeviceCategoryIcon category={getDeviceCategory(item)} />
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-base font-bold tracking-tight text-slate-950">
+                        <p className="truncate text-sm font-bold tracking-tight text-slate-950">
                           {getDeviceName(item)}
                         </p>
                       </div>
@@ -693,7 +693,7 @@ function MyDevicesPanel(
                       {text.perMonth}
                     </p>
                     <p className="text-left text-xs text-slate-500 sm:text-right">
-                      <span className="block text-lg font-extrabold tracking-[-0.025em] tabular-nums text-slate-950">
+                      <span className="block text-sm font-extrabold tracking-[-0.015em] tabular-nums text-slate-950">
                         {formatMoney(displayYearlyCost(item), locale, displayCurrency(item))}
                       </span>
                       {text.perYear}

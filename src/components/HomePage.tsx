@@ -800,12 +800,11 @@ export default function HomePage({
             <div className="mt-4 flex justify-center">
               <a
                 href={householdHref}
-                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-green-200 bg-white/80 px-4 text-sm font-bold text-[var(--brand-green)] transition hover:border-green-300 hover:bg-green-50"
+                className="eavesence-pill-link"
               >
                 {locale === "de"
                   ? "Neu: Mein Zuhause einrichten"
                   : "New: Set up My home"}
-                <span aria-hidden="true">&gt;</span>
               </a>
             </div>
 
@@ -827,9 +826,9 @@ export default function HomePage({
               </h2>
               <a
                 href={devicesHref}
-                className="inline-flex items-center gap-2 text-sm font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                className="eavesence-pill-link"
               >
-                {hero.allDevices} <span aria-hidden="true">&gt;</span>
+                {hero.allDevices}
               </a>
             </div>
 
@@ -959,9 +958,9 @@ export default function HomePage({
               <span>{text.faq.feedbackText}</span>
               <a
                 href={feedbackHref}
-                className="-my-2 inline-flex min-h-10 items-center py-2 font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                className="eavesence-pill-link"
               >
-                {text.faq.feedbackLink} {">"}
+                {text.faq.feedbackLink}
               </a>
             </div>
           </div>

@@ -202,9 +202,9 @@ export default function PrivacyPage() {
           <Link
             href="/"
             scroll
-            className="inline-flex text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+            className="eavesence-pill-link"
           >
-            {"<"} Back to the EAVESENCE home page
+            Back to the EAVESENCE home page
           </Link>
         </div>
       </main>

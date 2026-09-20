@@ -260,7 +260,12 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByText("€73.50", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Save month" }).click();
   await expect(page.getByText("Monthly value saved.", { exact: true })).toBeVisible();
-  await expect(page.locator("[data-home-next-step]")).toHaveCount(0);
+  const monthlyPulse = page.getByRole("region", { name: "Monthly overview" });
+  await expect(monthlyPulse).toBeVisible();
+  await expect(monthlyPulse).toContainText("Your first monthly baseline is ready");
+  await expect(monthlyPulse).toContainText("Largest calculated consumer");
+  await expect(monthlyPulse.getByRole("link", { name: "Review consumer" }))
+    .toHaveAttribute("href", "#home-devices");
   const septemberEntry = page.locator('[data-monthly-history-entry="2026-09"]');
   await expect(septemberEntry.getByText("210 kWh", { exact: true })).toBeVisible();
   await expect(septemberEntry.getByText("€73.50", { exact: true })).toBeVisible();
@@ -320,10 +325,12 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await septemberEntry.getByRole("button", { name: "Delete" }).click();
   await expect(septemberEntry).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Reserve a beta place" }).click();
   await expect(
-    page.getByRole("button", { name: "Beta interest saved" }),
-  ).toBeDisabled();
+    page.getByRole("heading", { name: "Discover EAVESENCE Pro later" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Reserve a beta place" }),
+  ).toHaveCount(0);
 
   await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Manage data" })).toBeVisible();

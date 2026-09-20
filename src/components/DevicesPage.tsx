@@ -490,7 +490,6 @@ export default function DevicesPage({
                                 <h3 className="truncate text-[15px] font-bold text-[#17211f] transition group-hover:text-[var(--brand-green)]">{localizedDevice.name}</h3>
                                 <p className="mt-1 text-xs text-[#74807b]">{typicalValue}</p>
                               </div>
-                              <span className="text-base text-[var(--brand-green)] transition group-hover:translate-x-0.5">&gt;</span>
                             </Link>
                           );
                         }
@@ -525,10 +524,9 @@ export default function DevicesPage({
 
             <Link
               href={calculatorHref}
-              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[var(--brand-green)] bg-[var(--brand-green)] px-4 py-2.5 text-sm font-semibold text-[var(--brand-off-white)] transition hover:bg-[var(--brand-green-dark)] active:scale-[0.98]"
+              className="eavesence-pill-link shrink-0"
             >
               {text.ctaButton}
-              <span>&gt;</span>
             </Link>
           </div>
         </section>

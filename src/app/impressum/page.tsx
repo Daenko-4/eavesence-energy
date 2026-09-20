@@ -103,9 +103,9 @@ export default function ImpressumPage() {
           <Link
             href="/de"
             scroll
-            className="inline-flex text-sm font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+            className="eavesence-pill-link"
           >
-            {"<"} Zur EAVESENCE Startseite
+            Zur EAVESENCE Startseite
           </Link>
         </div>
       </main>

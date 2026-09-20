@@ -132,6 +132,15 @@ const copy = {
     currentMonthComplete: "{month} erfasst",
     currentMonthCompleteText: "{kwh} kWh und {cost} sind gespeichert. Änderungen sind jederzeit im Verlauf möglich.",
     nextStep: "Nächster Schritt",
+    monthlyPulse: "Monatsüberblick",
+    pulseLower: "{percent}% weniger Verbrauch als im Vormonat",
+    pulseHigher: "{percent}% mehr Verbrauch als im Vormonat",
+    pulseSteady: "Verbrauch nahezu unverändert",
+    pulseBaseline: "Deine erste Monatsbasis steht",
+    pulseBaselineText: "Mit dem nächsten Monatswert siehst du sofort, ob Verbrauch und Kosten steigen oder sinken.",
+    pulseTrendText: "{kwh} kWh und {cost} wurden für {month} erfasst.",
+    pulseTopDevice: "Größter berechneter Verbraucher: {device} mit {cost} pro Jahr.",
+    reviewTopDevice: "Verbraucher prüfen",
     recordCurrentMonth: "Monatswert eintragen",
     calendarReminder: "Monatlich erinnern",
     calendarReminderTitle: "Wiederkehrende Erinnerung am 5. jedes Monats zum Kalender hinzufügen",
@@ -201,7 +210,7 @@ const copy = {
     proEyebrow: "EAVESENCE Pro",
     proTitle: "Mehr Klarheit für dein ganzes Zuhause",
     proText:
-      "Unbegrenzte Geräte, Monatsverlauf, mehrere Haushalte, Synchronisation und später Energieetikett- sowie Rechnungsscan.",
+      "Automatische Verbrauchswarnungen, längerer Verlauf, Synchronisation, mehrere Haushalte und später Energieetikett- sowie Rechnungsscan.",
     monthlyPlan: "Monatlich",
     yearlyPlan: "Jährlich",
     monthlyPrice: "5,99 € / Monat",
@@ -214,7 +223,7 @@ const copy = {
     proBilling: "Abrechnung in EUR",
     proPreviewTitle: "EAVESENCE Pro später entdecken",
     proPreviewText:
-      "Sobald du drei Geräte oder zwei Monatswerte gespeichert hast, zeigen wir dir die Pro-Vorschau passend zu deinem Haushalt.",
+      "Nach zwei Monatswerten zeigen wir dir die Pro-Vorschau passend zu deinem ersten echten Trend.",
     addRoom: "Raum hinzufügen",
     newRoom: "Neuer Raum",
     roomName: "Raumname",
@@ -294,6 +303,15 @@ const copy = {
     currentMonthComplete: "{month} recorded",
     currentMonthCompleteText: "{kwh} kWh and {cost} are saved. You can edit the entry from the history at any time.",
     nextStep: "Next step",
+    monthlyPulse: "Monthly overview",
+    pulseLower: "{percent}% less consumption than the previous month",
+    pulseHigher: "{percent}% more consumption than the previous month",
+    pulseSteady: "Consumption almost unchanged",
+    pulseBaseline: "Your first monthly baseline is ready",
+    pulseBaselineText: "Add next month's value to see immediately whether consumption and costs are rising or falling.",
+    pulseTrendText: "{kwh} kWh and {cost} were recorded for {month}.",
+    pulseTopDevice: "Largest calculated consumer: {device} at {cost} per year.",
+    reviewTopDevice: "Review consumer",
     recordCurrentMonth: "Add monthly value",
     calendarReminder: "Monthly reminder",
     calendarReminderTitle: "Add a recurring reminder on the fifth of every month to your calendar",
@@ -363,7 +381,7 @@ const copy = {
     proEyebrow: "EAVESENCE Pro",
     proTitle: "More clarity for your whole home",
     proText:
-      "Unlimited devices, monthly history, multiple homes, sync and later energy-label and bill scanning.",
+      "Automatic consumption alerts, longer history, sync, multiple homes and later energy-label and bill scanning.",
     monthlyPlan: "Monthly",
     yearlyPlan: "Yearly",
     monthlyPrice: "€5.99 / month",
@@ -376,7 +394,7 @@ const copy = {
     proBilling: "Billed in EUR",
     proPreviewTitle: "Discover EAVESENCE Pro later",
     proPreviewText:
-      "Once you have saved three devices or two monthly values, we will show the Pro preview in the context of your home.",
+      "After two monthly values, we will show the Pro preview in the context of your first real trend.",
     addRoom: "Add room",
     newRoom: "New room",
     roomName: "Room name",
@@ -1030,7 +1048,43 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       ? `/geraete/${getLocalizedDevice(topDeviceSource, locale).slug}`
       : `/en/devices/${getLocalizedDevice(topDeviceSource, locale).slug}`
     : savedDevicesHref;
-  const proReady = savedDevices.length >= 3 || history.length >= 2;
+  const currentMonthTrend =
+    monthlyTrend?.currentMonth === thisMonth ? monthlyTrend : null;
+  const pulseChange = currentMonthTrend?.consumptionChangePercent ?? null;
+  const pulseTitle = pulseChange === null
+    ? text.pulseBaseline
+    : Math.abs(pulseChange) < 1
+      ? text.pulseSteady
+      : pulseChange < 0
+        ? text.pulseLower.replace(
+            "{percent}",
+            formatNumber(Math.abs(pulseChange), locale, 0),
+          )
+        : text.pulseHigher.replace(
+            "{percent}",
+            formatNumber(pulseChange, locale, 0),
+          );
+  const pulseText = currentMonthEntry
+    ? pulseChange === null
+      ? text.pulseBaselineText
+      : text.pulseTrendText
+          .replace("{kwh}", formatNumber(currentMonthEntry.kwh, locale, 1))
+          .replace("{cost}", formatMoney(currentMonthEntry.cost, locale, profile.currency))
+          .replace("{month}", currentMonthLabel)
+    : "";
+  const pulseDeviceText = summary?.topDevice
+    ? text.pulseTopDevice
+        .replace("{device}", localizedSavedDeviceName(summary.topDevice, locale))
+        .replace(
+          "{cost}",
+          formatMoney(
+            summary.topDevice.yearlyKwh * profile.electricityPrice,
+            locale,
+            profile.currency,
+          ),
+        )
+    : null;
+  const proReady = history.length >= 2;
 
   function editSavedDevice(device: SavedDevice) {
     window.sessionStorage.setItem(SAVED_DEVICE_EDIT_REQUEST_KEY, device.id);
@@ -1141,42 +1195,58 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           <PwaInstallCard locale={locale} />
 
-          {!currentMonthEntry && (
-            <section
-              aria-label={text.nextStep}
-              data-home-next-step
-              className="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-amber-700">
-                  {text.nextStep}
+          <section
+            aria-label={currentMonthEntry ? text.monthlyPulse : text.nextStep}
+            data-home-next-step
+            data-home-pulse={currentMonthEntry ? "complete" : "open"}
+            className={`mt-4 flex flex-col gap-3 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${currentMonthEntry ? "border-[#b8efcc] bg-[#eefbf3]" : "border-amber-200 bg-amber-50"}`}
+          >
+            <div className="min-w-0">
+              <p className={`text-[11px] font-bold uppercase tracking-[0.1em] ${currentMonthEntry ? "text-[var(--brand-green)]" : "text-amber-700"}`}>
+                {currentMonthEntry ? text.monthlyPulse : text.nextStep}
+              </p>
+              <p className="mt-1 text-[14px] font-bold text-[#17211f]">
+                {currentMonthEntry
+                  ? pulseTitle
+                  : text.currentMonthOpen.replace("{month}", currentMonthLabel)}
+              </p>
+              <p className="mt-0.5 text-[13px] leading-5 text-[#65716d]">
+                {currentMonthEntry ? pulseText : text.currentMonthOpenText}
+              </p>
+              {currentMonthEntry && pulseDeviceText && (
+                <p className="mt-1 text-[12px] font-semibold leading-5 text-[#52605b]">
+                  {pulseDeviceText}
                 </p>
-                <p className="mt-1 text-[14px] font-bold text-[#17211f]">
-                  {text.currentMonthOpen.replace("{month}", currentMonthLabel)}
-                </p>
-                <p className="mt-0.5 text-[13px] leading-5 text-[#65716d]">
-                  {text.currentMonthOpenText}
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={openCurrentMonthCheckIn}
-                  className={homeDashboardActionClass}
-                >
-                  {text.recordCurrentMonth}
-                </button>
-                <button
-                  type="button"
-                  onClick={downloadMonthlyReminder}
-                  title={text.calendarReminderTitle}
-                  className={homeDashboardActionClass}
-                >
-                  {text.calendarReminder}
-                </button>
-              </div>
-            </section>
-          )}
+              )}
+            </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              {currentMonthEntry ? (
+                summary?.topDevice && (
+                  <a href="#home-devices" className="eavesence-pill-link">
+                    {text.reviewTopDevice}
+                  </a>
+                )
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={openCurrentMonthCheckIn}
+                    className={homeDashboardActionClass}
+                  >
+                    {text.recordCurrentMonth}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={downloadMonthlyReminder}
+                    title={text.calendarReminderTitle}
+                    className={homeDashboardActionClass}
+                  >
+                    {text.calendarReminder}
+                  </button>
+                </>
+              )}
+            </div>
+          </section>
 
           <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label={text.overview}>
             {[
@@ -1276,8 +1346,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <p className="text-[13px] font-bold text-[#17211f]">{comparisonContent.summary}</p>
                     <p className="mt-1 text-[11px] font-semibold text-[#65716d]">{comparisonContent.coverage}</p>
                     <p className="mt-3 text-[13px] leading-6 text-[#52605b]">{comparisonContent.tip}</p>
-                    <Link href={comparisonContent.href} onClick={() => track("Home Comparison Action Clicked", { locale, status: monthlyComparison?.status ?? "unknown" })} className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]">
-                      {comparisonContent.action}<span aria-hidden="true">›</span>
+                    <Link href={comparisonContent.href} onClick={() => track("Home Comparison Action Clicked", { locale, status: monthlyComparison?.status ?? "unknown" })} className="eavesence-pill-link mt-3">
+                      {comparisonContent.action}
                     </Link>
                   </div>
                 )}
@@ -1302,8 +1372,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   <p className="mt-1 text-[11px] font-semibold text-[#65716d]">{text.savingTipShare.replace("{share}", formatNumber(topDeviceShare, locale, 0))}</p>
                   <p className="mt-3 max-w-3xl text-[13px] leading-6 text-[#52605b]">{topDeviceTip}</p>
                 </div>
-                <Link href={topDeviceHref} onClick={() => track("Home Saving Tip Opened", { locale, has_device_page: Boolean(topDeviceSource) })} className={`${homeCompactActionClass} w-fit text-[11px]`}>
-                  {topDeviceSource ? text.savingTipDetails : text.savingTipReview}<span aria-hidden="true">›</span>
+                <Link href={topDeviceHref} onClick={() => track("Home Saving Tip Opened", { locale, has_device_page: Boolean(topDeviceSource) })} className="eavesence-pill-link w-fit">
+                  {topDeviceSource ? text.savingTipDetails : text.savingTipReview}
                 </Link>
               </div>
             </section>
