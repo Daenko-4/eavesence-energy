@@ -142,7 +142,8 @@ body {
   content: "";
 }
 
-.eavesence-pill-link {
+.eavesence-pill-link,
+.eavesence-pill-button {
   display: inline-flex;
   min-height: 1.5rem;
   align-items: center;
@@ -159,14 +160,26 @@ body {
   transition: background-color 150ms ease, color 150ms ease;
 }
 
-.eavesence-pill-link:hover {
+.eavesence-pill-button {
+  border: 0;
+  cursor: pointer;
+}
+
+.eavesence-pill-link:hover,
+.eavesence-pill-button:hover {
   background: #c9f7d9;
   color: var(--brand-green-dark);
 }
 
-.eavesence-pill-link:focus-visible {
+.eavesence-pill-link:focus-visible,
+.eavesence-pill-button:focus-visible {
   outline: 2px solid var(--brand-green-mint);
   outline-offset: 2px;
+}
+
+.eavesence-pill-button:disabled {
+  cursor: default;
+  opacity: 0.58;
 }
 
 @keyframes eavesence-logo-load {
@@ -226,9 +239,9 @@ textarea {
 }
 
 .home-primary-action {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.25rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1rem;
 }
 
 .home-compact-action,

@@ -126,7 +126,7 @@ export default function PwaInstallCard({ locale }: { locale: Locale }) {
           <button
             type="button"
             onClick={install}
-            className="home-dashboard-action inline-flex h-9 items-center justify-center rounded-full border border-[#b8efcc] bg-[#dcfce8] px-3 text-[var(--brand-green)] transition hover:border-[#98e9b7] hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)] active:scale-[0.98]"
+            className="eavesence-pill-button home-dashboard-action active:scale-[0.98]"
           >
             {text.install}
           </button>
@@ -134,7 +134,7 @@ export default function PwaInstallCard({ locale }: { locale: Locale }) {
         <button
           type="button"
           onClick={dismiss}
-          className="home-compact-action inline-flex min-h-8 items-center justify-center rounded-full px-2.5 text-[#65716d] transition hover:bg-white hover:text-[#17211f]"
+          className="eavesence-pill-button home-compact-action bg-[#eef0ec] text-[#65716d] hover:bg-white hover:text-[#17211f]"
         >
           {text.dismiss}
         </button>

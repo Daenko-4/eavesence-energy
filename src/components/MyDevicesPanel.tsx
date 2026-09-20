@@ -553,13 +553,15 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
-                  className="group/import-empty relative w-fit shrink-0 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                  className={household
+                    ? "eavesence-pill-button w-fit shrink-0"
+                    : "group/import-empty relative w-fit shrink-0 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"}
                 >
                   {text.import}
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute bottom-full left-0 mb-0.5 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/import-empty:translate-y-0 group-hover/import-empty:opacity-100"
+                    className={household ? "hidden" : "pointer-events-none absolute bottom-full left-0 mb-0.5 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/import-empty:translate-y-0 group-hover/import-empty:opacity-100"}
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -702,7 +704,9 @@ function MyDevicesPanel(
                         <button
                           type="button"
                           onClick={() => onOpen?.(item)}
-                          className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#ddf8e9] hover:text-[var(--brand-green)] sm:h-7 sm:w-7"
+                          className={household
+                            ? "flex h-7 w-7 items-center justify-center rounded-full bg-[#ddf8e9] text-[var(--brand-green)] transition hover:bg-[#c9f7d9] hover:text-[var(--brand-green-dark)]"
+                            : "flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#ddf8e9] hover:text-[var(--brand-green)] sm:h-7 sm:w-7"}
                           aria-label={`${text.open}: ${getDeviceName(item)}`}
                           title={text.open}
                         >
@@ -713,7 +717,9 @@ function MyDevicesPanel(
                         <button
                           type="button"
                           onClick={() => removeDevice(item.id)}
-                          className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-300 transition hover:bg-red-50 hover:text-red-600 sm:h-7 sm:w-7"
+                          className={household
+                            ? "flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-red-500 transition hover:bg-red-100 hover:text-red-700"
+                            : "flex h-10 w-10 items-center justify-center rounded-lg text-slate-300 transition hover:bg-red-50 hover:text-red-600 sm:h-7 sm:w-7"}
                           aria-label={`${text.remove}: ${getDeviceName(item)}`}
                           title={text.remove}
                         >
@@ -730,13 +736,15 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={exportDevices}
-                  className="group/export relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                  className={household
+                    ? "eavesence-pill-button"
+                    : "group/export relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"}
                 >
                   {text.export}
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/export:translate-y-0 group-hover/export:opacity-100"
+                    className={household ? "hidden" : "pointer-events-none absolute bottom-0 left-0 h-2 w-3 -translate-y-1 opacity-0 transition duration-150 group-hover/export:translate-y-0 group-hover/export:opacity-100"}
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -749,13 +757,15 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
-                  className="group/import relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
+                  className={household
+                    ? "eavesence-pill-button"
+                    : "group/import relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"}
                 >
                   {text.import}
                   <svg
                     viewBox="0 0 12 8"
                     fill="none"
-                    className="pointer-events-none absolute bottom-0 left-0 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/import:translate-y-0 group-hover/import:opacity-100"
+                    className={household ? "hidden" : "pointer-events-none absolute bottom-0 left-0 h-2 w-3 translate-y-1 opacity-0 transition duration-150 group-hover/import:translate-y-0 group-hover/import:opacity-100"}
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -768,13 +778,15 @@ function MyDevicesPanel(
                 <button
                   type="button"
                   onClick={removeAllDevices}
-                  className="group/remove-all relative pb-3 saved-device-utility-action text-slate-400 transition hover:text-red-700"
+                  className={household
+                    ? "home-danger-action inline-flex min-h-6 items-center justify-center rounded-full border-0 bg-red-50 px-3 py-1 text-red-600 transition hover:bg-red-100 hover:text-red-700"
+                    : "group/remove-all relative pb-3 saved-device-utility-action text-slate-400 transition hover:text-red-700"}
                 >
                   {text.removeAll}
                   <svg
                     viewBox="0 0 12 12"
                     fill="none"
-                    className="pointer-events-none absolute bottom-0 left-0 h-2.5 w-2.5 translate-y-1 opacity-0 transition duration-150 group-hover/remove-all:translate-y-0 group-hover/remove-all:opacity-100"
+                    className={household ? "hidden" : "pointer-events-none absolute bottom-0 left-0 h-2.5 w-2.5 translate-y-1 opacity-0 transition duration-150 group-hover/remove-all:translate-y-0 group-hover/remove-all:opacity-100"}
                     stroke="currentColor"
                     strokeWidth="1.7"
                     strokeLinecap="round"
