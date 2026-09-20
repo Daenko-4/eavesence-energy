@@ -256,6 +256,11 @@ const calculatorText = {
     alreadySaved: "Dieses Gerät ist bereits lokal gespeichert.",
     reset: "Werte zurücksetzen",
     fallbackDevice: "Gerät",
+    homeNextStep: {
+      label: "Nächster Schritt",
+      text: "Speichere das Gerät und führe es in My Home mit deinen übrigen Geräten und Haushaltskosten zusammen.",
+      link: "In My Home weiter",
+    },
   },
 
   en: {
@@ -426,6 +431,11 @@ const calculatorText = {
     alreadySaved: "This device is already saved locally.",
     reset: "Reset values",
     fallbackDevice: "Device",
+    homeNextStep: {
+      label: "Next step",
+      text: "Save this device and bring it together with your other devices and household costs in My Home.",
+      link: "Continue to My Home",
+    },
   },
 } as const;
 
@@ -2292,6 +2302,25 @@ export default function EnergyCalculator({
         )}
       </div>
       </div>
+
+      {homePresentation && calculationIsValid && (
+        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#b8efcc] bg-[#eefbf3] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">
+              {text.homeNextStep.label}
+            </p>
+            <p className="mt-1 text-[13px] leading-5 text-[#52605b]">
+              {text.homeNextStep.text}
+            </p>
+          </div>
+          <a
+            href={activeLocale === "de" ? "/de/zuhause" : "/home"}
+            className="eavesence-pill-link shrink-0"
+          >
+            {text.homeNextStep.link}
+          </a>
+        </div>
+      )}
 
       {homePresentation && trustItems.length > 0 && (
         <div className="mt-7 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5">
