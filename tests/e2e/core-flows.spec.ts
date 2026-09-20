@@ -274,6 +274,12 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.locator("[data-room-assignment]")).toHaveCount(0);
   await expect(householdDevices.locator("summary")).toBeHidden();
 
+  const monthlyDetails = page.getByRole("button", {
+    name: /Monthly values & history/,
+  });
+  await expect(monthlyDetails).toHaveAttribute("aria-expanded", "false");
+  await monthlyDetails.click();
+  await expect(monthlyDetails).toHaveAttribute("aria-expanded", "true");
   await page.getByLabel("Month", { exact: true }).fill("2026-09");
   await page.getByRole("button", { name: "Save month" }).click();
   await expect(
@@ -308,6 +314,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.locator("[data-monthly-goal-progress]")).toBeVisible();
   await expect(page.getByText("kWh +2%", { exact: true })).toBeVisible();
   await expect(page.getByText("cost +2%", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /Compare consumption/ }).click();
   await expect(
     page.getByRole("heading", { name: "Estimate and actual consumption" }),
   ).toBeVisible();
@@ -323,20 +330,19 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(
     consumptionInsight.getByRole("link", { name: "Add a missing device" }),
   ).toHaveAttribute("href", "/#rechner");
+  await page.getByRole("button", { name: /Saving tip/ }).click();
   const savingTip = page.locator("[data-saving-tip]");
   await expect(savingTip).toContainText("Review Coffee machine first");
   await expect(savingTip).toContainText("33% of calculated device consumption");
   await expect(savingTip.getByRole("link", { name: "Open device details" })).toHaveAttribute("href", "/en/devices/coffee-machine");
-  for (const heading of [
-    "All household devices",
-    "Monthly check-in",
-    "History",
-    "Estimate and actual consumption",
-    "Review Coffee machine first",
-  ]) {
+  for (const heading of ["All household devices", "Review Coffee machine first"]) {
     await expect(page.getByRole("heading", { name: heading })).toHaveCSS("font-size", "20px");
   }
 
+  await monthlyDetails.click();
+  for (const heading of ["Monthly check-in", "History"]) {
+    await expect(page.getByRole("heading", { name: heading })).toHaveCSS("font-size", "20px");
+  }
   await septemberEntry.getByRole("button", { name: "Edit" }).click();
   await expect(page.getByLabel("Consumption in kWh")).toHaveValue("210");
   await page.getByLabel("Consumption in kWh").fill("205");
@@ -504,6 +510,19 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await expect(helpPanel).toHaveCount(0);
 
   await expect(page.getByText("€25.48", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Continue to My Home" }),
+  ).toHaveAttribute("href", "/home");
+  await expect(
+    page.getByRole("heading", {
+      name: "The calculator stays free. My Home grows into the full version.",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Start My Home for free" }),
+  ).toHaveAttribute("href", "/home");
+  await expect(page.getByText("planned from €5.99 / month", { exact: true }))
+    .toBeVisible();
 
   const numericInputs = page.locator('#rechner input[type="number"]');
   await numericInputs.nth(0).fill("600");
@@ -860,10 +879,16 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
         return { color: style.color, fontWeight: style.fontWeight };
       }),
     );
-  expect(new Set(navigationStyles.map(({ color }) => color)).size).toBe(1);
+  expect(
+    new Set(navigationStyles.slice(1).map(({ color }) => color)).size,
+  ).toBe(1);
   expect(
     new Set(navigationStyles.map(({ fontWeight }) => fontWeight)).size,
   ).toBe(1);
+  await expect(page.locator('[data-navigation-key="household"]')).toHaveCSS(
+    "background-color",
+    "rgb(220, 252, 232)",
+  );
 
   const xAfterPointerLeave = await calculatorLink.evaluate((element) =>
     element.getBoundingClientRect().x,
@@ -1127,11 +1152,13 @@ test.describe("mobile", () => {
   await expect(page.locator("#home-devices").getByText("Refrigerator", { exact: true }))
     .toBeVisible();
   await expect(page.getByRole("heading", { name: "Kitchen" })).toHaveCount(0);
+  await page.getByRole("button", { name: /Compare consumption/ }).click();
   await expect(page.getByText("The estimate includes 1 saved device. Consumers not yet saved appear as a difference.", { exact: true }))
     .toBeVisible();
+  await expect(page.getByText("Comparison month: September 2026", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /Monthly values & history/ }).click();
   await expect(page.locator("[data-monthly-checkin-status]")).toBeVisible();
   await expect(page.getByText("2 consecutive months", { exact: true })).toBeVisible();
-    await expect(page.getByText("Comparison month: September 2026", { exact: true })).toBeVisible();
     const septemberEntry = page.locator('[data-monthly-history-entry="2026-09"]');
     await septemberEntry.getByRole("button", { name: "Edit" }).click();
     await expect(page.getByRole("button", { name: "Update monthly value" })).toBeVisible();

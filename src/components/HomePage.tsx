@@ -120,6 +120,29 @@ const content = {
       text: "Wähle ein Gerät oder gib eigene Werte ein.",
     },
 
+    fullVersion: {
+      eyebrow: "Vom Rechner zum Haushaltsbuch",
+      title: "Der Rechner bleibt kostenlos. My Home wird zur Vollversion.",
+      text:
+        "Berechne einzelne Geräte weiterhin ohne Anmeldung. In My Home führst du Geräte, Stromverbrauch und laufende Haushaltskosten an einem Ort zusammen.",
+      freeLabel: "Schon jetzt kostenlos",
+      freeItems: [
+        "Gerätekosten berechnen und lokal speichern",
+        "Haushaltskosten mit einfachen Vorlagen anlegen",
+        "Monatswerte und Sparziele im Blick behalten",
+      ],
+      proLabel: "Vollversion in Vorbereitung",
+      proTitle: "EAVESENCE Pro",
+      proPrice: "geplant ab 5,99 € / Monat",
+      proItems: [
+        "Synchronisation auf mehreren Geräten",
+        "Längere Auswertungen und automatische Hinweise",
+        "Mehrere Haushalte sowie Rechnungs- und Energieetikett-Scan",
+      ],
+      button: "My Home kostenlos starten",
+      note: "Noch keine Zahlung und keine Anmeldung erforderlich.",
+    },
+
     benefits: [
       {
         icon: "gift" as IconName,
@@ -350,6 +373,29 @@ const content = {
       label: "Electricity cost calculator",
       title: "Get your answer quickly",
       text: "Choose a device or enter your own values.",
+    },
+
+    fullVersion: {
+      eyebrow: "From calculator to household book",
+      title: "The calculator stays free. My Home grows into the full version.",
+      text:
+        "Keep calculating individual devices without signing up. My Home brings devices, electricity use and recurring household costs together in one place.",
+      freeLabel: "Already free",
+      freeItems: [
+        "Calculate device costs and save them locally",
+        "Add household costs with simple templates",
+        "Track monthly values and savings goals",
+      ],
+      proLabel: "Full version in development",
+      proTitle: "EAVESENCE Pro",
+      proPrice: "planned from €5.99 / month",
+      proItems: [
+        "Sync across multiple devices",
+        "Longer reports and automatic insights",
+        "Multiple households plus bill and energy-label scanning",
+      ],
+      button: "Start My Home for free",
+      note: "No payment or account required yet.",
     },
 
     benefits: [
@@ -814,6 +860,71 @@ export default function HomePage({
                 homePresentation
                 trustItems={text.hero.features}
               />
+            </div>
+          </div>
+        </section>
+
+        <section className="px-5 pb-10 sm:px-6 sm:pb-12">
+          <div className="mx-auto grid max-w-7xl gap-5 rounded-[1.45rem] border border-[#dde2d8] bg-[#eef0ec] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] sm:p-7 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
+            <div className="flex flex-col justify-between py-1 lg:py-3">
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
+                  {text.fullVersion.eyebrow}
+                </p>
+                <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-[-0.04em] text-[#07111f] sm:text-3xl">
+                  {text.fullVersion.title}
+                </h2>
+                <p className="mt-3 max-w-2xl text-[14px] leading-6 text-[#596660]">
+                  {text.fullVersion.text}
+                </p>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <a href={householdHref} className="eavesence-pill-link">
+                  {text.fullVersion.button}
+                </a>
+                <span className="text-[11px] font-medium text-[#65716d]">
+                  {text.fullVersion.note}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <article className="rounded-2xl border border-[#d8ded8] bg-[#fbfcf8] p-4 sm:p-5">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">
+                  {text.fullVersion.freeLabel}
+                </p>
+                <ul className="mt-4 space-y-3">
+                  {text.fullVersion.freeItems.map((item) => (
+                    <li key={item} className="flex gap-2.5 text-[13px] leading-5 text-[#52605b]">
+                      <span aria-hidden="true" className="mt-0.5 font-bold text-[var(--brand-green)]">✓</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+
+              <article className="rounded-2xl border border-[#b8efcc] bg-[#dcfce8] p-4 sm:p-5">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">
+                  {text.fullVersion.proLabel}
+                </p>
+                <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="text-[16px] font-extrabold text-[#17211f]">
+                    {text.fullVersion.proTitle}
+                  </h3>
+                  <span className="text-[11px] font-bold text-[var(--brand-green)]">
+                    {text.fullVersion.proPrice}
+                  </span>
+                </div>
+                <ul className="mt-4 space-y-3">
+                  {text.fullVersion.proItems.map((item) => (
+                    <li key={item} className="flex gap-2.5 text-[13px] leading-5 text-[#52605b]">
+                      <span aria-hidden="true" className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-[var(--brand-green-mint)]" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
             </div>
           </div>
         </section>

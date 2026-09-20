@@ -61,6 +61,7 @@ const navigation = {
 function NavigationLink({
   href,
   active,
+  emphasis = false,
   navigationKey,
   onPreview,
   onActivate,
@@ -68,6 +69,7 @@ function NavigationLink({
 }: {
   href: string;
   active: boolean;
+  emphasis?: boolean;
   navigationKey: NavigationKey;
   onPreview: (navigationKey: NavigationKey) => void;
   onActivate?: (event: MouseEvent<HTMLAnchorElement>) => void;
@@ -81,7 +83,15 @@ function NavigationLink({
       onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
-      className="group relative flex h-full items-center whitespace-nowrap px-1 text-[13px] !font-semibold !text-[#52605b] transition-colors duration-150 hover:!text-[var(--brand-green)]"
+      className={`group relative flex items-center whitespace-nowrap text-[13px] !font-semibold transition duration-150 ${
+        emphasis
+          ? `h-8 rounded-full border px-3.5 ${
+              active
+                ? "border-[var(--brand-green)] bg-[var(--brand-green)] !text-white shadow-sm"
+                : "border-[#b8efcc] bg-[#dcfce8] !text-[var(--brand-green)] hover:border-[var(--brand-green-mint)] hover:bg-[#caf7da]"
+            }`
+          : "h-full px-1 !text-[#52605b] hover:!text-[var(--brand-green)]"
+      }`}
     >
       {children}
     </a>
@@ -289,7 +299,12 @@ export default function Header({
       const navigationElement = desktopNavigationRef.current;
       const indicatorElement = activeIndicatorRef.current;
 
-      if (!navigationElement || !indicatorElement || !indicatedNavigation) {
+      if (
+        !navigationElement ||
+        !indicatorElement ||
+        !indicatedNavigation ||
+        indicatedNavigation === "household"
+      ) {
         if (indicatorElement) indicatorElement.style.opacity = "0";
         return;
       }
@@ -518,14 +533,14 @@ export default function Header({
                   : "invisible pointer-events-none opacity-0 delay-0"
               }`}
             >
+              <NavigationLink href={householdHref} active={activeNavigation === "household"} emphasis navigationKey="household" onPreview={setPreviewNavigation}>
+                {text.household}
+              </NavigationLink>
               <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator" onPreview={setPreviewNavigation}>
                 {text.calculator}
               </NavigationLink>
               <NavigationLink href={devicesHref} active={activeNavigation === "allDevices"} navigationKey="allDevices" onPreview={setPreviewNavigation}>
                 {text.allDevices}
-              </NavigationLink>
-              <NavigationLink href={householdHref} active={activeNavigation === "household"} navigationKey="household" onPreview={setPreviewNavigation}>
-                {text.household}
               </NavigationLink>
               <NavigationLink href={howItWorksHref} active={activeNavigation === "howItWorks"} navigationKey="howItWorks" onPreview={setPreviewNavigation}>
                 {text.howItWorks}
@@ -573,13 +588,13 @@ export default function Header({
         {menuOpen && (
           <nav className="absolute inset-x-0 top-full border-y border-slate-200 bg-white/98 px-5 py-3 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl sm:px-6 lg:hidden">
             <div className="grid gap-1">
-              {[
-                [calculatorHref, text.calculator],
-                [devicesHref, text.allDevices],
-                [householdHref, text.household],
-                [howItWorksHref, text.howItWorks],
-                [faqHref, text.faq],
-              ].map(([href, label]) => (
+              {([
+                [householdHref, text.household, true],
+                [calculatorHref, text.calculator, false],
+                [devicesHref, text.allDevices, false],
+                [howItWorksHref, text.howItWorks, false],
+                [faqHref, text.faq, false],
+              ] as const).map(([href, label, emphasis]) => (
                 <a
                   key={href}
                   href={href}
@@ -589,7 +604,11 @@ export default function Header({
                       handleFaqActivate(event);
                     }
                   }}
-                  className="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
+                  className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                    emphasis
+                      ? "mb-1 bg-[#dcfce8] text-[var(--brand-green)] hover:bg-[#caf7da]"
+                      : "text-slate-700 hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
+                  }`}
                 >
                   {label}
                 </a>

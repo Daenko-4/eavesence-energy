@@ -127,6 +127,14 @@ const copy = {
     energyOverview: "Strom & Energie",
     energyOverviewText:
       "Geräte, tatsächlicher Monatsverbrauch und deine persönliche Stromkostenbasis.",
+    energyDetails: "Stromdetails",
+    energyDetailsText: "Öffne nur die Auswertung, die du gerade brauchst.",
+    monthlyDetails: "Monatswerte & Verlauf",
+    monthlyDetailsHint: "Verbrauch erfassen und Entwicklung ansehen",
+    comparisonDetails: "Verbrauch vergleichen",
+    comparisonDetailsHint: "Geräteschätzung mit Monatswert abgleichen",
+    savingDetails: "Spartipp",
+    savingDetailsHint: "Den größten berechneten Verbraucher prüfen",
     editGoal: "Ziel anpassen",
     monthly: "Pro Monat",
     yearly: "Pro Jahr",
@@ -320,6 +328,14 @@ const copy = {
     energyOverview: "Electricity & energy",
     energyOverviewText:
       "Devices, actual monthly consumption and your personal electricity-cost basis.",
+    energyDetails: "Electricity details",
+    energyDetailsText: "Open only the analysis you need right now.",
+    monthlyDetails: "Monthly values & history",
+    monthlyDetailsHint: "Record consumption and review the trend",
+    comparisonDetails: "Compare consumption",
+    comparisonDetailsHint: "Compare device estimates with a monthly value",
+    savingDetails: "Saving tip",
+    savingDetailsHint: "Review the largest calculated consumer",
     editGoal: "Adjust goal",
     monthly: "Per month",
     yearly: "Per year",
@@ -637,6 +653,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
   const [betaInterested, setBetaInterested] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [openEnergyDetail, setOpenEnergyDetail] = useState<
+    "monthly" | "comparison" | "saving" | null
+  >(null);
   const [notice, setNotice] = useState("");
   const homeImportInputRef = useRef<HTMLInputElement>(null);
 
@@ -734,6 +753,22 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     window.localStorage.setItem(HOUSEHOLD_VISIT_STORAGE_KEY, JSON.stringify(visitState));
     track("Home Device Activation Reached", { locale, device_count: savedDevices.length });
   }, [locale, ready, savedDevices.length]);
+
+  useEffect(() => {
+    function openRequestedDetail() {
+      if (window.location.hash === "#monthly-check-in") {
+        setOpenEnergyDetail("monthly");
+      } else if (window.location.hash === "#energy-detail-comparison") {
+        setOpenEnergyDetail("comparison");
+      } else if (window.location.hash === "#energy-detail-saving") {
+        setOpenEnergyDetail("saving");
+      }
+    }
+
+    openRequestedDetail();
+    window.addEventListener("hashchange", openRequestedDetail);
+    return () => window.removeEventListener("hashchange", openRequestedDetail);
+  }, []);
 
   const summary = useMemo(
     () => (profile ? calculateHouseholdSummary(savedDevices, profile) : null),
@@ -978,17 +1013,30 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     });
   }
 
+  function revealEnergyDetail(
+    detail: "monthly" | "comparison" | "saving",
+    targetId?: string,
+  ) {
+    setOpenEnergyDetail(detail);
+    if (!targetId) return;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document.getElementById(targetId)?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    });
+  }
+
   function openCurrentMonthCheckIn() {
     setMonth(currentMonth());
     setEditingMonth(null);
     setCheckInFeedback(null);
-    document.getElementById("monthly-check-in")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-    window.requestAnimationFrame(() => {
+    revealEnergyDetail("monthly", "monthly-check-in");
+    window.setTimeout(() => {
       document.getElementById("monthly-consumption-input")?.focus();
-    });
+    }, 350);
     track("Home Next Step Opened", { locale, step: "monthly_check_in" });
   }
 
@@ -1025,12 +1073,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setEditingMonth(entry.month);
     setCheckInFeedback({ kind: "success", message: text.checkInLoaded });
     setHistoryNotice("");
-    window.requestAnimationFrame(() => {
-      document.getElementById("monthly-check-in")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
+    revealEnergyDetail("monthly", "monthly-check-in");
     track("Home Monthly Check In Edit Started", { locale, month: entry.month });
   }
 
@@ -1470,7 +1513,49 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             onOpen={editSavedDevice}
           />
 
-          <section className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <section className="mt-8" aria-labelledby="energy-details-title">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <h2 id="energy-details-title" className={homeSectionTitleClass}>{text.energyDetails}</h2>
+              <p className="text-[13px] leading-5 text-[#65716d]">{text.energyDetailsText}</p>
+            </div>
+            <div className="mt-3 grid gap-3 md:grid-cols-3" role="group" aria-label={text.energyDetails}>
+              {([
+                ["monthly", text.monthlyDetails, text.monthlyDetailsHint],
+                ["comparison", text.comparisonDetails, text.comparisonDetailsHint],
+                ["saving", text.savingDetails, text.savingDetailsHint],
+              ] as const).map(([detail, label, hint]) => {
+                const active = openEnergyDetail === detail;
+                return (
+                  <button
+                    key={detail}
+                    type="button"
+                    aria-expanded={active}
+                    aria-controls={`energy-detail-${detail}`}
+                    onClick={() => {
+                      setOpenEnergyDetail(active ? null : detail);
+                      track("Home Energy Detail Toggled", { locale, detail, open: !active });
+                    }}
+                    className={`group flex min-h-[76px] items-center justify-between gap-4 rounded-xl border px-4 py-3 text-left transition duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-green-mint)] ${
+                      active
+                        ? "border-[var(--brand-green)] bg-[#dcfce8] shadow-[0_10px_24px_-22px_rgba(20,122,75,0.8)]"
+                        : "border-[#dfe5dd] bg-[#fbfcf8] hover:border-[#b8efcc] hover:bg-[#f3fbf6]"
+                    }`}
+                  >
+                    <span>
+                      <span className={`block text-[14px] font-bold ${active ? "text-[var(--brand-green)]" : "text-[#17211f]"}`}>{label}</span>
+                      <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{hint}</span>
+                    </span>
+                    <span aria-hidden="true" className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[16px] font-medium transition ${active ? "bg-[var(--brand-green)] text-white" : "bg-[#e8eee9] text-[var(--brand-green)] group-hover:bg-[#dcfce8]"}`}>
+                      {active ? "−" : "+"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {openEnergyDetail === "monthly" && (
+          <section id="energy-detail-monthly" className="mt-5 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <div id="monthly-check-in" className={`${homeSurfaceClass} scroll-mt-24 p-5`}>
               <h2 className={homeSectionTitleClass}>{text.monthlyCheckIn}</h2>
               <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{text.checkInText}</p>
@@ -1525,8 +1610,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <MonthlyHistoryChart entries={history} locale={locale} currency={profile.currency} range={chartMonths} onRangeChange={setChartMonths} labels={{ title: text.chartTitle, consumption: text.chartConsumption, cost: text.chartCost, sixMonths: text.chartSixMonths, twelveMonths: text.chartTwelveMonths }} />
             </div>
           </section>
+          )}
 
-          <section className={`mt-5 p-5 ${homeSurfaceClass}`}>
+          {openEnergyDetail === "comparison" && (
+          <section id="energy-detail-comparison" className={`mt-5 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <h2 className={homeSectionTitleClass}>{text.comparisonTitle}</h2>
               {latestActual && <span className="rounded-full bg-[#eef1ed] px-2.5 py-1 text-[11px] font-semibold text-[#65716d]">{text.comparisonMonth.replace("{month}", latestActualMonth)}</span>}
@@ -1543,7 +1630,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <p className="text-[13px] font-bold text-[#17211f]">{comparisonContent.summary}</p>
                     <p className="mt-1 text-[11px] font-semibold text-[#65716d]">{comparisonContent.coverage}</p>
                     <p className="mt-3 text-[13px] leading-6 text-[#52605b]">{comparisonContent.tip}</p>
-                    <Link href={comparisonContent.href} onClick={() => track("Home Comparison Action Clicked", { locale, status: monthlyComparison?.status ?? "unknown" })} className="eavesence-pill-link mt-3">
+                    <Link href={comparisonContent.href} onClick={() => {
+                      if (comparisonContent.href === "#monthly-check-in") {
+                        revealEnergyDetail("monthly", "monthly-check-in");
+                      }
+                      track("Home Comparison Action Clicked", { locale, status: monthlyComparison?.status ?? "unknown" });
+                    }} className="eavesence-pill-link mt-3">
                       {comparisonContent.action}
                     </Link>
                   </div>
@@ -1559,9 +1651,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
             ) : <p className="mt-3 text-[13px] leading-6 text-[#65716d]">{text.noComparison}</p>}
           </section>
+          )}
 
-          {summary?.topDevice && topDeviceTip && (
-            <section data-saving-tip className="mt-5 rounded-[1.45rem] border border-[#b8efcc] bg-[#eefbf3] p-5">
+          {openEnergyDetail === "saving" && summary?.topDevice && topDeviceTip && (
+            <section id="energy-detail-saving" data-saving-tip className="mt-5 scroll-mt-24 rounded-[1.45rem] border border-[#b8efcc] bg-[#eefbf3] p-5">
               <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div>
                   <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.savingTipEyebrow}</p>
@@ -1573,6 +1666,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   {topDeviceSource ? text.savingTipDetails : text.savingTipReview}
                 </Link>
               </div>
+            </section>
+          )}
+
+          {openEnergyDetail === "saving" && (!summary?.topDevice || !topDeviceTip) && (
+            <section id="energy-detail-saving" className={`mt-5 p-5 ${homeSurfaceClass}`}>
+              <h2 className={homeSectionTitleClass}>{text.savingDetails}</h2>
+              <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{text.noComparison}</p>
+              <Link href={calculatorHref} className="eavesence-pill-link mt-4">{text.addDevice}</Link>
             </section>
           )}
 
