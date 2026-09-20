@@ -32,6 +32,8 @@ type MyDevicesPanelProps = {
   household?: boolean;
   teaser?: boolean;
   calculatorHref?: string;
+  householdPrice?: number;
+  householdCurrency?: SavedDeviceCurrency;
 };
 
 export type MyDevicesPanelHandle = {
@@ -90,7 +92,7 @@ const copy = {
     fallbackDevice: "Gerät",
     householdTitle: "Alle Verbraucher im Haushalt",
     householdDescription:
-      "Hier findest du alle gespeicherten Geräte mit ihren monatlichen und jährlichen Kosten.",
+      "Hier findest du alle gespeicherten Geräte – berechnet mit dem Strompreis deines Haushalts.",
     viewHome: "In Mein Zuhause ansehen",
     addDevice: "Gerät hinzufügen",
   },
@@ -142,7 +144,7 @@ const copy = {
     fallbackDevice: "Device",
     householdTitle: "All household devices",
     householdDescription:
-      "All saved devices are collected here with their monthly and yearly costs.",
+      "All saved devices are collected here using your household electricity price.",
     viewHome: "View in My home",
     addDevice: "Add device",
   },
@@ -233,6 +235,8 @@ function MyDevicesPanel(
     household = false,
     teaser = false,
     calculatorHref = "#rechner",
+    householdPrice,
+    householdCurrency,
   },
   ref,
 ) {
@@ -419,8 +423,32 @@ function MyDevicesPanel(
 
   useImperativeHandle(ref, () => ({ saveCurrentDevice }));
 
-  const totals = currencyOrder
-    .map((currency) => {
+  const householdCostsEnabled =
+    household && householdPrice !== undefined && householdCurrency !== undefined;
+  const totals = householdCostsEnabled
+    ? [
+        {
+          currency: householdCurrency,
+          count: savedDevices.length,
+          monthlyCost: savedDevices.reduce(
+            (total, item) => total + (item.yearlyKwh * householdPrice) / 12,
+            0,
+          ),
+          yearlyCost: savedDevices.reduce(
+            (total, item) => total + item.yearlyKwh * householdPrice,
+            0,
+          ),
+          yearlyKwh: savedDevices.reduce(
+            (total, item) => total + item.yearlyKwh,
+            0,
+          ),
+          topDevice: [...savedDevices].sort(
+            (a, b) => b.yearlyKwh - a.yearlyKwh,
+          )[0],
+        },
+      ].filter((total) => total.count > 0)
+    : currencyOrder
+        .map((currency) => {
       const matchingDevices = savedDevices.filter(
         (item) => item.currency === currency
       );
@@ -444,8 +472,24 @@ function MyDevicesPanel(
           (a, b) => b.yearlyCost - a.yearlyCost
         )[0],
       };
-    })
-    .filter((total) => total.count > 0);
+        })
+        .filter((total) => total.count > 0);
+
+  function displayCurrency(item: SavedDevice) {
+    return householdCostsEnabled ? householdCurrency : item.currency;
+  }
+
+  function displayYearlyCost(item: SavedDevice) {
+    return householdCostsEnabled
+      ? item.yearlyKwh * householdPrice
+      : item.yearlyCost;
+  }
+
+  function displayMonthlyCost(item: SavedDevice) {
+    return householdCostsEnabled
+      ? displayYearlyCost(item) / 12
+      : item.monthlyCost;
+  }
 
   const sortedDevices = [...savedDevices].sort((a, b) => {
     if (sortBy === "cost") return b.yearlyCost - a.yearlyCost;
@@ -576,7 +620,9 @@ function MyDevicesPanel(
             }}
             className="group mt-3"
           >
-            {!household && (
+            {household ? (
+              <summary className="hidden">{text.hideList}</summary>
+            ) : (
               <summary className="flex cursor-pointer list-none justify-end py-1 text-[11px] font-bold text-slate-500 transition hover:text-[var(--brand-green-dark)] [&::-webkit-details-marker]:hidden">
                 <span className="flex items-center gap-1.5">
                   <span className="group-open:hidden">{text.showList}</span>
@@ -642,13 +688,13 @@ function MyDevicesPanel(
                     </div>
                     <p className="text-xs text-slate-500 sm:text-right">
                       <span className="block font-bold tabular-nums text-slate-700">
-                        {formatMoney(item.monthlyCost, locale, item.currency)}
+                        {formatMoney(displayMonthlyCost(item), locale, displayCurrency(item))}
                       </span>
                       {text.perMonth}
                     </p>
                     <p className="text-left text-xs text-slate-500 sm:text-right">
                       <span className="block text-lg font-extrabold tracking-[-0.025em] tabular-nums text-slate-950">
-                        {formatMoney(item.yearlyCost, locale, item.currency)}
+                        {formatMoney(displayYearlyCost(item), locale, displayCurrency(item))}
                       </span>
                       {text.perYear}
                     </p>

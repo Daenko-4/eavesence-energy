@@ -179,6 +179,7 @@ const copy = {
     comparisonDifference: "Abweichung",
     comparisonMonth: "Vergleichsmonat: {month}",
     comparisonDataBasis: "Die Schätzung berücksichtigt {devices} gespeicherte Geräte. Nicht erfasste Verbraucher erscheinen als Abweichung.",
+    comparisonDataBasisSingle: "Die Schätzung berücksichtigt 1 gespeichertes Gerät. Nicht erfasste Verbraucher erscheinen als Abweichung.",
     comparisonActualHigher: "{percent}% deines tatsächlichen Verbrauchs werden von den gespeicherten Geräten noch nicht abgedeckt.",
     comparisonEstimateHigher: "Die Schätzung deiner gespeicherten Geräte liegt {percent}% über deinem tatsächlichen Verbrauch.",
     comparisonClose: "Schätzung und tatsächlicher Verbrauch liegen nah beieinander.",
@@ -340,6 +341,7 @@ const copy = {
     comparisonDifference: "Difference",
     comparisonMonth: "Comparison month: {month}",
     comparisonDataBasis: "The estimate includes {devices} saved devices. Consumers not yet saved appear as a difference.",
+    comparisonDataBasisSingle: "The estimate includes 1 saved device. Consumers not yet saved appear as a difference.",
     comparisonActualHigher: "{percent}% of your actual consumption is not yet covered by your saved devices.",
     comparisonEstimateHigher: "The estimate from your saved devices is {percent}% above your actual consumption.",
     comparisonClose: "The estimate and actual consumption are close.",
@@ -1196,6 +1198,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             compact
             household
             calculatorHref={calculatorHref}
+            householdPrice={profile.electricityPrice}
+            householdCurrency={profile.currency}
             onOpen={editSavedDevice}
           />
 
@@ -1277,7 +1281,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     </Link>
                   </div>
                 )}
-                <p className="mt-3 text-[11px] leading-5 text-[#7a8782]">{text.comparisonDataBasis.replace("{devices}", formatNumber(savedDevices.length, locale))}</p>
+                <p className="mt-3 text-[11px] leading-5 text-[#7a8782]">
+                  {savedDevices.length === 1
+                    ? text.comparisonDataBasisSingle
+                    : text.comparisonDataBasis.replace(
+                        "{devices}",
+                        formatNumber(savedDevices.length, locale),
+                      )}
+                </p>
               </div>
             ) : <p className="mt-3 text-[13px] leading-6 text-[#65716d]">{text.noComparison}</p>}
           </section>

@@ -249,6 +249,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(householdDevices.getByRole("link", { name: "Add device" }))
     .toHaveAttribute("href", "/#rechner");
   await expect(page.locator("[data-room-assignment]")).toHaveCount(0);
+  await expect(householdDevices.locator("summary")).toBeHidden();
 
   await page.getByLabel("Month", { exact: true }).fill("2026-09");
   await page.getByRole("button", { name: "Save month" }).click();
@@ -525,6 +526,11 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   const householdDevices = page.locator("#home-devices");
   await expect(householdDevices.getByText("Coffee machine", { exact: true }))
     .toBeVisible();
+  await expect(householdDevices.getByText("€10.92", { exact: true }).first())
+    .toBeVisible();
+  await expect(householdDevices.getByText("€0.91", { exact: true }))
+    .toBeVisible();
+  await expect(householdDevices.locator("summary")).toBeHidden();
   await expect(
     householdDevices.getByRole("button", { name: "Delete: Coffee machine" }),
   ).toHaveCount(1);
@@ -1083,6 +1089,8 @@ test.describe("mobile", () => {
   await expect(page.locator("#home-devices").getByText("Refrigerator", { exact: true }))
     .toBeVisible();
   await expect(page.getByRole("heading", { name: "Kitchen" })).toHaveCount(0);
+  await expect(page.getByText("The estimate includes 1 saved device. Consumers not yet saved appear as a difference.", { exact: true }))
+    .toBeVisible();
   await expect(page.locator("[data-monthly-checkin-status]")).toBeVisible();
   await expect(page.getByText("2 consecutive months", { exact: true })).toBeVisible();
     await expect(page.getByText("Comparison month: September 2026", { exact: true })).toBeVisible();
