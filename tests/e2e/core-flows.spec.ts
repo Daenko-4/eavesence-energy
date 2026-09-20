@@ -383,7 +383,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   expect(manageDataTextTops.exportAction).toBe(manageDataTextTops.action);
   expect(manageDataTextTops.resetAction).toBe(manageDataTextTops.action);
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export backup" }).click();
+  await page.locator("[data-manage-data-export]").click();
   await downloadPromise;
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Reset My home" }).click();
