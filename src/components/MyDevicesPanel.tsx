@@ -554,7 +554,7 @@ function MyDevicesPanel(
                   type="button"
                   onClick={() => importInputRef.current?.click()}
                   className={household
-                    ? "eavesence-pill-button saved-device-utility-action w-fit shrink-0"
+                    ? "eavesence-pill-button w-fit shrink-0"
                     : "group/import-empty relative w-fit shrink-0 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"}
                 >
                   {text.import}
@@ -737,7 +737,7 @@ function MyDevicesPanel(
                   type="button"
                   onClick={exportDevices}
                   className={household
-                    ? "eavesence-pill-button saved-device-utility-action"
+                    ? "eavesence-pill-button"
                     : "group/export relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"}
                 >
                   {text.export}
@@ -758,7 +758,7 @@ function MyDevicesPanel(
                   type="button"
                   onClick={() => importInputRef.current?.click()}
                   className={household
-                    ? "eavesence-pill-button saved-device-utility-action"
+                    ? "eavesence-pill-button"
                     : "group/import relative pb-3 saved-device-utility-action text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"}
                 >
                   {text.import}
