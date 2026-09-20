@@ -195,8 +195,8 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   const monthlyReminder = nextStep.getByRole("button", {
     name: "Monthly reminder",
   });
-  await expect(addMonthlyValue).toHaveCSS("height", "36px");
-  await expect(monthlyReminder).toHaveCSS("height", "36px");
+  await expect(addMonthlyValue).toHaveCSS("height", "24px");
+  await expect(monthlyReminder).toHaveCSS("height", "24px");
   await addMonthlyValue.click();
   await expect(page.getByLabel("Consumption in kWh")).toBeFocused();
   const reminderDownload = page.waitForEvent("download");
@@ -336,10 +336,10 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByRole("heading", { name: "Manage data" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Settings", exact: true }),
-  ).toHaveCSS("height", "36px");
+  ).toHaveCSS("height", "24px");
   await expect(page.getByRole("button", { name: "Save settings" })).toHaveCSS(
     "height",
-    "36px",
+    "24px",
   );
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
