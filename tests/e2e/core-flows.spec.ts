@@ -504,6 +504,19 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await expect(helpPanel).toHaveCount(0);
 
   await expect(page.getByText("€25.48", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Continue to My Home" }),
+  ).toHaveAttribute("href", "/home");
+  await expect(
+    page.getByRole("heading", {
+      name: "The calculator stays free. My Home grows into the full version.",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Start My Home for free" }),
+  ).toHaveAttribute("href", "/home");
+  await expect(page.getByText("planned from €5.99 / month", { exact: true }))
+    .toBeVisible();
 
   const numericInputs = page.locator('#rechner input[type="number"]');
   await numericInputs.nth(0).fill("600");
