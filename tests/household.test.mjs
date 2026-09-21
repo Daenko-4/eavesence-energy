@@ -93,6 +93,9 @@ test("creates and validates a complete household backup", () => {
         updatedAt: "2026-09-16T12:00:00.000Z",
       },
     ],
+    tiles: [
+      { id: "insurance", kind: "costs", title: "Insurance" },
+    ],
     now: new Date("2026-09-17T10:00:00.000Z"),
   });
   const restored = readHouseholdBackup(JSON.stringify(backup));
@@ -100,6 +103,9 @@ test("creates and validates a complete household backup", () => {
   assert.equal(restored?.devices.length, 1);
   assert.equal(restored?.history.length, 1);
   assert.equal(restored?.costs.length, 1);
+  assert.deepEqual(restored?.tiles, [
+    { id: "insurance", kind: "costs", title: "Insurance" },
+  ]);
   assert.deepEqual(restored?.profile.deviceRooms, {
     coffee: profile.rooms[0].id,
   });
@@ -133,6 +139,7 @@ test("keeps old household backups compatible before costs were added", () => {
   );
 
   assert.deepEqual(restored?.costs, []);
+  assert.equal(restored?.tiles.length, 4);
 });
 
 test("summarizes saved devices and savings target", () => {
