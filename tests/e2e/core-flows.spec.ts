@@ -185,7 +185,6 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.locator("#household-costs")).toHaveCount(0);
   await page.getByRole("button", { name: /New tile/ }).click();
   await page.getByLabel("Tile name").fill("Insurance");
-  await expect(page.getByLabel("What should it contain?")).toHaveValue("costs");
   await page.getByRole("button", { name: "Create tile", exact: true }).click();
   const insuranceTile = page.locator("[data-home-tiles] article").filter({ hasText: "Insurance" });
   await expect(insuranceTile).toBeVisible();
@@ -219,6 +218,14 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
       JSON.parse(window.localStorage.getItem("eavesence-home-costs-v1") ?? "[]"),
     ),
   ).toHaveLength(1);
+  await page.getByRole("button", { name: /New tile/ }).click();
+  await page.getByLabel("Tile name").fill("Car");
+  await page.getByRole("button", { name: "Create tile", exact: true }).click();
+  await expect(householdCosts.getByText("No household costs added yet.")).toBeVisible();
+  await expect(householdCosts.getByText("€900.00", { exact: true })).toHaveCount(0);
+  await expect(householdCosts.getByRole("button", { name: "Add cost", exact: true })).toBeVisible();
+  await insuranceTile.getByRole("button").first().click();
+  await expect(householdCosts.getByText("€900.00", { exact: true }).first()).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await insuranceTile.getByRole("button", { name: "Remove" }).click();
   await expect(insuranceTile).toHaveCount(0);
@@ -226,7 +233,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     await page.evaluate(() =>
       JSON.parse(window.localStorage.getItem("eavesence-home-costs-v1") ?? "[]"),
     ),
-  ).toHaveLength(1);
+  ).toHaveLength(0);
   await page.getByRole("button", { name: /Monthly values & history/ }).click();
   const nextStep = page.getByRole("region", { name: "Next step" });
   await expect(nextStep).toContainText("September 2026 still open");
@@ -531,11 +538,14 @@ test("calculator updates live and a saved calculation can be deleted", async ({
 
   await expect(page.getByText("€25.48", { exact: true }).first()).toBeVisible();
   await expect(
+    page.getByRole("link", { name: /New: My Home as your household book/ }),
+  ).toHaveAttribute("href", "/home");
+  await expect(
     page.getByRole("link", { name: "Continue to My Home" }),
   ).toHaveAttribute("href", "/home");
   await expect(
     page.getByRole("heading", {
-      name: "The calculator stays free. My Home grows into the full version.",
+      name: "My Home brings your whole household together.",
     }),
   ).toBeVisible();
   await expect(
