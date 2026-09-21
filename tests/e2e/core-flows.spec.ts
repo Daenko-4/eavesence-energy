@@ -175,7 +175,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.getByRole("button", { name: "Create my home" }).click();
   await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
   await page.getByLabel("Electricity price per kWh").fill("0.35");
-  await page.getByRole("button", { name: "Save settings" }).click();
+  await page.getByRole("button", { name: "Save electricity basis" }).click();
 
   await expect(
     page.getByRole("heading", { name: "Test home", exact: true }),
