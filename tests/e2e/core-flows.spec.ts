@@ -220,6 +220,14 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
       JSON.parse(window.localStorage.getItem("eavesence-home-costs-v1") ?? "[]"),
     ),
   ).toHaveLength(1);
+  page.once("dialog", (dialog) => dialog.accept());
+  await insuranceTile.getByRole("button", { name: "Remove" }).click();
+  await expect(insuranceTile).toHaveCount(0);
+  expect(
+    await page.evaluate(() =>
+      JSON.parse(window.localStorage.getItem("eavesence-home-costs-v1") ?? "[]"),
+    ),
+  ).toHaveLength(1);
   const monthlyTile = page.locator("[data-home-tiles] article").filter({ hasText: "Monthly values" }).first();
   await monthlyTile.getByRole("button").first().click();
   const nextStep = page.getByRole("region", { name: "Next step" });
