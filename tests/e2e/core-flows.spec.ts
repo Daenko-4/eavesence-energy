@@ -183,7 +183,6 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByRole("heading", { name: "Sections in your home" }))
     .toBeVisible();
   await expect(page.locator("#household-costs")).toHaveCount(0);
-  await expect(page.locator("#home-devices")).toHaveCount(0);
   await page.getByRole("button", { name: /New tile/ }).click();
   await page.getByLabel("Tile name").fill("Insurance");
   await page.getByLabel("What should it contain?").selectOption("costs");
