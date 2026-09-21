@@ -221,7 +221,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.getByRole("button", { name: /New tile/ }).click();
   await page.getByLabel("Tile name").fill("Car");
   await page.getByRole("button", { name: "Create tile", exact: true }).click();
-  await expect(householdCosts.getByText("No household costs added yet.")).toBeVisible();
+  await expect(householdCosts.getByRole("heading", { name: "Quick setup" })).toBeVisible();
   await expect(householdCosts.getByText("€900.00", { exact: true })).toHaveCount(0);
   await expect(householdCosts.getByRole("button", { name: "Add cost", exact: true })).toBeVisible();
   await insuranceTile.getByRole("button").first().click();
