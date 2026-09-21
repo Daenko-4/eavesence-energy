@@ -185,7 +185,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.locator("#household-costs")).toHaveCount(0);
   await page.getByRole("button", { name: /New tile/ }).click();
   await page.getByLabel("Tile name").fill("Insurance");
-  await page.getByLabel("What should it contain?").selectOption("costs");
+  await expect(page.getByLabel("What should it contain?")).toHaveValue("costs");
   await page.getByRole("button", { name: "Create tile" }).click();
   const insuranceTile = page.locator("[data-home-tiles] article").filter({ hasText: "Insurance" });
   await expect(insuranceTile).toBeVisible();
