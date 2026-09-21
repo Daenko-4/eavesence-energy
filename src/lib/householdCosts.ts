@@ -14,6 +14,7 @@ export type HouseholdCostFrequency =
   | "weekly"
   | "monthly"
   | "quarterly"
+  | "half-yearly"
   | "yearly";
 
 export type HouseholdCost = {
@@ -22,6 +23,7 @@ export type HouseholdCost = {
   category: HouseholdCostCategory;
   amount: number;
   frequency: HouseholdCostFrequency;
+  tileId?: string;
   nextDueDate: string;
   updatedAt: string;
 };
@@ -56,6 +58,7 @@ const frequencies: HouseholdCostFrequency[] = [
   "weekly",
   "monthly",
   "quarterly",
+  "half-yearly",
   "yearly",
 ];
 
@@ -63,6 +66,7 @@ export function monthlyCost(amount: number, frequency: HouseholdCostFrequency) {
   if (!Number.isFinite(amount) || amount < 0) return 0;
   if (frequency === "weekly") return (amount * 52) / 12;
   if (frequency === "quarterly") return amount / 3;
+  if (frequency === "half-yearly") return amount / 6;
   if (frequency === "yearly") return amount / 12;
   return amount;
 }
@@ -77,6 +81,7 @@ export function createHouseholdCost({
   category,
   amount,
   frequency,
+  tileId,
   nextDueDate = "",
   now = new Date(),
 }: {
@@ -85,6 +90,7 @@ export function createHouseholdCost({
   category: HouseholdCostCategory;
   amount: number;
   frequency: HouseholdCostFrequency;
+  tileId?: string;
   nextDueDate?: string;
   now?: Date;
 }): HouseholdCost | null {
@@ -108,6 +114,7 @@ export function createHouseholdCost({
     category,
     amount,
     frequency,
+    ...(tileId ? { tileId } : {}),
     nextDueDate,
     updatedAt: now.toISOString(),
   };
@@ -125,6 +132,7 @@ function isHouseholdCost(value: unknown): value is HouseholdCost {
     typeof candidate.amount === "number" &&
     Number.isFinite(candidate.amount) &&
     candidate.amount > 0 &&
+    (candidate.tileId === undefined || typeof candidate.tileId === "string") &&
     typeof candidate.nextDueDate === "string" &&
     (candidate.nextDueDate === "" ||
       /^\d{4}-\d{2}-\d{2}$/.test(candidate.nextDueDate)) &&
@@ -147,13 +155,30 @@ export function upsertHouseholdCost(
   costs: HouseholdCost[],
   nextCost: HouseholdCost,
 ) {
-  return [nextCost, ...costs.filter((cost) => cost.id !== nextCost.id)].sort(
-    (a, b) => b.updatedAt.localeCompare(a.updatedAt),
-  );
+  const existingIndex = costs.findIndex((cost) => cost.id === nextCost.id);
+  if (existingIndex < 0) return [nextCost, ...costs];
+  const next = [...costs];
+  next[existingIndex] = nextCost;
+  return next;
 }
 
 export function removeHouseholdCost(costs: HouseholdCost[], id: string) {
   return costs.filter((cost) => cost.id !== id);
+}
+
+export function reorderHouseholdCosts(
+  costs: HouseholdCost[],
+  sourceId: string,
+  targetId: string,
+) {
+  if (sourceId === targetId) return costs;
+  const sourceIndex = costs.findIndex((cost) => cost.id === sourceId);
+  const targetIndex = costs.findIndex((cost) => cost.id === targetId);
+  if (sourceIndex < 0 || targetIndex < 0) return costs;
+  const next = [...costs];
+  const [moved] = next.splice(sourceIndex, 1);
+  next.splice(targetIndex, 0, moved);
+  return next;
 }
 
 export function summarizeHouseholdCosts(
