@@ -6,6 +6,7 @@ import type { Locale } from "@/i18n/config";
 import {
   createHouseholdCost,
   monthlyCost,
+  reorderHouseholdCosts,
   removeHouseholdCost,
   summarizeHouseholdCosts,
   upsertHouseholdCost,
@@ -19,6 +20,8 @@ const fieldClass =
   "home-field min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
 const pillClass =
   "eavesence-pill-button home-dashboard-action active:scale-[0.98]";
+const addCostClass =
+  "eavesence-pill-button home-dashboard-action !bg-[var(--brand-green)] !px-3.5 !py-1.5 !text-white shadow-[0_8px_18px_-12px_rgba(8,122,69,0.9)] transition hover:!bg-[var(--brand-green-dark)] active:scale-[0.98]";
 const dangerClass =
   "home-danger-action inline-flex min-h-6 items-center justify-center gap-1 rounded-full border-0 bg-red-50 px-3 py-1 text-red-600 transition hover:bg-red-100 hover:text-red-700";
 
@@ -27,8 +30,15 @@ const copy = {
     eyebrow: "Haushaltskosten",
     title: "Was kostet dein Zuhause wirklich?",
     intro:
-      "Lege regelmäßige Kosten einmal an. Jährliche und quartalsweise Zahlungen rechnen wir automatisch auf einen echten Monatswert um.",
+      "Lege regelmäßige Kosten einmal an. Jährliche, halbjährliche und quartalsweise Zahlungen rechnen wir automatisch auf einen echten Monatswert um.",
     add: "Kosten hinzufügen",
+    income: "Einkommen",
+    incomeText: "Optional: Gib dein Haushalts-Nettoeinkommen monatlich oder jährlich an.",
+    incomeAmount: "Nettoeinkommen",
+    incomeFrequency: "Zeitraum",
+    saveIncome: "Einkommen speichern",
+    incomeSaved: "Einkommen gespeichert.",
+    available: "Nach laufenden Kosten",
     close: "Formular schließen",
     monthly: "Pro Monat",
     yearly: "Pro Jahr",
@@ -57,6 +67,7 @@ const copy = {
     saved: "Haushaltskosten gespeichert.",
     updated: "Haushaltskosten aktualisiert.",
     deleted: "Haushaltskosten gelöscht.",
+    reorder: "Ziehen, um die Reihenfolge zu ändern",
     largest: "Größter Kostenbereich",
     savingTip: "Nächster Sparhebel",
     savingTipText:
@@ -80,6 +91,7 @@ const copy = {
       weekly: "Wöchentlich",
       monthly: "Monatlich",
       quarterly: "Quartalsweise",
+      "half-yearly": "Halbjährlich",
       yearly: "Jährlich",
     },
     templates: {
@@ -95,8 +107,15 @@ const copy = {
     eyebrow: "Household costs",
     title: "What does your home really cost?",
     intro:
-      "Add recurring costs once. We automatically turn yearly and quarterly payments into a true monthly amount.",
+      "Add recurring costs once. We automatically turn yearly, half-yearly and quarterly payments into a true monthly amount.",
     add: "Add cost",
+    income: "Income",
+    incomeText: "Optional: add your household net income monthly or yearly.",
+    incomeAmount: "Net income",
+    incomeFrequency: "Period",
+    saveIncome: "Save income",
+    incomeSaved: "Income saved.",
+    available: "After recurring costs",
     close: "Close form",
     monthly: "Per month",
     yearly: "Per year",
@@ -125,6 +144,7 @@ const copy = {
     saved: "Household cost saved.",
     updated: "Household cost updated.",
     deleted: "Household cost deleted.",
+    reorder: "Drag to reorder",
     largest: "Largest cost area",
     savingTip: "Next saving lever",
     savingTipText:
@@ -148,6 +168,7 @@ const copy = {
       weekly: "Weekly",
       monthly: "Monthly",
       quarterly: "Quarterly",
+      "half-yearly": "Half-yearly",
       yearly: "Yearly",
     },
     templates: {
@@ -175,6 +196,7 @@ const frequencies: HouseholdCostFrequency[] = [
   "weekly",
   "monthly",
   "quarterly",
+  "half-yearly",
   "yearly",
 ];
 const templateCategories: HouseholdCostCategory[] = [
@@ -219,16 +241,22 @@ export default function HouseholdCostsPanel({
   savingsGoalPercent,
   costs,
   electricityMonthlyBudget = 0,
+  incomeAmount = 0,
+  incomeFrequency = "monthly",
   embedded = false,
   onChange,
+  onIncomeChange,
 }: {
   locale: Locale;
   currency: SavedDeviceCurrency;
   savingsGoalPercent: number;
   costs: HouseholdCost[];
   electricityMonthlyBudget?: number;
+  incomeAmount?: number;
+  incomeFrequency?: "monthly" | "yearly";
   embedded?: boolean;
   onChange: (costs: HouseholdCost[]) => void;
+  onIncomeChange?: (amount: number, frequency: "monthly" | "yearly") => void;
 }) {
   const text = copy[locale];
   const [formOpen, setFormOpen] = useState(false);
@@ -241,6 +269,9 @@ export default function HouseholdCostsPanel({
     useState<HouseholdCostFrequency>("monthly");
   const [nextDueDate, setNextDueDate] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [incomeValue, setIncomeValue] = useState(incomeAmount > 0 ? String(incomeAmount) : "");
+  const [incomePeriod, setIncomePeriod] = useState<"monthly" | "yearly">(incomeFrequency);
+  const [draggedCostId, setDraggedCostId] = useState<string | null>(null);
   const effectiveCosts = useMemo<HouseholdCost[]>(
     () =>
       electricityMonthlyBudget > 0
@@ -335,6 +366,16 @@ export default function HouseholdCostsPanel({
     : text.noDue;
   const monthlySavingsGoal =
     summary.monthlyTotal * (savingsGoalPercent / 100);
+  const monthlyIncome = incomeAmount > 0
+    ? incomeFrequency === "yearly" ? incomeAmount / 12 : incomeAmount
+    : 0;
+
+  function saveIncome() {
+    const parsed = parseAmount(incomeValue);
+    if (parsed < 0) return;
+    onIncomeChange?.(parsed, incomePeriod);
+    setFeedback(text.incomeSaved);
+  }
 
   return (
     <section
@@ -356,16 +397,40 @@ export default function HouseholdCostsPanel({
         <button
           type="button"
           onClick={() => (formOpen ? setFormOpen(false) : openNewCost())}
-          className={pillClass}
+          className={formOpen ? pillClass : addCostClass}
         >
-          {formOpen ? text.close : text.add}
+          {formOpen ? text.close : <><span aria-hidden="true">+</span>{text.add}</>}
         </button>
+      </div>
+
+      <div className="mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 className="text-[14px] font-bold">{text.income}</h3>
+            <p className="mt-1 text-[12px] leading-5 text-[#65716d]">{text.incomeText}</p>
+          </div>
+          <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-[minmax(150px,1fr)_130px_auto] sm:items-end">
+            <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">
+              {text.incomeAmount}
+              <input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={fieldClass} />
+            </label>
+            <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">
+              {text.incomeFrequency}
+              <select value={incomePeriod} onChange={(event) => setIncomePeriod(event.target.value as "monthly" | "yearly")} className={fieldClass}>
+                <option value="monthly">{text.frequencies.monthly}</option>
+                <option value="yearly">{text.frequencies.yearly}</option>
+              </select>
+            </label>
+            <button type="button" onClick={saveIncome} className={pillClass}>{text.saveIncome}</button>
+          </div>
+        </div>
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           [text.monthly, money(summary.monthlyTotal, locale, currency)],
           [text.yearly, money(summary.annualTotal, locale, currency)],
+          ...(monthlyIncome > 0 ? [[text.available, money(monthlyIncome - summary.monthlyTotal, locale, currency)]] : []),
           [text.nextDue, nextDueValue],
           [text.savingGoal, money(monthlySavingsGoal, locale, currency)],
         ].map(([label, value], index) => (
@@ -483,27 +548,67 @@ export default function HouseholdCostsPanel({
                 </div>
               )}
               {costs.map((cost) => (
-                <div key={cost.id} className="grid gap-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
-                  <div className="min-w-0">
-                    <p className="truncate text-[13px] font-bold">{cost.name}</p>
-                    <p className="mt-0.5 text-[11px] text-[#65716d]">
-                      {text.categories[cost.category]} · {text.frequencies[cost.frequency]}
-                      {cost.nextDueDate ? ` · ${localDate(cost.nextDueDate, locale)}` : ""}
-                    </p>
-                  </div>
-                  <div className="sm:text-right">
-                    <p className="text-[13px] font-bold">{money(cost.amount, locale, currency)}</p>
-                    <p className="text-[11px] text-[#65716d]">
-                      {text.monthlyEquivalent.replace("{amount}", money(monthlyCost(cost.amount, cost.frequency), locale, currency))}
-                    </p>
-                  </div>
-                  <div className="flex gap-1.5 sm:justify-end">
-                    <button type="button" onClick={() => editCost(cost)} className="eavesence-pill-button home-compact-action">{text.edit}</button>
-                    <button type="button" onClick={() => deleteCost(cost)} className={dangerClass}><span aria-hidden="true">×</span>{text.delete}</button>
+                <div
+                  key={cost.id}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = "move";
+                    setDraggedCostId(cost.id);
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    if (draggedCostId) {
+                      onChange(reorderHouseholdCosts(costs, draggedCostId, cost.id));
+                    }
+                    setDraggedCostId(null);
+                  }}
+                  onDragEnd={() => setDraggedCostId(null)}
+                  className={`flex items-start gap-2 py-3 transition ${draggedCostId === cost.id ? "opacity-50" : ""}`}
+                >
+                  <span
+                    title={text.reorder}
+                    aria-label={text.reorder}
+                    className="mt-1 flex h-6 w-5 shrink-0 cursor-grab items-center justify-center text-[#94a09b] active:cursor-grabbing"
+                  >
+                    <svg viewBox="0 0 10 16" className="h-4 w-2.5" fill="currentColor" aria-hidden="true">
+                      <circle cx="2" cy="3" r="1" /><circle cx="8" cy="3" r="1" />
+                      <circle cx="2" cy="8" r="1" /><circle cx="8" cy="8" r="1" />
+                      <circle cx="2" cy="13" r="1" /><circle cx="8" cy="13" r="1" />
+                    </svg>
+                  </span>
+                  <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-bold">{cost.name}</p>
+                      <p className="mt-0.5 text-[11px] text-[#65716d]">
+                        {text.categories[cost.category]} · {text.frequencies[cost.frequency]}
+                        {cost.nextDueDate ? ` · ${localDate(cost.nextDueDate, locale)}` : ""}
+                      </p>
+                    </div>
+                    <div className="sm:text-right">
+                      <p className="text-[13px] font-bold">{money(cost.amount, locale, currency)}</p>
+                      <p className="text-[11px] text-[#65716d]">
+                        {text.monthlyEquivalent.replace("{amount}", money(monthlyCost(cost.amount, cost.frequency), locale, currency))}
+                      </p>
+                    </div>
+                    <div className="flex gap-1.5 sm:justify-end">
+                      <button type="button" onClick={() => editCost(cost)} className="eavesence-pill-button home-compact-action">{text.edit}</button>
+                      <button type="button" onClick={() => deleteCost(cost)} className={dangerClass}><span aria-hidden="true">×</span>{text.delete}</button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
+            {costs.length > 0 && !formOpen && (
+              <div className="mt-3 flex justify-end border-t border-[#e2e6df] pt-3">
+                <button type="button" onClick={() => openNewCost()} className={addCostClass}>
+                  <span aria-hidden="true">+</span>{text.add}
+                </button>
+              </div>
+            )}
           </div>
 
           {summary.largestCategory && (
