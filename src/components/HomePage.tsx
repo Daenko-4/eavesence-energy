@@ -122,13 +122,13 @@ const content = {
 
     fullVersion: {
       eyebrow: "Vom Rechner zum Haushaltsbuch",
-      title: "Der Rechner bleibt kostenlos. My Home wird zur Vollversion.",
+      title: "My Home bündelt deinen ganzen Haushalt.",
       text:
-        "Berechne einzelne Geräte weiterhin ohne Anmeldung. In My Home führst du Geräte, Stromverbrauch und laufende Haushaltskosten an einem Ort zusammen.",
+        "Der Rechner bleibt kostenlos. In My Home führst du Geräte, Stromverbrauch und laufende Haushaltskosten übersichtlich an einem Ort zusammen.",
       freeLabel: "Schon jetzt kostenlos",
       freeItems: [
         "Gerätekosten berechnen und lokal speichern",
-        "Haushaltskosten mit einfachen Vorlagen anlegen",
+        "Haushaltskosten in eigenen Bereichen anlegen",
         "Monatswerte und Sparziele im Blick behalten",
       ],
       proLabel: "Vollversion in Vorbereitung",
@@ -377,13 +377,13 @@ const content = {
 
     fullVersion: {
       eyebrow: "From calculator to household book",
-      title: "The calculator stays free. My Home grows into the full version.",
+      title: "My Home brings your whole household together.",
       text:
-        "Keep calculating individual devices without signing up. My Home brings devices, electricity use and recurring household costs together in one place.",
+        "The calculator stays free. My Home brings devices, electricity use and recurring household costs together clearly in one place.",
       freeLabel: "Already free",
       freeItems: [
         "Calculate device costs and save them locally",
-        "Add household costs with simple templates",
+        "Organize household costs in your own sections",
         "Track monthly values and savings goals",
       ],
       proLabel: "Full version in development",
@@ -843,14 +843,20 @@ export default function HomePage({
               {hero.subtitle}
             </p>
 
-            <div className="mt-4 flex justify-center">
+            <div className="mt-5 flex justify-center">
               <a
                 href={householdHref}
-                className="eavesence-pill-link"
+                className="group grid w-full max-w-2xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-[#b8efcc] bg-[#eefbf3] px-4 py-3 text-left shadow-[0_14px_30px_-26px_rgba(8,122,69,0.8)] transition hover:border-[#8ee2ae] hover:bg-[#e5f9ed] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-green-mint)]"
               >
-                {locale === "de"
-                  ? "Neu: Mein Zuhause einrichten"
-                  : "New: Set up My home"}
+                <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[var(--brand-green)] shadow-sm">
+                  <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 7-6 7 6v8H3V9Z"/><path d="M8 17v-5h4v5"/></svg>
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">EAVESENCE Home</span>
+                  <span className="mt-0.5 block text-[14px] font-extrabold text-[#17211f]">{locale === "de" ? "Neu: Mein Zuhause als Haushaltsbuch" : "New: My Home as your household book"}</span>
+                  <span className="mt-0.5 block text-[11px] leading-4 text-[#65716d]">{locale === "de" ? "Geräte, Verträge und laufende Kosten gemeinsam organisieren." : "Organize devices, contracts and recurring costs together."}</span>
+                </span>
+                <span className="rounded-full bg-[var(--brand-green)] px-3 py-1.5 text-[11px] font-bold text-white transition group-hover:bg-[var(--brand-green-dark)]">{locale === "de" ? "Öffnen" : "Open"}</span>
               </a>
             </div>
 
@@ -880,7 +886,7 @@ export default function HomePage({
               </div>
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <a href={householdHref} className="eavesence-pill-link">
+                <a href={householdHref} className="eavesence-pill-link !bg-[var(--brand-green)] !px-3.5 !py-1.5 !text-white shadow-[0_8px_18px_-12px_rgba(8,122,69,0.9)] hover:!bg-[var(--brand-green-dark)]">
                   {text.fullVersion.button}
                 </a>
                 <span className="text-[11px] font-medium text-[#65716d]">

@@ -6,6 +6,7 @@ import {
   createHouseholdCost,
   monthlyCost,
   readHouseholdCosts,
+  reorderHouseholdCosts,
   removeHouseholdCost,
   summarizeHouseholdCosts,
   upsertHouseholdCost,
@@ -14,6 +15,7 @@ import {
 test("normalizes recurring costs to monthly and yearly values", () => {
   assert.equal(monthlyCost(120, "yearly"), 10);
   assert.equal(monthlyCost(90, "quarterly"), 30);
+  assert.equal(monthlyCost(600, "half-yearly"), 100);
   assert.equal(monthlyCost(10, "weekly"), 520 / 12);
   assert.equal(annualCost(50, "monthly"), 600);
 });
@@ -25,11 +27,13 @@ test("creates, reads and updates a household cost", () => {
     category: "insurance",
     amount: 600,
     frequency: "yearly",
+    tileId: "insurance-tile",
     nextDueDate: "2026-11-15",
     now: new Date("2026-09-20T12:00:00.000Z"),
   });
 
   assert.equal(cost?.name, "Home insurance");
+  assert.equal(cost?.tileId, "insurance-tile");
   assert.deepEqual(readHouseholdCosts(JSON.stringify([cost])), [cost]);
   assert.equal(
     createHouseholdCost({
@@ -91,4 +95,14 @@ test("drops malformed stored costs without throwing", () => {
 
   assert.deepEqual(parsed, [valid]);
   assert.deepEqual(readHouseholdCosts("not-json"), []);
+});
+
+test("reorders costs without moving an edited item", () => {
+  const first = createHouseholdCost({ id: "rent", name: "Rent", category: "housing", amount: 900, frequency: "monthly" });
+  const second = createHouseholdCost({ id: "insurance", name: "Insurance", category: "insurance", amount: 600, frequency: "yearly" });
+  const reordered = reorderHouseholdCosts([first, second], "insurance", "rent");
+
+  assert.deepEqual(reordered.map((cost) => cost.id), ["insurance", "rent"]);
+  const edited = { ...reordered[1], amount: 950 };
+  assert.deepEqual(upsertHouseholdCost(reordered, edited).map((cost) => cost.id), ["insurance", "rent"]);
 });

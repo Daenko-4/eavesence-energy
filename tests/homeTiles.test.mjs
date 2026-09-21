@@ -5,6 +5,7 @@ import {
   createHomeTile,
   defaultHomeTiles,
   readHomeTiles,
+  reorderHomeTiles,
 } from "../src/lib/homeTiles.ts";
 
 test("provides a simple electricity and household-cost structure", () => {
@@ -44,4 +45,16 @@ test("creates a named tile for a selected tool", () => {
   assert.equal(tile.kind, "energy");
   assert.equal(tile.title, "Solar check");
   assert.ok(tile.id.length > 0);
+});
+
+test("reorders tiles and preserves a stored custom order", () => {
+  const tiles = [
+    { id: "energy", kind: "energy", title: null },
+    { id: "insurance", kind: "costs", title: "Insurance" },
+    { id: "housing", kind: "costs", title: "Housing" },
+  ];
+  const reordered = reorderHomeTiles(tiles, "housing", "energy");
+
+  assert.deepEqual(reordered.map((tile) => tile.id), ["housing", "energy", "insurance"]);
+  assert.deepEqual(readHomeTiles(JSON.stringify(reordered)), reordered);
 });

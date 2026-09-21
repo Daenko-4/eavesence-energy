@@ -52,6 +52,7 @@ import {
   defaultHomeTiles,
   HOME_TILES_STORAGE_KEY,
   readHomeTiles,
+  reorderHomeTiles,
   type HomeTile,
   type HomeTileKind,
 } from "@/lib/homeTiles";
@@ -144,20 +145,18 @@ const copy = {
     workspaceEmpty: "Lege deine erste Kachel an und wähle aus, welches Werkzeug sich dahinter verbergen soll.",
     addTile: "Neue Kachel",
     addTileHint: "Eigenen Bereich anlegen",
-    templateLabel: "Vorlage",
-    insuranceTemplate: "Versicherungen",
-    insuranceTemplateHint: "Zum Beispiel Haushalt, Auto oder Leben",
     editTile: "Kachel umbenennen",
     newTile: "Neue Kachel",
     tileName: "Name der Kachel",
     tileNamePlaceholder: "Zum Beispiel Versicherungen",
-    tileContent: "Was soll sich darin befinden?",
     createTile: "Kachel anlegen",
     updateTile: "Namen speichern",
     cancelTile: "Abbrechen",
     renameTile: "Umbenennen",
     deleteTile: "Entfernen",
-    deleteTileConfirm: "Diese Kachel entfernen? Deine gespeicherten Daten bleiben erhalten.",
+    deleteTileConfirm: "Diese leere Kachel wirklich entfernen?",
+    deleteTileWithCostsConfirm: "Diese Kachel und ihre {count} gespeicherten Kosten wirklich entfernen?",
+    reorderTile: "Kachel ziehen, um sie zu verschieben",
     tileNameRequired: "Bitte gib der Kachel einen Namen.",
     tileTitles: {
       costs: "Haushaltskosten",
@@ -380,20 +379,18 @@ const copy = {
     workspaceEmpty: "Create your first tile and choose which tool it should contain.",
     addTile: "New tile",
     addTileHint: "Create your own section",
-    templateLabel: "Template",
-    insuranceTemplate: "Insurance",
-    insuranceTemplateHint: "For example home, car or life insurance",
     editTile: "Rename tile",
     newTile: "New tile",
     tileName: "Tile name",
     tileNamePlaceholder: "For example Insurance",
-    tileContent: "What should it contain?",
     createTile: "Create tile",
     updateTile: "Save name",
     cancelTile: "Cancel",
     renameTile: "Rename",
     deleteTile: "Remove",
-    deleteTileConfirm: "Remove this tile? Your saved data will be kept.",
+    deleteTileConfirm: "Remove this empty tile?",
+    deleteTileWithCostsConfirm: "Remove this tile and its {count} saved costs?",
+    reorderTile: "Drag tile to reorder",
     tileNameRequired: "Give the tile a name.",
     tileTitles: {
       costs: "Household costs",
@@ -736,8 +733,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [tileFormOpen, setTileFormOpen] = useState(false);
   const [editingTileId, setEditingTileId] = useState<string | null>(null);
   const [tileName, setTileName] = useState("");
-  const [tileKind, setTileKind] = useState<HomeTileKind>("costs");
   const [tileFeedback, setTileFeedback] = useState("");
+  const [draggedTileId, setDraggedTileId] = useState<string | null>(null);
   const [openEnergyDetail, setOpenEnergyDetail] = useState<
     "monthly" | "comparison" | "saving" | null
   >(null);
@@ -931,33 +928,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   function openNewTileForm() {
     setEditingTileId(null);
     setTileName("");
-    setTileKind("costs");
     setTileFeedback("");
     setTileFormOpen(true);
-  }
-
-  function addInsuranceTemplate() {
-    const existing = homeTiles.find(
-      (tile) =>
-        tile.kind === "costs" &&
-        (tile.title ?? "").toLocaleLowerCase(locale).includes(
-          locale === "de" ? "versicherung" : "insurance",
-        ),
-    );
-    if (existing) {
-      setActiveTileId(existing.id);
-      return;
-    }
-    const tile = createHomeTile("costs", text.insuranceTemplate);
-    persistHomeTiles([...homeTiles, tile]);
-    setActiveTileId(tile.id);
-    track("Home Tile Template Added", { locale, template: "insurance" });
   }
 
   function openRenameTileForm(tile: HomeTile) {
     setEditingTileId(tile.id);
     setTileName(tile.title ?? text.tileTitles[tile.kind]);
-    setTileKind(tile.kind);
     setTileFeedback("");
     setTileFormOpen(true);
   }
@@ -975,7 +952,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         ),
       );
     } else {
-      const tile = createHomeTile(tileKind, tileName);
+      const tile = createHomeTile("costs", tileName);
       persistHomeTiles([...homeTiles, tile]);
       setActiveTileId(tile.id);
       track("Home Tile Created", { locale, kind: tile.kind });
@@ -987,7 +964,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function deleteHomeTile(tile: HomeTile) {
-    if (!window.confirm(text.deleteTileConfirm)) return;
+    const tileCosts = costsForTile(tile.id);
+    const confirmation = tileCosts.length > 0
+      ? text.deleteTileWithCostsConfirm.replace("{count}", formatNumber(tileCosts.length, locale))
+      : text.deleteTileConfirm;
+    if (!window.confirm(confirmation)) return;
+    if (tile.kind === "costs" && tileCosts.length > 0) {
+      persistHouseholdCosts(
+        householdCosts.filter((cost) => !tileCosts.some((tileCost) => tileCost.id === cost.id)),
+      );
+    }
     persistHomeTiles(homeTiles.filter((item) => item.id !== tile.id));
     if (activeTileId === tile.id) setActiveTileId(null);
     if (editingTileId === tile.id) setTileFormOpen(false);
@@ -1494,17 +1480,28 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     : null;
   const proReady = history.length >= 2;
   const activeTile = homeTiles.find((tile) => tile.id === activeTileId) ?? null;
-  const hasInsuranceTile = homeTiles.some(
-    (tile) =>
-      tile.kind === "costs" &&
-      (tile.title ?? "").toLocaleLowerCase(locale).includes(
-        locale === "de" ? "versicherung" : "insurance",
-      ),
-  );
+  const primaryCostTileId = homeTiles.find((tile) => tile.kind === "costs")?.id ?? null;
 
-  function homeTileSummary(kind: HomeTileKind) {
-    if (kind === "costs") {
-      const count = householdCosts.length + (electricityMonthlyBudget > 0 ? 1 : 0);
+  function costsForTile(tileId: string) {
+    return householdCosts.filter(
+      (cost) => cost.tileId === tileId || (!cost.tileId && tileId === primaryCostTileId),
+    );
+  }
+
+  function persistCostsForTile(tileId: string, nextCosts: HouseholdCost[]) {
+    const currentTileCosts = costsForTile(tileId);
+    const currentIds = new Set(currentTileCosts.map((cost) => cost.id));
+    const otherCosts = householdCosts.filter((cost) => !currentIds.has(cost.id));
+    persistHouseholdCosts([
+      ...otherCosts,
+      ...nextCosts.map((cost) => ({ ...cost, tileId })),
+    ]);
+  }
+
+  function homeTileSummary(tile: HomeTile) {
+    if (tile.kind === "costs") {
+      const count = costsForTile(tile.id).length +
+        (tile.id === primaryCostTileId && electricityMonthlyBudget > 0 ? 1 : 0);
       return text.tileCountCosts.replace("{count}", formatNumber(count, locale));
     }
     return `${text.tileCountDevices.replace(
@@ -1631,12 +1628,35 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   const active = activeTileId === tile.id;
                   const title = tile.title ?? text.tileTitles[tile.kind];
                   return (
-                    <article key={tile.id} className={`group rounded-xl border transition ${active ? "border-[var(--brand-green)] bg-[#dcfce8] shadow-[0_12px_28px_-24px_rgba(20,122,75,0.78)]" : "border-[#dfe5dd] bg-[#fbfcf8] hover:border-[#b8efcc] hover:bg-[#f5fbf7]"}`}>
-                      <button type="button" onClick={() => setActiveTileId(active ? null : tile.id)} aria-expanded={active} className="block w-full px-4 pb-3 pt-4 text-left">
+                    <article
+                      key={tile.id}
+                      draggable
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = "move";
+                        setDraggedTileId(tile.id);
+                      }}
+                      onDragOver={(event) => {
+                        event.preventDefault();
+                        event.dataTransfer.dropEffect = "move";
+                      }}
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        if (draggedTileId) {
+                          persistHomeTiles(reorderHomeTiles(homeTiles, draggedTileId, tile.id));
+                        }
+                        setDraggedTileId(null);
+                      }}
+                      onDragEnd={() => setDraggedTileId(null)}
+                      className={`group relative cursor-grab rounded-xl border transition active:cursor-grabbing ${draggedTileId === tile.id ? "opacity-50" : ""} ${active ? "border-[var(--brand-green)] bg-[#dcfce8] shadow-[0_12px_28px_-24px_rgba(20,122,75,0.78)]" : "border-[#dfe5dd] bg-[#fbfcf8] hover:border-[#b8efcc] hover:bg-[#f5fbf7]"}`}
+                    >
+                      <span title={text.reorderTile} aria-label={text.reorderTile} className="pointer-events-none absolute right-3 top-3 text-[#94a09b]">
+                        <svg viewBox="0 0 10 16" className="h-4 w-2.5" fill="currentColor" aria-hidden="true"><circle cx="2" cy="3" r="1" /><circle cx="8" cy="3" r="1" /><circle cx="2" cy="8" r="1" /><circle cx="8" cy="8" r="1" /><circle cx="2" cy="13" r="1" /><circle cx="8" cy="13" r="1" /></svg>
+                      </span>
+                      <button type="button" onClick={() => setActiveTileId(active ? null : tile.id)} aria-expanded={active} className="block w-full px-4 pb-3 pt-4 pr-10 text-left">
                         {tile.title && <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">{text.tileTitles[tile.kind]}</span>}
                         <span className={`${tile.title ? "mt-1.5 " : ""}block text-[14px] font-extrabold ${active ? "text-[var(--brand-green)]" : "text-[#17211f]"}`}>{title}</span>
                         <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{text.tileHints[tile.kind]}</span>
-                        <span className="mt-3 block text-[12px] font-bold text-[var(--brand-green)]">{homeTileSummary(tile.kind)}</span>
+                        <span className="mt-3 block text-[12px] font-bold text-[var(--brand-green)]">{homeTileSummary(tile)}</span>
                       </button>
                       {active && tile.kind !== "energy" && (
                         <div className="flex items-center gap-1 border-t border-[#b8efcc] px-3 py-1.5">
@@ -1647,12 +1667,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     </article>
                   );
                 })}
-                {!hasInsuranceTile && <button type="button" onClick={addInsuranceTemplate} className="group min-h-[132px] rounded-xl border border-dashed border-[#cdd6cf] bg-[#f7f9f5] px-4 py-3 text-left transition hover:border-[#9fd9b5] hover:bg-[#f1faf4]">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7a8782]">{text.templateLabel}</span>
-                  <span className="mt-2 block text-[14px] font-bold text-[#52605b]">{text.insuranceTemplate}</span>
-                  <span className="mt-1 block text-[11px] leading-4 text-[#7a8782]">{text.insuranceTemplateHint}</span>
-                  <span className="mt-3 block text-[11px] font-bold text-[var(--brand-green)]">+ {text.createTile}</span>
-                </button>}
                 <button type="button" onClick={openNewTileForm} className="group flex min-h-[132px] items-center justify-center rounded-xl border border-dashed border-[#aebbb2] bg-transparent px-4 py-3 text-center transition hover:border-[var(--brand-green)] hover:bg-[#f3fbf6]">
                   <span>
                     <span aria-hidden="true" className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-[#dcfce8] text-[16px] text-[var(--brand-green)] transition group-hover:bg-[var(--brand-green)] group-hover:text-white">+</span>
@@ -1668,9 +1682,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   <h3 className="text-[14px] font-bold">{editingTileId ? text.editTile : text.newTile}</h3>
                   <button type="button" onClick={() => setTileFormOpen(false)} className="text-[11px] font-semibold text-[#65716d] hover:text-[#17211f]">{text.cancelTile}</button>
                 </div>
-                <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                   <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.tileName}<input value={tileName} onChange={(event) => { setTileName(event.target.value); setTileFeedback(""); }} placeholder={text.tileNamePlaceholder} className={homeFieldClass} /></label>
-                  <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.tileContent}<select value={tileKind} disabled className={`${homeFieldClass} disabled:bg-[#eef0ec] disabled:text-[#65716d]`}><option value="costs">{text.tileTitles.costs}</option></select></label>
                   <button type="button" onClick={saveHomeTile} className={homePrimaryActionClass}>{editingTileId ? text.updateTile : text.createTile}</button>
                 </div>
                 {tileFeedback && <p role="alert" className="mt-2 text-[11px] font-bold text-red-700">{tileFeedback}</p>}
@@ -1749,10 +1762,18 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             locale={locale}
             currency={profile.currency}
             savingsGoalPercent={profile.savingsGoalPercent}
-            costs={householdCosts}
-            electricityMonthlyBudget={electricityMonthlyBudget}
+            costs={costsForTile(activeTile.id)}
+            electricityMonthlyBudget={activeTile.id === primaryCostTileId ? electricityMonthlyBudget : 0}
+            incomeAmount={profile.incomeAmount ?? 0}
+            incomeFrequency={profile.incomeFrequency ?? "monthly"}
             embedded
-            onChange={persistHouseholdCosts}
+            onChange={(nextCosts) => persistCostsForTile(activeTile.id, nextCosts)}
+            onIncomeChange={(incomeAmount, incomeFrequency) => persistProfile({
+              ...profile,
+              incomeAmount,
+              incomeFrequency,
+              updatedAt: new Date().toISOString(),
+            })}
           />
           </div>
           )}
