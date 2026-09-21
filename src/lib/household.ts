@@ -1,5 +1,6 @@
 import type { SavedDevice, SavedDeviceCurrency } from "@/lib/savedDevices";
 import type { HouseholdCost } from "@/lib/householdCosts";
+import type { HomeTile, HomeTileKind } from "@/lib/homeTiles";
 
 export const HOUSEHOLD_PROFILE_STORAGE_KEY = "eavesence-home-profile-v1";
 export const HOUSEHOLD_HISTORY_STORAGE_KEY = "eavesence-home-history-v1";
@@ -72,6 +73,7 @@ export type HouseholdBackup = {
   devices: SavedDevice[];
   history: MonthlyEnergyEntry[];
   costs: HouseholdCost[];
+  tiles: HomeTile[];
 };
 
 export type HouseholdVisitState = {
@@ -82,6 +84,31 @@ export type HouseholdVisitState = {
   trackedThirtyDayReturn: boolean;
   trackedThreeDeviceActivation: boolean;
 };
+
+const backupTileKinds: HomeTileKind[] = ["costs", "devices", "energy", "monthly"];
+
+function defaultBackupTiles(): HomeTile[] {
+  return backupTileKinds.map((kind) => ({
+    id: `default-${kind}`,
+    kind,
+    title: null,
+  }));
+}
+
+function readBackupTiles(value: unknown): HomeTile[] | null {
+  if (!Array.isArray(value)) return null;
+  const tiles = value.filter((item): item is HomeTile => {
+    if (!item || typeof item !== "object") return false;
+    const tile = item as Partial<HomeTile>;
+    return (
+      typeof tile.id === "string" &&
+      tile.id.length > 0 &&
+      backupTileKinds.includes(tile.kind as HomeTileKind) &&
+      (tile.title === null || typeof tile.title === "string")
+    );
+  });
+  return tiles.length === value.length ? tiles : null;
+}
 
 export const DEFAULT_ROOM_NAMES = {
   de: ["Küche", "Wohnzimmer", "Schlafzimmer", "Bad", "Büro"],
@@ -298,12 +325,14 @@ export function createHouseholdBackup({
   devices,
   history,
   costs = [],
+  tiles = defaultBackupTiles(),
   now = new Date(),
 }: {
   profile: HouseholdProfile;
   devices: SavedDevice[];
   history: MonthlyEnergyEntry[];
   costs?: HouseholdCost[];
+  tiles?: HomeTile[];
   now?: Date;
 }): HouseholdBackup {
   return {
@@ -313,6 +342,7 @@ export function createHouseholdBackup({
     devices,
     history,
     costs,
+    tiles,
   };
 }
 
@@ -412,10 +442,14 @@ export function readHouseholdBackup(value: string): HouseholdBackup | null {
     const costs = readBackupCosts(
       Array.isArray(backup.costs) ? backup.costs : [],
     );
+    const tiles = Array.isArray(backup.tiles)
+      ? readBackupTiles(backup.tiles)
+      : defaultBackupTiles();
     if (
       !profile ||
       !devices ||
       !costs ||
+      !tiles ||
       history.length !== backup.history.length ||
       (Array.isArray(backup.costs) && costs.length !== backup.costs.length)
     ) {
@@ -438,6 +472,7 @@ export function readHouseholdBackup(value: string): HouseholdBackup | null {
       devices,
       history,
       costs,
+      tiles,
     };
   } catch {
     return null;
