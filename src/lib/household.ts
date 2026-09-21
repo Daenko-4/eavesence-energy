@@ -22,6 +22,8 @@ export type HouseholdProfile = {
   annualElectricityKwh?: number;
   monthlyElectricityPayment?: number;
   electricityBillIncludesBonus?: boolean;
+  incomeAmount?: number;
+  incomeFrequency?: "monthly" | "yearly";
   savingsGoalPercent: number;
   rooms: HouseholdRoom[];
   deviceRooms: Record<string, string>;
@@ -115,7 +117,7 @@ function readBackupTiles(value: unknown): HomeTile[] | null {
     (tile, index) =>
       tile.kind !== "energy" ||
       index === tiles.findIndex((item) => item.kind === "energy"),
-  ).sort((a, b) => (a.kind === "energy" ? -1 : b.kind === "energy" ? 1 : 0));
+  );
   return uniqueTiles.some((tile) => tile.kind === "energy")
     ? uniqueTiles
     : [defaultBackupTiles()[0], ...uniqueTiles];
@@ -202,6 +204,8 @@ export function createHouseholdProfile({
     annualElectricityKwh: 0,
     monthlyElectricityPayment: 0,
     electricityBillIncludesBonus: false,
+    incomeAmount: 0,
+    incomeFrequency: "monthly",
     savingsGoalPercent: Math.min(50, Math.max(1, savingsGoalPercent)),
     rooms: roomNames.map((roomName, index) => ({
       id: createRoomId(roomName, index),
@@ -257,10 +261,18 @@ export function readHouseholdProfile(value: string | null) {
       candidate.annualElectricityBill,
       candidate.annualElectricityKwh,
       candidate.monthlyElectricityPayment,
+      candidate.incomeAmount,
     ]) {
       if (value !== undefined && (typeof value !== "number" || value < 0)) {
         return null;
       }
+    }
+    if (
+      candidate.incomeFrequency !== undefined &&
+      candidate.incomeFrequency !== "monthly" &&
+      candidate.incomeFrequency !== "yearly"
+    ) {
+      return null;
     }
     if (
       candidate.electricityBillIncludesBonus !== undefined &&
@@ -412,7 +424,7 @@ function readBackupCosts(value: unknown): HouseholdCost[] | null {
     "leisure",
     "other",
   ];
-  const frequencies = ["weekly", "monthly", "quarterly", "yearly"];
+  const frequencies = ["weekly", "monthly", "quarterly", "half-yearly", "yearly"];
   const costs = value.filter((item): item is HouseholdCost => {
     if (!item || typeof item !== "object") return false;
     const candidate = item as Partial<HouseholdCost>;
@@ -422,6 +434,7 @@ function readBackupCosts(value: unknown): HouseholdCost[] | null {
       categories.includes(candidate.category ?? "") &&
       typeof candidate.amount === "number" &&
       candidate.amount > 0 &&
+      (candidate.tileId === undefined || typeof candidate.tileId === "string") &&
       frequencies.includes(candidate.frequency ?? "") &&
       typeof candidate.nextDueDate === "string" &&
       (candidate.nextDueDate === "" ||
