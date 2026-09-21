@@ -137,12 +137,16 @@ const copy = {
       "Geräte, tatsächlicher Monatsverbrauch und deine persönliche Stromkostenbasis.",
     energyDetails: "Stromdetails",
     energyDetailsText: "Öffne nur die Auswertung, die du gerade brauchst.",
-    workspaceEyebrow: "Deine Bereiche",
-    workspaceTitle: "Was möchtest du sehen?",
+    workspaceEyebrow: "Dein Zuhause",
+    workspaceTitle: "Bereiche in deinem Zuhause",
     workspaceText:
-      "My Home besteht aus Kacheln. Öffne nur den Bereich, den du gerade brauchst, oder lege eine eigene Kachel an.",
+      "Strom ist bereits eingerichtet. Ergänze nur die Bereiche, die du wirklich brauchst.",
     workspaceEmpty: "Lege deine erste Kachel an und wähle aus, welches Werkzeug sich dahinter verbergen soll.",
-    addTile: "Eigene Kachel",
+    addTile: "Neue Kachel",
+    addTileHint: "Eigenen Bereich anlegen",
+    templateLabel: "Vorlage",
+    insuranceTemplate: "Versicherungen",
+    insuranceTemplateHint: "Zum Beispiel Haushalt, Auto oder Leben",
     editTile: "Kachel umbenennen",
     newTile: "Neue Kachel",
     tileName: "Name der Kachel",
@@ -157,21 +161,18 @@ const copy = {
     tileNameRequired: "Bitte gib der Kachel einen Namen.",
     tileTitles: {
       costs: "Haushaltskosten",
-      devices: "Meine Geräte",
-      energy: "Stromübersicht",
-      monthly: "Monatswerte",
+      energy: "Strom & Geräte",
     },
     tileHints: {
       costs: "Laufende Kosten, Verträge und Zahlungen",
-      devices: "Alle Verbraucher und ihre Stromkosten",
-      energy: "Kosten, Verbrauch, Vergleich und Spartipp",
-      monthly: "Verbrauch erfassen und Verlauf ansehen",
+      energy: "Strombasis, Geräte, Verbrauch und Spartipps",
     },
     tileCountCosts: "{count} Kosten angelegt",
     tileCountDevices: "{count} Geräte gespeichert",
     tileCountMonthly: "{count} Monatswerte erfasst",
     monthlyDetails: "Monatswerte & Verlauf",
     monthlyDetailsHint: "Verbrauch erfassen und Entwicklung ansehen",
+    openMonthly: "Monatsübersicht öffnen",
     comparisonDetails: "Verbrauch vergleichen",
     comparisonDetailsHint: "Geräteschätzung mit Monatswert abgleichen",
     savingDetails: "Spartipp",
@@ -371,12 +372,16 @@ const copy = {
       "Devices, actual monthly consumption and your personal electricity-cost basis.",
     energyDetails: "Electricity details",
     energyDetailsText: "Open only the analysis you need right now.",
-    workspaceEyebrow: "Your sections",
-    workspaceTitle: "What would you like to see?",
+    workspaceEyebrow: "Your home",
+    workspaceTitle: "Sections in your home",
     workspaceText:
-      "My Home is built from tiles. Open only the section you need or create a tile of your own.",
+      "Electricity is already set up. Add only the sections you actually need.",
     workspaceEmpty: "Create your first tile and choose which tool it should contain.",
-    addTile: "Custom tile",
+    addTile: "New tile",
+    addTileHint: "Create your own section",
+    templateLabel: "Template",
+    insuranceTemplate: "Insurance",
+    insuranceTemplateHint: "For example home, car or life insurance",
     editTile: "Rename tile",
     newTile: "New tile",
     tileName: "Tile name",
@@ -391,21 +396,18 @@ const copy = {
     tileNameRequired: "Give the tile a name.",
     tileTitles: {
       costs: "Household costs",
-      devices: "My devices",
-      energy: "Electricity overview",
-      monthly: "Monthly values",
+      energy: "Electricity & devices",
     },
     tileHints: {
       costs: "Recurring costs, contracts and payments",
-      devices: "All consumers and their electricity costs",
-      energy: "Costs, consumption, comparison and saving tip",
-      monthly: "Record consumption and review the trend",
+      energy: "Electricity basis, devices, consumption and saving tips",
     },
     tileCountCosts: "{count} costs added",
     tileCountDevices: "{count} devices saved",
     tileCountMonthly: "{count} monthly values recorded",
     monthlyDetails: "Monthly values & history",
     monthlyDetailsHint: "Record consumption and review the trend",
+    openMonthly: "Open monthly overview",
     comparisonDetails: "Compare consumption",
     comparisonDetailsHint: "Compare device estimates with a monthly value",
     savingDetails: "Saving tip",
@@ -842,11 +844,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       const requestedKind: HomeTileKind | null =
         hash === "#household-costs"
           ? "costs"
-          : hash === "#home-devices"
-            ? "devices"
-            : hash === "#monthly-check-in"
-              ? "monthly"
-              : hash === "#energy-overview" ||
+        : hash === "#home-devices"
+            ? "energy"
+            : hash === "#energy-overview" ||
                   hash === "#energy-detail-comparison" ||
                   hash === "#energy-detail-saving"
                 ? "energy"
@@ -932,6 +932,24 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setTileKind("costs");
     setTileFeedback("");
     setTileFormOpen(true);
+  }
+
+  function addInsuranceTemplate() {
+    const existing = homeTiles.find(
+      (tile) =>
+        tile.kind === "costs" &&
+        (tile.title ?? "").toLocaleLowerCase(locale).includes(
+          locale === "de" ? "versicherung" : "insurance",
+        ),
+    );
+    if (existing) {
+      setActiveTileId(existing.id);
+      return;
+    }
+    const tile = createHomeTile("costs", text.insuranceTemplate);
+    persistHomeTiles([...homeTiles, tile]);
+    setActiveTileId(tile.id);
+    track("Home Tile Template Added", { locale, template: "insurance" });
   }
 
   function openRenameTileForm(tile: HomeTile) {
@@ -1207,7 +1225,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     detail: "monthly" | "comparison" | "saving",
     targetId?: string,
   ) {
-    if (detail === "monthly") activateTileKind("monthly");
     setOpenEnergyDetail(detail);
     if (!targetId) return;
     window.requestAnimationFrame(() => {
@@ -1475,25 +1492,23 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     : null;
   const proReady = history.length >= 2;
   const activeTile = homeTiles.find((tile) => tile.id === activeTileId) ?? null;
+  const hasInsuranceTile = homeTiles.some(
+    (tile) =>
+      tile.kind === "costs" &&
+      (tile.title ?? "").toLocaleLowerCase(locale).includes(
+        locale === "de" ? "versicherung" : "insurance",
+      ),
+  );
 
   function homeTileSummary(kind: HomeTileKind) {
     if (kind === "costs") {
       const count = householdCosts.length + (electricityMonthlyBudget > 0 ? 1 : 0);
       return text.tileCountCosts.replace("{count}", formatNumber(count, locale));
     }
-    if (kind === "devices") {
-      return text.tileCountDevices.replace(
-        "{count}",
-        formatNumber(savedDevices.length, locale),
-      );
-    }
-    if (kind === "monthly") {
-      return text.tileCountMonthly.replace(
-        "{count}",
-        formatNumber(history.length, locale),
-      );
-    }
-    return formatMoney(summary?.annualCost ?? 0, locale, profile?.currency ?? "EUR");
+    return `${text.tileCountDevices.replace(
+      "{count}",
+      formatNumber(savedDevices.length, locale),
+    )} · ${formatMoney(summary?.annualCost ?? 0, locale, profile?.currency ?? "EUR")}`;
   }
 
   function editSavedDevice(device: SavedDevice) {
@@ -1520,36 +1535,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
-              <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
-                <h2 className="text-[14px] font-bold text-[#17211f]">{text.energyBasis}</h2>
-                <p className="mt-1 text-[13px] leading-5 text-[#65716d]">{text.energyBasisText}</p>
-                <div className="mt-4 grid grid-cols-3 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
-                  {([
-                    ["price", text.energyPriceMode],
-                    ["annual-bill", text.energyAnnualMode],
-                    ["monthly-payment", text.energyMonthlyMode],
-                  ] as const).map(([mode, label]) => (
-                    <button key={mode} type="button" aria-pressed={electricityInputMode === mode} onClick={() => setElectricityInputMode(mode)} className={`home-primary-action rounded-full border-0 px-2 py-1 transition ${electricityInputMode === mode ? "bg-[var(--brand-green)] text-white shadow-sm" : "bg-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{label}</button>
-                  ))}
-                </div>
-                {electricityInputMode === "price" && (
-                  <label className="mt-4 grid max-w-sm gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
-                )}
-                {electricityInputMode === "annual-bill" && (
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.annualBill}</span><input type="text" inputMode="decimal" value={annualElectricityBill} onChange={(event) => setAnnualElectricityBill(event.target.value)} className={homeFieldClass} /></label>
-                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.annualKwh}</span><input type="text" inputMode="decimal" value={annualElectricityKwh} onChange={(event) => setAnnualElectricityKwh(event.target.value)} className={homeFieldClass} /></label>
-                    {positiveNumber(annualElectricityBill) && positiveNumber(annualElectricityKwh) ? <p className="text-[13px] font-bold text-[var(--brand-green)] sm:col-span-2">{text.effectivePrice.replace("{price}", formatMoneyPrecise((positiveNumber(annualElectricityBill) ?? 0) / (positiveNumber(annualElectricityKwh) ?? 1), locale, currency))}</p> : null}
-                    <label className="flex items-start gap-2 text-[11px] font-semibold leading-5 text-[#52605b] sm:col-span-2"><input type="checkbox" checked={electricityBillIncludesBonus} onChange={(event) => setElectricityBillIncludesBonus(event.target.checked)} className="mt-1 accent-[var(--brand-green)]" /><span>{text.bonusQuestion}{electricityBillIncludesBonus ? <span className="mt-1 block font-normal text-[#65716d]">{text.bonusHint}</span> : null}</span></label>
-                  </div>
-                )}
-                {electricityInputMode === "monthly-payment" && (
-                  <div className="mt-4 grid max-w-lg gap-2">
-                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.monthlyPayment}</span><input type="text" inputMode="decimal" value={monthlyElectricityPayment} onChange={(event) => setMonthlyElectricityPayment(event.target.value)} className={homeFieldClass} /></label>
-                    <p className="text-[11px] leading-5 text-[#65716d]">{text.monthlyBudgetOnly}</p>
-                  </div>
-                )}
-              </div>
               <button type="button" onClick={saveSettings} className={`${homeDashboardActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
               <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
@@ -1632,19 +1617,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
           {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
 
-          <section className="mt-7" aria-labelledby="home-workspace-title">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div className="max-w-3xl">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
-                <h2 id="home-workspace-title" className={`mt-1 ${homeSectionTitleClass}`}>{text.workspaceTitle}</h2>
-                <p className="mt-1 text-[13px] leading-6 text-[#65716d]">{text.workspaceText}</p>
-              </div>
-              <button type="button" onClick={openNewTileForm} className={homeDashboardActionClass}>
-                <span aria-hidden="true">+</span>{text.addTile}
-              </button>
+          <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
+            <div className="max-w-3xl">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
+              <h2 id="home-workspace-title" className={`mt-1 ${homeSectionTitleClass}`}>{text.workspaceTitle}</h2>
+              <p className="mt-1 text-[13px] leading-6 text-[#65716d]">{text.workspaceText}</p>
             </div>
 
-            {homeTiles.length > 0 ? (
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-home-tiles>
                 {homeTiles.map((tile) => {
                   const active = activeTileId === tile.id;
@@ -1657,21 +1636,29 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                         <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{text.tileHints[tile.kind]}</span>
                         <span className="mt-3 block text-[12px] font-bold text-[var(--brand-green)]">{homeTileSummary(tile.kind)}</span>
                       </button>
-                      {active && (
-                        <div className="flex items-center gap-2 border-t border-[#b8efcc] px-4 py-2">
-                          <button type="button" onClick={() => openRenameTileForm(tile)} className="text-[11px] font-semibold text-[#65716d] transition hover:text-[var(--brand-green)]">{text.renameTile}</button>
-                          <button type="button" onClick={() => deleteHomeTile(tile)} className="text-[11px] font-semibold text-[#9a7777] transition hover:text-red-600">{text.deleteTile}</button>
+                      {active && tile.kind !== "energy" && (
+                        <div className="flex items-center gap-1 border-t border-[#b8efcc] px-3 py-1.5">
+                          <button type="button" onClick={() => openRenameTileForm(tile)} aria-label={text.renameTile} title={text.renameTile} className="flex h-6 w-6 items-center justify-center rounded-full text-[#65716d] transition hover:bg-white/70 hover:text-[var(--brand-green)]"><svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m11.8 2.5 1.7 1.7-7.9 7.9-2.5.4.4-2.5 8.3-7.5Z" /></svg></button>
+                          <button type="button" onClick={() => deleteHomeTile(tile)} aria-label={text.deleteTile} title={text.deleteTile} className="flex h-6 w-6 items-center justify-center rounded-full text-[#9a7777] transition hover:bg-red-50 hover:text-red-600"><svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg></button>
                         </div>
                       )}
                     </article>
                   );
                 })}
+                {!hasInsuranceTile && <button type="button" onClick={addInsuranceTemplate} className="group min-h-[132px] rounded-xl border border-dashed border-[#cdd6cf] bg-[#f7f9f5] px-4 py-3 text-left transition hover:border-[#9fd9b5] hover:bg-[#f1faf4]">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7a8782]">{text.templateLabel}</span>
+                  <span className="mt-2 block text-[14px] font-bold text-[#52605b]">{text.insuranceTemplate}</span>
+                  <span className="mt-1 block text-[11px] leading-4 text-[#7a8782]">{text.insuranceTemplateHint}</span>
+                  <span className="mt-3 block text-[11px] font-bold text-[var(--brand-green)]">+ {text.createTile}</span>
+                </button>}
+                <button type="button" onClick={openNewTileForm} className="group flex min-h-[132px] items-center justify-center rounded-xl border border-dashed border-[#aebbb2] bg-transparent px-4 py-3 text-center transition hover:border-[var(--brand-green)] hover:bg-[#f3fbf6]">
+                  <span>
+                    <span aria-hidden="true" className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-[#dcfce8] text-[16px] text-[var(--brand-green)] transition group-hover:bg-[var(--brand-green)] group-hover:text-white">+</span>
+                    <span className="mt-2 block text-[13px] font-bold text-[#52605b]">{text.addTile}</span>
+                    <span className="mt-1 block text-[11px] text-[#7a8782]">{text.addTileHint}</span>
+                  </span>
+                </button>
               </div>
-            ) : (
-              <div className="mt-4 rounded-xl border border-dashed border-[#cdd6cf] bg-[#fbfcf8] px-4 py-5">
-                <p className="text-[13px] leading-6 text-[#65716d]">{text.workspaceEmpty}</p>
-              </div>
-            )}
 
             {tileFormOpen && (
               <div className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4" data-home-tile-form>
@@ -1681,7 +1668,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 </div>
                 <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
                   <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.tileName}<input value={tileName} onChange={(event) => { setTileName(event.target.value); setTileFeedback(""); }} placeholder={text.tileNamePlaceholder} className={homeFieldClass} /></label>
-                  <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.tileContent}<select value={tileKind} disabled={Boolean(editingTileId)} onChange={(event) => setTileKind(event.target.value as HomeTileKind)} className={`${homeFieldClass} disabled:bg-[#eef0ec] disabled:text-[#65716d]`}>{(["costs", "devices", "energy", "monthly"] as HomeTileKind[]).map((kind) => <option key={kind} value={kind}>{text.tileTitles[kind]}</option>)}</select></label>
+                  <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.tileContent}<select value={tileKind} disabled className={`${homeFieldClass} disabled:bg-[#eef0ec] disabled:text-[#65716d]`}><option value="costs">{text.tileTitles.costs}</option></select></label>
                   <button type="button" onClick={saveHomeTile} className={homePrimaryActionClass}>{editingTileId ? text.updateTile : text.createTile}</button>
                 </div>
                 {tileFeedback && <p role="alert" className="mt-2 text-[11px] font-bold text-red-700">{tileFeedback}</p>}
@@ -1689,7 +1676,17 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             )}
           </section>
 
-          {activeTile?.kind === "monthly" && (
+          <section className="mt-8 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4" aria-labelledby="monthly-overview-title">
+            <button type="button" onClick={() => setOpenEnergyDetail(openEnergyDetail === "monthly" ? null : "monthly")} aria-expanded={openEnergyDetail === "monthly"} className="flex w-full items-center justify-between gap-4 text-left">
+              <span>
+                <span id="monthly-overview-title" className="block text-[14px] font-bold text-[#17211f]">{text.monthlyDetails}</span>
+                <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{text.monthlyDetailsHint} · {text.tileCountMonthly.replace("{count}", formatNumber(history.length, locale))}</span>
+              </span>
+              <span className="text-[11px] font-bold text-[var(--brand-green)]">{text.openMonthly}</span>
+            </button>
+          </section>
+
+          {openEnergyDetail === "monthly" && (
           <section
             aria-label={currentMonthEntry ? text.monthlyPulse : text.nextStep}
             data-home-next-step
@@ -1717,7 +1714,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <div className="flex shrink-0 flex-wrap items-center gap-2">
               {currentMonthEntry ? (
                 summary?.topDevice && (
-                  <a href="#home-devices" onClick={() => activateTileKind("devices")} className="eavesence-pill-link">
+                  <a href="#home-devices" onClick={() => activateTileKind("energy")} className="eavesence-pill-link">
                     {text.reviewTopDevice}
                   </a>
                 )
@@ -1760,6 +1757,41 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           {activeTile?.kind === "energy" && (
           <>
+          <section className="mt-5 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4" aria-labelledby="electricity-basis-title">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 id="electricity-basis-title" className="text-[14px] font-bold text-[#17211f]">{text.energyBasis}</h2>
+                <p className="mt-1 text-[13px] leading-5 text-[#65716d]">{text.energyBasisText}</p>
+              </div>
+              <button type="button" onClick={saveSettings} className={`${homeDashboardActionClass} mt-2 w-fit sm:mt-0`}>{text.saveSettings}</button>
+            </div>
+            <div className="mt-4 grid grid-cols-3 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
+              {([
+                ["price", text.energyPriceMode],
+                ["annual-bill", text.energyAnnualMode],
+                ["monthly-payment", text.energyMonthlyMode],
+              ] as const).map(([mode, label]) => (
+                <button key={mode} type="button" aria-pressed={electricityInputMode === mode} onClick={() => setElectricityInputMode(mode)} className={`home-primary-action rounded-full border-0 px-2 py-1 transition ${electricityInputMode === mode ? "bg-[var(--brand-green)] text-white shadow-sm" : "bg-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{label}</button>
+              ))}
+            </div>
+            {electricityInputMode === "price" && (
+              <label className="mt-4 grid max-w-sm gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.price}</span><input type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(Number(event.target.value))} className={homeFieldClass} /></label>
+            )}
+            {electricityInputMode === "annual-bill" && (
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.annualBill}</span><input type="text" inputMode="decimal" value={annualElectricityBill} onChange={(event) => setAnnualElectricityBill(event.target.value)} className={homeFieldClass} /></label>
+                <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.annualKwh}</span><input type="text" inputMode="decimal" value={annualElectricityKwh} onChange={(event) => setAnnualElectricityKwh(event.target.value)} className={homeFieldClass} /></label>
+                {positiveNumber(annualElectricityBill) && positiveNumber(annualElectricityKwh) ? <p className="text-[13px] font-bold text-[var(--brand-green)] sm:col-span-2">{text.effectivePrice.replace("{price}", formatMoneyPrecise((positiveNumber(annualElectricityBill) ?? 0) / (positiveNumber(annualElectricityKwh) ?? 1), locale, currency))}</p> : null}
+                <label className="flex items-start gap-2 text-[11px] font-semibold leading-5 text-[#52605b] sm:col-span-2"><input type="checkbox" checked={electricityBillIncludesBonus} onChange={(event) => setElectricityBillIncludesBonus(event.target.checked)} className="mt-1 accent-[var(--brand-green)]" /><span>{text.bonusQuestion}{electricityBillIncludesBonus ? <span className="mt-1 block font-normal text-[#65716d]">{text.bonusHint}</span> : null}</span></label>
+              </div>
+            )}
+            {electricityInputMode === "monthly-payment" && (
+              <div className="mt-4 grid max-w-lg gap-2">
+                <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.monthlyPayment}</span><input type="text" inputMode="decimal" value={monthlyElectricityPayment} onChange={(event) => setMonthlyElectricityPayment(event.target.value)} className={homeFieldClass} /></label>
+                <p className="text-[11px] leading-5 text-[#65716d]">{text.monthlyBudgetOnly}</p>
+              </div>
+            )}
+          </section>
           <div id="energy-overview" className="mt-8 scroll-mt-24">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.energyOverview}</p>
             <p className="mt-1 text-[13px] leading-6 text-[#65716d]">{text.energyOverviewText}</p>
@@ -1781,7 +1813,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </>
           )}
 
-          {activeTile?.kind === "devices" && (
+          {activeTile?.kind === "energy" && (
           <div className="mt-5">
           <MyDevicesPanel
             locale={locale}
@@ -1838,7 +1870,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
           )}
 
-          {activeTile?.kind === "monthly" && (
+          {openEnergyDetail === "monthly" && (
           <section id="energy-detail-monthly" className="mt-5 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <div id="monthly-check-in" className={`${homeSurfaceClass} scroll-mt-24 p-5`}>
               <h2 className={homeSectionTitleClass}>{text.monthlyCheckIn}</h2>
