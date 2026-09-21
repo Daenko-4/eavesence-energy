@@ -219,6 +219,7 @@ export default function HouseholdCostsPanel({
   savingsGoalPercent,
   costs,
   electricityMonthlyBudget = 0,
+  embedded = false,
   onChange,
 }: {
   locale: Locale;
@@ -226,6 +227,7 @@ export default function HouseholdCostsPanel({
   savingsGoalPercent: number;
   costs: HouseholdCost[];
   electricityMonthlyBudget?: number;
+  embedded?: boolean;
   onChange: (costs: HouseholdCost[]) => void;
 }) {
   const text = copy[locale];
@@ -337,7 +339,7 @@ export default function HouseholdCostsPanel({
   return (
     <section
       id="household-costs"
-      className="mt-8 rounded-[1.45rem] border border-[#dde2d8] bg-[#eef0ec] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] sm:p-6"
+      className={`${embedded ? "" : "mt-8 "}rounded-[1.45rem] border border-[#dde2d8] bg-[#eef0ec] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] sm:p-6`}
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
