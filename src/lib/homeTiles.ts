@@ -48,7 +48,7 @@ export function readHomeTiles(value: string | null): HomeTile[] {
       (tile, index) =>
         tile.kind !== "energy" ||
         index === tiles.findIndex((item) => item.kind === "energy"),
-    ).sort((a, b) => (a.kind === "energy" ? -1 : b.kind === "energy" ? 1 : 0));
+    );
     return uniqueTiles.some((tile) => tile.kind === "energy")
       ? uniqueTiles
       : [defaultHomeTiles()[0], ...uniqueTiles];
@@ -68,4 +68,19 @@ export function createHomeTile(kind: HomeTileKind, title: string): HomeTile {
     kind,
     title: title.trim() || null,
   };
+}
+
+export function reorderHomeTiles(
+  tiles: HomeTile[],
+  sourceId: string,
+  targetId: string,
+) {
+  if (sourceId === targetId) return tiles;
+  const sourceIndex = tiles.findIndex((tile) => tile.id === sourceId);
+  const targetIndex = tiles.findIndex((tile) => tile.id === targetId);
+  if (sourceIndex < 0 || targetIndex < 0) return tiles;
+  const next = [...tiles];
+  const [moved] = next.splice(sourceIndex, 1);
+  next.splice(targetIndex, 0, moved);
+  return next;
 }
