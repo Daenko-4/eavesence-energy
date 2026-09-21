@@ -48,6 +48,14 @@ import {
 } from "@/lib/household";
 import { createMonthlyReminderCalendar } from "@/lib/monthlyReminder";
 import {
+  createHomeTile,
+  defaultHomeTiles,
+  HOME_TILES_STORAGE_KEY,
+  readHomeTiles,
+  type HomeTile,
+  type HomeTileKind,
+} from "@/lib/homeTiles";
+import {
   HOUSEHOLD_COSTS_STORAGE_KEY,
   readHouseholdCosts,
   type HouseholdCost,
@@ -129,6 +137,39 @@ const copy = {
       "Geräte, tatsächlicher Monatsverbrauch und deine persönliche Stromkostenbasis.",
     energyDetails: "Stromdetails",
     energyDetailsText: "Öffne nur die Auswertung, die du gerade brauchst.",
+    workspaceEyebrow: "Deine Bereiche",
+    workspaceTitle: "Was möchtest du sehen?",
+    workspaceText:
+      "My Home besteht aus Kacheln. Öffne nur den Bereich, den du gerade brauchst, oder lege eine eigene Kachel an.",
+    workspaceEmpty: "Lege deine erste Kachel an und wähle aus, welches Werkzeug sich dahinter verbergen soll.",
+    addTile: "Eigene Kachel",
+    editTile: "Kachel umbenennen",
+    newTile: "Neue Kachel",
+    tileName: "Name der Kachel",
+    tileNamePlaceholder: "Zum Beispiel Versicherungen",
+    tileContent: "Was soll sich darin befinden?",
+    createTile: "Kachel anlegen",
+    updateTile: "Namen speichern",
+    cancelTile: "Abbrechen",
+    renameTile: "Umbenennen",
+    deleteTile: "Entfernen",
+    deleteTileConfirm: "Diese Kachel entfernen? Deine gespeicherten Daten bleiben erhalten.",
+    tileNameRequired: "Bitte gib der Kachel einen Namen.",
+    tileTitles: {
+      costs: "Haushaltskosten",
+      devices: "Meine Geräte",
+      energy: "Stromübersicht",
+      monthly: "Monatswerte",
+    },
+    tileHints: {
+      costs: "Laufende Kosten, Verträge und Zahlungen",
+      devices: "Alle Verbraucher und ihre Stromkosten",
+      energy: "Kosten, Verbrauch, Vergleich und Spartipp",
+      monthly: "Verbrauch erfassen und Verlauf ansehen",
+    },
+    tileCountCosts: "{count} Kosten angelegt",
+    tileCountDevices: "{count} Geräte gespeichert",
+    tileCountMonthly: "{count} Monatswerte erfasst",
     monthlyDetails: "Monatswerte & Verlauf",
     monthlyDetailsHint: "Verbrauch erfassen und Entwicklung ansehen",
     comparisonDetails: "Verbrauch vergleichen",
@@ -274,7 +315,7 @@ const copy = {
     saved: "Gespeichert",
     dataTitle: "Daten verwalten",
     dataText:
-      "Die Sicherung enthält Einstellungen, Haushaltskosten, gespeicherte Geräte und den Monatsverlauf.",
+      "Die Sicherung enthält Einstellungen, deine Kacheln, Haushaltskosten, gespeicherte Geräte und den Monatsverlauf.",
     dataPrivacy: "Sie enthält keine Konto- oder Cloud-Daten.",
     importHome: "Sicherung importieren",
     exportHome: "Sicherung exportieren",
@@ -330,6 +371,39 @@ const copy = {
       "Devices, actual monthly consumption and your personal electricity-cost basis.",
     energyDetails: "Electricity details",
     energyDetailsText: "Open only the analysis you need right now.",
+    workspaceEyebrow: "Your sections",
+    workspaceTitle: "What would you like to see?",
+    workspaceText:
+      "My Home is built from tiles. Open only the section you need or create a tile of your own.",
+    workspaceEmpty: "Create your first tile and choose which tool it should contain.",
+    addTile: "Custom tile",
+    editTile: "Rename tile",
+    newTile: "New tile",
+    tileName: "Tile name",
+    tileNamePlaceholder: "For example Insurance",
+    tileContent: "What should it contain?",
+    createTile: "Create tile",
+    updateTile: "Save name",
+    cancelTile: "Cancel",
+    renameTile: "Rename",
+    deleteTile: "Remove",
+    deleteTileConfirm: "Remove this tile? Your saved data will be kept.",
+    tileNameRequired: "Give the tile a name.",
+    tileTitles: {
+      costs: "Household costs",
+      devices: "My devices",
+      energy: "Electricity overview",
+      monthly: "Monthly values",
+    },
+    tileHints: {
+      costs: "Recurring costs, contracts and payments",
+      devices: "All consumers and their electricity costs",
+      energy: "Costs, consumption, comparison and saving tip",
+      monthly: "Record consumption and review the trend",
+    },
+    tileCountCosts: "{count} costs added",
+    tileCountDevices: "{count} devices saved",
+    tileCountMonthly: "{count} monthly values recorded",
     monthlyDetails: "Monthly values & history",
     monthlyDetailsHint: "Record consumption and review the trend",
     comparisonDetails: "Compare consumption",
@@ -475,7 +549,7 @@ const copy = {
     saved: "Saved",
     dataTitle: "Manage data",
     dataText:
-      "The backup contains settings, household costs, saved devices and monthly history.",
+      "The backup contains settings, your tiles, household costs, saved devices and monthly history.",
     dataPrivacy: "It contains no account or cloud data.",
     importHome: "Import backup",
     exportHome: "Export backup",
@@ -653,6 +727,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
   const [betaInterested, setBetaInterested] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [homeTiles, setHomeTiles] = useState<HomeTile[]>(defaultHomeTiles);
+  const [activeTileId, setActiveTileId] = useState<string | null>(null);
+  const [tileFormOpen, setTileFormOpen] = useState(false);
+  const [editingTileId, setEditingTileId] = useState<string | null>(null);
+  const [tileName, setTileName] = useState("");
+  const [tileKind, setTileKind] = useState<HomeTileKind>("costs");
+  const [tileFeedback, setTileFeedback] = useState("");
   const [openEnergyDetail, setOpenEnergyDetail] = useState<
     "monthly" | "comparison" | "saving" | null
   >(null);
@@ -694,6 +775,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setHouseholdCosts(
       readHouseholdCosts(window.localStorage.getItem(HOUSEHOLD_COSTS_STORAGE_KEY)),
     );
+    setHomeTiles(readHomeTiles(window.localStorage.getItem(HOME_TILES_STORAGE_KEY)));
     setBetaInterested(window.localStorage.getItem(BETA_INTEREST_STORAGE_KEY) === "true");
   }, [locale]);
 
@@ -756,19 +838,54 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   useEffect(() => {
     function openRequestedDetail() {
-      if (window.location.hash === "#monthly-check-in") {
+      const hash = window.location.hash;
+      const requestedKind: HomeTileKind | null =
+        hash === "#household-costs"
+          ? "costs"
+          : hash === "#home-devices"
+            ? "devices"
+            : hash === "#monthly-check-in"
+              ? "monthly"
+              : hash === "#energy-overview" ||
+                  hash === "#energy-detail-comparison" ||
+                  hash === "#energy-detail-saving"
+                ? "energy"
+                : null;
+      let requestedTile = requestedKind
+        ? homeTiles.find((tile) => tile.kind === requestedKind)
+        : null;
+      if (requestedKind && !requestedTile) {
+        requestedTile = createHomeTile(requestedKind, text.tileTitles[requestedKind]);
+        const nextTiles = [...homeTiles, requestedTile];
+        window.localStorage.setItem(HOME_TILES_STORAGE_KEY, JSON.stringify(nextTiles));
+        setHomeTiles(nextTiles);
+      }
+      if (requestedTile) setActiveTileId(requestedTile.id);
+
+      if (hash === "#monthly-check-in") {
         setOpenEnergyDetail("monthly");
-      } else if (window.location.hash === "#energy-detail-comparison") {
+      } else if (hash === "#energy-detail-comparison") {
         setOpenEnergyDetail("comparison");
-      } else if (window.location.hash === "#energy-detail-saving") {
+      } else if (hash === "#energy-detail-saving") {
         setOpenEnergyDetail("saving");
+      }
+
+      if (requestedTile && hash) {
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            document.getElementById(hash.slice(1))?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          });
+        });
       }
     }
 
     openRequestedDetail();
     window.addEventListener("hashchange", openRequestedDetail);
     return () => window.removeEventListener("hashchange", openRequestedDetail);
-  }, []);
+  }, [homeTiles, text.tileTitles]);
 
   const summary = useMemo(
     () => (profile ? calculateHouseholdSummary(savedDevices, profile) : null),
@@ -792,6 +909,69 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       locale,
       cost_count: nextCosts.length,
     });
+  }
+
+  function persistHomeTiles(nextTiles: HomeTile[]) {
+    window.localStorage.setItem(HOME_TILES_STORAGE_KEY, JSON.stringify(nextTiles));
+    setHomeTiles(nextTiles);
+  }
+
+  function activateTileKind(kind: HomeTileKind) {
+    let tile = homeTiles.find((item) => item.kind === kind);
+    if (!tile) {
+      tile = createHomeTile(kind, text.tileTitles[kind]);
+      persistHomeTiles([...homeTiles, tile]);
+    }
+    setActiveTileId(tile.id);
+    return tile;
+  }
+
+  function openNewTileForm() {
+    setEditingTileId(null);
+    setTileName("");
+    setTileKind("costs");
+    setTileFeedback("");
+    setTileFormOpen(true);
+  }
+
+  function openRenameTileForm(tile: HomeTile) {
+    setEditingTileId(tile.id);
+    setTileName(tile.title ?? text.tileTitles[tile.kind]);
+    setTileKind(tile.kind);
+    setTileFeedback("");
+    setTileFormOpen(true);
+  }
+
+  function saveHomeTile() {
+    if (!tileName.trim()) {
+      setTileFeedback(text.tileNameRequired);
+      return;
+    }
+
+    if (editingTileId) {
+      persistHomeTiles(
+        homeTiles.map((tile) =>
+          tile.id === editingTileId ? { ...tile, title: tileName.trim() } : tile,
+        ),
+      );
+    } else {
+      const tile = createHomeTile(tileKind, tileName);
+      persistHomeTiles([...homeTiles, tile]);
+      setActiveTileId(tile.id);
+      track("Home Tile Created", { locale, kind: tile.kind });
+    }
+
+    setTileFormOpen(false);
+    setEditingTileId(null);
+    setTileName("");
+  }
+
+  function deleteHomeTile(tile: HomeTile) {
+    if (!window.confirm(text.deleteTileConfirm)) return;
+    persistHomeTiles(homeTiles.filter((item) => item.id !== tile.id));
+    if (activeTileId === tile.id) setActiveTileId(null);
+    if (editingTileId === tile.id) setTileFormOpen(false);
+    track("Home Tile Removed", { locale, kind: tile.kind });
   }
 
   function completeOnboarding() {
@@ -860,6 +1040,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       devices: savedDevices,
       history,
       costs: householdCosts,
+      tiles: homeTiles,
     });
     const blob = new Blob([JSON.stringify(backup, null, 2)], {
       type: "application/json",
@@ -900,10 +1081,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       HOUSEHOLD_COSTS_STORAGE_KEY,
       JSON.stringify(backup.costs),
     );
+    window.localStorage.setItem(
+      HOME_TILES_STORAGE_KEY,
+      JSON.stringify(backup.tiles),
+    );
     setProfile(backup.profile);
     setSavedDevices(backup.devices);
     setHistory(backup.history);
     setHouseholdCosts(backup.costs);
+    setHomeTiles(backup.tiles);
+    setActiveTileId(null);
     setName(localizeDefaultHouseholdName(backup.profile.name, locale));
     setCurrency(backup.profile.currency);
     setPrice(backup.profile.electricityPrice);
@@ -944,6 +1131,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     window.localStorage.removeItem(HOUSEHOLD_COSTS_STORAGE_KEY);
     window.localStorage.removeItem(HOUSEHOLD_VISIT_STORAGE_KEY);
     window.localStorage.removeItem(BETA_INTEREST_STORAGE_KEY);
+    window.localStorage.removeItem(HOME_TILES_STORAGE_KEY);
     setProfile(null);
     setHistory([]);
     setHouseholdCosts([]);
@@ -957,6 +1145,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setElectricityBillIncludesBonus(false);
     setGoal(10);
     setBetaInterested(false);
+    setHomeTiles(defaultHomeTiles());
+    setActiveTileId(null);
     setCheckInFeedback(null);
     setSettingsOpen(false);
     setNotice("");
@@ -1017,6 +1207,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     detail: "monthly" | "comparison" | "saving",
     targetId?: string,
   ) {
+    if (detail === "monthly") activateTileKind("monthly");
     setOpenEnergyDetail(detail);
     if (!targetId) return;
     window.requestAnimationFrame(() => {
@@ -1283,6 +1474,27 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         )
     : null;
   const proReady = history.length >= 2;
+  const activeTile = homeTiles.find((tile) => tile.id === activeTileId) ?? null;
+
+  function homeTileSummary(kind: HomeTileKind) {
+    if (kind === "costs") {
+      const count = householdCosts.length + (electricityMonthlyBudget > 0 ? 1 : 0);
+      return text.tileCountCosts.replace("{count}", formatNumber(count, locale));
+    }
+    if (kind === "devices") {
+      return text.tileCountDevices.replace(
+        "{count}",
+        formatNumber(savedDevices.length, locale),
+      );
+    }
+    if (kind === "monthly") {
+      return text.tileCountMonthly.replace(
+        "{count}",
+        formatNumber(history.length, locale),
+      );
+    }
+    return formatMoney(summary?.annualCost ?? 0, locale, profile?.currency ?? "EUR");
+  }
 
   function editSavedDevice(device: SavedDevice) {
     window.sessionStorage.setItem(SAVED_DEVICE_EDIT_REQUEST_KEY, device.id);
@@ -1420,8 +1632,64 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
           {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
 
-          <PwaInstallCard locale={locale} />
+          <section className="mt-7" aria-labelledby="home-workspace-title">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="max-w-3xl">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
+                <h2 id="home-workspace-title" className={`mt-1 ${homeSectionTitleClass}`}>{text.workspaceTitle}</h2>
+                <p className="mt-1 text-[13px] leading-6 text-[#65716d]">{text.workspaceText}</p>
+              </div>
+              <button type="button" onClick={openNewTileForm} className={homeDashboardActionClass}>
+                <span aria-hidden="true">+</span>{text.addTile}
+              </button>
+            </div>
 
+            {homeTiles.length > 0 ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-home-tiles>
+                {homeTiles.map((tile) => {
+                  const active = activeTileId === tile.id;
+                  const title = tile.title ?? text.tileTitles[tile.kind];
+                  return (
+                    <article key={tile.id} className={`group rounded-xl border transition ${active ? "border-[var(--brand-green)] bg-[#dcfce8] shadow-[0_12px_28px_-24px_rgba(20,122,75,0.78)]" : "border-[#dfe5dd] bg-[#fbfcf8] hover:border-[#b8efcc] hover:bg-[#f5fbf7]"}`}>
+                      <button type="button" onClick={() => setActiveTileId(active ? null : tile.id)} aria-expanded={active} className="block w-full px-4 pb-3 pt-4 text-left">
+                        {tile.title && <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">{text.tileTitles[tile.kind]}</span>}
+                        <span className={`${tile.title ? "mt-1.5 " : ""}block text-[14px] font-extrabold ${active ? "text-[var(--brand-green)]" : "text-[#17211f]"}`}>{title}</span>
+                        <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{text.tileHints[tile.kind]}</span>
+                        <span className="mt-3 block text-[12px] font-bold text-[var(--brand-green)]">{homeTileSummary(tile.kind)}</span>
+                      </button>
+                      {active && (
+                        <div className="flex items-center gap-2 border-t border-[#b8efcc] px-4 py-2">
+                          <button type="button" onClick={() => openRenameTileForm(tile)} className="text-[11px] font-semibold text-[#65716d] transition hover:text-[var(--brand-green)]">{text.renameTile}</button>
+                          <button type="button" onClick={() => deleteHomeTile(tile)} className="text-[11px] font-semibold text-[#9a7777] transition hover:text-red-600">{text.deleteTile}</button>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-xl border border-dashed border-[#cdd6cf] bg-[#fbfcf8] px-4 py-5">
+                <p className="text-[13px] leading-6 text-[#65716d]">{text.workspaceEmpty}</p>
+              </div>
+            )}
+
+            {tileFormOpen && (
+              <div className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4" data-home-tile-form>
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-[14px] font-bold">{editingTileId ? text.editTile : text.newTile}</h3>
+                  <button type="button" onClick={() => setTileFormOpen(false)} className="text-[11px] font-semibold text-[#65716d] hover:text-[#17211f]">{text.cancelTile}</button>
+                </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                  <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.tileName}<input value={tileName} onChange={(event) => { setTileName(event.target.value); setTileFeedback(""); }} placeholder={text.tileNamePlaceholder} className={homeFieldClass} /></label>
+                  <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.tileContent}<select value={tileKind} disabled={Boolean(editingTileId)} onChange={(event) => setTileKind(event.target.value as HomeTileKind)} className={`${homeFieldClass} disabled:bg-[#eef0ec] disabled:text-[#65716d]`}>{(["costs", "devices", "energy", "monthly"] as HomeTileKind[]).map((kind) => <option key={kind} value={kind}>{text.tileTitles[kind]}</option>)}</select></label>
+                  <button type="button" onClick={saveHomeTile} className={homePrimaryActionClass}>{editingTileId ? text.updateTile : text.createTile}</button>
+                </div>
+                {tileFeedback && <p role="alert" className="mt-2 text-[11px] font-bold text-red-700">{tileFeedback}</p>}
+              </div>
+            )}
+          </section>
+
+          {activeTile?.kind === "monthly" && (
           <section
             aria-label={currentMonthEntry ? text.monthlyPulse : text.nextStep}
             data-home-next-step
@@ -1449,7 +1717,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <div className="flex shrink-0 flex-wrap items-center gap-2">
               {currentMonthEntry ? (
                 summary?.topDevice && (
-                  <a href="#home-devices" className="eavesence-pill-link">
+                  <a href="#home-devices" onClick={() => activateTileKind("devices")} className="eavesence-pill-link">
                     {text.reviewTopDevice}
                   </a>
                 )
@@ -1474,16 +1742,24 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               )}
             </div>
           </section>
+          )}
 
+          {activeTile?.kind === "costs" && (
+          <div className="mt-5">
           <HouseholdCostsPanel
             locale={locale}
             currency={profile.currency}
             savingsGoalPercent={profile.savingsGoalPercent}
             costs={householdCosts}
             electricityMonthlyBudget={electricityMonthlyBudget}
+            embedded
             onChange={persistHouseholdCosts}
           />
+          </div>
+          )}
 
+          {activeTile?.kind === "energy" && (
+          <>
           <div id="energy-overview" className="mt-8 scroll-mt-24">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.energyOverview}</p>
             <p className="mt-1 text-[13px] leading-6 text-[#65716d]">{text.energyOverviewText}</p>
@@ -1502,25 +1778,32 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </article>
             ))}
           </section>
+          </>
+          )}
 
+          {activeTile?.kind === "devices" && (
+          <div className="mt-5">
           <MyDevicesPanel
             locale={locale}
             compact
             household
+            embedded
             calculatorHref={calculatorHref}
             householdPrice={profile.electricityPrice}
             householdCurrency={profile.currency}
             onOpen={editSavedDevice}
           />
+          </div>
+          )}
 
+          {activeTile?.kind === "energy" && (
           <section className="mt-8" aria-labelledby="energy-details-title">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <h2 id="energy-details-title" className={homeSectionTitleClass}>{text.energyDetails}</h2>
               <p className="text-[13px] leading-5 text-[#65716d]">{text.energyDetailsText}</p>
             </div>
-            <div className="mt-3 grid gap-3 md:grid-cols-3" role="group" aria-label={text.energyDetails}>
+            <div className="mt-3 grid gap-3 md:grid-cols-2" role="group" aria-label={text.energyDetails}>
               {([
-                ["monthly", text.monthlyDetails, text.monthlyDetailsHint],
                 ["comparison", text.comparisonDetails, text.comparisonDetailsHint],
                 ["saving", text.savingDetails, text.savingDetailsHint],
               ] as const).map(([detail, label, hint]) => {
@@ -1553,8 +1836,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               })}
             </div>
           </section>
+          )}
 
-          {openEnergyDetail === "monthly" && (
+          {activeTile?.kind === "monthly" && (
           <section id="energy-detail-monthly" className="mt-5 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <div id="monthly-check-in" className={`${homeSurfaceClass} scroll-mt-24 p-5`}>
               <h2 className={homeSectionTitleClass}>{text.monthlyCheckIn}</h2>
@@ -1612,7 +1896,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
           )}
 
-          {openEnergyDetail === "comparison" && (
+          {activeTile?.kind === "energy" && openEnergyDetail === "comparison" && (
           <section id="energy-detail-comparison" className={`mt-5 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <h2 className={homeSectionTitleClass}>{text.comparisonTitle}</h2>
@@ -1653,7 +1937,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
           )}
 
-          {openEnergyDetail === "saving" && summary?.topDevice && topDeviceTip && (
+          {activeTile?.kind === "energy" && openEnergyDetail === "saving" && summary?.topDevice && topDeviceTip && (
             <section id="energy-detail-saving" data-saving-tip className="mt-5 scroll-mt-24 rounded-[1.45rem] border border-[#b8efcc] bg-[#eefbf3] p-5">
               <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div>
@@ -1669,7 +1953,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </section>
           )}
 
-          {openEnergyDetail === "saving" && (!summary?.topDevice || !topDeviceTip) && (
+          {activeTile?.kind === "energy" && openEnergyDetail === "saving" && (!summary?.topDevice || !topDeviceTip) && (
             <section id="energy-detail-saving" className={`mt-5 p-5 ${homeSurfaceClass}`}>
               <h2 className={homeSectionTitleClass}>{text.savingDetails}</h2>
               <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{text.noComparison}</p>
@@ -1677,7 +1961,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </section>
           )}
 
-          {proReady ? (
+          {activeTile && <PwaInstallCard locale={locale} />}
+
+          {activeTile && (proReady ? (
             <section className="mt-8 overflow-hidden rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] p-6 text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] sm:p-8">
               <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end"><div><p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green-mint)]">{text.proEyebrow}</p><h2 className="mt-3 text-2xl font-extrabold tracking-[-0.04em]">{text.proTitle}</h2><p className="mt-4 max-w-2xl text-[13px] leading-6 text-slate-300">{text.proText}</p><p className="mt-5 text-[11px] leading-5 text-slate-400">{text.betaDetail}</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-5"><div className="grid grid-cols-2 rounded-full bg-black/20 p-1"><button type="button" onClick={() => { setPlan("monthly"); track("Home Pro Preview Opened", { locale, plan: "monthly" }); }} className={`home-primary-action rounded-full border-0 px-3 py-1 font-bold transition ${plan === "monthly" ? "bg-[#ddf8e9] text-[var(--brand-green)]" : "bg-transparent text-slate-300 hover:bg-white/10"}`}>{text.monthlyPlan}</button><button type="button" onClick={() => { setPlan("yearly"); track("Home Pro Preview Opened", { locale, plan: "yearly" }); }} className={`home-primary-action rounded-full border-0 px-3 py-1 font-bold transition ${plan === "yearly" ? "bg-[#ddf8e9] text-[var(--brand-green)]" : "bg-transparent text-slate-300 hover:bg-white/10"}`}>{text.yearlyPlan}</button></div><div className="mt-5 flex min-h-8 flex-wrap items-center justify-center gap-4"><p className="text-center text-2xl font-extrabold">{plan === "yearly" ? text.yearlyPrice : text.monthlyPrice}</p>{plan === "yearly" && <span className="rounded-full border border-[var(--brand-green-mint)]/30 bg-[var(--brand-green-mint)]/10 px-2.5 py-1 text-[11px] font-extrabold text-[var(--brand-green-mint)]">{text.yearlyHint}</span>}</div><p className="mt-2 text-center text-[11px] font-semibold text-slate-400">{text.proBilling}</p><button type="button" onClick={submitBetaInterest} disabled={betaInterested} className="eavesence-pill-button home-primary-action mt-5 w-full disabled:bg-white/15 disabled:text-slate-300">{betaInterested ? text.betaSaved : text.beta}</button></div></div>
             </section>
@@ -1687,7 +1973,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <h2 className={`mt-1 ${homeSectionTitleClass}`}>{text.proPreviewTitle}</h2>
               <p className="mt-1 max-w-3xl text-[13px] leading-6 text-[#52605b]">{text.proPreviewText}</p>
             </section>
-          )}
+          ))}
         </div>
       </main>
       <PwaMobileNavigation
