@@ -1,6 +1,6 @@
 export const HOME_TILES_STORAGE_KEY = "eavesence-home-tiles-v1";
 
-export type HomeTileKind = "costs" | "devices" | "energy" | "monthly";
+export type HomeTileKind = "costs" | "energy";
 
 export type HomeTile = {
   id: string;
@@ -8,7 +8,7 @@ export type HomeTile = {
   title: string | null;
 };
 
-const tileKinds: HomeTileKind[] = ["costs", "devices", "energy", "monthly"];
+const tileKinds: HomeTileKind[] = ["energy", "costs"];
 
 export function defaultHomeTiles(): HomeTile[] {
   return tileKinds.map((kind) => ({
@@ -25,19 +25,33 @@ export function readHomeTiles(value: string | null): HomeTile[] {
     const candidate = JSON.parse(value) as unknown;
     if (!Array.isArray(candidate)) return defaultHomeTiles();
 
-    const tiles = candidate.filter((item): item is HomeTile => {
-      if (!item || typeof item !== "object") return false;
-      const tile = item as Partial<HomeTile>;
-      return (
+    const tiles = candidate.flatMap((item): HomeTile[] => {
+      if (!item || typeof item !== "object") return [];
+      const tile = item as { id?: unknown; kind?: string; title?: unknown };
+      const valid =
         typeof tile.id === "string" &&
         tile.id.length > 0 &&
-        tileKinds.includes(tile.kind as HomeTileKind) &&
-        (tile.title === null || typeof tile.title === "string")
-      );
+        (tile.title === null || typeof tile.title === "string");
+      if (!valid || tile.kind === "monthly") return [];
+      if (tile.kind === "devices") {
+        return [{ ...tile, kind: "energy" } as HomeTile];
+      }
+      return tileKinds.includes(tile.kind as HomeTileKind)
+        ? [tile as HomeTile]
+        : [];
     });
 
-    if (candidate.length === 0) return [];
-    return tiles.length > 0 ? tiles : defaultHomeTiles();
+    if (candidate.length === 0) return defaultHomeTiles();
+    if (tiles.length === 0) return defaultHomeTiles();
+
+    const uniqueTiles = tiles.filter(
+      (tile, index) =>
+        tile.kind !== "energy" ||
+        index === tiles.findIndex((item) => item.kind === "energy"),
+    ).sort((a, b) => (a.kind === "energy" ? -1 : b.kind === "energy" ? 1 : 0));
+    return uniqueTiles.some((tile) => tile.kind === "energy")
+      ? uniqueTiles
+      : [defaultHomeTiles()[0], ...uniqueTiles];
   } catch {
     return defaultHomeTiles();
   }
