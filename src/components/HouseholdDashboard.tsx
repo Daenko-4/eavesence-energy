@@ -313,6 +313,7 @@ const copy = {
       "Diesen Raum löschen? Zugeordnete Geräte bleiben erhalten und werden auf „Noch nicht zugeordnet“ gesetzt.",
     settings: "Einstellungen",
     saveSettings: "Einstellungen speichern",
+    saveEnergy: "Strombasis speichern",
     saved: "Gespeichert",
     dataTitle: "Daten verwalten",
     dataText:
@@ -548,6 +549,7 @@ const copy = {
       "Delete this room? Assigned devices will be kept and moved to “Not assigned yet”.",
     settings: "Settings",
     saveSettings: "Save settings",
+    saveEnergy: "Save electricity basis",
     saved: "Saved",
     dataTitle: "Manage data",
     dataText:
@@ -1763,7 +1765,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <h2 id="electricity-basis-title" className="text-[14px] font-bold text-[#17211f]">{text.energyBasis}</h2>
                 <p className="mt-1 text-[13px] leading-5 text-[#65716d]">{text.energyBasisText}</p>
               </div>
-              <button type="button" onClick={saveSettings} className={`${homeDashboardActionClass} mt-2 w-fit sm:mt-0`}>{text.saveSettings}</button>
+              <button type="button" onClick={saveSettings} className={`${homeDashboardActionClass} mt-2 w-fit sm:mt-0`}>{text.saveEnergy}</button>
             </div>
             <div className="mt-4 grid grid-cols-3 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
               {([
