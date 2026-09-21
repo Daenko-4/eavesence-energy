@@ -104,6 +104,7 @@ test("creates and validates a complete household backup", () => {
   assert.equal(restored?.history.length, 1);
   assert.equal(restored?.costs.length, 1);
   assert.deepEqual(restored?.tiles, [
+    { id: "default-energy", kind: "energy", title: null },
     { id: "insurance", kind: "costs", title: "Insurance" },
   ]);
   assert.deepEqual(restored?.profile.deviceRooms, {
@@ -139,7 +140,7 @@ test("keeps old household backups compatible before costs were added", () => {
   );
 
   assert.deepEqual(restored?.costs, []);
-  assert.equal(restored?.tiles.length, 4);
+  assert.equal(restored?.tiles.length, 2);
 });
 
 test("summarizes saved devices and savings target", () => {
