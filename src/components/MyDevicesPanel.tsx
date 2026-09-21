@@ -30,6 +30,7 @@ type MyDevicesPanelProps = {
   onOpen?: (device: SavedDevice) => void;
   compact?: boolean;
   household?: boolean;
+  embedded?: boolean;
   teaser?: boolean;
   calculatorHref?: string;
   householdPrice?: number;
@@ -233,6 +234,7 @@ function MyDevicesPanel(
     onOpen,
     compact = false,
     household = false,
+    embedded = false,
     teaser = false,
     calculatorHref = "#rechner",
     householdPrice,
@@ -531,7 +533,7 @@ function MyDevicesPanel(
         id={household ? "home-devices" : "meine-geraete"}
         className={
           household
-            ? "mt-8 scroll-mt-24 rounded-2xl border border-[#d8ded8] bg-[#eef0ec] p-5 sm:p-6"
+            ? `${embedded ? "" : "mt-8 "}scroll-mt-24 rounded-2xl border border-[#d8ded8] bg-[#eef0ec] p-5 sm:p-6`
             : "mt-9 scroll-mt-[104px] border-t border-slate-200/80 pt-7"
         }
       >
