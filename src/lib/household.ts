@@ -85,7 +85,7 @@ export type HouseholdVisitState = {
   trackedThreeDeviceActivation: boolean;
 };
 
-const backupTileKinds: HomeTileKind[] = ["costs", "devices", "energy", "monthly"];
+const backupTileKinds: HomeTileKind[] = ["energy", "costs"];
 
 function defaultBackupTiles(): HomeTile[] {
   return backupTileKinds.map((kind) => ({
@@ -97,17 +97,28 @@ function defaultBackupTiles(): HomeTile[] {
 
 function readBackupTiles(value: unknown): HomeTile[] | null {
   if (!Array.isArray(value)) return null;
-  const tiles = value.filter((item): item is HomeTile => {
-    if (!item || typeof item !== "object") return false;
-    const tile = item as Partial<HomeTile>;
-    return (
+  const tiles = value.flatMap((item): HomeTile[] => {
+    if (!item || typeof item !== "object") return [];
+    const tile = item as { id?: unknown; kind?: string; title?: unknown };
+    const valid =
       typeof tile.id === "string" &&
       tile.id.length > 0 &&
-      backupTileKinds.includes(tile.kind as HomeTileKind) &&
-      (tile.title === null || typeof tile.title === "string")
-    );
+      (tile.title === null || typeof tile.title === "string");
+    if (!valid || tile.kind === "monthly") return [];
+    if (tile.kind === "devices") return [{ ...tile, kind: "energy" } as HomeTile];
+    return backupTileKinds.includes(tile.kind as HomeTileKind)
+      ? [tile as HomeTile]
+      : [];
   });
-  return tiles.length === value.length ? tiles : null;
+  if (value.length > 0 && tiles.length === 0) return null;
+  const uniqueTiles = tiles.filter(
+    (tile, index) =>
+      tile.kind !== "energy" ||
+      index === tiles.findIndex((item) => item.kind === "energy"),
+  ).sort((a, b) => (a.kind === "energy" ? -1 : b.kind === "energy" ? 1 : 0));
+  return uniqueTiles.some((tile) => tile.kind === "energy")
+    ? uniqueTiles
+    : [defaultBackupTiles()[0], ...uniqueTiles];
 }
 
 export const DEFAULT_ROOM_NAMES = {
