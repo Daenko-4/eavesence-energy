@@ -380,7 +380,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     page.getByRole("button", { name: "Reserve a beta place" }),
   ).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Manage data" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Settings", exact: true }),
