@@ -322,7 +322,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
 
   await page.getByRole("button", { name: "Enter bill amount" }).click();
   await page.getByLabel("Month", { exact: true }).fill("2026-10");
-  await page.getByLabel("Cost").fill("75");
+  await page.getByLabel("Cost", { exact: true }).fill("75");
   await page.getByRole("button", { name: "Save month" }).click();
   await expect(
     page
