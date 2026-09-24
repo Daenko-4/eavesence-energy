@@ -408,15 +408,15 @@ export default function HouseholdCostsPanel({
 
       {costs.length > 0 ? (
         <>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {summary.categoryTotals.map((item) => (
-              <article key={item.category} className="rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
+              <article key={item.category} className="rounded-xl border border-[#d8ded8] bg-[#fbfcf8] px-3 py-2.5">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-[13px] font-bold">{text.categories[item.category]}</p>
-                  <span className="h-2.5 w-2.5 rounded-full bg-[var(--brand-green-mint)]" />
+                  <p className="text-[12px] font-semibold text-[#52605b]">{text.categories[item.category]}</p>
+                  <span className="h-2 w-2 rounded-full bg-[var(--brand-green-mint)]" />
                 </div>
-                <p className="mt-3 text-lg font-extrabold tracking-[-0.03em]">{money(item.monthlyTotal, locale, currency)}</p>
-                <p className="mt-1 text-[11px] text-[#65716d]">
+                <p className="mt-1 text-[15px] font-bold tracking-[-0.02em]">{money(item.monthlyTotal, locale, currency)}</p>
+                <p className="text-[11px] text-[#65716d]">
                   {item.entryCount === 1 ? text.categoryCountOne : text.categoryCount.replace("{count}", String(item.entryCount))}
                 </p>
               </article>

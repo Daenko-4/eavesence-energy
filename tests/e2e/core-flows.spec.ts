@@ -31,6 +31,29 @@ test("app interest can be answered once without leaving the page", async ({
   await expect(prompt).toHaveCount(0);
 });
 
+test("device categories and instructions follow the calculator without collapsing", async ({ page }) => {
+  await disableHeaderIntro(page);
+  await page.goto("/");
+
+  const tip = page.getByText("Energy-saving tip", { exact: true });
+  const deviceHeading = page.getByRole("heading", { name: "Calculate the cost of your devices" });
+  const instructions = page.locator("#so-funktionierts");
+  await expect(deviceHeading).toBeVisible();
+  await expect(instructions.getByRole("heading", { name: "Choose a device" })).toBeVisible();
+  await expect(page.getByText("About EAVESENCE", { exact: true })).toHaveCount(0);
+
+  const positions = await page.evaluate(() => {
+    const tip = [...document.querySelectorAll("p")].find((item) => item.textContent?.trim() === "Energy-saving tip");
+    const devices = [...document.querySelectorAll("h2")].find((item) => item.textContent?.trim() === "Calculate the cost of your devices");
+    const instructions = document.querySelector("#so-funktionierts");
+    return [tip, devices, instructions].map((element) => element?.getBoundingClientRect().top ?? -1);
+  });
+  expect(positions[0]).toBeGreaterThanOrEqual(0);
+  expect(positions[0]).toBeLessThan(positions[1]);
+  expect(positions[1]).toBeLessThan(positions[2]);
+  await expect(tip).toBeVisible();
+});
+
 test("calculator engagement is tracked only on the first interaction", async ({
   page,
 }) => {

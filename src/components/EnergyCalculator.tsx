@@ -2,7 +2,7 @@
 
 import { track } from "@vercel/analytics";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import DeviceCategoryIcon from "@/components/DeviceCategoryIcon";
 import {
@@ -85,6 +85,7 @@ type EnergyCalculatorProps = {
   detailPage?: boolean;
   homePresentation?: boolean;
   trustItems?: readonly string[];
+  afterSavingTip?: ReactNode;
 };
 
 const calculatorText = {
@@ -546,6 +547,7 @@ export default function EnergyCalculator({
   detailPage = false,
   homePresentation = false,
   trustItems = [],
+  afterSavingTip,
 }: EnergyCalculatorProps) {
   const pathname = usePathname();
 
@@ -2375,6 +2377,8 @@ export default function EnergyCalculator({
           </div>
         </div>
       </div>
+
+      {afterSavingTip}
 
       {!homePresentation && calculationIsValid && (
         <div className="mt-3">
