@@ -37,7 +37,7 @@ type NavigationKey =
 
 const navigation = {
   de: {
-    calculator: "Rechner",
+    calculator: "Stromkosten-Rechner",
     allDevices: "Alle Geräte",
     household: "Mein Zuhause",
     howItWorks: "So funktioniert's",
@@ -47,7 +47,7 @@ const navigation = {
     closeNavigation: "Navigation schließen",
   },
   en: {
-    calculator: "Calculator",
+    calculator: "Electricity Calculator",
     allDevices: "All devices",
     household: "My home",
     howItWorks: "How it works",

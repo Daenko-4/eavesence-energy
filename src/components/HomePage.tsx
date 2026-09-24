@@ -728,18 +728,18 @@ export default function HomePage({
   const hero =
     locale === "de"
       ? {
-          calculate: "Rechnen.",
+          calculate: "Planen.",
           understand: "Verstehen.",
           save: "Sparen.",
-          subtitle: "Berechne, was deine Geräte wirklich kosten.",
+          subtitle: "My Home zeigt Einkommen, laufende Kosten und anstehende Zahlungen auf einen Blick.",
           devicesTitle: "Berechne die Kosten deiner Geräte",
           allDevices: "Alle Geräte ansehen",
         }
       : {
-          calculate: "Calculate.",
+          calculate: "Plan.",
           understand: "Understand.",
           save: "Save.",
-          subtitle: "See what your devices really cost.",
+          subtitle: "My Home brings income, recurring costs and upcoming payments into one clear view.",
           devicesTitle: "Calculate the cost of your devices",
           allDevices: "View all devices",
         };
@@ -861,6 +861,7 @@ export default function HomePage({
             </div>
 
             <div className="mx-auto mt-7 max-w-7xl sm:mt-8">
+              <p className="mb-3 text-center text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.calculator.label}</p>
               <EnergyCalculator
                 locale={locale}
                 homePresentation
