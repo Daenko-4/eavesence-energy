@@ -5,10 +5,10 @@ import WebApplicationStructuredData from "@/components/WebApplicationStructuredD
 
 export const metadata: Metadata = {
   title: {
-    absolute: "EAVESENCE Energy – Stromkosten einfach verstehen",
+    absolute: "EAVESENCE – Ein klarer Blick auf deine Haushaltskosten",
   },
   description:
-    "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte und finde heraus, was dein Stromverbrauch wirklich kostet – einfach, schnell und ohne Anmeldung.",
+    "Behalte Einkommen, laufende Haushaltskosten und anstehende Zahlungen im Blick. Mit kostenlosem Stromkosten-Rechner für deine Geräte.",
   alternates: {
     canonical: "/de",
     languages: {

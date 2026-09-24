@@ -172,11 +172,11 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     page.getByRole("heading", { name: "Set up your home" }),
   ).toBeVisible();
   await page.getByLabel("Home name").fill("Test home");
-  await page.getByRole("button", { name: "Create my home" }).click();
+  await page.getByLabel("Home name").press("Enter");
   await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
   await page.getByRole("button", { name: /Electricity Calculator/ }).click();
   await page.getByLabel("Electricity price per kWh").fill("0.35");
-  await page.getByRole("button", { name: "Save electricity basis" }).click();
+  await page.getByLabel("Electricity price per kWh").press("Enter");
 
   await expect(
     page.getByRole("heading", { name: "Test home", exact: true }),
@@ -187,15 +187,19 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdOverview.getByRole("button", { name: "Add income" }).click();
   await householdOverview.getByLabel("Net income").fill("24000");
   await householdOverview.getByLabel("Period").selectOption("yearly");
-  await householdOverview.getByRole("button", { name: "Save", exact: true }).click();
+  await householdOverview.getByLabel("Net income").press("Enter");
   await expect(householdOverview).toContainText("€2,000.00");
+  await expect(householdOverview).toContainText("Monthly budget after recurring costs");
+  const incomeCard = householdOverview.locator("article").first();
+  const incomeHeightBefore = (await incomeCard.boundingBox())?.height;
   await householdOverview.getByRole("button", { name: "Scheduled payments" }).click();
   await expect(householdOverview).toContainText("Add due dates to your costs");
+  expect((await incomeCard.boundingBox())?.height).toBe(incomeHeightBefore);
   await expect(page.locator("#household-costs")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Monthly values & history/ })).toBeVisible();
   await page.getByRole("button", { name: /New tile/ }).click();
   await page.getByLabel("Tile name").fill("Insurance");
-  await page.getByRole("button", { name: "Create tile", exact: true }).click();
+  await page.getByLabel("Tile name").press("Enter");
   const insuranceTile = page.locator("[data-home-tiles] article").filter({ hasText: "Insurance" });
   await expect(insuranceTile).toBeVisible();
   await insuranceTile.getByRole("button", { name: "Rename" }).click();
@@ -220,7 +224,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     .click();
   await householdCosts.getByLabel("Amount").fill("900");
   await householdCosts.getByLabel("Next payment (optional)").fill("2026-10-01");
-  await householdCosts.getByRole("button", { name: "Save", exact: true }).click();
+  await householdCosts.getByLabel("Amount").press("Enter");
   await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
   await expect(page.getByText("Recurring costs / month")).toBeVisible();
   await expect(householdCosts.getByText("€900.00", { exact: true }).first()).toBeVisible();
@@ -684,7 +688,7 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
 
     await expect(page).toHaveURL(/#faq$/);
     await expect(
-      page.getByRole("button", { name: /Answers about your calculator/ }),
+      page.getByRole("button", { name: /Answers about the electricity calculator/ }),
     ).toHaveAttribute("aria-expanded", "true");
 
     await expect
@@ -728,7 +732,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
     .click();
   await expect(page).toHaveURL("/de");
   await expect(
-    page.getByRole("button", { name: /Antworten rund um deinen Rechner/ }),
+    page.getByRole("button", { name: /Antworten zum Stromkosten-Rechner/ }),
   ).toHaveAttribute("aria-expanded", "false");
   expect(
     Math.abs((await page.evaluate(() => window.scrollY)) - regularScrollBefore),
@@ -737,7 +741,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
   await page.goto("/#faq");
 
   const englishFaq = page.getByRole("button", {
-    name: /Answers about your calculator/,
+    name: /Answers about the electricity calculator/,
   });
   await expect(englishFaq).toHaveAttribute("aria-expanded", "true");
 
@@ -748,7 +752,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
 
   await expect(page).toHaveURL("/de");
   await expect(
-    page.getByRole("button", { name: /Antworten rund um deinen Rechner/ }),
+    page.getByRole("button", { name: /Antworten zum Stromkosten-Rechner/ }),
   ).toHaveAttribute("aria-expanded", "true");
   await expect
     .poll(() => page.evaluate(() => window.scrollY))
@@ -773,7 +777,7 @@ test("footer FAQ navigation opens the answers from the page end", async ({
 
   await expect(page).toHaveURL(/#faq$/);
   await expect(
-    page.getByRole("button", { name: /Answers about your calculator/ }),
+    page.getByRole("button", { name: /Answers about the electricity calculator/ }),
   ).toHaveAttribute("aria-expanded", "true");
 });
 
@@ -786,25 +790,25 @@ test("legal-page footer links open and correctly position the FAQ", async ({
     {
       path: "/en/imprint",
       linkName: "Frequently asked questions",
-      title: /Answers about your calculator/,
+      title: /Answers about the electricity calculator/,
       homePath: "/",
     },
     {
       path: "/en/privacy",
       linkName: "Frequently asked questions",
-      title: /Answers about your calculator/,
+      title: /Answers about the electricity calculator/,
       homePath: "/",
     },
     {
       path: "/impressum",
       linkName: "Häufige Fragen",
-      title: /Antworten rund um deinen Rechner/,
+      title: /Antworten zum Stromkosten-Rechner/,
       homePath: "/de",
     },
     {
       path: "/datenschutz",
       linkName: "Häufige Fragen",
-      title: /Antworten rund um deinen Rechner/,
+      title: /Antworten zum Stromkosten-Rechner/,
       homePath: "/de",
     },
   ]) {
@@ -936,7 +940,7 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
   ).toBe(1);
   await expect(page.locator('[data-navigation-key="household"]')).toHaveCSS(
     "background-color",
-    "rgb(220, 252, 232)",
+    "rgba(0, 0, 0, 0)",
   );
 
   const xAfterPointerLeave = await calculatorLink.evaluate((element) =>
@@ -1062,7 +1066,7 @@ test.describe("mobile", () => {
 
     await expect(page).toHaveURL(/#faq$/);
     await expect(
-      page.getByRole("button", { name: /Answers about your calculator/ }),
+      page.getByRole("button", { name: /Answers about the electricity calculator/ }),
     ).toHaveAttribute("aria-expanded", "true");
     expect(
       await page.evaluate(

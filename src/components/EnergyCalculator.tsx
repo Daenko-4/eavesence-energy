@@ -1375,7 +1375,16 @@ export default function EnergyCalculator({
           : "gap-5 p-4 sm:p-6 lg:gap-8 lg:p-7"
       }`}
       >
-        <div data-calculator-form className="calculator-form flex min-w-0 flex-col justify-start px-1 py-1 sm:px-2">
+        <div
+          data-calculator-form
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && event.target instanceof HTMLInputElement && event.target.type === "number") {
+              event.preventDefault();
+              event.target.blur();
+            }
+          }}
+          className="calculator-form flex min-w-0 flex-col justify-start px-1 py-1 sm:px-2"
+        >
 
       {/* Device */}
       <div className={homePresentation ? "mb-7" : "mb-6"}>

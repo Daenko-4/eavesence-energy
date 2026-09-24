@@ -155,7 +155,7 @@ const copy = {
     financeMonthly: "Monatlich",
     financeYearly: "Jährlich",
     financeCosts: "Laufende Kosten / Monat",
-    financeBalance: "Nach laufenden Kosten",
+    financeBalance: "Monatliches Budget nach laufenden Kosten",
     financeUpcoming: "Zahlungen im nächsten Monat",
     financeUpcomingEmpty: "Keine datierten Zahlungen",
     financeUpcomingHint: "Nur Kosten mit Fälligkeit · {count} ohne Datum nicht enthalten",
@@ -409,7 +409,7 @@ const copy = {
     financeMonthly: "Monthly",
     financeYearly: "Yearly",
     financeCosts: "Recurring costs / month",
-    financeBalance: "After recurring costs",
+    financeBalance: "Monthly budget after recurring costs",
     financeUpcoming: "Payments next month",
     financeUpcomingEmpty: "No dated payments",
     financeUpcomingHint: "Dated costs only · {count} without a date excluded",
@@ -1414,6 +1414,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.045em] sm:text-4xl">{text.onboardingTitle}</h1>
             <p className="mt-4 max-w-2xl text-[14px] leading-7 text-[#65716d]">{text.onboardingText}</p>
 
+            <form onSubmit={(event) => { event.preventDefault(); completeOnboarding(); }}>
             <div className="mt-8 grid gap-5 sm:grid-cols-2">
               <label className="grid gap-2 text-[13px] font-semibold text-[#52605b] sm:col-span-2">
                 {text.householdName}
@@ -1431,7 +1432,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </label>
             </div>
 
-            <button type="button" onClick={completeOnboarding} className={`mt-8 w-full sm:w-auto ${homePrimaryActionClass}`}>{text.start}</button>
+            <button type="submit" className={`mt-8 w-full sm:w-auto ${homePrimaryActionClass}`}>{text.start}</button>
+            </form>
             <p className="mt-4 text-[11px] font-medium text-[#65716d]">{text.private}</p>
           </section>
         </main>
@@ -1630,12 +1632,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </div>
 
           {settingsOpen && (
-            <section data-home-settings className={`mt-6 grid gap-4 p-5 sm:grid-cols-4 ${homeSurfaceClass}`}>
+            <section data-home-settings className={`mt-6 p-5 ${homeSurfaceClass}`}>
+              <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }} className="grid gap-4 sm:grid-cols-4">
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
-              <button type="button" onClick={saveSettings} className={`${homeDashboardActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
-              <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4 sm:col-span-4">
+              <button type="submit" className={`${homeDashboardActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
+              </form>
+              <div className="mt-4 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
                 <div className="mt-1 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
                   <p data-manage-data-description className="max-w-3xl text-[13px] leading-5 text-[#65716d]">
@@ -1718,18 +1722,18 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-label={text.financeTitle}>
             <h2 className={homeSectionTitleClass}>{text.financeTitle}</h2>
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="mt-4 grid items-start gap-3 md:grid-cols-3">
               <article className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">{text.financeIncome}</p>
                 {monthlyIncome > 0 && <p className="mt-2 text-xl font-extrabold tracking-[-0.035em]">{formatMoney(monthlyIncome, locale, profile.currency)}</p>}
                 <button type="button" onClick={() => setIncomeOpen((open) => !open)} aria-expanded={incomeOpen} className="eavesence-pill-link mt-2">{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
                 {incomeOpen && (
-                  <div className="mt-3 grid gap-2">
+                  <form onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-3 grid gap-2">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financeIncomeAmount}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<select value={incomeFrequency} onChange={(event) => setIncomeFrequency(event.target.value as "monthly" | "yearly")} className={homeFieldClass}><option value="monthly">{text.financeMonthly}</option><option value="yearly">{text.financeYearly}</option></select></label>
                     {incomeError && <p role="alert" className="text-[11px] text-red-700">{incomeError}</p>}
-                    <button type="button" onClick={saveIncome} className={`${homeDashboardActionClass} w-fit`}>{text.financeSave}</button>
-                  </div>
+                    <button type="submit" className={`${homeDashboardActionClass} w-fit`}>{text.financeSave}</button>
+                  </form>
                 )}
               </article>
               <article className="rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
@@ -1817,10 +1821,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   <h3 className="text-[14px] font-bold">{editingTileId ? text.editTile : text.newTile}</h3>
                   <button type="button" onClick={() => setTileFormOpen(false)} className="text-[11px] font-semibold text-[#65716d] hover:text-[#17211f]">{text.cancelTile}</button>
                 </div>
-                <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                <form onSubmit={(event) => { event.preventDefault(); saveHomeTile(); }} className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                   <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.tileName}<input value={tileName} onChange={(event) => { setTileName(event.target.value); setTileFeedback(""); }} placeholder={text.tileNamePlaceholder} className={homeFieldClass} /></label>
-                  <button type="button" onClick={saveHomeTile} className={homePrimaryActionClass}>{editingTileId ? text.updateTile : text.createTile}</button>
-                </div>
+                  <button type="submit" className={homePrimaryActionClass}>{editingTileId ? text.updateTile : text.createTile}</button>
+                </form>
                 {tileFeedback && <p role="alert" className="mt-2 text-[11px] font-bold text-red-700">{tileFeedback}</p>}
               </div>
             )}
@@ -1913,7 +1917,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </span>
               <span aria-hidden="true" className="text-[var(--brand-green)]">{calculatorOpen ? "−" : "+"}</span>
             </button>
-            {calculatorOpen && <>
+            {calculatorOpen && <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }}>
             <div className="mt-4 grid grid-cols-3 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
               {([
                 ["price", text.energyPriceMode],
@@ -1941,10 +1945,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
             )}
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button type="button" onClick={saveSettings} className={homeDashboardActionClass}>{text.saveEnergy}</button>
+              <button type="submit" className={homeDashboardActionClass}>{text.saveEnergy}</button>
               <button type="button" onClick={openElectricityCost} className="eavesence-pill-link">{text.electricityCostAction}</button>
             </div>
-            </>}
+            </form>}
           </section>
           <div id="energy-overview" className="mt-8 scroll-mt-24">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.energyOverview}</p>
@@ -2042,6 +2046,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <button type="button" aria-pressed={checkInMode === "consumption"} onClick={() => { setCheckInMode("consumption"); setCheckInFeedback(null); }} className={`home-primary-action rounded-full border-0 px-3 py-1 transition ${checkInMode === "consumption" ? "bg-[var(--brand-green)] text-white shadow-sm" : "bg-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.consumptionEntry}</button>
                 <button type="button" aria-pressed={checkInMode === "bill"} onClick={() => { setCheckInMode("bill"); setCheckInFeedback(null); }} className={`home-primary-action rounded-full border-0 px-3 py-1 transition ${checkInMode === "bill" ? "bg-[var(--brand-green)] text-white shadow-sm" : "bg-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.billEntry}</button>
               </div>
+              <form onSubmit={(event) => { event.preventDefault(); saveMonthlyCheckIn(); }}>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setEditingMonth(null); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                 {checkInMode === "consumption" ? (
@@ -2058,9 +2063,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
               {checkInFeedback && <p role={checkInFeedback.kind === "error" ? "alert" : "status"} className={`mt-4 rounded-xl px-3 py-2.5 text-[13px] font-bold ${checkInFeedback.kind === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-[var(--brand-green)]"}`}>{checkInFeedback.message}</p>}
               <div className="mt-5 flex flex-wrap items-center gap-2">
-                <button type="button" onClick={saveMonthlyCheckIn} className={homePrimaryActionClass}>{editingMonth ? text.updateCheckIn : text.saveCheckIn}</button>
+                <button type="submit" className={homePrimaryActionClass}>{editingMonth ? text.updateCheckIn : text.saveCheckIn}</button>
                 {editingMonth && <button type="button" onClick={cancelMonthlyCheckInEdit} className={homeCompactActionClass}>{text.cancelCheckInEdit}</button>}
               </div>
+              </form>
             </div>
             <div className={`${homeSurfaceClass} p-5`}>
               <div className="flex flex-wrap items-center justify-between gap-3">

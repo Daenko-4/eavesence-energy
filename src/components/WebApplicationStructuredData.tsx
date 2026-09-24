@@ -8,23 +8,23 @@ const content = {
   de: {
     url: "https://eavesence.com/de",
     description:
-      "Kostenloser Stromkosten-Rechner für Haushaltsgeräte mit anpassbaren Werten, Nutzungsszenarien und Gerätevergleich.",
+      "Haushaltsübersicht für Einkommen, wiederkehrende Kosten und anstehende Zahlungen mit Stromkosten-Rechner für Geräte.",
     features: [
-      "Stromkosten pro Nutzung, Woche, Monat und Jahr",
-      "Anpassbare Leistung, Laufzeit und Verbrauchswerte",
-      "Nutzungsszenarien und Gerätevergleich",
-      "Lokale Geräteliste ohne Benutzerkonto",
+      "Einkommen und laufende Haushaltskosten im Blick",
+      "Anstehende Zahlungen im nächsten Monat",
+      "Eigene Kacheln und lokale Datenspeicherung",
+      "Stromkosten-Rechner und gespeicherte Geräte",
     ],
   },
   en: {
     url: "https://eavesence.com/",
     description:
-      "Free household-device electricity cost calculator with adjustable values, usage scenarios and device comparison.",
+      "Household overview for income, recurring costs and upcoming payments, with an electricity calculator for devices.",
     features: [
-      "Electricity cost per use, week, month and year",
-      "Adjustable power, runtime and consumption values",
-      "Usage scenarios and device comparison",
-      "Local device list without an account",
+      "Income and recurring household costs",
+      "Upcoming payments next month",
+      "Custom tiles and local data storage",
+      "Electricity calculator and saved devices",
     ],
   },
 } as const;
@@ -36,7 +36,7 @@ export default function WebApplicationStructuredData({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "@id": "https://eavesence.com/#electricity-cost-calculator",
+    "@id": "https://eavesence.com/#household-overview",
     name: "EAVESENCE Energy",
     url: localized.url,
     description: localized.description,

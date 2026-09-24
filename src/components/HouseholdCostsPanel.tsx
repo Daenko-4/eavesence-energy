@@ -317,7 +317,7 @@ export default function HouseholdCostsPanel({
           onClick={() => (formOpen ? setFormOpen(false) : openNewCost())}
           className={formOpen ? pillClass : addCostClass}
         >
-          {formOpen ? text.close : <><span aria-hidden="true">+</span>{text.add}</>}
+          {formOpen ? text.close : text.add}
         </button>
       </div>
 
@@ -351,7 +351,7 @@ export default function HouseholdCostsPanel({
       )}
 
       {formOpen && (
-        <div className="mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
+        <form onSubmit={(event) => { event.preventDefault(); saveCost(); }} className="mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
           <h3 className="text-[14px] font-bold">
             {editingId ? text.formEdit : text.formNew}
           </h3>
@@ -382,14 +382,14 @@ export default function HouseholdCostsPanel({
             </label>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="button" onClick={saveCost} className={pillClass}>
+            <button type="submit" className={pillClass}>
               {editingId ? text.update : text.save}
             </button>
             <button type="button" onClick={() => { resetForm(); setFormOpen(false); }} className="eavesence-pill-button home-compact-action bg-[#eef0ec] text-[#65716d]">
               {text.cancel}
             </button>
           </div>
-        </div>
+        </form>
       )}
 
       {costs.length === 0 ? (
@@ -484,7 +484,7 @@ export default function HouseholdCostsPanel({
             {costs.length > 0 && !formOpen && (
               <div className="mt-3 flex justify-end border-t border-[#e2e6df] pt-3">
                 <button type="button" onClick={() => openNewCost()} className={addCostClass}>
-                  <span aria-hidden="true">+</span>{text.add}
+                  {text.add}
                 </button>
               </div>
             )}

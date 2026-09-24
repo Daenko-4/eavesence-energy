@@ -21,7 +21,7 @@ type FooterProps = {
 const footerText = {
   de: {
     description:
-      "Einfache Werkzeuge, die dir helfen, Stromverbrauch und Energiekosten besser zu verstehen.",
+      "Ein klarer Blick darauf, was dein Zuhause kostet.",
     privateProject: "Derzeit ein privates, nicht kommerzielles Projekt.",
     calculator: "Stromkosten-Rechner",
     devices: "Geräteübersicht",
@@ -35,7 +35,7 @@ const footerText = {
 
   en: {
     description:
-      "Simple tools that help you understand electricity consumption and energy costs.",
+      "A clearer view of what your home costs.",
     privateProject: "Currently a private, non-commercial project.",
     calculator: "Electricity cost calculator",
     devices: "Device overview",

@@ -122,6 +122,7 @@ test("groups every dated payment in the next calendar month and excludes undated
   assert.equal(result.undatedCount, 1);
   assert.equal(result.payments.filter(({ date }) => date === "2026-10-01").length, 2);
   assert.equal(result.payments.filter(({ cost }) => cost.id === "weekly").length, 4);
+  assert.deepEqual(result.payments.map(({ cost }) => cost.id), ["rent", "insurance", "internet", "weekly", "weekly", "weekly", "weekly"]);
 });
 
 test("keeps the last day of month for monthly payments without drifting", () => {
