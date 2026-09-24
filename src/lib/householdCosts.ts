@@ -181,6 +181,48 @@ export function reorderHouseholdCosts(
   return next;
 }
 
+export function paymentsNextMonth(costs: HouseholdCost[], today = new Date()) {
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  const start = new Date(Date.UTC(year, month, 1));
+  const end = new Date(Date.UTC(year, month + 1, 1));
+  const payments: Array<{ cost: HouseholdCost; date: string }> = [];
+  const intervalMonths: Partial<Record<HouseholdCostFrequency, number>> = {
+    monthly: 1,
+    quarterly: 3,
+    "half-yearly": 6,
+    yearly: 12,
+  };
+
+  for (const cost of costs) {
+    if (!cost.nextDueDate) continue;
+    const first = new Date(`${cost.nextDueDate}T00:00:00Z`);
+    if (Number.isNaN(first.getTime())) continue;
+    const step = intervalMonths[cost.frequency];
+    // Keep the original due day as the anchor, even after a short month.
+    for (let occurrence = 0; occurrence < 6000; occurrence++) {
+      const due = step
+        ? (() => {
+            const dueMonth = first.getUTCMonth() + occurrence * step;
+            const firstOfMonth = new Date(Date.UTC(first.getUTCFullYear(), dueMonth, 1));
+            const lastDay = new Date(Date.UTC(firstOfMonth.getUTCFullYear(), firstOfMonth.getUTCMonth() + 1, 0)).getUTCDate();
+            return new Date(Date.UTC(firstOfMonth.getUTCFullYear(), firstOfMonth.getUTCMonth(), Math.min(first.getUTCDate(), lastDay)));
+          })()
+        : new Date(first.getTime() + occurrence * 7 * 86_400_000);
+      if (due >= end) break;
+      if (due >= start) payments.push({ cost, date: due.toISOString().slice(0, 10) });
+    }
+  }
+
+  payments.sort((a, b) => a.date.localeCompare(b.date) || a.cost.name.localeCompare(b.cost.name));
+  return {
+    month: start.toISOString().slice(0, 7),
+    payments,
+    total: payments.reduce((total, payment) => total + payment.cost.amount, 0),
+    undatedCount: costs.filter((cost) => !cost.nextDueDate).length,
+  };
+}
+
 export function summarizeHouseholdCosts(
   costs: HouseholdCost[],
   today = new Date(),
