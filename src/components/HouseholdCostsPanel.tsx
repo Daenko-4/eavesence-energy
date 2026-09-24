@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import type { Locale } from "@/i18n/config";
 import {
@@ -32,19 +32,9 @@ const copy = {
     intro:
       "Lege regelmäßige Kosten einmal an. Jährliche, halbjährliche und quartalsweise Zahlungen rechnen wir automatisch auf einen echten Monatswert um.",
     add: "Kosten hinzufügen",
-    income: "Einkommen",
-    incomeText: "Optional: Gib dein Haushalts-Nettoeinkommen monatlich oder jährlich an.",
-    incomeAmount: "Nettoeinkommen",
-    incomeFrequency: "Zeitraum",
-    saveIncome: "Einkommen speichern",
-    incomeSaved: "Einkommen gespeichert.",
-    available: "Nach laufenden Kosten",
     close: "Formular schließen",
     monthly: "Pro Monat",
     yearly: "Pro Jahr",
-    nextDue: "Nächste Zahlung",
-    savingGoal: "Monatliches Sparziel",
-    noDue: "Kein Termin hinterlegt",
     suggestions: "Schnell anlegen",
     suggestionsText:
       "Starte mit den größten regelmäßigen Kosten. Details zum Anbieter sind nicht nötig.",
@@ -68,15 +58,9 @@ const copy = {
     updated: "Haushaltskosten aktualisiert.",
     deleted: "Haushaltskosten gelöscht.",
     reorder: "Ziehen, um die Reihenfolge zu ändern",
-    largest: "Größter Kostenbereich",
-    savingTip: "Nächster Sparhebel",
-    savingTipText:
-      "Prüfe zuerst {category}. Dort liegen aktuell {amount} pro Monat.",
     categoryCount: "{count} Einträge",
     categoryCountOne: "1 Eintrag",
     monthlyEquivalent: "{amount} pro Monat",
-    electricityBudget: "Strombudget",
-    fromElectricitySettings: "Automatisch aus deinen Stromangaben",
     categories: {
       housing: "Wohnen",
       energy: "Energie",
@@ -109,19 +93,9 @@ const copy = {
     intro:
       "Add recurring costs once. We automatically turn yearly, half-yearly and quarterly payments into a true monthly amount.",
     add: "Add cost",
-    income: "Income",
-    incomeText: "Optional: add your household net income monthly or yearly.",
-    incomeAmount: "Net income",
-    incomeFrequency: "Period",
-    saveIncome: "Save income",
-    incomeSaved: "Income saved.",
-    available: "After recurring costs",
     close: "Close form",
     monthly: "Per month",
     yearly: "Per year",
-    nextDue: "Next payment",
-    savingGoal: "Monthly savings goal",
-    noDue: "No date added",
     suggestions: "Quick setup",
     suggestionsText:
       "Start with your largest recurring costs. Provider details are not required.",
@@ -145,15 +119,9 @@ const copy = {
     updated: "Household cost updated.",
     deleted: "Household cost deleted.",
     reorder: "Drag to reorder",
-    largest: "Largest cost area",
-    savingTip: "Next saving lever",
-    savingTipText:
-      "Review {category} first. It currently accounts for {amount} per month.",
     categoryCount: "{count} entries",
     categoryCountOne: "1 entry",
     monthlyEquivalent: "{amount} per month",
-    electricityBudget: "Electricity budget",
-    fromElectricitySettings: "Automatically based on your electricity details",
     categories: {
       housing: "Housing",
       energy: "Energy",
@@ -238,25 +206,15 @@ function parseAmount(value: string) {
 export default function HouseholdCostsPanel({
   locale,
   currency,
-  savingsGoalPercent,
   costs,
-  electricityMonthlyBudget = 0,
-  incomeAmount = 0,
-  incomeFrequency = "monthly",
   embedded = false,
   onChange,
-  onIncomeChange,
 }: {
   locale: Locale;
   currency: SavedDeviceCurrency;
-  savingsGoalPercent: number;
   costs: HouseholdCost[];
-  electricityMonthlyBudget?: number;
-  incomeAmount?: number;
-  incomeFrequency?: "monthly" | "yearly";
   embedded?: boolean;
   onChange: (costs: HouseholdCost[]) => void;
-  onIncomeChange?: (amount: number, frequency: "monthly" | "yearly") => void;
 }) {
   const text = copy[locale];
   const [formOpen, setFormOpen] = useState(false);
@@ -269,31 +227,8 @@ export default function HouseholdCostsPanel({
     useState<HouseholdCostFrequency>("monthly");
   const [nextDueDate, setNextDueDate] = useState("");
   const [feedback, setFeedback] = useState("");
-  const [incomeValue, setIncomeValue] = useState(incomeAmount > 0 ? String(incomeAmount) : "");
-  const [incomePeriod, setIncomePeriod] = useState<"monthly" | "yearly">(incomeFrequency);
   const [draggedCostId, setDraggedCostId] = useState<string | null>(null);
-  const effectiveCosts = useMemo<HouseholdCost[]>(
-    () =>
-      electricityMonthlyBudget > 0
-        ? [
-            {
-              id: "electricity-budget",
-              name: text.electricityBudget,
-              category: "energy",
-              amount: electricityMonthlyBudget,
-              frequency: "monthly",
-              nextDueDate: "",
-              updatedAt: "",
-            },
-            ...costs,
-          ]
-        : costs,
-    [costs, electricityMonthlyBudget, text.electricityBudget],
-  );
-  const summary = useMemo(
-    () => summarizeHouseholdCosts(effectiveCosts),
-    [effectiveCosts],
-  );
+  const summary = summarizeHouseholdCosts(costs);
 
   function resetForm() {
     setEditingId(null);
@@ -361,21 +296,6 @@ export default function HouseholdCostsPanel({
     setFeedback(text.deleted);
   }
 
-  const nextDueValue = summary.nextDueCost
-    ? `${summary.nextDueCost.name} · ${localDate(summary.nextDueCost.nextDueDate, locale)}`
-    : text.noDue;
-  const monthlySavingsGoal =
-    summary.monthlyTotal * (savingsGoalPercent / 100);
-  const monthlyIncome = incomeAmount > 0
-    ? incomeFrequency === "yearly" ? incomeAmount / 12 : incomeAmount
-    : 0;
-
-  function saveIncome() {
-    const parsed = parseAmount(incomeValue);
-    if (parsed < 0) return;
-    onIncomeChange?.(parsed, incomePeriod);
-    setFeedback(text.incomeSaved);
-  }
 
   return (
     <section
@@ -403,36 +323,10 @@ export default function HouseholdCostsPanel({
         </button>
       </div>
 
-      <div className="mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h3 className="text-[14px] font-bold">{text.income}</h3>
-            <p className="mt-1 text-[12px] leading-5 text-[#65716d]">{text.incomeText}</p>
-          </div>
-          <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-[minmax(150px,1fr)_130px_auto] sm:items-end">
-            <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">
-              {text.incomeAmount}
-              <input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={fieldClass} />
-            </label>
-            <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">
-              {text.incomeFrequency}
-              <select value={incomePeriod} onChange={(event) => setIncomePeriod(event.target.value as "monthly" | "yearly")} className={fieldClass}>
-                <option value="monthly">{text.frequencies.monthly}</option>
-                <option value="yearly">{text.frequencies.yearly}</option>
-              </select>
-            </label>
-            <button type="button" onClick={saveIncome} className={pillClass}>{text.saveIncome}</button>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {[
           [text.monthly, money(summary.monthlyTotal, locale, currency)],
           [text.yearly, money(summary.annualTotal, locale, currency)],
-          ...(monthlyIncome > 0 ? [[text.available, money(monthlyIncome - summary.monthlyTotal, locale, currency)]] : []),
-          [text.nextDue, nextDueValue],
-          [text.savingGoal, money(monthlySavingsGoal, locale, currency)],
         ].map(([label, value], index) => (
           <article
             key={label}
@@ -445,7 +339,7 @@ export default function HouseholdCostsPanel({
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">
               {label}
             </p>
-            <p className={`${index === 2 ? "text-[13px] leading-5" : "text-xl tracking-[-0.035em]"} mt-2 font-extrabold`}>
+            <p className="mt-2 text-xl font-extrabold tracking-[-0.035em]">
               {value}
             </p>
           </article>
@@ -514,7 +408,7 @@ export default function HouseholdCostsPanel({
         </div>
       ) : null}
 
-      {effectiveCosts.length > 0 ? (
+      {costs.length > 0 ? (
         <>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {summary.categoryTotals.map((item) => (
@@ -534,19 +428,6 @@ export default function HouseholdCostsPanel({
           <div className="mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
             <h3 className="text-[14px] font-bold">{text.entries}</h3>
             <div className="mt-3 divide-y divide-[#e2e6df]">
-              {electricityMonthlyBudget > 0 && (
-                <div className="grid gap-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
-                  <div className="min-w-0">
-                    <p className="truncate text-[13px] font-bold">{text.electricityBudget}</p>
-                    <p className="mt-0.5 text-[11px] text-[#65716d]">{text.fromElectricitySettings}</p>
-                  </div>
-                  <div className="sm:text-right">
-                    <p className="text-[13px] font-bold">{money(electricityMonthlyBudget, locale, currency)}</p>
-                    <p className="text-[11px] text-[#65716d]">{text.frequencies.monthly}</p>
-                  </div>
-                  <span className="eavesence-pill-link w-fit sm:justify-self-end">{text.categories.energy}</span>
-                </div>
-              )}
               {costs.map((cost) => (
                 <div
                   key={cost.id}
@@ -611,17 +492,6 @@ export default function HouseholdCostsPanel({
             )}
           </div>
 
-          {summary.largestCategory && (
-            <div className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">{text.savingTip}</p>
-              <p className="mt-1 text-[13px] font-bold">{text.largest}: {text.categories[summary.largestCategory]}</p>
-              <p className="mt-1 text-[13px] leading-6 text-[#52605b]">
-                {text.savingTipText
-                  .replace("{category}", text.categories[summary.largestCategory])
-                  .replace("{amount}", money(summary.largestCategoryMonthlyTotal, locale, currency))}
-              </p>
-            </div>
-          )}
         </>
       ) : null}
     </section>
