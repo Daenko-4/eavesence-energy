@@ -197,7 +197,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
         </div>
 
         <div className="mt-6 flex flex-col gap-1 border-t border-slate-200/70 pt-4 text-[11px] leading-4 text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-          <span>© {new Date().getFullYear()} EAVESENCE Energy</span>
+          <span>© {new Date().getFullYear()} EAVESENCE</span>
           <span>{text.privateProject}</span>
         </div>
       </div>
