@@ -273,7 +273,9 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     page.getByText("The monthly calendar reminder was downloaded."),
   ).toBeVisible();
   const devicesTile = page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first();
-  await devicesTile.getByRole("button").first().click();
+  if (await devicesTile.getByRole("button").first().getAttribute("aria-expanded") === "false") {
+    await devicesTile.getByRole("button").first().click();
+  }
   await expect(page.getByRole("heading", { name: "All household devices" })).toBeVisible();
   await expect(page.getByText("Calculate your first device above and save it here."))
     .toBeVisible();
