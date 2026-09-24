@@ -13,11 +13,9 @@ import {
 import BrandLogo, { BrandMark } from "@/components/BrandLogo";
 import {
   getCalculatorHref,
-  getDevicesHref,
   getFaqHref,
   getHomeHref,
   getHouseholdHref,
-  getHowItWorksHref,
   type Locale,
 } from "@/i18n/config";
 
@@ -28,19 +26,12 @@ type HeaderProps = {
   onLanguageChange?: () => void;
 };
 
-type NavigationKey =
-  | "calculator"
-  | "allDevices"
-  | "household"
-  | "howItWorks"
-  | "faq";
+type NavigationKey = "calculator" | "household" | "faq";
 
 const navigation = {
   de: {
     calculator: "Stromkosten-Rechner",
-    allDevices: "Alle Geräte",
     household: "Mein Zuhause",
-    howItWorks: "So funktioniert's",
     faq: "FAQ",
     homeLabel: "EAVESENCE Startseite",
     openNavigation: "Navigation öffnen",
@@ -48,9 +39,7 @@ const navigation = {
   },
   en: {
     calculator: "Electricity Calculator",
-    allDevices: "All devices",
     household: "My home",
-    howItWorks: "How it works",
     faq: "FAQ",
     homeLabel: "EAVESENCE home",
     openNavigation: "Open navigation",
@@ -61,7 +50,6 @@ const navigation = {
 function NavigationLink({
   href,
   active,
-  emphasis = false,
   navigationKey,
   onPreview,
   onActivate,
@@ -69,7 +57,6 @@ function NavigationLink({
 }: {
   href: string;
   active: boolean;
-  emphasis?: boolean;
   navigationKey: NavigationKey;
   onPreview: (navigationKey: NavigationKey) => void;
   onActivate?: (event: MouseEvent<HTMLAnchorElement>) => void;
@@ -83,15 +70,7 @@ function NavigationLink({
       onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
-      className={`group relative flex items-center whitespace-nowrap text-[13px] !font-semibold transition duration-150 ${
-        emphasis
-          ? `h-8 rounded-full border px-3.5 ${
-              active
-                ? "border-[var(--brand-green)] bg-[var(--brand-green)] !text-white shadow-sm"
-                : "border-[#b8efcc] bg-[#dcfce8] !text-[var(--brand-green)] hover:border-[var(--brand-green-mint)] hover:bg-[#caf7da]"
-            }`
-          : "h-full px-1 !text-[#52605b] hover:!text-[var(--brand-green)]"
-      }`}
+      className="group relative flex h-full items-center whitespace-nowrap px-1 text-[13px] !font-semibold !text-[#52605b] transition duration-150 hover:!text-[var(--brand-green)]"
     >
       {children}
     </a>
@@ -130,16 +109,10 @@ export default function Header({
   const text = navigation[locale];
 
   const calculatorHref = calculatorHrefOverride ?? getCalculatorHref(locale);
-  const devicesHref = getDevicesHref(locale);
   const householdHref = getHouseholdHref(locale);
-  const howItWorksHref = getHowItWorksHref(locale);
   const faqHref = getFaqHref(locale);
-  const isDevicesPage =
-    pathname === devicesHref || pathname.startsWith(`${devicesHref}/`);
   const isHouseholdPage = pathname === householdHref;
-  const activeNavigation: NavigationKey | null = isDevicesPage
-    ? "allDevices"
-    : isHouseholdPage
+  const activeNavigation: NavigationKey | null = isHouseholdPage
       ? "household"
       : isHomePage
         ? activeHomeSection
@@ -149,9 +122,7 @@ export default function Header({
   const otherLocale: Locale = locale === "de" ? "en" : "de";
   const languageHref =
     languageHrefOverride ??
-    (pathname === devicesHref
-      ? getDevicesHref(otherLocale)
-      : getHomeHref(otherLocale));
+    getHomeHref(otherLocale);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -243,7 +214,6 @@ export default function Header({
         window.scrollY + headerHeight + Math.min(window.innerHeight * 0.18, 150);
       const sections: Array<{ id: string; navigation: NavigationKey }> = [
         { id: "rechner", navigation: "calculator" },
-        { id: "so-funktionierts", navigation: "howItWorks" },
         { id: "faq", navigation: "faq" },
       ];
 
@@ -533,17 +503,11 @@ export default function Header({
                   : "invisible pointer-events-none opacity-0 delay-0"
               }`}
             >
-              <NavigationLink href={householdHref} active={activeNavigation === "household"} emphasis navigationKey="household" onPreview={setPreviewNavigation}>
+              <NavigationLink href={householdHref} active={activeNavigation === "household"} navigationKey="household" onPreview={setPreviewNavigation}>
                 {text.household}
               </NavigationLink>
               <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator" onPreview={setPreviewNavigation}>
                 {text.calculator}
-              </NavigationLink>
-              <NavigationLink href={devicesHref} active={activeNavigation === "allDevices"} navigationKey="allDevices" onPreview={setPreviewNavigation}>
-                {text.allDevices}
-              </NavigationLink>
-              <NavigationLink href={howItWorksHref} active={activeNavigation === "howItWorks"} navigationKey="howItWorks" onPreview={setPreviewNavigation}>
-                {text.howItWorks}
               </NavigationLink>
               <NavigationLink
                 href={faqHref}
@@ -589,12 +553,10 @@ export default function Header({
           <nav className="absolute inset-x-0 top-full border-y border-slate-200 bg-white/98 px-5 py-3 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl sm:px-6 lg:hidden">
             <div className="grid gap-1">
               {([
-                [householdHref, text.household, true],
-                [calculatorHref, text.calculator, false],
-                [devicesHref, text.allDevices, false],
-                [howItWorksHref, text.howItWorks, false],
-                [faqHref, text.faq, false],
-              ] as const).map(([href, label, emphasis]) => (
+                [householdHref, text.household],
+                [calculatorHref, text.calculator],
+                [faqHref, text.faq],
+              ] as const).map(([href, label]) => (
                 <a
                   key={href}
                   href={href}
@@ -604,11 +566,7 @@ export default function Header({
                       handleFaqActivate(event);
                     }
                   }}
-                  className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                    emphasis
-                      ? "mb-1 bg-[#dcfce8] text-[var(--brand-green)] hover:bg-[#caf7da]"
-                      : "text-slate-700 hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
-                  }`}
+                  className="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
                 >
                   {label}
                 </a>

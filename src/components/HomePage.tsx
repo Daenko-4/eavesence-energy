@@ -237,7 +237,7 @@ const content = {
 
     faq: {
       label: "Gut zu wissen",
-      title: "Antworten rund um deinen Rechner",
+      title: "Antworten zum Stromkosten-Rechner",
       feedbackText: "Fehlt etwas oder war eine Erklärung unklar?",
       feedbackLink: "Feedback senden",
       feedbackSubject: "Feedback zu EAVESENCE Energy",
@@ -492,7 +492,7 @@ const content = {
 
     faq: {
       label: "Good to know",
-      title: "Answers about your calculator",
+      title: "Answers about the electricity calculator",
       feedbackText: "Is something missing or was an explanation unclear?",
       feedbackLink: "Send feedback",
       feedbackSubject: "Feedback about EAVESENCE Energy",
@@ -825,7 +825,7 @@ export default function HomePage({
       />
 
       <main className="overflow-hidden">
-        <section className="relative px-5 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-12 lg:pb-14 lg:pt-16">
+        <section className="relative px-5 pb-8 pt-8 sm:px-6 sm:pb-10 sm:pt-10 lg:pb-11 lg:pt-12">
           <div className="pointer-events-none absolute inset-x-0 top-28 h-[680px] bg-[radial-gradient(ellipse_at_center,rgba(114,220,163,0.17),rgba(232,255,243,0.06)_38%,transparent_72%)]" />
 
           <div
@@ -860,7 +860,7 @@ export default function HomePage({
               </a>
             </div>
 
-            <div className="mx-auto mt-7 max-w-7xl sm:mt-8">
+            <div className="mx-auto mt-6 max-w-6xl sm:mt-7">
               <p className="mb-3 text-center text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.calculator.label}</p>
               <EnergyCalculator
                 locale={locale}
@@ -936,12 +936,18 @@ export default function HomePage({
           </div>
         </section>
 
-        <section className="px-5 py-10 sm:px-6 sm:py-12">
+        <section className="px-5 pb-6 sm:px-6">
           <div className="mx-auto max-w-7xl">
+            <details className="group rounded-xl border border-slate-200 bg-white/70 px-5 py-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
+              <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#07111f]">
                 {hero.devicesTitle}
               </h2>
+            </div>
+              <span aria-hidden="true" className="text-[var(--brand-green)] transition-transform group-open:rotate-45">+</span>
+              </summary>
+            <div className="mt-4 flex justify-end">
               <a
                 href={devicesHref}
                 className="eavesence-pill-link"
@@ -950,7 +956,7 @@ export default function HomePage({
               </a>
             </div>
 
-            <div className="mt-7 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7">
+            <div className="mt-4 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7">
               {text.categories.map((category) => (
                 <a
                   key={category.name}
@@ -964,17 +970,21 @@ export default function HomePage({
                 </a>
               ))}
             </div>
+            </details>
           </div>
         </section>
 
         <section
           id="so-funktionierts"
-          className="scroll-mt-24 px-5 py-10 sm:px-6 sm:py-12"
+          className="scroll-mt-24 px-5 py-3 sm:px-6"
         >
-          <div className="mx-auto max-w-7xl border-y border-slate-200/80 py-7">
-            <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] sm:text-3xl">
+          <details className="group mx-auto max-w-7xl border-b border-slate-200/80 py-3">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
+            <h2 className="text-[14px] font-semibold text-[#52605b]">
               {text.howItWorks.label}
             </h2>
+            <span aria-hidden="true" className="text-[var(--brand-green)] transition-transform group-open:rotate-45">+</span>
+            </summary>
 
             <div className="mt-6 grid gap-6 md:grid-cols-3 md:divide-x md:divide-slate-200">
               {text.howItWorks.steps.map((step) => (
@@ -994,21 +1004,24 @@ export default function HomePage({
                 </div>
               ))}
             </div>
-          </div>
+          </details>
         </section>
 
         <section
           id="about"
-          className="scroll-mt-[120px] px-5 pb-4 pt-8 sm:px-6 sm:pb-5 sm:pt-10"
+          className="scroll-mt-[120px] px-5 py-3 sm:px-6"
         >
-          <div className="mx-auto max-w-5xl border-b border-slate-200/80 pb-7">
-            <h2 className="text-xl font-bold tracking-[-0.025em] text-[#07111f] sm:text-2xl">
+          <details className="group mx-auto max-w-7xl border-b border-slate-200/80 py-3">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
+            <h2 className="text-[14px] font-semibold text-[#52605b]">
               {text.about.label}
             </h2>
+            <span aria-hidden="true" className="text-[var(--brand-green)] transition-transform group-open:rotate-45">+</span>
+            </summary>
             <p className="mt-3 max-w-4xl text-[15px] leading-7 text-slate-600">
               {text.about.closing}
             </p>
-          </div>
+          </details>
         </section>
 
         <section

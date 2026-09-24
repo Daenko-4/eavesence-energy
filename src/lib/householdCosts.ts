@@ -214,7 +214,7 @@ export function paymentsNextMonth(costs: HouseholdCost[], today = new Date()) {
     }
   }
 
-  payments.sort((a, b) => a.date.localeCompare(b.date) || a.cost.name.localeCompare(b.cost.name));
+  payments.sort((a, b) => b.cost.amount - a.cost.amount || a.date.localeCompare(b.date) || a.cost.name.localeCompare(b.cost.name));
   return {
     month: start.toISOString().slice(0, 7),
     payments,

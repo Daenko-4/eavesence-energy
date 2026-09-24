@@ -6,11 +6,11 @@ import WebApplicationStructuredData from "@/components/WebApplicationStructuredD
 export const metadata: Metadata = {
   title: {
     absolute:
-      "EAVESENCE Energy – Calculate electricity costs easily",
+      "EAVESENCE – A clearer view of what your home costs",
   },
 
   description:
-    "Calculate the electricity costs of household devices for free. See costs per use, week, month and year – simple and without signing up.",
+    "Keep your income, recurring household costs and upcoming payments in view. Use the free electricity calculator for your devices.",
 
   alternates: {
     canonical: "/",
@@ -27,9 +27,9 @@ export const metadata: Metadata = {
     url: "/",
     siteName: "EAVESENCE Energy",
     title:
-      "EAVESENCE Energy – Calculate electricity costs easily",
+      "EAVESENCE – A clearer view of what your home costs",
     description:
-      "Calculate the electricity costs of everyday household devices – per use, week, month and year.",
+      "See your income, recurring household costs and upcoming payments in one place. Calculate electricity costs for your devices.",
     images: [
       {
         url: "/brand/eavesence-og-approved-final.png",
@@ -43,9 +43,9 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title:
-      "EAVESENCE Energy – Calculate electricity costs easily",
+      "EAVESENCE – A clearer view of what your home costs",
     description:
-      "Calculate the electricity costs of household devices for free.",
+      "See what your home costs and calculate electricity costs for your devices.",
     images: ["/brand/eavesence-og-approved-final.png"],
   },
 };

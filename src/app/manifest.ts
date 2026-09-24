@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "EAVESENCE Energy",
     short_name: "EAVESENCE",
     description:
-      "Understand household electricity costs and keep your energy overview in one place.",
+      "A clearer view of what your home costs.",
     id: "/home",
     start_url: "/home?source=pwa",
     scope: "/",
@@ -32,7 +32,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: "My home",
         short_name: "My home",
-        description: "Open your household energy overview.",
+        description: "Open your household overview.",
         url: "/home?source=pwa-shortcut",
         icons: [
           {

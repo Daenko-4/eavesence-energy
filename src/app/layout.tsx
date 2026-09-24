@@ -35,14 +35,17 @@ export const metadata: Metadata = {
   },
 
   title: {
-    default: "EAVESENCE Energy – Stromkosten einfach verstehen",
+    default: "EAVESENCE – Mein Zuhause und meine Kosten im Blick",
     template: "%s | EAVESENCE Energy",
   },
 
   description:
-    "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte und finde heraus, was dein Stromverbrauch wirklich kostet – einfach, schnell und ohne Anmeldung.",
+    "Behalte Einkommen, laufende Haushaltskosten und anstehende Zahlungen im Blick. Mit kostenlosem Stromkosten-Rechner für deine Geräte.",
 
   keywords: [
+    "Haushaltsbuch",
+    "Haushaltskosten",
+    "Monatsbudget",
     "Stromkosten Rechner",
     "Stromverbrauch berechnen",
     "Stromkosten Gerät",
@@ -57,17 +60,17 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName: "EAVESENCE Energy",
 
-    title: "EAVESENCE Energy – Stromkosten einfach verstehen",
+    title: "EAVESENCE – Mein Zuhause und meine Kosten im Blick",
 
     description:
-      "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte – pro Nutzung, Woche, Monat und Jahr.",
+      "Einkommen, laufende Kosten und anstehende Zahlungen an einem Ort. Stromkosten für Geräte einfach berechnen.",
 
     images: [
       {
         url: "/brand/eavesence-og-approved-final.png",
         width: 1200,
         height: 630,
-        alt: "EAVESENCE Energy – Stromkosten einfach verstehen",
+        alt: "EAVESENCE – Mein Zuhause und meine Kosten im Blick",
       },
     ],
   },
@@ -75,10 +78,10 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
 
-    title: "EAVESENCE Energy – Stromkosten einfach verstehen",
+    title: "EAVESENCE – Mein Zuhause und meine Kosten im Blick",
 
     description:
-      "Berechne kostenlos die Stromkosten deiner Haushaltsgeräte – einfach und ohne Anmeldung.",
+      "Ein klarer Blick auf Einkommen, laufende Kosten und anstehende Zahlungen.",
 
     images: ["/brand/eavesence-og-approved-final.png"],
   },
