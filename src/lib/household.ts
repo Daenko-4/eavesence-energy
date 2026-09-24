@@ -24,6 +24,7 @@ export type HouseholdProfile = {
   electricityBillIncludesBonus?: boolean;
   incomeAmount?: number;
   incomeFrequency?: "monthly" | "yearly";
+  electricityCostMigrated?: boolean;
   savingsGoalPercent: number;
   rooms: HouseholdRoom[];
   deviceRooms: Record<string, string>;
@@ -206,6 +207,7 @@ export function createHouseholdProfile({
     electricityBillIncludesBonus: false,
     incomeAmount: 0,
     incomeFrequency: "monthly",
+    electricityCostMigrated: true,
     savingsGoalPercent: Math.min(50, Math.max(1, savingsGoalPercent)),
     rooms: roomNames.map((roomName, index) => ({
       id: createRoomId(roomName, index),
@@ -274,6 +276,7 @@ export function readHouseholdProfile(value: string | null) {
     ) {
       return null;
     }
+    if (candidate.electricityCostMigrated !== undefined && typeof candidate.electricityCostMigrated !== "boolean") return null;
     if (
       candidate.electricityBillIncludesBonus !== undefined &&
       typeof candidate.electricityBillIncludesBonus !== "boolean"
