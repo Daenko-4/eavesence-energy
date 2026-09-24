@@ -174,6 +174,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.getByLabel("Home name").fill("Test home");
   await page.getByRole("button", { name: "Create my home" }).click();
   await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
+  await page.getByRole("button", { name: /Electricity Calculator/ }).click();
   await page.getByLabel("Electricity price per kWh").fill("0.35");
   await page.getByRole("button", { name: "Save electricity basis" }).click();
 
@@ -182,7 +183,16 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Sections in your home" }))
     .toBeVisible();
+  const householdOverview = page.getByRole("region", { name: "Your household at a glance" });
+  await householdOverview.getByRole("button", { name: "Add income" }).click();
+  await householdOverview.getByLabel("Net income").fill("24000");
+  await householdOverview.getByLabel("Period").selectOption("yearly");
+  await householdOverview.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(householdOverview).toContainText("€2,000.00");
+  await householdOverview.getByRole("button", { name: "Scheduled payments" }).click();
+  await expect(householdOverview).toContainText("Add due dates to your costs");
   await expect(page.locator("#household-costs")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Monthly values & history/ })).toBeVisible();
   await page.getByRole("button", { name: /New tile/ }).click();
   await page.getByLabel("Tile name").fill("Insurance");
   await page.getByRole("button", { name: "Create tile", exact: true }).click();
@@ -212,6 +222,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdCosts.getByLabel("Next payment (optional)").fill("2026-10-01");
   await householdCosts.getByRole("button", { name: "Save", exact: true }).click();
   await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
+  await expect(page.getByText("Recurring costs / month")).toBeVisible();
   await expect(householdCosts.getByText("€900.00", { exact: true }).first()).toBeVisible();
   expect(
     await page.evaluate(() =>
@@ -222,6 +233,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.getByLabel("Tile name").fill("Car");
   await page.getByRole("button", { name: "Create tile", exact: true }).click();
   await expect(householdCosts.getByRole("heading", { name: "Quick setup" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Monthly values & history/ })).toHaveCount(0);
   await expect(householdCosts.getByText("€900.00", { exact: true })).toHaveCount(0);
   await expect(householdCosts.getByRole("button", { name: "Add cost", exact: true })).toBeVisible();
   await insuranceTile.getByRole("button").first().click();
@@ -234,6 +246,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
       JSON.parse(window.localStorage.getItem("eavesence-home-costs-v1") ?? "[]"),
     ),
   ).toHaveLength(0);
+  await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
   await page.getByRole("button", { name: /Monthly values & history/ }).click();
   const nextStep = page.getByRole("region", { name: "Next step" });
   await expect(nextStep).toContainText("September 2026 still open");
@@ -358,7 +371,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(
     consumptionInsight.getByRole("link", { name: "Add a missing device" }),
   ).toHaveAttribute("href", "/#rechner");
-  await page.getByRole("button", { name: /Saving tip/ }).click();
+  await page.getByRole("button", { name: /Device tip/ }).click();
   const savingTip = page.locator("[data-saving-tip]");
   await expect(savingTip).toContainText("Review Coffee machine first");
   await expect(savingTip).toContainText("33% of calculated device consumption");
