@@ -5,6 +5,7 @@ import {
   annualCost,
   createHouseholdCost,
   monthlyCost,
+  paymentsNextMonth,
   readHouseholdCosts,
   reorderHouseholdCosts,
   removeHouseholdCost,
@@ -105,4 +106,26 @@ test("reorders costs without moving an edited item", () => {
   assert.deepEqual(reordered.map((cost) => cost.id), ["insurance", "rent"]);
   const edited = { ...reordered[1], amount: 950 };
   assert.deepEqual(upsertHouseholdCost(reordered, edited).map((cost) => cost.id), ["insurance", "rent"]);
+});
+
+test("groups every dated payment in the next calendar month and excludes undated estimates", () => {
+  const costs = [
+    createHouseholdCost({ id: "rent", name: "Rent", category: "housing", amount: 900, frequency: "monthly", nextDueDate: "2026-09-01" }),
+    createHouseholdCost({ id: "internet", name: "Internet", category: "subscriptions", amount: 40, frequency: "monthly", nextDueDate: "2026-10-01" }),
+    createHouseholdCost({ id: "insurance", name: "Insurance", category: "insurance", amount: 600, frequency: "half-yearly", nextDueDate: "2026-04-15" }),
+    createHouseholdCost({ id: "weekly", name: "Weekly", category: "other", amount: 10, frequency: "weekly", nextDueDate: "2026-09-29" }),
+    createHouseholdCost({ id: "electricity", name: "Electricity", category: "energy", amount: 60, frequency: "monthly" }),
+  ];
+  const result = paymentsNextMonth(costs, new Date("2026-09-20T12:00:00Z"));
+  assert.equal(result.month, "2026-10");
+  assert.equal(result.total, 1580);
+  assert.equal(result.undatedCount, 1);
+  assert.equal(result.payments.filter(({ date }) => date === "2026-10-01").length, 2);
+  assert.equal(result.payments.filter(({ cost }) => cost.id === "weekly").length, 4);
+});
+
+test("keeps the last day of month for monthly payments without drifting", () => {
+  const endOfMonth = createHouseholdCost({ id: "rent", name: "Rent", category: "housing", amount: 100, frequency: "monthly", nextDueDate: "2026-01-31" });
+  assert.deepEqual(paymentsNextMonth([endOfMonth], new Date("2026-01-01T00:00:00Z")).payments.map(({ date }) => date), ["2026-02-28"]);
+  assert.deepEqual(paymentsNextMonth([endOfMonth], new Date("2026-02-01T00:00:00Z")).payments.map(({ date }) => date), ["2026-03-31"]);
 });
