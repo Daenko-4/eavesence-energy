@@ -460,6 +460,10 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeLessThanOrEqual(1);
   expect(manageDataTextTops.exportAction).toBe(manageDataTextTops.action);
   expect(manageDataTextTops.resetAction).toBe(manageDataTextTops.action);
+  const electricityTileButton = page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first();
+  if (await electricityTileButton.getAttribute("aria-expanded") === "false") await electricityTileButton.click();
+  const electricityCalculator = page.getByRole("button", { name: /Electricity Calculator/ });
+  if (await electricityCalculator.getAttribute("aria-expanded") === "false") await electricityCalculator.click();
   await page.getByRole("button", { name: "Yearly bill", exact: true }).click();
   await page.getByLabel("Total paid for the year").fill("1200");
   await page.getByLabel("Consumption on the bill").fill("4000");
