@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { Locale } from "@/i18n/config";
 import {
@@ -230,6 +230,10 @@ export default function HouseholdCostsPanel({
   const [draggedCostId, setDraggedCostId] = useState<string | null>(null);
   const summary = summarizeHouseholdCosts(costs);
 
+  useEffect(() => {
+    if (formOpen) document.getElementById("household-cost-name")?.focus();
+  }, [formOpen]);
+
   function resetForm() {
     setEditingId(null);
     setName("");
@@ -248,9 +252,6 @@ export default function HouseholdCostsPanel({
     }
     setFeedback("");
     setFormOpen(true);
-    window.requestAnimationFrame(() => {
-      document.getElementById("household-cost-name")?.focus();
-    });
   }
 
   function editCost(cost: HouseholdCost) {
@@ -262,9 +263,6 @@ export default function HouseholdCostsPanel({
     setNextDueDate(cost.nextDueDate);
     setFeedback("");
     setFormOpen(true);
-    window.requestAnimationFrame(() => {
-      document.getElementById("household-cost-name")?.focus();
-    });
   }
 
   function saveCost() {
