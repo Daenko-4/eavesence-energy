@@ -214,27 +214,6 @@ const content = {
       },
     },
 
-    about: {
-      label: "Über EAVESENCE",
-      title: "Ein Name für bewusstere Entscheidungen",
-      text:
-        "Der Name verbindet „eave“ – den schützenden Dachvorsprung – mit „essence“ und „sense“: das Wesentliche erkennen und besser verstehen.",
-      parts: [
-        {
-          term: "EAVE",
-          meaning:
-            "Ein gemeinsames Dach über den Themen unseres Alltags",
-        },
-        {
-          term: "SENCE",
-          meaning:
-            "Verbindet „essence“ und „sense“ – das Wesentliche erkennen und verstehen",
-        },
-      ],
-      closing:
-        "Daraus entstehen einfache Werkzeuge für klare Entscheidungen im Alltag.",
-    },
-
     faq: {
       label: "Gut zu wissen",
       title: "Antworten zum Stromkosten-Rechner",
@@ -467,27 +446,6 @@ const content = {
         text:
           "Enter the actual electricity consumption per use if you know a measured or manufacturer value.",
       },
-    },
-
-    about: {
-      label: "About EAVESENCE",
-      title: "A name for smarter everyday decisions",
-      text:
-        "The name combines “eave” – the protective edge of a roof – with “essence” and “sense”: focusing on what matters and making it easier to understand.",
-      parts: [
-        {
-          term: "EAVE",
-          meaning:
-            "A shared roof over the themes of everyday life",
-        },
-        {
-          term: "SENCE",
-          meaning:
-            "Combines “essence” and “sense” – recognizing and understanding what matters most",
-        },
-      ],
-      closing:
-        "The result is a set of simple tools for clearer everyday decisions.",
     },
 
     faq: {
@@ -866,7 +824,62 @@ export default function HomePage({
                 locale={locale}
                 homePresentation
                 trustItems={text.hero.features}
+                afterSavingTip={
+                  <div className="mt-5 border-t border-slate-200/80 px-1 pt-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#07111f]">
+                        {hero.devicesTitle}
+                      </h2>
+                      <a href={devicesHref} className="eavesence-pill-link">
+                        {hero.allDevices}
+                      </a>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7">
+                      {text.categories.map((category) => (
+                        <a
+                          key={category.name}
+                          href={category.href}
+                          className="group flex min-h-[72px] items-center gap-2.5 border-b border-r border-slate-200/70 px-4 text-[13px] font-semibold text-slate-700 transition hover:bg-[#eaf8ef] hover:text-[var(--brand-green)] sm:px-5 lg:border-b-0 lg:last:border-r-0"
+                        >
+                          <span className="text-[var(--brand-green)] transition-transform duration-200 group-hover:-translate-y-0.5">
+                            <Icon name={category.icon} className="h-5 w-5" />
+                          </span>
+                          {category.name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                }
               />
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="so-funktionierts"
+          className="scroll-mt-24 px-5 pb-8 sm:px-6 sm:pb-10"
+        >
+          <div className="mx-auto max-w-6xl border-b border-slate-200/80 py-4">
+            <h2 className="text-[16px] font-bold text-[#07111f]">
+              {text.howItWorks.label}
+            </h2>
+            <div className="mt-4 grid gap-5 md:grid-cols-3 md:divide-x md:divide-slate-200">
+              {text.howItWorks.steps.map((step) => (
+                <div
+                  key={step.number}
+                  className="flex gap-4 md:px-7 md:first:pl-0 md:last:pr-0"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-sm font-extrabold text-[var(--brand-green)]">
+                    {Number(step.number)}
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-[#07111f]">{step.title}</h3>
+                    <p className="mt-1 max-w-sm text-sm leading-6 text-slate-600">
+                      {step.text}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -934,94 +947,6 @@ export default function HomePage({
               </article>
             </div>
           </div>
-        </section>
-
-        <section className="px-5 pb-6 sm:px-6">
-          <div className="mx-auto max-w-7xl">
-            <details className="group rounded-xl border border-slate-200 bg-white/70 px-5 py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#07111f]">
-                {hero.devicesTitle}
-              </h2>
-            </div>
-              <span aria-hidden="true" className="text-[var(--brand-green)] transition-transform group-open:rotate-45">+</span>
-              </summary>
-            <div className="mt-4 flex justify-end">
-              <a
-                href={devicesHref}
-                className="eavesence-pill-link"
-              >
-                {hero.allDevices}
-              </a>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7">
-              {text.categories.map((category) => (
-                <a
-                  key={category.name}
-                  href={category.href}
-                  className="group flex min-h-[72px] items-center gap-2.5 border-b border-r border-slate-200/70 px-4 text-[13px] font-semibold text-slate-700 transition hover:bg-[#eaf8ef] hover:text-[var(--brand-green)] sm:px-5 lg:border-b-0 lg:last:border-r-0"
-                >
-                  <span className="text-[var(--brand-green)] transition-transform duration-200 group-hover:-translate-y-0.5">
-                    <Icon name={category.icon} className="h-5 w-5" />
-                  </span>
-                  {category.name}
-                </a>
-              ))}
-            </div>
-            </details>
-          </div>
-        </section>
-
-        <section
-          id="so-funktionierts"
-          className="scroll-mt-24 px-5 py-3 sm:px-6"
-        >
-          <details className="group mx-auto max-w-7xl border-b border-slate-200/80 py-3">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
-            <h2 className="text-[14px] font-semibold text-[#52605b]">
-              {text.howItWorks.label}
-            </h2>
-            <span aria-hidden="true" className="text-[var(--brand-green)] transition-transform group-open:rotate-45">+</span>
-            </summary>
-
-            <div className="mt-6 grid gap-6 md:grid-cols-3 md:divide-x md:divide-slate-200">
-              {text.howItWorks.steps.map((step) => (
-                <div
-                  key={step.number}
-                  className="flex gap-4 md:px-7 md:first:pl-0 md:last:pr-0"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-sm font-extrabold text-[var(--brand-green)]">
-                    {Number(step.number)}
-                  </span>
-                  <div>
-                    <h3 className="font-bold text-[#07111f]">{step.title}</h3>
-                    <p className="mt-1 max-w-sm text-sm leading-6 text-slate-600">
-                      {step.text}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </details>
-        </section>
-
-        <section
-          id="about"
-          className="scroll-mt-[120px] px-5 py-3 sm:px-6"
-        >
-          <details className="group mx-auto max-w-7xl border-b border-slate-200/80 py-3">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
-            <h2 className="text-[14px] font-semibold text-[#52605b]">
-              {text.about.label}
-            </h2>
-            <span aria-hidden="true" className="text-[var(--brand-green)] transition-transform group-open:rotate-45">+</span>
-            </summary>
-            <p className="mt-3 max-w-4xl text-[15px] leading-7 text-slate-600">
-              {text.about.closing}
-            </p>
-          </details>
         </section>
 
         <section
