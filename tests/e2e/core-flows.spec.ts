@@ -21,11 +21,11 @@ test("calculator shows a relevant tip and keeps further guidance optional", asyn
   const tip = page.getByText("Energy-saving tip", { exact: true });
   const instructions = page.locator("#so-funktionierts");
   await expect(tip).toBeVisible();
-  const calculateAnother = instructions.getByRole("link", { name: "Calculate another device" });
-  await expect(calculateAnother)
+  const viewAllDevices = instructions.getByRole("link", { name: "See all devices" });
+  await expect(viewAllDevices)
     .toHaveAttribute("href", "/en/devices");
   const tipBox = await tip.boundingBox();
-  const actionBox = await calculateAnother.boundingBox();
+  const actionBox = await viewAllDevices.boundingBox();
   expect(tipBox).not.toBeNull();
   expect(actionBox).not.toBeNull();
   expect(actionBox!.x).toBeGreaterThan(tipBox!.x);
