@@ -77,6 +77,10 @@ export default function Footer({ locale = "de" }: FooterProps) {
       return;
     }
 
+    if (targetId === "so-funktionierts") {
+      window.dispatchEvent(new Event("eavesence:open-how-it-works"));
+    }
+
     document.getElementById(targetId)?.scrollIntoView({
       behavior: "smooth",
       block: "start",
