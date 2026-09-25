@@ -84,6 +84,7 @@ type EnergyCalculatorProps = {
   locale?: Locale;
   detailPage?: boolean;
   homePresentation?: boolean;
+  savingTipActions?: ReactNode;
   afterSavingTip?: ReactNode;
 };
 
@@ -494,6 +495,7 @@ export default function EnergyCalculator({
   locale,
   detailPage = false,
   homePresentation = false,
+  savingTipActions,
   afterSavingTip,
 }: EnergyCalculatorProps) {
   const pathname = usePathname();
@@ -2261,37 +2263,41 @@ export default function EnergyCalculator({
       </div>
       </div>
 
-      {(!homePresentation || calculationIsValid) && (
-        <div className={`${homePresentation ? "mt-4" : "mt-5"} px-1 py-2`}>
-          <div className="flex items-start gap-3">
-            <span
-              aria-hidden="true"
-              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center text-[var(--brand-green)]"
-            >
-              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18h6" />
-                <path d="M10 22h4" />
-                <path d="M8.6 15.5c-1.4-1.1-2.3-2.8-2.3-4.7a5.7 5.7 0 1 1 11.4 0c0 1.9-.9 3.6-2.3 4.7-.9.7-1.4 1.5-1.4 2.5h-4c0-1-.5-1.8-1.4-2.5Z" />
-                <path d="M12 2V1" />
-                <path d="m4.9 4.9-.8-.8" />
-                <path d="M3 11H2" />
-                <path d="m19.1 4.9.8-.8" />
-                <path d="M21 11h1" />
-              </svg>
-            </span>
-            <div>
-              <p className="text-xs font-bold text-[var(--brand-green)]">
-                {text.savingTip.title.replace("💡 ", "")}
-              </p>
-              <p className="mt-0.5 text-[13px] leading-5 text-[#52605b]">
-                {localizedTip}
-              </p>
-            </div>
+      {(!homePresentation || calculationIsValid || savingTipActions) && (
+        <div id={homePresentation ? "so-funktionierts" : undefined} className={`${homePresentation ? "mt-4" : "mt-5"} scroll-mt-24 px-1 py-2`}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            {(!homePresentation || calculationIsValid) && (
+              <div className="flex min-w-0 items-start gap-3">
+                <span
+                  aria-hidden="true"
+                  className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center text-[var(--brand-green)]"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 18h6" />
+                    <path d="M10 22h4" />
+                    <path d="M8.6 15.5c-1.4-1.1-2.3-2.8-2.3-4.7a5.7 5.7 0 1 1 11.4 0c0 1.9-.9 3.6-2.3 4.7-.9.7-1.4 1.5-1.4 2.5h-4c0-1-.5-1.8-1.4-2.5Z" />
+                    <path d="M12 2V1" />
+                    <path d="m4.9 4.9-.8-.8" />
+                    <path d="M3 11H2" />
+                    <path d="m19.1 4.9.8-.8" />
+                    <path d="M21 11h1" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="text-xs font-bold text-[var(--brand-green)]">
+                    {text.savingTip.title.replace("💡 ", "")}
+                  </p>
+                  <p className="mt-0.5 text-[13px] leading-5 text-[#52605b]">
+                    {localizedTip}
+                  </p>
+                </div>
+              </div>
+            )}
+            {savingTipActions && <div className="flex shrink-0 flex-col items-end gap-2">{savingTipActions}</div>}
           </div>
+          {afterSavingTip}
         </div>
       )}
-
-      {afterSavingTip}
 
       {!homePresentation && calculationIsValid && (
         <div className="mt-3">

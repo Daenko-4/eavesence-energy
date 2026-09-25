@@ -21,8 +21,15 @@ test("calculator shows a relevant tip and keeps further guidance optional", asyn
   const tip = page.getByText("Energy-saving tip", { exact: true });
   const instructions = page.locator("#so-funktionierts");
   await expect(tip).toBeVisible();
-  await expect(page.getByRole("link", { name: "Calculate another device" }))
+  const calculateAnother = instructions.getByRole("link", { name: "Calculate another device" });
+  await expect(calculateAnother)
     .toHaveAttribute("href", "/en/devices");
+  const tipBox = await tip.boundingBox();
+  const actionBox = await calculateAnother.boundingBox();
+  expect(tipBox).not.toBeNull();
+  expect(actionBox).not.toBeNull();
+  expect(actionBox!.x).toBeGreaterThan(tipBox!.x);
+  expect(Math.abs(actionBox!.y - tipBox!.y)).toBeLessThan(30);
   await expect(page.getByRole("region", { name: "EAVESENCE as an app" })).toHaveCount(0);
   await expect(page.getByText("No sign-up", { exact: true })).toHaveCount(0);
 
