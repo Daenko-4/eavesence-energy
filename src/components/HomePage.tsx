@@ -538,36 +538,36 @@ export default function HomePage({
               <EnergyCalculator
                 locale={locale}
                 homePresentation
+                savingTipActions={
+                  <>
+                    <a href={devicesHref} className="eavesence-pill-link">
+                      {hero.allDevices}
+                    </a>
+                    <button
+                      type="button"
+                      aria-expanded={howItWorksOpen}
+                      aria-controls="how-it-works-steps"
+                      onClick={() => setHowItWorksOpen((current) => !current)}
+                      className="eavesence-pill-button"
+                    >
+                      {text.howItWorks.label}
+                      <span aria-hidden="true" className={`ml-1 inline-block origin-center transition-transform duration-[180ms] ${howItWorksOpen ? "-rotate-45" : "rotate-0"}`}>+</span>
+                    </button>
+                  </>
+                }
                 afterSavingTip={
-                  <div id="so-funktionierts" className="mt-4 scroll-mt-24 border-t border-slate-200/80 px-1 pt-4">
-                    <div className="flex flex-col items-end gap-2">
-                      <a href={devicesHref} className="eavesence-pill-link">
-                        {hero.allDevices}
-                      </a>
-                      <button
-                        type="button"
-                        aria-expanded={howItWorksOpen}
-                        aria-controls="how-it-works-steps"
-                        onClick={() => setHowItWorksOpen((current) => !current)}
-                        className="eavesence-pill-button"
-                      >
-                        {text.howItWorks.label}
-                        <span aria-hidden="true" className={`ml-1 inline-block origin-center transition-transform duration-[180ms] ${howItWorksOpen ? "-rotate-45" : "rotate-0"}`}>+</span>
-                      </button>
-                    </div>
-                    <div id="how-it-works-steps" hidden={!howItWorksOpen} className={`${howItWorksOpen ? "grid" : "hidden"} mt-4 gap-3 border-t border-slate-200/80 pt-4 md:grid-cols-3 md:gap-4 md:divide-x md:divide-slate-200`}>
-                      {text.howItWorks.steps.map((step) => (
-                        <div key={step.number} className="flex gap-2.5 md:px-4 md:first:pl-0 md:last:pr-0">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-[11px] font-extrabold text-[var(--brand-green)]">
-                            {Number(step.number)}
-                          </span>
-                          <div>
-                            <h3 className="text-[13px] font-bold text-[#07111f]">{step.title}</h3>
-                            <p className="mt-0.5 max-w-sm text-[12px] leading-5 text-slate-600">{step.text}</p>
-                          </div>
+                  <div id="how-it-works-steps" hidden={!howItWorksOpen} className={`${howItWorksOpen ? "grid" : "hidden"} mt-4 gap-3 border-t border-slate-200/80 px-1 pt-4 md:grid-cols-3 md:gap-4 md:divide-x md:divide-slate-200`}>
+                    {text.howItWorks.steps.map((step) => (
+                      <div key={step.number} className="flex gap-2.5 md:px-4 md:first:pl-0 md:last:pr-0">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-[11px] font-extrabold text-[var(--brand-green)]">
+                          {Number(step.number)}
+                        </span>
+                        <div>
+                          <h3 className="text-[13px] font-bold text-[#07111f]">{step.title}</h3>
+                          <p className="mt-0.5 max-w-sm text-[12px] leading-5 text-slate-600">{step.text}</p>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 }
               />
