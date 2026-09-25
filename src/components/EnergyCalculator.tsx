@@ -84,7 +84,6 @@ type EnergyCalculatorProps = {
   locale?: Locale;
   detailPage?: boolean;
   homePresentation?: boolean;
-  trustItems?: readonly string[];
   afterSavingTip?: ReactNode;
 };
 
@@ -257,11 +256,6 @@ const calculatorText = {
     alreadySaved: "Dieses Gerät ist bereits lokal gespeichert.",
     reset: "Werte zurücksetzen",
     fallbackDevice: "Gerät",
-    homeNextStep: {
-      label: "Nächster Schritt",
-      text: "Speichere das Gerät und führe es in My Home mit deinen übrigen Geräten und Haushaltskosten zusammen.",
-      link: "In My Home weiter",
-    },
   },
 
   en: {
@@ -432,11 +426,6 @@ const calculatorText = {
     alreadySaved: "This device is already saved locally.",
     reset: "Reset values",
     fallbackDevice: "Device",
-    homeNextStep: {
-      label: "Next step",
-      text: "Save this device and bring it together with your other devices and household costs in My Home.",
-      link: "Continue to My Home",
-    },
   },
 } as const;
 
@@ -458,47 +447,6 @@ function usageAmountToWeekly(amount: number, period: UsagePeriod) {
 
 function weeklyUsageToAmount(usesPerWeek: number, period: UsagePeriod) {
   return period === "month" ? (usesPerWeek * 52) / 12 : usesPerWeek;
-}
-
-function TrustSignalIcon({ index }: { index: number }) {
-  const commonProps = {
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    className: "h-4 w-4",
-    "aria-hidden": true,
-  };
-
-  if (index === 0) {
-    return (
-      <svg {...commonProps}>
-        <rect x="3" y="6" width="18" height="12" rx="3" />
-        <path d="M7 9.5h.01M17 14.5h.01" />
-        <circle cx="12" cy="12" r="2.5" />
-      </svg>
-    );
-  }
-
-  if (index === 1) {
-    return (
-      <svg {...commonProps}>
-        <path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h7M15 18h5" />
-        <circle cx="16" cy="6" r="2" />
-        <circle cx="8" cy="12" r="2" />
-        <circle cx="13" cy="18" r="2" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg {...commonProps}>
-      <rect x="5" y="4" width="14" height="11" rx="1.5" />
-      <path d="M3 19h18M5 15l-2 4M19 15l2 4" />
-    </svg>
-  );
 }
 
 function numericValue(value: NumericInput) {
@@ -546,7 +494,6 @@ export default function EnergyCalculator({
   locale,
   detailPage = false,
   homePresentation = false,
-  trustItems = [],
   afterSavingTip,
 }: EnergyCalculatorProps) {
   const pathname = usePathname();
@@ -2314,71 +2261,37 @@ export default function EnergyCalculator({
       </div>
       </div>
 
-      {/* Saving tip */}
-      <div className={`${homePresentation ? "mt-4" : "mt-5"} px-1 py-2`}>
-        <div className="flex items-start gap-3">
-          <span
-            aria-hidden="true"
-            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center text-[var(--brand-green)]"
-          >
-            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18h6" />
-              <path d="M10 22h4" />
-              <path d="M8.6 15.5c-1.4-1.1-2.3-2.8-2.3-4.7a5.7 5.7 0 1 1 11.4 0c0 1.9-.9 3.6-2.3 4.7-.9.7-1.4 1.5-1.4 2.5h-4c0-1-.5-1.8-1.4-2.5Z" />
-              <path d="M12 2V1" />
-              <path d="m4.9 4.9-.8-.8" />
-              <path d="M3 11H2" />
-              <path d="m19.1 4.9.8-.8" />
-              <path d="M21 11h1" />
-            </svg>
-          </span>
-          <div>
-            <p className="text-xs font-bold text-[var(--brand-green)]">
-              {text.savingTip.title.replace("💡 ", "")}
-            </p>
-            <p className="mt-0.5 text-[13px] leading-5 text-[#52605b]">
-              {localizedTip}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {homePresentation && trustItems.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5">
-          {trustItems.map((item, index) => (
-            <div
-              key={item}
-              className="flex items-center justify-center gap-2 text-[12px] font-semibold text-slate-600"
+      {(!homePresentation || calculationIsValid) && (
+        <div className={`${homePresentation ? "mt-4" : "mt-5"} px-1 py-2`}>
+          <div className="flex items-start gap-3">
+            <span
+              aria-hidden="true"
+              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center text-[var(--brand-green)]"
             >
-              <span className="text-[var(--brand-green)]" aria-hidden="true">
-                <TrustSignalIcon index={index} />
-              </span>
-              {item}
+              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18h6" />
+                <path d="M10 22h4" />
+                <path d="M8.6 15.5c-1.4-1.1-2.3-2.8-2.3-4.7a5.7 5.7 0 1 1 11.4 0c0 1.9-.9 3.6-2.3 4.7-.9.7-1.4 1.5-1.4 2.5h-4c0-1-.5-1.8-1.4-2.5Z" />
+                <path d="M12 2V1" />
+                <path d="m4.9 4.9-.8-.8" />
+                <path d="M3 11H2" />
+                <path d="m19.1 4.9.8-.8" />
+                <path d="M21 11h1" />
+              </svg>
+            </span>
+            <div>
+              <p className="text-xs font-bold text-[var(--brand-green)]">
+                {text.savingTip.title.replace("💡 ", "")}
+              </p>
+              <p className="mt-0.5 text-[13px] leading-5 text-[#52605b]">
+                {localizedTip}
+              </p>
             </div>
-          ))}
+          </div>
         </div>
       )}
 
       {afterSavingTip}
-
-      {homePresentation && calculationIsValid && (
-        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#b8efcc] bg-[#eefbf3] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">
-              {text.homeNextStep.label}
-            </p>
-            <p className="mt-1 text-[13px] leading-5 text-[#52605b]">
-              {text.homeNextStep.text}
-            </p>
-          </div>
-          <a
-            href={activeLocale === "de" ? "/de/zuhause" : "/home"}
-            className="eavesence-pill-link shrink-0"
-          >
-            {text.homeNextStep.link}
-          </a>
-        </div>
-      )}
 
       {!homePresentation && calculationIsValid && (
         <div className="mt-3">

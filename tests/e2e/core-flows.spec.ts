@@ -14,48 +14,36 @@ async function openDesktopNavigation(page: Page) {
   ).toBeVisible();
 }
 
-test("app interest can be answered once without leaving the page", async ({
-  page,
-}) => {
-  await disableHeaderIntro(page);
-  await page.goto("/");
-
-  const prompt = page.getByRole("region", { name: "EAVESENCE as an app" });
-  await expect(prompt).toBeVisible();
-  await prompt.getByRole("button", { name: "Yes, I would" }).click();
-  await expect(
-    prompt.getByRole("status"),
-  ).toHaveText("Thank you – this helps us make the next decision.");
-
-  await page.reload();
-  await expect(prompt).toHaveCount(0);
-});
-
-test("tip, trust signals, instructions and device categories follow the calculator", async ({ page }) => {
+test("calculator shows a relevant tip and keeps further guidance optional", async ({ page }) => {
   await disableHeaderIntro(page);
   await page.goto("/");
 
   const tip = page.getByText("Energy-saving tip", { exact: true });
-  const trust = page.getByText("Free", { exact: true });
-  const deviceHeading = page.getByRole("heading", { name: "Calculate the cost of your devices" });
   const instructions = page.locator("#so-funktionierts");
-  await expect(deviceHeading).toBeVisible();
-  await expect(trust).toBeVisible();
-  await expect(instructions.getByRole("heading", { name: "Choose a device" })).toBeVisible();
-  await expect(page.getByText("About EAVESENCE", { exact: true })).toHaveCount(0);
-
-  const positions = await page.evaluate(() => {
-    const tip = [...document.querySelectorAll("p")].find((item) => item.textContent?.trim() === "Energy-saving tip");
-    const trust = [...document.querySelectorAll("div")].find((item) => item.textContent?.trim() === "Free");
-    const devices = [...document.querySelectorAll("h2")].find((item) => item.textContent?.trim() === "Calculate the cost of your devices");
-    const instructions = document.querySelector("#so-funktionierts");
-    return [tip, trust, instructions, devices].map((element) => element?.getBoundingClientRect().top ?? -1);
-  });
-  expect(positions[0]).toBeGreaterThanOrEqual(0);
-  expect(positions[0]).toBeLessThan(positions[1]);
-  expect(positions[1]).toBeLessThan(positions[2]);
-  expect(positions[2]).toBeLessThan(positions[3]);
   await expect(tip).toBeVisible();
+  await expect(page.getByRole("link", { name: "Calculate another device" }))
+    .toHaveAttribute("href", "/en/devices");
+  await expect(page.getByRole("region", { name: "EAVESENCE as an app" })).toHaveCount(0);
+  await expect(page.getByText("No sign-up", { exact: true })).toHaveCount(0);
+
+  const howItWorks = instructions.getByRole("button", { name: "How it works" });
+  await expect(howItWorks).toHaveAttribute("aria-expanded", "false");
+  await expect(instructions.getByRole("heading", { name: "Choose a device" })).toBeHidden();
+  await howItWorks.click();
+  await expect(howItWorks).toHaveAttribute("aria-expanded", "true");
+  await expect(instructions.getByRole("heading", { name: "Choose a device" })).toBeVisible();
+});
+
+test("footer How it works link reveals the steps on the homepage", async ({ page }) => {
+  await disableHeaderIntro(page);
+  await page.goto("/");
+
+  const instructions = page.locator("#so-funktionierts");
+  await expect(instructions.getByRole("button", { name: "How it works" }))
+    .toHaveAttribute("aria-expanded", "false");
+  await page.getByRole("contentinfo").getByRole("link", { name: "How it works" }).click();
+  await expect(page).toHaveURL(/#so-funktionierts$/);
+  await expect(instructions.getByRole("heading", { name: "Choose a device" })).toBeVisible();
 });
 
 test("calculator engagement is tracked only on the first interaction", async ({
@@ -590,19 +578,8 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await expect(
     page.getByRole("link", { name: /New: My Home as your household book/ }),
   ).toHaveAttribute("href", "/home");
-  await expect(
-    page.getByRole("link", { name: "Continue to My Home" }),
-  ).toHaveAttribute("href", "/home");
-  await expect(
-    page.getByRole("heading", {
-      name: "My Home brings your whole household together.",
-    }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Start My Home for free" }),
-  ).toHaveAttribute("href", "/home");
   await expect(page.getByText("planned from €5.99 / month", { exact: true }))
-    .toBeVisible();
+    .toHaveCount(0);
 
   const numericInputs = page.locator('#rechner input[type="number"]');
   await numericInputs.nth(0).fill("600");

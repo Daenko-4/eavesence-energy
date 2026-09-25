@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-import AppInterestPrompt from "@/components/AppInterestPrompt";
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -30,44 +29,6 @@ const FAQ_LANGUAGE_TRANSFER_KEY = "eavesence-keep-faq-open-after-language-change
 
 const content = {
   de: {
-    categories: [
-      {
-        name: "Küche",
-        href: "/geraete#kueche",
-        icon: "kitchen" as IconName,
-      },
-      {
-        name: "Wäschepflege",
-        href: "/geraete#waschen",
-        icon: "washer" as IconName,
-      },
-      {
-        name: "Haushalt",
-        href: "/geraete#haushalt",
-        icon: "home" as IconName,
-      },
-      {
-        name: "Raumklima",
-        href: "/geraete#raumklima",
-        icon: "wind" as IconName,
-      },
-      {
-        name: "Bad",
-        href: "/geraete#bad",
-        icon: "shower" as IconName,
-      },
-      {
-        name: "Unterhaltung",
-        href: "/geraete#unterhaltung",
-        icon: "monitor" as IconName,
-      },
-      {
-        name: "Büro",
-        href: "/geraete#buero",
-        icon: "laptop" as IconName,
-      },
-    ],
-
     hero: {
       badge: "Einfach. Klar. Direkt verständlich.",
       titleFirst: "Viele Geräte,",
@@ -118,16 +79,6 @@ const content = {
       label: "Stromkosten-Rechner",
       title: "Schnell zur Antwort",
       text: "Wähle ein Gerät oder gib eigene Werte ein.",
-    },
-
-    fullVersion: {
-      eyebrow: "Vom Rechner zum Haushaltsbuch",
-      title: "My Home bündelt deinen ganzen Haushalt.",
-      text:
-        "Der Rechner bleibt kostenlos. In My Home führst du Geräte, Stromverbrauch und laufende Haushaltskosten übersichtlich an einem Ort zusammen.",
-      proLabel: "Vollversion in Vorbereitung",
-      proPrice: "geplant ab 5,99 € / Monat",
-      button: "My Home kostenlos starten",
     },
 
     benefits: [
@@ -251,44 +202,6 @@ const content = {
   },
 
   en: {
-    categories: [
-      {
-        name: "Kitchen",
-        href: "/en/devices#kitchen",
-        icon: "kitchen" as IconName,
-      },
-      {
-        name: "Laundry",
-        href: "/en/devices#laundry",
-        icon: "washer" as IconName,
-      },
-      {
-        name: "Household",
-        href: "/en/devices#household",
-        icon: "home" as IconName,
-      },
-      {
-        name: "Room climate",
-        href: "/en/devices#room-climate",
-        icon: "wind" as IconName,
-      },
-      {
-        name: "Bathroom",
-        href: "/en/devices#bathroom",
-        icon: "shower" as IconName,
-      },
-      {
-        name: "Entertainment",
-        href: "/en/devices#entertainment",
-        icon: "monitor" as IconName,
-      },
-      {
-        name: "Office",
-        href: "/en/devices#office",
-        icon: "laptop" as IconName,
-      },
-    ],
-
     hero: {
       badge: "Simple. Clear. Easy to understand.",
       titleFirst: "Many devices,",
@@ -339,16 +252,6 @@ const content = {
       label: "Electricity cost calculator",
       title: "Get your answer quickly",
       text: "Choose a device or enter your own values.",
-    },
-
-    fullVersion: {
-      eyebrow: "From calculator to household book",
-      title: "My Home brings your whole household together.",
-      text:
-        "The calculator stays free. My Home brings devices, electricity use and recurring household costs together clearly in one place.",
-      proLabel: "Full version in development",
-      proPrice: "planned from €5.99 / month",
-      button: "Start My Home for free",
     },
 
     benefits: [
@@ -472,190 +375,11 @@ const content = {
   },
 } as const;
 
-function Icon({
-  name,
-  className = "h-6 w-6",
-}: {
-  name: IconName;
-  className?: string;
-}) {
-  const props = {
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-  };
-
-  switch (name) {
-    case "kitchen":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          className={className}
-          {...props}
-          aria-hidden="true"
-        >
-          <path d="M5 9h14l-1 10H6L5 9Z" />
-          <path d="M8 9V7h8v2" />
-          <path d="M10 5h4" />
-          <path d="M19 11h2v5h-2" />
-        </svg>
-      );
-
-    case "washer":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          className={className}
-          {...props}
-          aria-hidden="true"
-        >
-          <rect x="5" y="3" width="14" height="18" rx="2" />
-          <path d="M8 6h1" />
-          <path d="M12 6h4" />
-          <circle cx="12" cy="14" r="4" />
-        </svg>
-      );
-
-    case "home":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          className={className}
-          {...props}
-          aria-hidden="true"
-        >
-          <path d="m3 11 9-8 9 8" />
-          <path d="M5 10v10h14V10" />
-          <path d="M9 20v-6h6v6" />
-        </svg>
-      );
-    case "wind":
-      return (
-        <svg viewBox="0 0 24 24" className={className} {...props}>
-          <path d="M4 8h10a3 3 0 1 0-3-3M4 12h15a3 3 0 1 1-3 3M4 16h7" />
-        </svg>
-      );
-
-    case "shower":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          className={className}
-          {...props}
-          aria-hidden="true"
-        >
-          <path d="M5 13V8a5 5 0 0 1 10 0" />
-          <path d="M14 8h5" />
-          <path d="M15 12v1" />
-          <path d="M18 12v1" />
-          <path d="M12 15v1" />
-          <path d="M15 16v1" />
-          <path d="M18 15v1" />
-          <path d="M12 19v1" />
-          <path d="M16 19v1" />
-        </svg>
-      );
-
-    case "monitor":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          className={className}
-          {...props}
-          aria-hidden="true"
-        >
-          <rect x="3" y="4" width="18" height="13" rx="2" />
-          <path d="M8 21h8" />
-          <path d="M12 17v4" />
-        </svg>
-      );
-
-    case "laptop":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          className={className}
-          {...props}
-          aria-hidden="true"
-        >
-          <rect x="5" y="4" width="14" height="11" rx="1.5" />
-          <path d="M3 19h18" />
-          <path d="m5 15-2 4" />
-          <path d="m19 15 2 4" />
-        </svg>
-      );
-
-    case "free":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          className={className}
-          {...props}
-          aria-hidden="true"
-        >
-          <rect x="3" y="6" width="18" height="12" rx="3" />
-          <path d="M7 9.5h.01M17 14.5h.01" />
-          <circle cx="12" cy="12" r="2.5" />
-        </svg>
-      );
-
-    case "chart":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          className={className}
-          {...props}
-          aria-hidden="true"
-        >
-          <path d="M5 20V11" />
-          <path d="M10 20V6" />
-          <path d="M15 20V14" />
-          <path d="M20 20V3" />
-        </svg>
-      );
-
-    case "search":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          className={className}
-          {...props}
-          aria-hidden="true"
-        >
-          <circle cx="11" cy="11" r="6" />
-          <path d="m16 16 5 5" />
-        </svg>
-      );
-
-    case "settings":
-    default:
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          className={className}
-          {...props}
-          aria-hidden="true"
-        >
-          <path d="M4 6h10" />
-          <path d="M18 6h2" />
-          <path d="M4 12h2" />
-          <path d="M10 12h10" />
-          <path d="M4 18h7" />
-          <path d="M15 18h5" />
-          <circle cx="16" cy="6" r="2" />
-          <circle cx="8" cy="12" r="2" />
-          <circle cx="13" cy="18" r="2" />
-        </svg>
-      );
-  }
-}
-
 export default function HomePage({
   locale = "de",
 }: HomePageProps) {
   const [faqOpen, setFaqOpen] = useState(false);
+  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const text = content[locale];
   const hero =
     locale === "de"
@@ -664,16 +388,14 @@ export default function HomePage({
           understand: "Verstehen.",
           save: "Sparen.",
           subtitle: "My Home zeigt Einkommen, laufende Kosten und anstehende Zahlungen auf einen Blick.",
-          devicesTitle: "Berechne die Kosten deiner Geräte",
-          allDevices: "Alle Geräte ansehen",
+          allDevices: "Weitere Geräte berechnen",
         }
       : {
           calculate: "Plan.",
           understand: "Understand.",
           save: "Save.",
           subtitle: "My Home brings income, recurring costs and upcoming payments into one clear view.",
-          devicesTitle: "Calculate the cost of your devices",
-          allDevices: "View all devices",
+          allDevices: "Calculate another device",
         };
 
   const devicesHref =
@@ -682,6 +404,25 @@ export default function HomePage({
   const feedbackHref = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(
     text.faq.feedbackSubject
   )}`;
+
+  useEffect(() => {
+    function openHowItWorks() {
+      if (window.location.hash === "#so-funktionierts") {
+        setHowItWorksOpen(true);
+      }
+    }
+    function openOnRequest() {
+      setHowItWorksOpen(true);
+    }
+
+    openHowItWorks();
+    window.addEventListener("hashchange", openHowItWorks);
+    window.addEventListener("eavesence:open-how-it-works", openOnRequest);
+    return () => {
+      window.removeEventListener("hashchange", openHowItWorks);
+      window.removeEventListener("eavesence:open-how-it-works", openOnRequest);
+    };
+  }, []);
 
   useEffect(() => {
     const keepFaqOpen =
@@ -786,7 +527,7 @@ export default function HomePage({
                 <span className="min-w-0">
                   <span className="block text-[10px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">EAVESENCE Home</span>
                   <span className="mt-0.5 block text-[14px] font-extrabold text-[#17211f]">{locale === "de" ? "Neu: Mein Zuhause als Haushaltsbuch" : "New: My Home as your household book"}</span>
-                  <span className="mt-0.5 block text-[11px] leading-4 text-[#65716d]">{locale === "de" ? "Geräte, Verträge und laufende Kosten gemeinsam organisieren." : "Organize devices, contracts and recurring costs together."}</span>
+                  <span className="mt-0.5 block text-[11px] leading-4 text-[#65716d]">{locale === "de" ? "Geräte und laufende Kosten organisieren. Jetzt kostenlos; Vollversion in Vorbereitung." : "Organize devices and recurring costs. Free now; full version in development."}</span>
                 </span>
                 <span className="rounded-full bg-[var(--brand-green)] px-3 py-1.5 text-[11px] font-bold text-white transition group-hover:bg-[var(--brand-green-dark)]">{locale === "de" ? "Öffnen" : "Open"}</span>
               </a>
@@ -797,81 +538,39 @@ export default function HomePage({
               <EnergyCalculator
                 locale={locale}
                 homePresentation
-                trustItems={text.hero.features}
                 afterSavingTip={
-                  <>
-                    <section id="so-funktionierts" className="mt-4 scroll-mt-24 border-t border-slate-200/80 px-1 py-4">
-                      <h2 className="text-[14px] font-bold text-[#07111f]">
+                  <div id="so-funktionierts" className="mt-4 scroll-mt-24 border-t border-slate-200/80 px-1 pt-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <a href={devicesHref} className="eavesence-pill-link">
+                        {hero.allDevices}
+                      </a>
+                      <button
+                        type="button"
+                        aria-expanded={howItWorksOpen}
+                        aria-controls="how-it-works-steps"
+                        onClick={() => setHowItWorksOpen((current) => !current)}
+                        className="eavesence-pill-button"
+                      >
                         {text.howItWorks.label}
-                      </h2>
-                      <div className="mt-3 grid gap-3 md:grid-cols-3 md:gap-4 md:divide-x md:divide-slate-200">
-                        {text.howItWorks.steps.map((step) => (
-                          <div key={step.number} className="flex gap-2.5 md:px-4 md:first:pl-0 md:last:pr-0">
-                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-[11px] font-extrabold text-[var(--brand-green)]">
-                              {Number(step.number)}
-                            </span>
-                            <div>
-                              <h3 className="text-[13px] font-bold text-[#07111f]">{step.title}</h3>
-                              <p className="mt-0.5 max-w-sm text-[12px] leading-5 text-slate-600">
-                                {step.text}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                    <div className="border-t border-slate-200/80 px-1 pt-4">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#07111f]">
-                          {hero.devicesTitle}
-                        </h2>
-                        <a href={devicesHref} className="eavesence-pill-link">
-                          {hero.allDevices}
-                        </a>
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {text.categories.map((category) => (
-                          <a
-                            key={category.name}
-                            href={category.href}
-                            className="group inline-flex min-h-9 items-center gap-2 rounded-full border border-[#dfe8df] bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 transition hover:border-[#b8efcc] hover:bg-[#eaf8ef] hover:text-[var(--brand-green)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-green)]"
-                          >
-                            <span className="text-[var(--brand-green)] transition-transform duration-200 group-hover:-translate-y-0.5">
-                              <Icon name={category.icon} className="h-4 w-4" />
-                            </span>
-                            {category.name}
-                          </a>
-                        ))}
-                      </div>
+                        <span aria-hidden="true" className={`ml-1 inline-block transition-transform duration-200 ${howItWorksOpen ? "-rotate-45" : ""}`}>+</span>
+                      </button>
                     </div>
-                  </>
+                    <div id="how-it-works-steps" hidden={!howItWorksOpen} className={`${howItWorksOpen ? "grid" : "hidden"} mt-4 gap-3 border-t border-slate-200/80 pt-4 md:grid-cols-3 md:gap-4 md:divide-x md:divide-slate-200`}>
+                      {text.howItWorks.steps.map((step) => (
+                        <div key={step.number} className="flex gap-2.5 md:px-4 md:first:pl-0 md:last:pr-0">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-[11px] font-extrabold text-[var(--brand-green)]">
+                            {Number(step.number)}
+                          </span>
+                          <div>
+                            <h3 className="text-[13px] font-bold text-[#07111f]">{step.title}</h3>
+                            <p className="mt-0.5 max-w-sm text-[12px] leading-5 text-slate-600">{step.text}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 }
               />
-            </div>
-          </div>
-        </section>
-
-        <section className="px-5 pb-7 sm:px-6 sm:pb-9">
-          <div className="mx-auto flex max-w-6xl flex-col gap-4 rounded-2xl border border-[#dce8dd] bg-[#f6fbf7] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-5">
-            <div className="min-w-0">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
-                {text.fullVersion.eyebrow}
-              </p>
-              <h2 className="mt-1 text-[16px] font-bold tracking-[-0.02em] text-[#07111f]">
-                {text.fullVersion.title}
-              </h2>
-              <p className="mt-1 max-w-2xl text-[13px] leading-5 text-[#596660]">
-                {text.fullVersion.text}
-              </p>
-            </div>
-            <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 sm:justify-end">
-              <a href={householdHref} className="eavesence-pill-link">
-                {text.fullVersion.button}
-              </a>
-              <span className="flex flex-col text-[11px] leading-4 text-[#65716d]">
-                <span>{text.fullVersion.proLabel}</span>
-                <span>{text.fullVersion.proPrice}</span>
-              </span>
             </div>
           </div>
         </section>
@@ -948,8 +647,6 @@ export default function HomePage({
             </div>
           </div>
         </section>
-
-        <AppInterestPrompt locale={locale} />
 
       </main>
 
