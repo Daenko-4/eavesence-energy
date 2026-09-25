@@ -126,6 +126,7 @@ const content = {
       text:
         "Der Rechner bleibt kostenlos. In My Home führst du Geräte, Stromverbrauch und laufende Haushaltskosten übersichtlich an einem Ort zusammen.",
       proLabel: "Vollversion in Vorbereitung",
+      proPrice: "geplant ab 5,99 € / Monat",
       button: "My Home kostenlos starten",
     },
 
@@ -346,6 +347,7 @@ const content = {
       text:
         "The calculator stays free. My Home brings devices, electricity use and recurring household costs together clearly in one place.",
       proLabel: "Full version in development",
+      proPrice: "planned from €5.99 / month",
       button: "Start My Home for free",
     },
 
@@ -873,8 +875,9 @@ export default function HomePage({
               <a href={householdHref} className="eavesence-pill-link">
                 {text.fullVersion.button}
               </a>
-              <span className="text-[11px] text-[#65716d]">
-                {text.fullVersion.proLabel}
+              <span className="flex flex-col text-[11px] leading-4 text-[#65716d]">
+                <span>{text.fullVersion.proLabel}</span>
+                <span>{text.fullVersion.proPrice}</span>
               </span>
             </div>
           </div>
