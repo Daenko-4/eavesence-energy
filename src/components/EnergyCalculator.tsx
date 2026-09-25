@@ -2314,43 +2314,8 @@ export default function EnergyCalculator({
       </div>
       </div>
 
-      {homePresentation && calculationIsValid && (
-        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#b8efcc] bg-[#eefbf3] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">
-              {text.homeNextStep.label}
-            </p>
-            <p className="mt-1 text-[13px] leading-5 text-[#52605b]">
-              {text.homeNextStep.text}
-            </p>
-          </div>
-          <a
-            href={activeLocale === "de" ? "/de/zuhause" : "/home"}
-            className="eavesence-pill-link shrink-0"
-          >
-            {text.homeNextStep.link}
-          </a>
-        </div>
-      )}
-
-      {homePresentation && trustItems.length > 0 && (
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5">
-          {trustItems.map((item, index) => (
-            <div
-              key={item}
-              className="flex items-center justify-center gap-2 text-[12px] font-semibold text-slate-600"
-            >
-              <span className="text-[var(--brand-green)]" aria-hidden="true">
-                <TrustSignalIcon index={index} />
-              </span>
-              {item}
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Saving tip */}
-      <div className={`${homePresentation ? "mt-10" : "mt-5"} px-1 py-2`}>
+      <div className={`${homePresentation ? "mt-4" : "mt-5"} px-1 py-2`}>
         <div className="flex items-start gap-3">
           <span
             aria-hidden="true"
@@ -2378,7 +2343,42 @@ export default function EnergyCalculator({
         </div>
       </div>
 
+      {homePresentation && trustItems.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5">
+          {trustItems.map((item, index) => (
+            <div
+              key={item}
+              className="flex items-center justify-center gap-2 text-[12px] font-semibold text-slate-600"
+            >
+              <span className="text-[var(--brand-green)]" aria-hidden="true">
+                <TrustSignalIcon index={index} />
+              </span>
+              {item}
+            </div>
+          ))}
+        </div>
+      )}
+
       {afterSavingTip}
+
+      {homePresentation && calculationIsValid && (
+        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#b8efcc] bg-[#eefbf3] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">
+              {text.homeNextStep.label}
+            </p>
+            <p className="mt-1 text-[13px] leading-5 text-[#52605b]">
+              {text.homeNextStep.text}
+            </p>
+          </div>
+          <a
+            href={activeLocale === "de" ? "/de/zuhause" : "/home"}
+            className="eavesence-pill-link shrink-0"
+          >
+            {text.homeNextStep.link}
+          </a>
+        </div>
+      )}
 
       {!homePresentation && calculationIsValid && (
         <div className="mt-3">

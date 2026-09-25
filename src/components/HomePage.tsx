@@ -799,61 +799,54 @@ export default function HomePage({
                 homePresentation
                 trustItems={text.hero.features}
                 afterSavingTip={
-                  <div className="mt-4 border-t border-slate-200/80 px-1 pt-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#07111f]">
-                        {hero.devicesTitle}
+                  <>
+                    <section id="so-funktionierts" className="mt-4 scroll-mt-24 border-t border-slate-200/80 px-1 py-4">
+                      <h2 className="text-[14px] font-bold text-[#07111f]">
+                        {text.howItWorks.label}
                       </h2>
-                      <a href={devicesHref} className="eavesence-pill-link">
-                        {hero.allDevices}
-                      </a>
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {text.categories.map((category) => (
-                        <a
-                          key={category.name}
-                          href={category.href}
-                          className="group inline-flex min-h-9 items-center gap-2 rounded-full border border-[#dfe8df] bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 transition hover:border-[#b8efcc] hover:bg-[#eaf8ef] hover:text-[var(--brand-green)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-green)]"
-                        >
-                          <span className="text-[var(--brand-green)] transition-transform duration-200 group-hover:-translate-y-0.5">
-                            <Icon name={category.icon} className="h-4 w-4" />
-                          </span>
-                          {category.name}
+                      <div className="mt-3 grid gap-3 md:grid-cols-3 md:gap-4 md:divide-x md:divide-slate-200">
+                        {text.howItWorks.steps.map((step) => (
+                          <div key={step.number} className="flex gap-2.5 md:px-4 md:first:pl-0 md:last:pr-0">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-[11px] font-extrabold text-[var(--brand-green)]">
+                              {Number(step.number)}
+                            </span>
+                            <div>
+                              <h3 className="text-[13px] font-bold text-[#07111f]">{step.title}</h3>
+                              <p className="mt-0.5 max-w-sm text-[12px] leading-5 text-slate-600">
+                                {step.text}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                    <div className="border-t border-slate-200/80 px-1 pt-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#07111f]">
+                          {hero.devicesTitle}
+                        </h2>
+                        <a href={devicesHref} className="eavesence-pill-link">
+                          {hero.allDevices}
                         </a>
-                      ))}
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {text.categories.map((category) => (
+                          <a
+                            key={category.name}
+                            href={category.href}
+                            className="group inline-flex min-h-9 items-center gap-2 rounded-full border border-[#dfe8df] bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 transition hover:border-[#b8efcc] hover:bg-[#eaf8ef] hover:text-[var(--brand-green)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-green)]"
+                          >
+                            <span className="text-[var(--brand-green)] transition-transform duration-200 group-hover:-translate-y-0.5">
+                              <Icon name={category.icon} className="h-4 w-4" />
+                            </span>
+                            {category.name}
+                          </a>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  </>
                 }
               />
-            </div>
-          </div>
-        </section>
-
-        <section
-          id="so-funktionierts"
-          className="scroll-mt-24 px-5 pb-6 sm:px-6 sm:pb-8"
-        >
-          <div className="mx-auto max-w-6xl border-b border-slate-200/80 py-4">
-            <h2 className="text-[14px] font-bold text-[#07111f]">
-              {text.howItWorks.label}
-            </h2>
-            <div className="mt-3 grid gap-3 md:grid-cols-3 md:gap-4 md:divide-x md:divide-slate-200">
-              {text.howItWorks.steps.map((step) => (
-                <div
-                  key={step.number}
-                  className="flex gap-2.5 md:px-4 md:first:pl-0 md:last:pr-0"
-                >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-[11px] font-extrabold text-[var(--brand-green)]">
-                    {Number(step.number)}
-                  </span>
-                  <div>
-                    <h3 className="text-[13px] font-bold text-[#07111f]">{step.title}</h3>
-                    <p className="mt-0.5 max-w-sm text-[12px] leading-5 text-slate-600">
-                      {step.text}
-                    </p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </section>
