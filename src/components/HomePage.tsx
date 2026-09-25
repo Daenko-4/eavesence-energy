@@ -540,7 +540,7 @@ export default function HomePage({
                 homePresentation
                 afterSavingTip={
                   <div id="so-funktionierts" className="mt-4 scroll-mt-24 border-t border-slate-200/80 px-1 pt-4">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <a href={devicesHref} className="eavesence-pill-link">
                         {hero.allDevices}
                       </a>
@@ -552,7 +552,7 @@ export default function HomePage({
                         className="eavesence-pill-button"
                       >
                         {text.howItWorks.label}
-                        <span aria-hidden="true" className={`ml-1 inline-block transition-transform duration-200 ${howItWorksOpen ? "-rotate-45" : ""}`}>+</span>
+                        <span aria-hidden="true" className={`ml-1 inline-block origin-center transition-transform duration-[180ms] ${howItWorksOpen ? "-rotate-45" : "rotate-0"}`}>+</span>
                       </button>
                     </div>
                     <div id="how-it-works-steps" hidden={!howItWorksOpen} className={`${howItWorksOpen ? "grid" : "hidden"} mt-4 gap-3 border-t border-slate-200/80 pt-4 md:grid-cols-3 md:gap-4 md:divide-x md:divide-slate-200`}>
@@ -592,7 +592,7 @@ export default function HomePage({
               </h2>
               <span
                 aria-hidden="true"
-                className={`shrink-0 text-xl font-light text-slate-500 transition-[color,transform] duration-200 ${
+                className={`inline-block shrink-0 origin-center text-xl font-light text-slate-500 transition-[color,transform] duration-[180ms] ${
                   faqOpen
                     ? "-rotate-45 text-[var(--brand-green)]"
                     : "rotate-0"
@@ -621,7 +621,7 @@ export default function HomePage({
 
                         <span
                           aria-hidden="true"
-                          className="text-lg font-light text-slate-500 transition-transform duration-150 group-open:-rotate-45 group-open:text-[var(--brand-green)]"
+                          className="inline-block origin-center rotate-0 text-lg font-light text-slate-500 transition-[color,transform] duration-[180ms] group-open:-rotate-45 group-open:text-[var(--brand-green)]"
                         >
                           +
                         </span>
