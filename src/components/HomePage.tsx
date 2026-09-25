@@ -125,22 +125,8 @@ const content = {
       title: "My Home bündelt deinen ganzen Haushalt.",
       text:
         "Der Rechner bleibt kostenlos. In My Home führst du Geräte, Stromverbrauch und laufende Haushaltskosten übersichtlich an einem Ort zusammen.",
-      freeLabel: "Schon jetzt kostenlos",
-      freeItems: [
-        "Gerätekosten berechnen und lokal speichern",
-        "Haushaltskosten in eigenen Bereichen anlegen",
-        "Monatswerte und Sparziele im Blick behalten",
-      ],
       proLabel: "Vollversion in Vorbereitung",
-      proTitle: "EAVESENCE Pro",
-      proPrice: "geplant ab 5,99 € / Monat",
-      proItems: [
-        "Synchronisation auf mehreren Geräten",
-        "Längere Auswertungen und automatische Hinweise",
-        "Mehrere Haushalte sowie Rechnungs- und Energieetikett-Scan",
-      ],
       button: "My Home kostenlos starten",
-      note: "Noch keine Zahlung und keine Anmeldung erforderlich.",
     },
 
     benefits: [
@@ -359,22 +345,8 @@ const content = {
       title: "My Home brings your whole household together.",
       text:
         "The calculator stays free. My Home brings devices, electricity use and recurring household costs together clearly in one place.",
-      freeLabel: "Already free",
-      freeItems: [
-        "Calculate device costs and save them locally",
-        "Organize household costs in your own sections",
-        "Track monthly values and savings goals",
-      ],
       proLabel: "Full version in development",
-      proTitle: "EAVESENCE Pro",
-      proPrice: "planned from €5.99 / month",
-      proItems: [
-        "Sync across multiple devices",
-        "Longer reports and automatic insights",
-        "Multiple households plus bill and energy-label scanning",
-      ],
       button: "Start My Home for free",
-      note: "No payment or account required yet.",
     },
 
     benefits: [
@@ -825,7 +797,7 @@ export default function HomePage({
                 homePresentation
                 trustItems={text.hero.features}
                 afterSavingTip={
-                  <div className="mt-5 border-t border-slate-200/80 px-1 pt-5">
+                  <div className="mt-4 border-t border-slate-200/80 px-1 pt-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#07111f]">
                         {hero.devicesTitle}
@@ -834,15 +806,15 @@ export default function HomePage({
                         {hero.allDevices}
                       </a>
                     </div>
-                    <div className="mt-4 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       {text.categories.map((category) => (
                         <a
                           key={category.name}
                           href={category.href}
-                          className="group flex min-h-[72px] items-center gap-2.5 border-b border-r border-slate-200/70 px-4 text-[13px] font-semibold text-slate-700 transition hover:bg-[#eaf8ef] hover:text-[var(--brand-green)] sm:px-5 lg:border-b-0 lg:last:border-r-0"
+                          className="group inline-flex min-h-9 items-center gap-2 rounded-full border border-[#dfe8df] bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 transition hover:border-[#b8efcc] hover:bg-[#eaf8ef] hover:text-[var(--brand-green)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-green)]"
                         >
                           <span className="text-[var(--brand-green)] transition-transform duration-200 group-hover:-translate-y-0.5">
-                            <Icon name={category.icon} className="h-5 w-5" />
+                            <Icon name={category.icon} className="h-4 w-4" />
                           </span>
                           {category.name}
                         </a>
@@ -857,24 +829,24 @@ export default function HomePage({
 
         <section
           id="so-funktionierts"
-          className="scroll-mt-24 px-5 pb-8 sm:px-6 sm:pb-10"
+          className="scroll-mt-24 px-5 pb-6 sm:px-6 sm:pb-8"
         >
           <div className="mx-auto max-w-6xl border-b border-slate-200/80 py-4">
-            <h2 className="text-[16px] font-bold text-[#07111f]">
+            <h2 className="text-[14px] font-bold text-[#07111f]">
               {text.howItWorks.label}
             </h2>
-            <div className="mt-4 grid gap-5 md:grid-cols-3 md:divide-x md:divide-slate-200">
+            <div className="mt-3 grid gap-3 md:grid-cols-3 md:gap-4 md:divide-x md:divide-slate-200">
               {text.howItWorks.steps.map((step) => (
                 <div
                   key={step.number}
-                  className="flex gap-4 md:px-7 md:first:pl-0 md:last:pr-0"
+                  className="flex gap-2.5 md:px-4 md:first:pl-0 md:last:pr-0"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-sm font-extrabold text-[var(--brand-green)]">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-[11px] font-extrabold text-[var(--brand-green)]">
                     {Number(step.number)}
                   </span>
                   <div>
-                    <h3 className="font-bold text-[#07111f]">{step.title}</h3>
-                    <p className="mt-1 max-w-sm text-sm leading-6 text-slate-600">
+                    <h3 className="text-[13px] font-bold text-[#07111f]">{step.title}</h3>
+                    <p className="mt-0.5 max-w-sm text-[12px] leading-5 text-slate-600">
                       {step.text}
                     </p>
                   </div>
@@ -884,74 +856,33 @@ export default function HomePage({
           </div>
         </section>
 
-        <section className="px-5 pb-10 sm:px-6 sm:pb-12">
-          <div className="mx-auto grid max-w-7xl gap-5 rounded-[1.45rem] border border-[#dde2d8] bg-[#eef0ec] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] sm:p-7 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
-            <div className="flex flex-col justify-between py-1 lg:py-3">
-              <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
-                  {text.fullVersion.eyebrow}
-                </p>
-                <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-[-0.04em] text-[#07111f] sm:text-3xl">
-                  {text.fullVersion.title}
-                </h2>
-                <p className="mt-3 max-w-2xl text-[14px] leading-6 text-[#596660]">
-                  {text.fullVersion.text}
-                </p>
-              </div>
-
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <a href={householdHref} className="eavesence-pill-link !bg-[var(--brand-green)] !px-3.5 !py-1.5 !text-white shadow-[0_8px_18px_-12px_rgba(8,122,69,0.9)] hover:!bg-[var(--brand-green-dark)]">
-                  {text.fullVersion.button}
-                </a>
-                <span className="text-[11px] font-medium text-[#65716d]">
-                  {text.fullVersion.note}
-                </span>
-              </div>
+        <section className="px-5 pb-7 sm:px-6 sm:pb-9">
+          <div className="mx-auto flex max-w-6xl flex-col gap-4 rounded-2xl border border-[#dce8dd] bg-[#f6fbf7] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-5">
+            <div className="min-w-0">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
+                {text.fullVersion.eyebrow}
+              </p>
+              <h2 className="mt-1 text-[16px] font-bold tracking-[-0.02em] text-[#07111f]">
+                {text.fullVersion.title}
+              </h2>
+              <p className="mt-1 max-w-2xl text-[13px] leading-5 text-[#596660]">
+                {text.fullVersion.text}
+              </p>
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <article className="rounded-2xl border border-[#d8ded8] bg-[#fbfcf8] p-4 sm:p-5">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">
-                  {text.fullVersion.freeLabel}
-                </p>
-                <ul className="mt-4 space-y-3">
-                  {text.fullVersion.freeItems.map((item) => (
-                    <li key={item} className="flex gap-2.5 text-[13px] leading-5 text-[#52605b]">
-                      <span aria-hidden="true" className="mt-0.5 font-bold text-[var(--brand-green)]">✓</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </article>
-
-              <article className="rounded-2xl border border-[#b8efcc] bg-[#dcfce8] p-4 sm:p-5">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">
-                  {text.fullVersion.proLabel}
-                </p>
-                <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="text-[16px] font-extrabold text-[#17211f]">
-                    {text.fullVersion.proTitle}
-                  </h3>
-                  <span className="text-[11px] font-bold text-[var(--brand-green)]">
-                    {text.fullVersion.proPrice}
-                  </span>
-                </div>
-                <ul className="mt-4 space-y-3">
-                  {text.fullVersion.proItems.map((item) => (
-                    <li key={item} className="flex gap-2.5 text-[13px] leading-5 text-[#52605b]">
-                      <span aria-hidden="true" className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-[var(--brand-green-mint)]" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </article>
+            <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 sm:justify-end">
+              <a href={householdHref} className="eavesence-pill-link">
+                {text.fullVersion.button}
+              </a>
+              <span className="text-[11px] text-[#65716d]">
+                {text.fullVersion.proLabel}
+              </span>
             </div>
           </div>
         </section>
 
         <section
           id="faq"
-          className="scroll-mt-[84px] px-5 pb-16 pt-4 sm:px-6 sm:pb-20 sm:pt-5"
+          className="scroll-mt-[84px] px-5 pb-9 pt-2 sm:px-6 sm:pb-12"
         >
           <div className="mx-auto max-w-5xl">
             <button
@@ -961,7 +892,7 @@ export default function HomePage({
               aria-controls="faq-answers"
               className="group flex w-full items-center justify-between gap-5 border-y border-slate-200 py-4 text-left transition hover:text-[var(--brand-green)]"
             >
-              <h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#07111f] transition group-hover:text-[var(--brand-green)] sm:text-3xl">
+              <h2 className="text-[16px] font-bold text-[#07111f] transition group-hover:text-[var(--brand-green)]">
                 {text.faq.title}
               </h2>
               <span

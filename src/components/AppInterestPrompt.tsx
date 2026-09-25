@@ -63,16 +63,16 @@ export default function AppInterestPrompt({ locale }: AppInterestPromptProps) {
   if (!answer && effectiveAnswer) return null;
 
   return (
-    <section className="px-5 py-8 sm:px-6 sm:py-10" aria-label={text.eyebrow}>
-      <div className="mx-auto flex max-w-7xl flex-col gap-5 border-y border-slate-200/80 py-6 sm:flex-row sm:items-center sm:justify-between">
+    <section className="px-5 pb-8 sm:px-6 sm:pb-10" aria-label={text.eyebrow}>
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 border-t border-slate-200/80 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
             {text.eyebrow}
           </p>
-          <h2 className="mt-2 text-xl font-extrabold tracking-[-0.03em] text-[#07111f] sm:text-2xl">
+          <h2 className="mt-1 text-[15px] font-bold text-[#07111f]">
             {text.question}
           </h2>
-          <p className="mt-1.5 text-sm leading-6 text-slate-600">{text.detail}</p>
+          <p className="mt-1 text-[12px] leading-5 text-slate-600">{text.detail}</p>
         </div>
 
         {effectiveAnswer ? (
@@ -80,18 +80,18 @@ export default function AppInterestPrompt({ locale }: AppInterestPromptProps) {
             {text.thanks}
           </p>
         ) : (
-          <div className="flex shrink-0 flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2">
             <button
               type="button"
               onClick={() => submitAnswer("yes")}
-              className="min-h-11 rounded-full bg-[var(--brand-green)] px-5 text-sm font-bold text-white transition hover:bg-[var(--brand-green-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green)] focus-visible:ring-offset-2"
+              className="eavesence-pill-link"
             >
               {text.yes}
             </button>
             <button
               type="button"
               onClick={() => submitAnswer("not_yet")}
-              className="min-h-11 text-sm font-bold text-slate-500 transition hover:text-[var(--brand-green)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green)] focus-visible:ring-offset-2"
+              className="text-[12px] font-semibold text-slate-500 transition hover:text-[var(--brand-green)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green)] focus-visible:ring-offset-2"
             >
               {text.notYet}
             </button>
