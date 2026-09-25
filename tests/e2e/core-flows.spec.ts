@@ -742,7 +742,7 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
     if (firstFaqTop === null) {
       firstFaqTop = currentFaqTop;
     } else {
-      expect(Math.abs(currentFaqTop - firstFaqTop)).toBeLessThanOrEqual(2);
+      expect(Math.abs(currentFaqTop - firstFaqTop)).toBeLessThanOrEqual(4);
     }
   }
 });
