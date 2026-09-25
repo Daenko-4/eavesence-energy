@@ -388,14 +388,14 @@ export default function HomePage({
           understand: "Verstehen.",
           save: "Sparen.",
           subtitle: "My Home zeigt Einkommen, laufende Kosten und anstehende Zahlungen auf einen Blick.",
-          allDevices: "Weitere Geräte berechnen",
+          allDevices: "Alle Geräte ansehen",
         }
       : {
           calculate: "Plan.",
           understand: "Understand.",
           save: "Save.",
           subtitle: "My Home brings income, recurring costs and upcoming payments into one clear view.",
-          allDevices: "Calculate another device",
+          allDevices: "See all devices",
         };
 
   const devicesHref =
