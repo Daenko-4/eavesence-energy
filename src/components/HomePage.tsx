@@ -540,7 +540,7 @@ export default function HomePage({
                 homePresentation
                 afterSavingTip={
                   <div id="so-funktionierts" className="mt-4 scroll-mt-24 border-t border-slate-200/80 px-1 pt-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-col items-end gap-2">
                       <a href={devicesHref} className="eavesence-pill-link">
                         {hero.allDevices}
                       </a>
