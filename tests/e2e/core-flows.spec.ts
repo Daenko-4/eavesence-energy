@@ -212,11 +212,20 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdOverview.getByLabel("Net income").press("Enter");
   await expect(householdOverview).toContainText("€2,000.00");
   await expect(householdOverview).toContainText("Monthly budget after recurring costs");
-  const incomeCard = householdOverview.locator("article").first();
-  const incomeHeightBefore = (await incomeCard.boundingBox())?.height;
+  const financeCards = householdOverview.locator("article");
+  await expect(financeCards.nth(0)).toContainText("Payments next month");
+  await expect(financeCards.nth(1)).toContainText("Net income / month");
+  await expect(financeCards.nth(2)).toContainText("Recurring costs / month");
+  const collapsedHeights = await financeCards.evaluateAll((cards) =>
+    cards.map((card) => card.getBoundingClientRect().height),
+  );
+  expect(new Set(collapsedHeights).size).toBe(1);
   await householdOverview.getByRole("button", { name: "Scheduled payments" }).click();
   await expect(householdOverview).toContainText("Add due dates to your costs");
-  expect((await incomeCard.boundingBox())?.height).toBe(incomeHeightBefore);
+  const expandedHeights = await financeCards.evaluateAll((cards) =>
+    cards.map((card) => card.getBoundingClientRect().height),
+  );
+  expect(new Set(expandedHeights).size).toBe(1);
   await expect(page.locator("#household-costs")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Monthly values & history/ })).toBeVisible();
   await page.getByRole("button", { name: /New tile/ }).click();
