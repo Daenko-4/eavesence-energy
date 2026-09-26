@@ -1722,22 +1722,26 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-label={text.financeTitle}>
             <h2 className={homeSectionTitleClass}>{text.financeTitle}</h2>
-            <div className="mt-4 grid items-stretch gap-3 md:grid-cols-3">
-              <article className="h-full rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
+            <div className="mt-4 grid items-start gap-3 md:grid-cols-3">
+              <article className="w-full rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
+                <div className="flex min-h-[104px] flex-col">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">{text.financeUpcoming} · {nextMonthLabel}</p>
                 <p className="mt-2 text-xl font-extrabold tracking-[-0.035em]">{formatMoney(upcomingPayments.total, locale, profile.currency)}</p>
                 <p className="mt-1 text-[11px] text-[#65716d]">{text.financeUpcomingHint.replace("{count}", String(upcomingPayments.undatedCount))}</p>
-                <button type="button" onClick={() => setUpcomingOpen((open) => !open)} aria-expanded={upcomingOpen} className="eavesence-pill-link mt-2">{text.financeUpcomingDates}</button>
+                <button type="button" onClick={() => setUpcomingOpen((open) => !open)} aria-expanded={upcomingOpen} className="eavesence-pill-link mt-auto self-start">{text.financeUpcomingDates}</button>
+                </div>
                 {upcomingOpen && <div className="mt-3 border-t border-[#dfe5dd] pt-3 text-[12px] text-[#52605b]">
                   {upcomingPayments.payments.length === 0 ? <p>{text.financeNoDates}</p> : (
                     <ul className="space-y-2">{upcomingPayments.payments.map(({ cost, date }) => <li key={`${cost.id}-${date}`} className="flex justify-between gap-3"><span>{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`))} · {cost.name}</span><span className="shrink-0 font-bold">{formatMoney(cost.amount, locale, profile.currency)}</span></li>)}</ul>
                   )}
                 </div>}
               </article>
-              <article className="h-full rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
+              <article className="w-full rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
+                <div className="flex min-h-[104px] flex-col">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">{text.financeIncome}</p>
                 {monthlyIncome > 0 && <p className="mt-2 text-xl font-extrabold tracking-[-0.035em]">{formatMoney(monthlyIncome, locale, profile.currency)}</p>}
-                <button type="button" onClick={() => setIncomeOpen((open) => !open)} aria-expanded={incomeOpen} className="eavesence-pill-link mt-2">{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
+                <button type="button" onClick={() => setIncomeOpen((open) => !open)} aria-expanded={incomeOpen} className="eavesence-pill-link mt-auto self-start">{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
+                </div>
                 {incomeOpen && (
                   <form onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-3 grid gap-2">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financeIncomeAmount}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
@@ -1747,10 +1751,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   </form>
                 )}
               </article>
-              <article className="h-full rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
+              <article className="w-full rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
+                <div className="flex min-h-[104px] flex-col">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">{text.financeCosts}</p>
                 <p className="mt-2 text-xl font-extrabold tracking-[-0.035em]">{formatMoney(householdCostSummary.monthlyTotal, locale, profile.currency)}</p>
-                {monthlyIncome > 0 && <p className="mt-2 text-[12px] text-[#52605b]">{text.financeBalance}: {formatMoney(monthlyIncome - householdCostSummary.monthlyTotal, locale, profile.currency)}</p>}
+                {monthlyIncome > 0 && <p className="mt-1 text-[12px] text-[#52605b]">{text.financeBalance}: {formatMoney(monthlyIncome - householdCostSummary.monthlyTotal, locale, profile.currency)}</p>}
+                </div>
               </article>
             </div>
           </section>
