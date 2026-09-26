@@ -220,12 +220,25 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     cards.map((card) => card.getBoundingClientRect().height),
   );
   expect(new Set(collapsedHeights).size).toBe(1);
+  const paymentPill = await householdOverview.getByRole("button", { name: "Scheduled payments" }).boundingBox();
+  const incomePill = await householdOverview.getByRole("button", { name: "Edit income" }).boundingBox();
+  expect(Math.abs((paymentPill?.y ?? 0) - (incomePill?.y ?? 0))).toBeLessThan(1);
   await householdOverview.getByRole("button", { name: "Scheduled payments" }).click();
   await expect(householdOverview).toContainText("Add due dates to your costs");
   const expandedHeights = await financeCards.evaluateAll((cards) =>
     cards.map((card) => card.getBoundingClientRect().height),
   );
-  expect(new Set(expandedHeights).size).toBe(1);
+  expect(expandedHeights[0]).toBeGreaterThan(collapsedHeights[0]);
+  expect(expandedHeights.slice(1)).toEqual(collapsedHeights.slice(1));
+  await householdOverview.getByRole("button", { name: "Scheduled payments" }).click();
+  await householdOverview.getByRole("button", { name: "Edit income" }).click();
+  const incomeExpandedHeights = await financeCards.evaluateAll((cards) =>
+    cards.map((card) => card.getBoundingClientRect().height),
+  );
+  expect(incomeExpandedHeights[1]).toBeGreaterThan(collapsedHeights[1]);
+  expect(incomeExpandedHeights[0]).toBe(collapsedHeights[0]);
+  expect(incomeExpandedHeights[2]).toBe(collapsedHeights[2]);
+  await householdOverview.getByRole("button", { name: "Edit income" }).click();
   await expect(page.locator("#household-costs")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Monthly values & history/ })).toBeVisible();
   await page.getByRole("button", { name: /New tile/ }).click();
