@@ -6,6 +6,7 @@
   "main": "./src/energyCalculations.ts",
   "types": "./src/energyCalculations.ts",
   "exports": {
-    ".": "./src/energyCalculations.ts"
+    ".": "./src/energyCalculations.ts",
+    "./householdCosts": "./src/householdCosts.ts"
   }
 }

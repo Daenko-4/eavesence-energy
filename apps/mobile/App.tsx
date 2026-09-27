@@ -1,4 +1,12 @@
 import { calculateEnergyCosts } from "@eavesence/core";
+import {
+  forecastHouseholdCosts,
+  monthlyCost,
+  readHouseholdCosts,
+  removeHouseholdCost,
+  upsertHouseholdCost,
+  type HouseholdCost,
+} from "@eavesence/core/householdCosts";
 import * as Notifications from "expo-notifications";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
@@ -16,8 +24,10 @@ import {
 } from "react-native";
 import type { PurchasesPackage } from "react-native-purchases";
 
+import CostsScreen from "./src/CostsScreen";
 import {
   BETA_KEY,
+  COSTS_KEY,
   DEVICES_KEY,
   HISTORY_KEY,
   PROFILE_KEY,
@@ -34,7 +44,7 @@ import {
   restorePro,
 } from "./src/subscriptions";
 
-type Tab = "home" | "add" | "history" | "pro";
+type Tab = "home" | "costs" | "add" | "history" | "pro";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -66,6 +76,7 @@ export default function App() {
   const [profile, setProfile] = useState<MobileProfile | null>(null);
   const [devices, setDevices] = useState<MobileDevice[]>([]);
   const [history, setHistory] = useState<MobileHistoryEntry[]>([]);
+  const [costs, setCosts] = useState<HouseholdCost[]>([]);
   const [tab, setTab] = useState<Tab>("home");
   const [homeName, setHomeName] = useState("Mein Zuhause");
   const [electricityPrice, setElectricityPrice] = useState("0.30");
@@ -84,11 +95,13 @@ export default function App() {
       readJson<MobileProfile | null>(PROFILE_KEY, null),
       readJson<MobileDevice[]>(DEVICES_KEY, []),
       readJson<MobileHistoryEntry[]>(HISTORY_KEY, []),
+      readJson<unknown>(COSTS_KEY, []),
       readJson<boolean>(BETA_KEY, false),
-    ]).then(([storedProfile, storedDevices, storedHistory, storedBeta]) => {
+    ]).then(([storedProfile, storedDevices, storedHistory, storedCosts, storedBeta]) => {
       setProfile(storedProfile);
       setDevices(storedDevices);
       setHistory(storedHistory);
+      setCosts(readHouseholdCosts(JSON.stringify(storedCosts)));
       setBetaInterested(storedBeta);
       setReady(true);
     });
@@ -115,6 +128,14 @@ export default function App() {
       ? ((currentMonthEntry.kwh - previousMonthEntry.kwh) / previousMonthEntry.kwh) * 100
       : null;
   const topDevice = [...devices].sort((a, b) => b.yearlyCost - a.yearlyCost)[0] ?? null;
+  const forecast = forecastHouseholdCosts(costs);
+  const costSummary = forecast.summary;
+  const upcoming = forecast.next;
+  const monthlyIncome = (profile?.incomeAmount ?? 0) / (profile?.incomeFrequency === "yearly" ? 12 : 1);
+  const forecastComplete = forecast.complete;
+  const forecastDifference = forecast.difference;
+  const forecastDriver = forecast.drivers[0];
+  const nextMonthLabel = new Intl.DateTimeFormat("de-AT", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${upcoming.month}-01T00:00:00Z`));
 
   async function createHome() {
     const nextProfile: MobileProfile = {
@@ -165,6 +186,25 @@ export default function App() {
     const nextDevices = devices.filter((device) => device.id !== id);
     await writeJson(DEVICES_KEY, nextDevices);
     setDevices(nextDevices);
+  }
+
+  async function saveCost(cost: HouseholdCost) {
+    const next = upsertHouseholdCost(costs, cost);
+    await writeJson(COSTS_KEY, next);
+    setCosts(next);
+  }
+
+  async function deleteCost(id: string) {
+    const next = removeHouseholdCost(costs, id);
+    await writeJson(COSTS_KEY, next);
+    setCosts(next);
+  }
+
+  async function saveIncome(amount: number, frequency: "monthly" | "yearly") {
+    if (!profile) return;
+    const next = { ...profile, incomeAmount: amount, incomeFrequency: frequency };
+    await writeJson(PROFILE_KEY, next);
+    setProfile(next);
   }
 
   async function saveMonth() {
@@ -260,19 +300,33 @@ export default function App() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {tab === "home" && <>
           <Text style={styles.eyebrow}>DEINE ÜBERSICHT</Text>
-          <Text style={styles.heroSmall}>{euro.format(totals.yearlyCost / 12)} <Text style={styles.heroUnit}>pro Monat</Text></Text>
+          <Text style={styles.heroSmall}>{euro.format(costSummary.monthlyTotal)} <Text style={styles.heroUnit}>laufende Kosten pro Monat</Text></Text>
+          <View style={styles.forecastCard}>
+            <Text style={styles.forecastLabel}>ZAHLUNGEN IM NÄCHSTEN MONAT · {nextMonthLabel.toUpperCase()}</Text>
+            <Text style={styles.forecastAmount}>{euro.format(upcoming.total)}</Text>
+            {costs.length === 0 ? <Text style={styles.forecastNote}>Lege deine ersten regelmäßigen Kosten an, um die Vorschau zu sehen.</Text> : !forecastComplete ? <Text style={styles.forecastNote}>{upcoming.undatedCount} {upcoming.undatedCount === 1 ? "Kostenposten ohne Zahlungstermin fehlt" : "Kostenposten ohne Zahlungstermin fehlen"} in dieser Vorschau.</Text> : <>
+              <Text style={styles.forecastNote}>{Math.abs(forecastDifference) < 0.01 ? "Etwa so viel wie dein monatlicher Kostendurchschnitt" : `${euro.format(Math.abs(forecastDifference))} ${forecastDifference > 0 ? "mehr" : "weniger"} als dein monatlicher Kostendurchschnitt`}</Text>
+              {forecastDifference > 0.01 && forecastDriver && <Text style={styles.forecastDetail}>Größter zusätzlicher Posten: {forecastDriver.cost.name} ({euro.format(forecastDriver.cost.amount)} fällig statt {euro.format(monthlyCost(forecastDriver.cost.amount, forecastDriver.cost.frequency))} im Monatsdurchschnitt).</Text>}
+            </>}
+            {costs.length > 0 && upcoming.payments.slice(0, 3).map(({ cost, date }) => <Text key={`${cost.id}-${date}`} style={styles.forecastDetail}>{date} · {cost.name} · {euro.format(cost.amount)}</Text>)}
+            <Pressable onPress={() => setTab("costs")} style={styles.pulseAction}><Text style={styles.pulseActionText}>{costs.length ? "Kosten prüfen" : "Kosten hinzufügen"}</Text></Pressable>
+          </View>
+          {monthlyIncome > 0 && <View style={styles.incomeCard}><Text style={styles.forecastLabel}>BUDGET NACH LAUFENDEN KOSTEN</Text><Text style={styles.incomeAmount}>{euro.format(monthlyIncome - costSummary.monthlyTotal)}</Text><Text style={styles.forecastNote}>Nettoeinkommen minus erfasste regelmäßige Kosten. Variable Ausgaben sind nicht enthalten.</Text></View>}
           <View style={[styles.pulseCard, currentMonthEntry ? styles.pulseCardComplete : styles.pulseCardOpen]}>
             <Text style={[styles.pulseLabel, currentMonthEntry ? styles.pulseLabelComplete : styles.pulseLabelOpen]}>{currentMonthEntry ? "MONATSÜBERBLICK" : "NÄCHSTER SCHRITT"}</Text>
             <Text style={styles.pulseTitle}>{currentMonthEntry ? monthlyChange === null ? "Deine erste Monatsbasis steht" : Math.abs(monthlyChange) < 1 ? "Verbrauch nahezu unverändert" : monthlyChange < 0 ? `${Math.abs(monthlyChange).toFixed(0)} % weniger als im Vormonat` : `${monthlyChange.toFixed(0)} % mehr als im Vormonat` : "Aktueller Monatswert noch offen"}</Text>
             <Text style={styles.pulseBody}>{currentMonthEntry ? `${Math.round(currentMonthEntry.kwh * 10) / 10} kWh · ${euro.format(currentMonthEntry.cost)}` : "Erfasse einmal im Monat Verbrauch oder Rechnungsbetrag. Den zweiten Wert berechnen wir automatisch."}</Text>
             {!currentMonthEntry && <Pressable style={styles.pulseAction} onPress={() => setTab("history")}><Text style={styles.pulseActionText}>Monatswert eintragen</Text></Pressable>}
           </View>
-          <View style={styles.metricGrid}><Metric label="Pro Jahr" value={euro.format(totals.yearlyCost)} /><Metric label="Verbrauch" value={`${Math.round(totals.yearlyKwh)} kWh`} /><Metric label="Ziel pro Monat" value={euro.format((totals.yearlyCost / 12) * (1 - profile.savingsGoalPercent / 100))} /><Metric label="Geräte" value={`${devices.length}`} /></View>
+          <Text style={styles.sectionTitle}>Strom & Geräte</Text>
+          <View style={styles.metricGrid}><Metric label="Gerätekosten/Jahr" value={euro.format(totals.yearlyCost)} /><Metric label="Verbrauch" value={`${Math.round(totals.yearlyKwh)} kWh`} /><Metric label="Ziel pro Monat" value={euro.format((totals.yearlyCost / 12) * (1 - profile.savingsGoalPercent / 100))} /><Metric label="Geräte" value={`${devices.length}`} /></View>
           {topDevice && <View style={styles.insightCard}><Text style={styles.insightLabel}>GRÖSSTER HEBEL</Text><Text style={styles.insightTitle}>{topDevice.name}</Text><Text style={styles.muted}>{euro.format(topDevice.yearlyCost)} pro Jahr · {totals.yearlyCost > 0 ? Math.round(topDevice.yearlyCost / totals.yearlyCost * 100) : 0} % der erfassten Gerätekosten</Text></View>}
           <Text style={styles.sectionTitle}>Alle Verbraucher im Haushalt</Text>
           {devices.length === 0 ? <Empty text="Noch keine Geräte. Füge dein erstes Gerät hinzu." /> : devices.map((device) => <View key={device.id} style={styles.deviceRow}><View style={styles.flex}><Text style={styles.deviceName}>{device.name}</Text><Text style={styles.muted}>{euro.format(device.yearlyCost)} pro Jahr</Text></View><Pressable accessibilityRole="button" accessibilityLabel={`${device.name} löschen`} onPress={() => void removeDevice(device.id)}><Text style={styles.delete}>×</Text></Pressable></View>)}
           <PrimaryButton label="Gerät hinzufügen" onPress={() => setTab("add")} />
         </>}
+
+        {tab === "costs" && <CostsScreen profile={profile} costs={costs} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
 
         {tab === "add" && <>
           <Text style={styles.eyebrow}>NEUES GERÄT</Text><Text style={styles.heroSmall}>Was kostet dein Gerät?</Text>
@@ -297,7 +351,7 @@ export default function App() {
 
         {tab === "pro" && <View style={styles.proCard}><Text style={styles.eyebrowMint}>EAVESENCE PRO</Text><Text style={styles.proTitle}>Weniger eintragen. Früher reagieren.</Text><Text style={styles.proBody}>Automatische Verbrauchswarnungen, längerer Verlauf, Synchronisation, mehrere Haushalte sowie später Energieetikett- und Rechnungsscan.</Text>{isPro ? <Text style={styles.proActive}>Pro ist aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Pressable style={[styles.proButton, betaInterested && styles.proButtonDisabled]} disabled={betaInterested} onPress={() => void expressBetaInterest()}><Text style={styles.proButtonText}>{betaInterested ? "Beta-Interesse gespeichert" : "Beta-Platz vormerken"}</Text></Pressable>}<Pressable onPress={() => void restorePro().then(setIsPro)}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable><Text style={styles.proHint}>Noch keine Abbuchung ohne freigeschaltete Store-Produkte.</Text></View>}
       </ScrollView>
-      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} onPress={() => setTab(key)} style={styles.tab}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
+      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} onPress={() => setTab(key)} style={styles.tab}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
     </SafeAreaView>
   );
 }
@@ -319,6 +373,13 @@ function Empty({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
+  forecastCard: { marginBottom: 16, borderWidth: 1, borderColor: "#b8efcc", borderRadius: 18, backgroundColor: "#eefbf3", padding: 16 },
+  forecastLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 0.8, color: "#087a45" },
+  forecastAmount: { marginTop: 8, fontSize: 26, fontWeight: "900", color: "#07111f" },
+  forecastNote: { marginTop: 6, fontSize: 12, lineHeight: 18, color: "#52605b" },
+  forecastDetail: { marginTop: 7, fontSize: 12, lineHeight: 18, color: "#52605b" },
+  incomeCard: { marginBottom: 16, borderWidth: 1, borderColor: "#dfe5e1", borderRadius: 18, backgroundColor: "#ffffff", padding: 16 },
+  incomeAmount: { marginTop: 6, fontSize: 20, fontWeight: "900", color: "#07111f" },
   modeSwitch: { flexDirection: "row", marginBottom: 16, borderRadius: 18, backgroundColor: "#e7ece9", padding: 3 },
   modeButton: { flex: 1, minHeight: 34, alignItems: "center", justifyContent: "center", borderRadius: 15 },
   modeButtonActive: { backgroundColor: "#ffffff" },

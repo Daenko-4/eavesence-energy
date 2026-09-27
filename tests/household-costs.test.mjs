@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   annualCost,
   createHouseholdCost,
+  forecastHouseholdCosts,
   monthlyCost,
   nextPaymentForCost,
   paymentsForMonth,
@@ -140,4 +141,17 @@ test("forecasts a chosen month and finds the next recurrence without treating an
   assert.equal(paymentsForMonth([insurance, undated], "2026-10").undatedCount, 1);
   assert.equal(nextPaymentForCost(insurance, new Date("2026-09-20T12:00:00Z")), "2026-10-15");
   assert.equal(createHouseholdCost({ name: "Bad date", category: "insurance", amount: 10, frequency: "yearly", cancellationDeadline: "2026-02-30" }), null);
+});
+
+test("explains a costly month only when every recurring cost has a payment date", () => {
+  const rent = createHouseholdCost({ id: "rent", name: "Rent", category: "housing", amount: 900, frequency: "monthly", nextDueDate: "2026-09-01" });
+  const insurance = createHouseholdCost({ id: "insurance", name: "Insurance", category: "insurance", amount: 600, frequency: "yearly", nextDueDate: "2026-10-15" });
+  const today = new Date("2026-09-20T12:00:00Z");
+  const forecast = forecastHouseholdCosts([rent, insurance], today);
+  assert.equal(forecast.complete, true);
+  assert.equal(forecast.summary.monthlyTotal, 950);
+  assert.equal(forecast.next.total, 1500);
+  assert.equal(forecast.difference, 550);
+  assert.equal(forecast.drivers[0].cost.name, "Insurance");
+  assert.equal(forecastHouseholdCosts([{ ...insurance, nextDueDate: "" }, rent], today).complete, false);
 });
