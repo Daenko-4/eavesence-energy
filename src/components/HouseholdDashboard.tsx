@@ -14,6 +14,7 @@ import {
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import HouseholdCostsPanel from "@/components/HouseholdCostsPanel";
+import HouseholdInsightsPanel from "@/components/HouseholdInsightsPanel";
 import ConnectivityStatus from "@/components/ConnectivityStatus";
 import MyDevicesPanel, {
   SAVED_DEVICE_EDIT_REQUEST_KEY,
@@ -63,7 +64,9 @@ import {
   readHouseholdCosts,
   summarizeHouseholdCosts,
   type HouseholdCost,
+  type HouseholdCostCategory,
 } from "@/lib/householdCosts";
+import { COST_EVENTS_STORAGE_KEY, changesInCosts, readCostEvents, type CostEvent } from "@/lib/householdInsights";
 import {
   readSavedDevices,
   SAVED_DEVICES_STORAGE_KEY,
@@ -745,6 +748,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [savedDevices, setSavedDevices] = useState<SavedDevice[]>([]);
   const [history, setHistory] = useState<MonthlyEnergyEntry[]>([]);
   const [householdCosts, setHouseholdCosts] = useState<HouseholdCost[]>([]);
+  const [costEvents, setCostEvents] = useState<CostEvent[]>([]);
   const [incomeValue, setIncomeValue] = useState("");
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">("monthly");
   const [incomeOpen, setIncomeOpen] = useState(false);
@@ -778,6 +782,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [homeTiles, setHomeTiles] = useState<HomeTile[]>(defaultHomeTiles);
   const [activeTileId, setActiveTileId] = useState<string | null>(null);
+  const [costRequest, setCostRequest] = useState<{ costId?: string; template?: HouseholdCostCategory; nonce: number } | null>(null);
   const [tileFormOpen, setTileFormOpen] = useState(false);
   const [editingTileId, setEditingTileId] = useState<string | null>(null);
   const [tileName, setTileName] = useState("");
@@ -847,6 +852,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       setProfile(migratedProfile);
     }
     setHouseholdCosts(costs);
+    setCostEvents(readCostEvents(window.localStorage.getItem(COST_EVENTS_STORAGE_KEY)));
     setHomeTiles(tiles);
     setBetaInterested(window.localStorage.getItem(BETA_INTEREST_STORAGE_KEY) === "true");
   }, [locale]);
@@ -969,6 +975,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function persistHouseholdCosts(nextCosts: HouseholdCost[]) {
+    const changes = changesInCosts(householdCosts, nextCosts);
+    if (changes.length) {
+      const nextEvents = [...changes, ...costEvents].slice(0, 100);
+      window.localStorage.setItem(COST_EVENTS_STORAGE_KEY, JSON.stringify(nextEvents));
+      setCostEvents(nextEvents);
+    }
     window.localStorage.setItem(
       HOUSEHOLD_COSTS_STORAGE_KEY,
       JSON.stringify(nextCosts),
@@ -1147,6 +1159,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       devices: savedDevices,
       history,
       costs: householdCosts,
+      costEvents,
       tiles: homeTiles,
     });
     const blob = new Blob([JSON.stringify(backup, null, 2)], {
@@ -1188,6 +1201,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       HOUSEHOLD_COSTS_STORAGE_KEY,
       JSON.stringify(backup.costs),
     );
+    window.localStorage.setItem(COST_EVENTS_STORAGE_KEY, JSON.stringify(backup.costEvents ?? []));
     window.localStorage.setItem(
       HOME_TILES_STORAGE_KEY,
       JSON.stringify(backup.tiles),
@@ -1196,6 +1210,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setSavedDevices(backup.devices);
     setHistory(backup.history);
     setHouseholdCosts(backup.costs);
+    setCostEvents(backup.costEvents ?? []);
     setHomeTiles(backup.tiles);
     setActiveTileId(null);
     setName(localizeDefaultHouseholdName(backup.profile.name, locale));
@@ -1236,12 +1251,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     window.localStorage.removeItem(HOUSEHOLD_PROFILE_STORAGE_KEY);
     window.localStorage.removeItem(HOUSEHOLD_HISTORY_STORAGE_KEY);
     window.localStorage.removeItem(HOUSEHOLD_COSTS_STORAGE_KEY);
+    window.localStorage.removeItem(COST_EVENTS_STORAGE_KEY);
     window.localStorage.removeItem(HOUSEHOLD_VISIT_STORAGE_KEY);
     window.localStorage.removeItem(BETA_INTEREST_STORAGE_KEY);
     window.localStorage.removeItem(HOME_TILES_STORAGE_KEY);
     setProfile(null);
     setHistory([]);
     setHouseholdCosts([]);
+    setCostEvents([]);
     setName(locale === "de" ? "Mein Zuhause" : "My home");
     setCurrency("EUR");
     setPrice(0.3);
@@ -1601,6 +1618,18 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     ]);
   }
 
+  function openCostForm(cost?: HouseholdCost, template?: HouseholdCostCategory) {
+    const tile = cost?.tileId
+      ? homeTiles.find((item) => item.id === cost.tileId)
+      : homeTiles.find((item) => item.kind === "costs");
+    const selected = tile ?? activateTileKind("costs");
+    setActiveTileId(selected.id);
+    setCostRequest({ costId: cost?.id, template, nonce: Date.now() + Math.random() });
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      document.getElementById("household-costs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
+  }
+
   function homeTileSummary(tile: HomeTile) {
     if (tile.kind === "costs") {
       const count = costsForTile(tile.id).length;
@@ -1761,6 +1790,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
           </section>
 
+          <HouseholdInsightsPanel
+            locale={locale}
+            currency={profile.currency}
+            costs={householdCosts}
+            history={history}
+            events={costEvents}
+            onAdd={(category) => openCostForm(undefined, category)}
+            onReview={(cost) => openCostForm(cost)}
+          />
+
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
               <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
@@ -1797,7 +1836,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       <span title={text.reorderTile} aria-label={text.reorderTile} className="pointer-events-none absolute right-3 top-3 text-[#94a09b]">
                         <svg viewBox="0 0 10 16" className="h-4 w-2.5" fill="currentColor" aria-hidden="true"><circle cx="2" cy="3" r="1" /><circle cx="8" cy="3" r="1" /><circle cx="2" cy="8" r="1" /><circle cx="8" cy="8" r="1" /><circle cx="2" cy="13" r="1" /><circle cx="8" cy="13" r="1" /></svg>
                       </span>
-                      <button type="button" onClick={() => setActiveTileId(active ? null : tile.id)} aria-expanded={active} className="block w-full px-4 pb-3 pt-4 pr-10 text-left">
+                      <button type="button" onClick={() => { setCostRequest(null); setActiveTileId(active ? null : tile.id); }} aria-expanded={active} className="block w-full px-4 pb-3 pt-4 pr-10 text-left">
                         {tile.title && <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">{text.tileTitles[tile.kind]}</span>}
                         <span className={`${tile.title ? "mt-1.5 " : ""}block text-[14px] font-extrabold ${active ? "text-[var(--brand-green)]" : "text-[#17211f]"}`}>{title}</span>
                         <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{text.tileHints[tile.kind]}</span>
@@ -1904,10 +1943,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           {activeTile?.kind === "costs" && (
           <div className="mt-5">
           <HouseholdCostsPanel
+            key={`${activeTile.id}-${costRequest?.nonce ?? "default"}`}
             locale={locale}
             currency={profile.currency}
             costs={costsForTile(activeTile.id)}
             embedded
+            request={costRequest ?? undefined}
             onChange={(nextCosts) => persistCostsForTile(activeTile.id, nextCosts)}
           />
           </div>

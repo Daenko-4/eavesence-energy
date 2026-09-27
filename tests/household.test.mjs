@@ -93,6 +93,7 @@ test("creates and validates a complete household backup", () => {
         updatedAt: "2026-09-16T12:00:00.000Z",
       },
     ],
+    costEvents: [{ id: "rent", month: "2026-09", name: "Rent", kind: "added", previousMonthly: 0, monthly: 900 }],
     tiles: [
       { id: "insurance", kind: "costs", title: "Insurance" },
     ],
@@ -103,6 +104,7 @@ test("creates and validates a complete household backup", () => {
   assert.equal(restored?.devices.length, 1);
   assert.equal(restored?.history.length, 1);
   assert.equal(restored?.costs.length, 1);
+  assert.equal(restored?.costEvents?.[0].monthly, 900);
   assert.deepEqual(restored?.tiles, [
     { id: "default-energy", kind: "energy", title: null },
     { id: "insurance", kind: "costs", title: "Insurance" },
