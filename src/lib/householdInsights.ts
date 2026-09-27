@@ -1,10 +1,10 @@
 import {
   annualCost,
+  forecastHouseholdCosts,
   monthKey,
   monthlyCost,
   nextPaymentForCost,
   paymentsForMonth,
-  summarizeHouseholdCosts,
   type HouseholdCost,
 } from "./householdCosts";
 
@@ -59,21 +59,14 @@ export function changesInCosts(before: HouseholdCost[], after: HouseholdCost[], 
 }
 
 export function householdInsights(costs: HouseholdCost[], today = new Date()) {
-  const summary = summarizeHouseholdCosts(costs, today);
-  const next = paymentsForMonth(costs, monthKey(today, 1));
+  const forecast = forecastHouseholdCosts(costs, today);
   const current = paymentsForMonth(costs, monthKey(today));
   const previous = paymentsForMonth(costs, monthKey(today, -1));
-  const complete = costs.length > 0 && next.undatedCount === 0;
-  const difference = next.total - summary.monthlyTotal;
-  const drivers = next.payments
-    .map(({ cost, date }) => ({ cost, date, extra: cost.amount - monthlyCost(cost.amount, cost.frequency) }))
-    .filter(({ extra }) => extra > 0.01)
-    .sort((a, b) => b.extra - a.extra);
   const reviewCandidates = costs
     .filter((cost) => ["subscriptions", "insurance", "energy", "mobility", "financing"].includes(cost.category))
     .map((cost) => ({ cost, yearly: annualCost(cost.amount, cost.frequency), nextDate: nextPaymentForCost(cost, today) }))
     .sort((a, b) => b.yearly - a.yearly)
     .slice(0, 3);
 
-  return { summary, next, current, previous, complete, difference, drivers, reviewCandidates };
+  return { ...forecast, current, previous, reviewCandidates };
 }

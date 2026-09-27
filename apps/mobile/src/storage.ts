@@ -3,12 +3,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export const PROFILE_KEY = "eavesence-mobile-profile-v1";
 export const DEVICES_KEY = "eavesence-mobile-devices-v1";
 export const HISTORY_KEY = "eavesence-mobile-history-v1";
+export const COSTS_KEY = "eavesence-mobile-costs-v1";
 export const BETA_KEY = "eavesence-mobile-beta-v1";
 
 export type MobileProfile = {
   name: string;
   electricityPrice: number;
   savingsGoalPercent: number;
+  incomeAmount?: number;
+  incomeFrequency?: "monthly" | "yearly";
   createdAt: string;
 };
 
