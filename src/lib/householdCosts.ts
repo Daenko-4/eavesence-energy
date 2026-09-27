@@ -25,6 +25,7 @@ export type HouseholdCost = {
   frequency: HouseholdCostFrequency;
   tileId?: string;
   nextDueDate: string;
+  cancellationDeadline?: string;
   updatedAt: string;
 };
 
@@ -83,6 +84,7 @@ export function createHouseholdCost({
   frequency,
   tileId,
   nextDueDate = "",
+  cancellationDeadline = "",
   now = new Date(),
 }: {
   id?: string;
@@ -92,6 +94,7 @@ export function createHouseholdCost({
   frequency: HouseholdCostFrequency;
   tileId?: string;
   nextDueDate?: string;
+  cancellationDeadline?: string;
   now?: Date;
 }): HouseholdCost | null {
   const trimmedName = name.trim();
@@ -101,7 +104,8 @@ export function createHouseholdCost({
     !frequencies.includes(frequency) ||
     !Number.isFinite(amount) ||
     amount <= 0 ||
-    (nextDueDate !== "" && !/^\d{4}-\d{2}-\d{2}$/.test(nextDueDate))
+    (nextDueDate !== "" && !validDate(nextDueDate)) ||
+    (cancellationDeadline !== "" && !validDate(cancellationDeadline))
   ) {
     return null;
   }
@@ -116,6 +120,7 @@ export function createHouseholdCost({
     frequency,
     ...(tileId ? { tileId } : {}),
     nextDueDate,
+    ...(cancellationDeadline ? { cancellationDeadline } : {}),
     updatedAt: now.toISOString(),
   };
 }
@@ -134,8 +139,8 @@ function isHouseholdCost(value: unknown): value is HouseholdCost {
     candidate.amount > 0 &&
     (candidate.tileId === undefined || typeof candidate.tileId === "string") &&
     typeof candidate.nextDueDate === "string" &&
-    (candidate.nextDueDate === "" ||
-      /^\d{4}-\d{2}-\d{2}$/.test(candidate.nextDueDate)) &&
+    (candidate.nextDueDate === "" || validDate(candidate.nextDueDate)) &&
+    (candidate.cancellationDeadline === undefined || validDate(candidate.cancellationDeadline)) &&
     typeof candidate.updatedAt === "string"
   );
 }
@@ -181,11 +186,22 @@ export function reorderHouseholdCosts(
   return next;
 }
 
-export function paymentsNextMonth(costs: HouseholdCost[], today = new Date()) {
-  const year = today.getFullYear();
-  const month = today.getMonth() + 1;
-  const start = new Date(Date.UTC(year, month, 1));
-  const end = new Date(Date.UTC(year, month + 1, 1));
+function validDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+export function monthKey(date: Date, offset = 0) {
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth() + offset, 1))
+    .toISOString().slice(0, 7);
+}
+
+export function paymentsForMonth(costs: HouseholdCost[], month: string) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error("Invalid month");
+  const [year, monthNumber] = month.split("-").map(Number);
+  const start = new Date(Date.UTC(year, monthNumber - 1, 1));
+  const end = new Date(Date.UTC(year, monthNumber, 1));
   const payments: Array<{ cost: HouseholdCost; date: string }> = [];
   const intervalMonths: Partial<Record<HouseholdCostFrequency, number>> = {
     monthly: 1,
@@ -216,11 +232,26 @@ export function paymentsNextMonth(costs: HouseholdCost[], today = new Date()) {
 
   payments.sort((a, b) => b.cost.amount - a.cost.amount || a.date.localeCompare(b.date) || a.cost.name.localeCompare(b.cost.name));
   return {
-    month: start.toISOString().slice(0, 7),
+    month,
     payments,
     total: payments.reduce((total, payment) => total + payment.cost.amount, 0),
     undatedCount: costs.filter((cost) => !cost.nextDueDate).length,
   };
+}
+
+export function paymentsNextMonth(costs: HouseholdCost[], today = new Date()) {
+  return paymentsForMonth(costs, monthKey(today, 1));
+}
+
+export function nextPaymentForCost(cost: HouseholdCost, today = new Date()) {
+  if (!cost.nextDueDate) return null;
+  const todayKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");
+  for (let offset = 0; offset <= 12; offset++) {
+    const match = paymentsForMonth([cost], monthKey(today, offset)).payments
+      .find((payment) => payment.date >= todayKey);
+    if (match) return match.date;
+  }
+  return null;
 }
 
 export function summarizeHouseholdCosts(

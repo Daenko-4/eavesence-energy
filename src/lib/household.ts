@@ -1,5 +1,6 @@
 import type { SavedDevice, SavedDeviceCurrency } from "@/lib/savedDevices";
 import type { HouseholdCost } from "@/lib/householdCosts";
+import type { CostEvent } from "@/lib/householdInsights";
 import type { HomeTile, HomeTileKind } from "@/lib/homeTiles";
 
 export const HOUSEHOLD_PROFILE_STORAGE_KEY = "eavesence-home-profile-v1";
@@ -76,6 +77,7 @@ export type HouseholdBackup = {
   devices: SavedDevice[];
   history: MonthlyEnergyEntry[];
   costs: HouseholdCost[];
+  costEvents?: CostEvent[];
   tiles: HomeTile[];
 };
 
@@ -351,6 +353,7 @@ export function createHouseholdBackup({
   devices,
   history,
   costs = [],
+  costEvents = [],
   tiles = defaultBackupTiles(),
   now = new Date(),
 }: {
@@ -358,6 +361,7 @@ export function createHouseholdBackup({
   devices: SavedDevice[];
   history: MonthlyEnergyEntry[];
   costs?: HouseholdCost[];
+  costEvents?: CostEvent[];
   tiles?: HomeTile[];
   now?: Date;
 }): HouseholdBackup {
@@ -368,6 +372,7 @@ export function createHouseholdBackup({
     devices,
     history,
     costs,
+    costEvents,
     tiles,
   };
 }
@@ -442,10 +447,25 @@ function readBackupCosts(value: unknown): HouseholdCost[] | null {
       typeof candidate.nextDueDate === "string" &&
       (candidate.nextDueDate === "" ||
         /^\d{4}-\d{2}-\d{2}$/.test(candidate.nextDueDate)) &&
+      (candidate.cancellationDeadline === undefined || /^\d{4}-\d{2}-\d{2}$/.test(candidate.cancellationDeadline)) &&
       typeof candidate.updatedAt === "string"
     );
   });
   return costs.length === value.length ? costs : null;
+}
+
+function readBackupCostEvents(value: unknown): CostEvent[] | null {
+  if (!Array.isArray(value)) return null;
+  const events = value.filter((item): item is CostEvent => {
+    if (!item || typeof item !== "object") return false;
+    const event = item as Partial<CostEvent>;
+    return typeof event.id === "string" && typeof event.name === "string" &&
+      typeof event.month === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(event.month) &&
+      ["added", "changed", "removed"].includes(event.kind ?? "") &&
+      typeof event.previousMonthly === "number" && Number.isFinite(event.previousMonthly) &&
+      typeof event.monthly === "number" && Number.isFinite(event.monthly);
+  });
+  return events.length === value.length ? events.slice(0, 100) : null;
 }
 
 export function readHouseholdBackup(value: string): HouseholdBackup | null {
@@ -469,6 +489,7 @@ export function readHouseholdBackup(value: string): HouseholdBackup | null {
     const costs = readBackupCosts(
       Array.isArray(backup.costs) ? backup.costs : [],
     );
+    const costEvents = readBackupCostEvents(Array.isArray(backup.costEvents) ? backup.costEvents : []);
     const tiles = Array.isArray(backup.tiles)
       ? readBackupTiles(backup.tiles)
       : defaultBackupTiles();
@@ -476,9 +497,11 @@ export function readHouseholdBackup(value: string): HouseholdBackup | null {
       !profile ||
       !devices ||
       !costs ||
+      !costEvents ||
       !tiles ||
       history.length !== backup.history.length ||
       (Array.isArray(backup.costs) && costs.length !== backup.costs.length)
+      || (Array.isArray(backup.costEvents) && costEvents.length !== backup.costEvents.length)
     ) {
       return null;
     }
@@ -499,6 +522,7 @@ export function readHouseholdBackup(value: string): HouseholdBackup | null {
       devices,
       history,
       costs,
+      costEvents,
       tiles,
     };
   } catch {

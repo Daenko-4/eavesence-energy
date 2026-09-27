@@ -538,6 +538,49 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBe(3);
 });
 
+test("My home explains upcoming costs and records a contract review", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-09-20T12:00:00Z") });
+  await disableHeaderIntro(page);
+  await page.goto("/home");
+  await page.getByLabel("Home name").fill("Review home");
+  await page.getByLabel("Home name").press("Enter");
+  await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
+  await page.getByRole("button", { name: /Electricity Calculator/ }).click();
+  await page.getByLabel("Electricity price per kWh").fill("0.35");
+  await page.getByLabel("Electricity price per kWh").press("Enter");
+
+  const insights = page.locator("[data-household-insights]");
+  await expect(insights.getByText("0 of 3 recurring costs added.", { exact: false })).toBeVisible();
+  await insights.getByRole("button", { name: "Add contract" }).click();
+  const costs = page.locator("#household-costs");
+  await expect(costs.getByLabel("Name")).toHaveValue("Internet or subscription");
+  await costs.getByLabel("Amount").fill("600");
+  await costs.getByLabel("How often?").selectOption("yearly");
+  await costs.getByLabel("Next payment (optional)").fill("2026-10-15");
+  await costs.getByLabel("Cancellation deadline (optional, enter yourself)").fill("2026-09-28");
+  await costs.getByRole("button", { name: "Save", exact: true }).click();
+
+  const forecast = page.locator("[data-monthly-forecast]");
+  await expect(forecast).toContainText("October 2026");
+  await expect(forecast).toContainText("€550.00 more than your average monthly recurring costs");
+  await expect(forecast).toContainText("Largest extra payment: Internet or subscription");
+  const review = page.locator("[data-contract-review]");
+  await expect(review).toContainText("€600.00 per year");
+  await expect(review).toContainText("Cancellation deadline: 28 Sept 2026");
+  const calendar = page.waitForEvent("download");
+  await review.getByRole("button", { name: "Add deadline to calendar" }).click();
+  expect((await calendar).suggestedFilename()).toBe("eavesence-deadline.ics");
+
+  await review.getByRole("button", { name: "Check price" }).click();
+  await expect(costs.getByLabel("Amount")).toHaveValue("600");
+  await costs.getByLabel("Amount").fill("720");
+  await costs.getByRole("button", { name: "Update", exact: true }).click();
+  await expect(forecast).toContainText("€660.00 more than your average monthly recurring costs");
+  const recap = page.locator("[data-monthly-review]");
+  await expect(recap).toContainText("Internet or subscription: €50.00 → €60.00 per month");
+  await expect(recap).toContainText("Internet or subscription added: €50.00 per month");
+});
+
 test("calculator updates live and a saved calculation can be deleted", async ({
   page,
 }) => {

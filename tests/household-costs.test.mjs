@@ -5,6 +5,8 @@ import {
   annualCost,
   createHouseholdCost,
   monthlyCost,
+  nextPaymentForCost,
+  paymentsForMonth,
   paymentsNextMonth,
   readHouseholdCosts,
   reorderHouseholdCosts,
@@ -129,4 +131,13 @@ test("keeps the last day of month for monthly payments without drifting", () => 
   const endOfMonth = createHouseholdCost({ id: "rent", name: "Rent", category: "housing", amount: 100, frequency: "monthly", nextDueDate: "2026-01-31" });
   assert.deepEqual(paymentsNextMonth([endOfMonth], new Date("2026-01-01T00:00:00Z")).payments.map(({ date }) => date), ["2026-02-28"]);
   assert.deepEqual(paymentsNextMonth([endOfMonth], new Date("2026-02-01T00:00:00Z")).payments.map(({ date }) => date), ["2026-03-31"]);
+});
+
+test("forecasts a chosen month and finds the next recurrence without treating an undated cost as paid", () => {
+  const insurance = createHouseholdCost({ id: "insurance", name: "Insurance", category: "insurance", amount: 600, frequency: "yearly", nextDueDate: "2025-10-15", cancellationDeadline: "2026-09-28" });
+  const undated = createHouseholdCost({ id: "internet", name: "Internet", category: "subscriptions", amount: 40, frequency: "monthly" });
+  assert.equal(paymentsForMonth([insurance, undated], "2026-10").total, 600);
+  assert.equal(paymentsForMonth([insurance, undated], "2026-10").undatedCount, 1);
+  assert.equal(nextPaymentForCost(insurance, new Date("2026-09-20T12:00:00Z")), "2026-10-15");
+  assert.equal(createHouseholdCost({ name: "Bad date", category: "insurance", amount: 10, frequency: "yearly", cancellationDeadline: "2026-02-30" }), null);
 });

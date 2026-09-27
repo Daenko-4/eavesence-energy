@@ -47,6 +47,7 @@ const copy = {
     category: "Kategorie",
     frequency: "Wie oft?",
     due: "Nächste Zahlung (optional)",
+    deadline: "Kündigungsfrist (optional, selbst eintragen)",
     save: "Speichern",
     update: "Aktualisieren",
     cancel: "Abbrechen",
@@ -108,6 +109,7 @@ const copy = {
     category: "Category",
     frequency: "How often?",
     due: "Next payment (optional)",
+    deadline: "Cancellation deadline (optional, enter yourself)",
     save: "Save",
     update: "Update",
     cancel: "Cancel",
@@ -208,24 +210,28 @@ export default function HouseholdCostsPanel({
   currency,
   costs,
   embedded = false,
+  request,
   onChange,
 }: {
   locale: Locale;
   currency: SavedDeviceCurrency;
   costs: HouseholdCost[];
   embedded?: boolean;
+  request?: { costId?: string; template?: HouseholdCostCategory; nonce: number };
   onChange: (costs: HouseholdCost[]) => void;
 }) {
   const text = copy[locale];
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
+  const requestedCost = costs.find((cost) => cost.id === request?.costId);
+  const [formOpen, setFormOpen] = useState(Boolean(request));
+  const [editingId, setEditingId] = useState<string | null>(requestedCost?.id ?? null);
+  const [name, setName] = useState(requestedCost?.name ?? (request?.template ? text.templates[request.template as keyof typeof text.templates] ?? "" : ""));
+  const [amount, setAmount] = useState(requestedCost ? String(requestedCost.amount) : "");
   const [category, setCategory] =
-    useState<HouseholdCostCategory>("housing");
+    useState<HouseholdCostCategory>(requestedCost?.category ?? request?.template ?? "housing");
   const [frequency, setFrequency] =
-    useState<HouseholdCostFrequency>("monthly");
-  const [nextDueDate, setNextDueDate] = useState("");
+    useState<HouseholdCostFrequency>(requestedCost?.frequency ?? (request?.template === "insurance" ? "yearly" : "monthly"));
+  const [nextDueDate, setNextDueDate] = useState(requestedCost?.nextDueDate ?? "");
+  const [cancellationDeadline, setCancellationDeadline] = useState(requestedCost?.cancellationDeadline ?? "");
   const [feedback, setFeedback] = useState("");
   const [draggedCostId, setDraggedCostId] = useState<string | null>(null);
   const summary = summarizeHouseholdCosts(costs);
@@ -241,6 +247,7 @@ export default function HouseholdCostsPanel({
     setCategory("housing");
     setFrequency("monthly");
     setNextDueDate("");
+    setCancellationDeadline("");
   }
 
   function openNewCost(template?: HouseholdCostCategory) {
@@ -261,6 +268,7 @@ export default function HouseholdCostsPanel({
     setCategory(cost.category);
     setFrequency(cost.frequency);
     setNextDueDate(cost.nextDueDate);
+    setCancellationDeadline(cost.cancellationDeadline ?? "");
     setFeedback("");
     setFormOpen(true);
   }
@@ -273,6 +281,7 @@ export default function HouseholdCostsPanel({
       amount: parseAmount(amount),
       frequency,
       nextDueDate,
+      cancellationDeadline,
     });
     if (!next) {
       setFeedback(text.invalid);
@@ -379,6 +388,10 @@ export default function HouseholdCostsPanel({
             <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">
               {text.due}
               <input type="date" value={nextDueDate} onChange={(event) => setNextDueDate(event.target.value)} className={fieldClass} />
+            </label>
+            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">
+              {text.deadline}
+              <input type="date" value={cancellationDeadline} onChange={(event) => setCancellationDeadline(event.target.value)} className={fieldClass} />
             </label>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
