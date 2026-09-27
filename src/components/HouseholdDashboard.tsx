@@ -161,7 +161,10 @@ const copy = {
     financeBalance: "Monatliches Budget nach laufenden Kosten",
     financeUpcoming: "Zahlungen im nächsten Monat",
     financeUpcomingEmpty: "Keine datierten Zahlungen",
-    financeUpcomingHint: "Nur Kosten mit Fälligkeit · {count} ohne Datum nicht enthalten",
+    financeUpcomingNoCosts: "Noch keine Kosten erfasst.",
+    financeUpcomingAllDated: "Alle erfassten Kosten haben einen Zahlungstermin.",
+    financeUpcomingMissingDateOne: "1 Kostenposten ohne Zahlungstermin ist in dieser Vorschau nicht enthalten.",
+    financeUpcomingMissingDates: "{count} Kostenposten ohne Zahlungstermin sind in dieser Vorschau nicht enthalten.",
     financeUpcomingDates: "Fällige Zahlungen",
     financeNextMonth: "Nächster Monat",
     financeNoDates: "Trage bei Kosten ein Fälligkeitsdatum ein, um die nächsten Zahlungen zu sehen.",
@@ -415,7 +418,10 @@ const copy = {
     financeBalance: "Monthly budget after recurring costs",
     financeUpcoming: "Payments next month",
     financeUpcomingEmpty: "No dated payments",
-    financeUpcomingHint: "Dated costs only · {count} without a date excluded",
+    financeUpcomingNoCosts: "No costs added yet.",
+    financeUpcomingAllDated: "All recorded costs have a payment date.",
+    financeUpcomingMissingDateOne: "1 cost without a payment date is not included in this forecast.",
+    financeUpcomingMissingDates: "{count} costs without a payment date are not included in this forecast.",
     financeUpcomingDates: "Scheduled payments",
     financeNextMonth: "Next month",
     financeNoDates: "Add due dates to your costs to see upcoming payments.",
@@ -1756,7 +1762,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <div className="flex min-h-[104px] flex-col">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">{text.financeUpcoming} · {nextMonthLabel}</p>
                 <p className="mt-2 text-xl font-extrabold tracking-[-0.035em]">{formatMoney(upcomingPayments.total, locale, profile.currency)}</p>
-                <p className="mt-1 text-[11px] text-[#65716d]">{text.financeUpcomingHint.replace("{count}", String(upcomingPayments.undatedCount))}</p>
+                <p className="mt-1 text-[11px] text-[#65716d]">
+                  {householdCosts.length === 0
+                    ? text.financeUpcomingNoCosts
+                    : upcomingPayments.undatedCount === 0
+                      ? text.financeUpcomingAllDated
+                      : upcomingPayments.undatedCount === 1
+                        ? text.financeUpcomingMissingDateOne
+                        : text.financeUpcomingMissingDates.replace("{count}", String(upcomingPayments.undatedCount))}
+                </p>
                 <button type="button" onClick={() => setUpcomingOpen((open) => !open)} aria-expanded={upcomingOpen} className="eavesence-pill-link mt-auto self-start">{text.financeUpcomingDates}</button>
                 </div>
                 {upcomingOpen && <div className="mt-3 border-t border-[#dfe5dd] pt-3 text-[12px] text-[#52605b]">
