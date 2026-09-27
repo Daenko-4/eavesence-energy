@@ -16,8 +16,44 @@ From the repository root:
 npm run mobile:start
 ```
 
-Use an Android device/emulator or an iPhone with Expo Go for UI testing. Native
-purchase and notification behavior should also be tested in development builds.
+Use a compatible Expo Go version on Android. The iPhone App Store version of
+Expo Go does not support this project's SDK 57; use the TestFlight build below
+for a physical iPhone. Native purchases need store products and a separate
+sandbox test.
+
+## Test on an iPhone with TestFlight
+
+A paid Apple Developer Program membership, access to App Store Connect, and a
+free Expo account are required. These steps work from Windows; no Mac is needed.
+The `testflight` profile creates a store-signed beta build, **not** an App Store
+release. It runs independently of Expo Go and the local development server.
+
+1. Install the EAS CLI with `npm install --global eas-cli`. Sign in to the Expo
+   account that owns this project with `eas login` (or check `eas whoami`).
+2. In PowerShell, from the repository root, run `npm ci` and `cd apps/mobile`.
+3. Run `eas init` to link this app to your Expo account. If EAS offers to create
+   a project, use the existing `eavesence-home` slug. This writes the Expo
+   project ID to `app.json`; keep that change for subsequent builds.
+4. Run `eas build --platform ios --profile testflight`. Select the correct
+   Apple Developer team and let EAS manage the signing certificate and
+   provisioning profile when prompted. The iOS bundle ID is
+   `com.eavesence.home`; confirm it belongs to your team before creating it.
+5. Once the build succeeds, run `eas submit --platform ios --profile testflight`
+   and select the build you just created. Authenticate with App Store Connect
+   when prompted. This uploads to TestFlight, not to App Review.
+6. In App Store Connect, add your Apple ID as an internal tester for EAVESENCE
+   Home, assign the processed build to the internal group, then accept the
+   invitation in the TestFlight app on your iPhone. External testers require
+   Apple's beta review.
+
+No RevenueCat key is required to try onboarding, household costs, income,
+payment forecasts, devices and history. Data stays on that phone and is not
+shared with the website. To test a later revision, create and submit a new
+TestFlight build; the build number increments on EAS.
+
+For a directly installable iOS build instead of TestFlight, register the phone
+with `eas device:create` and run `eas build --platform ios --profile preview`.
+That path uses Apple ad hoc signing and only registered devices can install it.
 
 ## Store preparation
 
