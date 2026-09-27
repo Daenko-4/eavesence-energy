@@ -154,41 +154,30 @@ const content = {
 
     faq: {
       label: "Gut zu wissen",
-      title: "Antworten zum Stromkosten-Rechner",
+      title: "Häufige Fragen zu EAVESENCE",
       feedbackText: "Fehlt etwas oder war eine Erklärung unklar?",
       feedbackLink: "Feedback senden",
-      feedbackSubject: "Feedback zu EAVESENCE Energy",
+      feedbackSubject: "Feedback zu EAVESENCE",
 
-      items: [
+      groups: [
         {
-          question: "Wie genau ist meine Berechnung?",
-          answer:
-            "Mit typischen Verbrauchswerten erhältst du eine gute Orientierung. Am genauesten wird das Ergebnis, wenn du einen gemessenen oder bekannten Verbrauch sowie deinen tatsächlichen Strompreis einträgst.",
+          title: "Stromkosten berechnen",
+          items: [
+            { question: "Wie genau ist die Berechnung?", answer: "Typische Gerätewerte sind eine Orientierung. Mit deinem Strompreis und einem gemessenen oder bekannten Verbrauch wird die Schätzung genauer. Tatsächliche Rechnungen können abweichen." },
+            { question: "Wo finde ich Verbrauch und Strompreis?", answer: "Leistung oder Verbrauch stehen oft auf dem Typenschild, Energielabel oder in der Anleitung. Du kannst auch ein Strommessgerät verwenden. Den Preis pro kWh findest du auf deiner Stromrechnung oder im Tarif." },
+            { question: "Kann ich eigene Geräte und Messwerte verwenden?", answer: "Ja. Wähle „Eigenes Gerät“ oder ändere einen vorgeschlagenen Wert. Bei passenden Geräten kannst du den gemessenen Verbrauch in kWh pro Nutzung eingeben und die Berechnung in „Meine Geräte“ speichern." },
+          ],
         },
         {
-          question: "Kann ich eigene Messwerte verwenden?",
-          answer:
-            "Ja. Alle vorgeschlagenen Werte sind bearbeitbar. Bei leistungsbasierten Geräten kannst du zusätzlich „Gemessenen Verbrauch eingeben“ auswählen und einen kWh-Wert pro Nutzung eintragen.",
-        },
-        {
-          question: "Was zeigen „Was wäre, wenn?“ und der Gerätevergleich?",
-          answer:
-            "Mit „Was wäre, wenn?“ siehst du, wie sich weniger Nutzungen auf deine Jahreskosten auswirken. Der Vergleich stellt dein Ergebnis einem anderen Gerät mit typischen Verbrauchswerten gegenüber.",
-        },
-        {
-          question: "Wie funktioniert „Meine Geräte“?",
-          answer:
-            "Du kannst Berechnungen ohne Konto lokal in deinem Browser speichern, öffnen und aktualisieren. Die Daten werden nicht an EAVESENCE übertragen. Für einen Browser- oder Gerätewechsel kannst du eine Sicherung exportieren.",
-        },
-        {
-          question: "Wo finde ich Verbrauch und Strompreis?",
-          answer:
-            "Leistung oder Verbrauch findest du häufig auf dem Typenschild, dem Energielabel, in der Anleitung oder über ein Strommessgerät. Deinen Preis pro Kilowattstunde findest du auf der Stromrechnung oder in deinem Tarif.",
-        },
-        {
-          question: "Kann ich eigene Geräte und andere Währungen verwenden?",
-          answer:
-            "Ja. Wähle „Eigenes Gerät“ und trage Verbrauch und Nutzung selbst ein. Strompreis und Ergebnis kannst du außerdem in einer der verfügbaren Währungen anzeigen lassen.",
+          title: "Mein Zuhause (My Home)",
+          items: [
+            { question: "Was kann ich in My Home erfassen?", answer: "Du kannst regelmäßige Haushaltskosten, Einkommen, gespeicherte Geräte und monatliche Stromwerte an einem Ort verwalten. Starte mit wenigen Kostenposten; die Übersicht wächst mit deinen Angaben." },
+            { question: "Wie entstehen Monatsdurchschnitt und Zahlungsvorschau?", answer: "Jährliche, halbjährliche und andere regelmäßige Kosten werden auf einen Monatsdurchschnitt umgerechnet. Die Vorschau zeigt nur Zahlungen, die im nächsten Monat laut eingetragenem Zahlungstermin fällig sind. Kosten ohne Termin fehlen dort und werden ausdrücklich gezählt." },
+            { question: "Was bedeutet das Budget nach laufenden Kosten?", answer: "Es ist dein eingetragenes monatliches Nettoeinkommen minus der Durchschnitt deiner erfassten regelmäßigen Kosten. Variable Ausgaben wie Einkäufe und nicht erfasste Kosten sind darin nicht berücksichtigt." },
+            { question: "Sind die Werte im Monatsrückblick bereits bezahlte Ausgaben?", answer: "Nein. Der Vergleich geplanter Zahlungen wird aus den heute gespeicherten Kosten rekonstruiert. Änderungen an Kosten protokolliert My Home erst ab ihrer Erfassung. Nur eingetragene Strom-Monatswerte sind tatsächliche Werte." },
+            { question: "Wie funktionieren Kündigungsfrist und Kalendererinnerung?", answer: "Trage die Kündigungsfrist selbst beim Kostenposten ein. Du kannst dafür eine Kalenderdatei mit einer Erinnerung sieben Tage vorher herunterladen. EAVESENCE prüft keine Vertragsbedingungen und verschickt keine automatische Benachrichtigung." },
+            { question: "Wo werden meine Daten gespeichert und wie sichere ich sie?", answer: "My Home und „Meine Geräte“ speichern deine Angaben lokal in diesem Browser, ohne Konto oder geräteübergreifende Synchronisierung. Unter Einstellungen kannst du eine Sicherung exportieren und in einem anderen Browser wieder importieren." },
+          ],
         },
       ],
     },
@@ -327,41 +316,30 @@ const content = {
 
     faq: {
       label: "Good to know",
-      title: "Answers about the electricity calculator",
+      title: "Frequently asked questions about EAVESENCE",
       feedbackText: "Is something missing or was an explanation unclear?",
       feedbackLink: "Send feedback",
-      feedbackSubject: "Feedback about EAVESENCE Energy",
+      feedbackSubject: "Feedback about EAVESENCE",
 
-      items: [
+      groups: [
         {
-          question: "How accurate is my calculation?",
-          answer:
-            "Typical consumption values provide a useful estimate. For the most accurate result, enter a measured or known consumption value together with your actual electricity price.",
+          title: "Electricity calculator",
+          items: [
+            { question: "How accurate is the calculation?", answer: "Typical device values are estimates. Your electricity price and a measured or known consumption value make the estimate more precise. Actual bills may differ." },
+            { question: "Where can I find consumption and electricity price?", answer: "Power or consumption is often on the device label, energy label or in the manual. You can also use an electricity meter. Your price per kWh is on your bill or tariff." },
+            { question: "Can I use custom devices and measured values?", answer: "Yes. Choose “Custom device” or edit a suggested value. For suitable devices you can enter measured kWh per use and save the calculation in “My devices”." },
+          ],
         },
         {
-          question: "Can I use my own measured values?",
-          answer:
-            "Yes. Every suggested value can be edited. For power-based devices, you can also choose “Enter measured consumption” and enter a kWh value per use.",
-        },
-        {
-          question: "What do “What if?” and device comparison show?",
-          answer:
-            "“What if?” shows how fewer weekly uses could change your yearly cost. Device comparison places your result next to another device using its typical consumption values.",
-        },
-        {
-          question: "How does “My devices” work?",
-          answer:
-            "You can save, reopen and update calculations locally in your browser without an account. EAVESENCE does not receive this data. Export a backup if you want to change browsers or devices.",
-        },
-        {
-          question: "Where can I find consumption and electricity price?",
-          answer:
-            "Power or consumption is often listed on the device label, energy label or in the manual, and can also be measured with an electricity meter. Your price per kilowatt-hour is shown on your bill or tariff.",
-        },
-        {
-          question: "Can I use custom devices and other currencies?",
-          answer:
-            "Yes. Choose “Custom device” and enter its consumption and usage yourself. You can also display the electricity price and results in any of the available currencies.",
+          title: "My Home",
+          items: [
+            { question: "What can I track in My Home?", answer: "You can manage recurring household costs, income, saved devices and monthly electricity values in one place. Start with a few costs and add details when you need them." },
+            { question: "How are the monthly average and payment forecast calculated?", answer: "Yearly, half-yearly and other recurring costs are converted to a monthly average. The forecast shows payments due next month according to the payment dates you enter. Costs without dates are excluded and counted separately." },
+            { question: "What does the budget after recurring costs mean?", answer: "It is your recorded monthly net income minus the average of your recorded recurring costs. Variable spending such as groceries and costs you have not added are not included." },
+            { question: "Are the monthly review figures expenses I have paid?", answer: "No. Scheduled payments are reconstructed from the costs currently saved. My Home records cost changes only from the point you make them. Only monthly electricity values you enter are actual values." },
+            { question: "How do cancellation deadlines and reminders work?", answer: "Enter a deadline yourself on a cost. You can download a calendar event with a reminder seven days before it. EAVESENCE does not verify contract terms or send automatic notifications." },
+            { question: "Where is my data stored and how can I back it up?", answer: "My Home and “My devices” store your entries locally in this browser, without an account or automatic sync across devices. You can export a backup in settings and import it in another browser." },
+          ],
         },
       ],
     },
@@ -613,24 +591,22 @@ export default function HomePage({
               }`}
             >
               <div className="overflow-hidden">
-                <div className="divide-y divide-slate-200 border-b border-slate-200">
-                  {text.faq.items.map((faq) => (
-                    <details key={faq.question} className="group">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-semibold text-[#07111f] transition hover:text-[var(--brand-green)] [&::-webkit-details-marker]:hidden">
-                        {faq.question}
-
-                        <span
-                          aria-hidden="true"
-                          className="inline-block origin-center rotate-0 text-lg font-light text-slate-500 transition-[color,transform] duration-[180ms] group-open:-rotate-45 group-open:text-[var(--brand-green)]"
-                        >
-                          +
-                        </span>
-                      </summary>
-
-                      <p className="max-w-4xl pb-5 pr-10 text-sm leading-6 text-slate-600">
-                        {faq.answer}
-                      </p>
-                    </details>
+                <div className="border-b border-slate-200 pb-2">
+                  {text.faq.groups.map((group) => (
+                    <div key={group.title} className="pt-5 first:pt-4">
+                      <h3 className="pb-2 text-[12px] font-extrabold uppercase tracking-[0.09em] text-[var(--brand-green)]">{group.title}</h3>
+                      <div className="divide-y divide-slate-200">
+                        {group.items.map((faq) => (
+                          <details key={faq.question} className="group">
+                            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-semibold text-[#07111f] transition hover:text-[var(--brand-green)] [&::-webkit-details-marker]:hidden">
+                              {faq.question}
+                              <span aria-hidden="true" className="inline-block origin-center rotate-0 text-lg font-light text-slate-500 transition-[color,transform] duration-[180ms] group-open:-rotate-45 group-open:text-[var(--brand-green)]">+</span>
+                            </summary>
+                            <p className="max-w-4xl pb-5 pr-10 text-sm leading-6 text-slate-600">{faq.answer}</p>
+                          </details>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>

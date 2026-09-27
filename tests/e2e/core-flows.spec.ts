@@ -206,6 +206,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByRole("heading", { name: "Sections in your home" }))
     .toBeVisible();
   const householdOverview = page.getByRole("region", { name: "Your household at a glance" });
+  await expect(householdOverview).toContainText("No costs added yet.");
   await householdOverview.getByRole("button", { name: "Add income" }).click();
   await householdOverview.getByLabel("Net income").fill("24000");
   await householdOverview.getByLabel("Period").selectOption("yearly");
@@ -270,6 +271,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdCosts.getByLabel("Next payment (optional)").fill("2026-10-01");
   await householdCosts.getByLabel("Amount").press("Enter");
   await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
+  await expect(householdOverview).toContainText("All recorded costs have a payment date.");
   await expect(page.getByText("Recurring costs / month")).toBeVisible();
   await expect(householdCosts.getByText("€900.00", { exact: true }).first()).toBeVisible();
   expect(
@@ -764,7 +766,7 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
 
     await expect(page).toHaveURL(/#faq$/);
     await expect(
-      page.getByRole("button", { name: /Answers about the electricity calculator/ }),
+      page.getByRole("button", { name: /Frequently asked questions about EAVESENCE/ }),
     ).toHaveAttribute("aria-expanded", "true");
 
     await expect
@@ -794,6 +796,9 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
       expect(Math.abs(currentFaqTop - firstFaqTop)).toBeLessThanOrEqual(4);
     }
   }
+  await expect(page.getByRole("heading", { name: "My Home", exact: true })).toBeVisible();
+  await page.getByText("How are the monthly average and payment forecast calculated?").click();
+  await expect(page.getByText("Costs without dates are excluded and counted separately.", { exact: false })).toBeVisible();
 });
 
 test("language switching keeps an open FAQ expanded and preserves its position", async ({
@@ -808,7 +813,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
     .click();
   await expect(page).toHaveURL("/de");
   await expect(
-    page.getByRole("button", { name: /Antworten zum Stromkosten-Rechner/ }),
+    page.getByRole("button", { name: /Häufige Fragen zu EAVESENCE/ }),
   ).toHaveAttribute("aria-expanded", "false");
   expect(
     Math.abs((await page.evaluate(() => window.scrollY)) - regularScrollBefore),
@@ -817,7 +822,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
   await page.goto("/#faq");
 
   const englishFaq = page.getByRole("button", {
-    name: /Answers about the electricity calculator/,
+    name: /Frequently asked questions about EAVESENCE/,
   });
   await expect(englishFaq).toHaveAttribute("aria-expanded", "true");
 
@@ -828,7 +833,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
 
   await expect(page).toHaveURL("/de");
   await expect(
-    page.getByRole("button", { name: /Antworten zum Stromkosten-Rechner/ }),
+    page.getByRole("button", { name: /Häufige Fragen zu EAVESENCE/ }),
   ).toHaveAttribute("aria-expanded", "true");
   await expect
     .poll(() => page.evaluate(() => window.scrollY))
@@ -853,7 +858,7 @@ test("footer FAQ navigation opens the answers from the page end", async ({
 
   await expect(page).toHaveURL(/#faq$/);
   await expect(
-    page.getByRole("button", { name: /Answers about the electricity calculator/ }),
+    page.getByRole("button", { name: /Frequently asked questions about EAVESENCE/ }),
   ).toHaveAttribute("aria-expanded", "true");
 });
 
@@ -866,25 +871,25 @@ test("legal-page footer links open and correctly position the FAQ", async ({
     {
       path: "/en/imprint",
       linkName: "Frequently asked questions",
-      title: /Answers about the electricity calculator/,
+      title: /Frequently asked questions about EAVESENCE/,
       homePath: "/",
     },
     {
       path: "/en/privacy",
       linkName: "Frequently asked questions",
-      title: /Answers about the electricity calculator/,
+      title: /Frequently asked questions about EAVESENCE/,
       homePath: "/",
     },
     {
       path: "/impressum",
       linkName: "Häufige Fragen",
-      title: /Antworten zum Stromkosten-Rechner/,
+      title: /Häufige Fragen zu EAVESENCE/,
       homePath: "/de",
     },
     {
       path: "/datenschutz",
       linkName: "Häufige Fragen",
-      title: /Antworten zum Stromkosten-Rechner/,
+      title: /Häufige Fragen zu EAVESENCE/,
       homePath: "/de",
     },
   ]) {
@@ -1142,7 +1147,7 @@ test.describe("mobile", () => {
 
     await expect(page).toHaveURL(/#faq$/);
     await expect(
-      page.getByRole("button", { name: /Answers about the electricity calculator/ }),
+      page.getByRole("button", { name: /Frequently asked questions about EAVESENCE/ }),
     ).toHaveAttribute("aria-expanded", "true");
     expect(
       await page.evaluate(
