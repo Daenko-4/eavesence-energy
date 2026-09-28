@@ -10,7 +10,9 @@ import {
 import { useState } from "react";
 import { Alert, Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { costsForTile, destinationTileId } from "./costTiles";
 import type { MobileProfile } from "./storage";
+import type { MobileTile } from "./tiles";
 import { FormInput } from "./FormInput";
 
 const money = new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR" });
@@ -26,8 +28,10 @@ const frequencies: Array<[HouseholdCostFrequency, string]> = [
 const suggestions: Array<[HouseholdCostCategory, string, HouseholdCostFrequency]> = [
   ["housing", "Miete oder Kreditrate", "monthly"],
   ["energy", "Strom oder Heizung", "monthly"],
-  ["subscriptions", "Internet oder Abo", "monthly"],
   ["insurance", "Versicherung", "yearly"],
+  ["mobility", "Auto oder Öffis", "monthly"],
+  ["subscriptions", "Internet oder Abo", "monthly"],
+  ["financing", "Kreditrate", "monthly"],
 ];
 
 function parseAmount(value: string) {
@@ -78,9 +82,10 @@ function Choice<T extends string>({ options, value, onChange }: {
   return <View style={styles.choices}>{options.map(([key, label]) => <Pressable key={key} accessibilityRole="button" accessibilityState={{ selected: value === key }} onPress={() => onChange(key)} style={[styles.choice, value === key && styles.choiceActive]}><Text style={[styles.choiceText, value === key && styles.choiceTextActive]}>{label}</Text></Pressable>)}</View>;
 }
 
-export default function CostsScreen({ profile, costs, tileId, tileTitle, initialAction = "none", onSaveCost, onDeleteCost, onSaveIncome }: {
+export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, initialAction = "none", onSaveCost, onDeleteCost, onSaveIncome }: {
   profile: MobileProfile;
   costs: HouseholdCost[];
+  tiles: MobileTile[];
   tileId: string;
   tileTitle: string;
   initialAction?: "none" | "income" | "cost";
@@ -98,7 +103,7 @@ export default function CostsScreen({ profile, costs, tileId, tileTitle, initial
   const [deadline, setDeadline] = useState("");
   const [income, setIncome] = useState(profile.incomeAmount ? String(profile.incomeAmount) : "");
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">(profile.incomeFrequency ?? "monthly");
-  const visibleCosts = costs.filter((cost) => tileId === "default-costs" ? !cost.tileId || cost.tileId === tileId : cost.tileId === tileId);
+  const visibleCosts = costsForTile(costs, tileId);
   const summary = summarizeHouseholdCosts(visibleCosts);
 
   function openNew(suggestion?: [HouseholdCostCategory, string, HouseholdCostFrequency]) {
@@ -124,7 +129,7 @@ export default function CostsScreen({ profile, costs, tileId, tileTitle, initial
   }
 
   async function save() {
-    const cost = createHouseholdCost({ id: editingId ?? undefined, name, amount: parseAmount(amount), category, frequency, tileId, nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
+    const cost = createHouseholdCost({ id: editingId ?? undefined, name, amount: parseAmount(amount), category, frequency, tileId: destinationTileId(costs, editingId, tileId), nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
     if (!cost) {
       Alert.alert("Angaben prüfen", "Gib eine Bezeichnung, einen Betrag über 0 und gültige Termine im Format TT.MM.JJJJ ein.");
       return;
@@ -156,7 +161,7 @@ export default function CostsScreen({ profile, costs, tileId, tileTitle, initial
   return <>
     <Text style={styles.eyebrow}>HAUSHALTSKOSTEN</Text>
     <Text style={styles.title}>{tileId === "default-costs" ? "Was kostet dein Zuhause?" : tileTitle}</Text>
-    <Text style={styles.explanation}>Regelmäßige Kosten einmal erfassen. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um.</Text>
+    <Text style={styles.explanation}>{tileId === "default-costs" ? "Alle regelmäßigen Kosten aus deinen Kacheln an einem Ort. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um." : "Die regelmäßigen Kosten in dieser Kachel. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um."}</Text>
     <View style={styles.metrics}>
       <View style={styles.metric}><Text style={styles.label}>PRO MONAT</Text><Text style={styles.value}>{money.format(summary.monthlyTotal)}</Text></View>
       <View style={styles.metric}><Text style={styles.label}>PRO JAHR</Text><Text style={styles.value}>{money.format(summary.annualTotal)}</Text></View>
@@ -189,9 +194,18 @@ export default function CostsScreen({ profile, costs, tileId, tileTitle, initial
       <Pressable onPress={() => setFormOpen(false)} style={styles.secondary}><Text style={styles.secondaryText}>Abbrechen</Text></Pressable>
     </View> : <Pressable onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
 
+    {visibleCosts.length > 0 && !formOpen && <>
+      <Text style={styles.sectionTitle}>Kosten nach Kategorie</Text>
+      <View style={styles.categoryGrid}>{summary.categoryTotals.filter((item) => item.entryCount > 0).map((item) => <View key={item.category} style={styles.categoryCard}>
+        <Text style={styles.categoryLabel}>{categories.find(([key]) => key === item.category)?.[1]}</Text>
+        <Text style={styles.categoryAmount}>{money.format(item.monthlyTotal)} / Monat</Text>
+        <Text style={styles.costDetail}>{item.entryCount} {item.entryCount === 1 ? "Eintrag" : "Einträge"}</Text>
+      </View>)}</View>
+    </>}
     <Text style={styles.sectionTitle}>Angelegte Kosten</Text>
     {visibleCosts.length === 0 ? <Text style={styles.help}>Noch keine Kosten angelegt.</Text> : visibleCosts.map((cost) => <View key={cost.id} style={styles.costRow}>
       <Text style={styles.costName}>{cost.name}</Text>
+      {tileId === "default-costs" && cost.tileId && cost.tileId !== "default-costs" && <Text style={styles.costArea}>{tiles.find((tile) => tile.id === cost.tileId)?.title ?? "Eigene Kachel"}</Text>}
       <Text style={styles.costDetail}>{categories.find(([key]) => key === cost.category)?.[1]} · {frequencies.find(([key]) => key === cost.frequency)?.[1]}</Text>
       <Text style={styles.costDetail}>{money.format(cost.amount)} je Zahlung · {money.format(monthlyCost(cost.amount, cost.frequency))} pro Monat · {money.format(annualCost(cost.amount, cost.frequency))} pro Jahr</Text>
       <Text style={styles.costDetail}>{cost.nextDueDate ? `Nächste Zahlung: ${displayDate(cost.nextDueDate)}` : "Ohne Zahlungstermin"}</Text>
@@ -224,8 +238,13 @@ const styles = StyleSheet.create({
   secondary: { minHeight: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   secondaryText: { fontSize: 12, fontWeight: "800", color: "#087a45" },
   sectionTitle: { marginTop: 28, fontSize: 20, fontWeight: "900", color: "#07111f" },
+  categoryGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
+  categoryCard: { width: "48%", minHeight: 88, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 12 },
+  categoryLabel: { fontSize: 12, fontWeight: "700", color: "#52605b" },
+  categoryAmount: { marginTop: 7, fontSize: 14, fontWeight: "900", color: "#17211f" },
   costRow: { marginTop: 10, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 14 },
   costName: { fontSize: 14, fontWeight: "900", color: "#17211f" },
+  costArea: { marginTop: 5, fontSize: 11, fontWeight: "800", color: "#087a45" },
   costDetail: { marginTop: 5, fontSize: 12, lineHeight: 18, color: "#65716d" },
   actions: { flexDirection: "row", gap: 8, marginTop: 10 },
   deleteText: { fontSize: 12, fontWeight: "800", color: "#b42318" },
