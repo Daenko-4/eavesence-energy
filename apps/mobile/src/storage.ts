@@ -5,6 +5,7 @@ export const DEVICES_KEY = "eavesence-mobile-devices-v1";
 export const HISTORY_KEY = "eavesence-mobile-history-v1";
 export const COSTS_KEY = "eavesence-mobile-costs-v1";
 export const BETA_KEY = "eavesence-mobile-beta-v1";
+export const TILES_KEY = "eavesence-mobile-tiles-v1";
 
 export type MobileProfile = {
   name: string;
@@ -47,4 +48,12 @@ export async function readJson<T>(key: string, fallback: T): Promise<T> {
 
 export async function writeJson(key: string, value: unknown) {
   await AsyncStorage.setItem(key, JSON.stringify(value));
+}
+
+export async function writeAll(entries: Array<[string, unknown]>) {
+  await AsyncStorage.multiSet(entries.map(([key, value]) => [key, JSON.stringify(value)]));
+}
+
+export async function clearAll() {
+  await AsyncStorage.multiRemove([PROFILE_KEY, DEVICES_KEY, HISTORY_KEY, COSTS_KEY, BETA_KEY, TILES_KEY]);
 }
