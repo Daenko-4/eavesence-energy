@@ -1,38 +1,33 @@
-import { Keyboard, Platform, Pressable, StyleSheet, Text, TextInput, View, InputAccessoryView } from "react-native";
-
-const accessoryId = "eavesence-keyboard-done";
-
-export function KeyboardDoneBar() {
-  if (Platform.OS !== "ios") return null;
-  return <InputAccessoryView nativeID={accessoryId}>
-    <View style={styles.toolbar}>
-      <Pressable accessibilityRole="button" onPress={Keyboard.dismiss} style={styles.doneButton}>
-        <Text style={styles.doneText}>Fertig</Text>
-      </Pressable>
-    </View>
-  </InputAccessoryView>;
-}
+import { useState } from "react";
+import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 export function FormInput({ label, ...props }: { label: string } & React.ComponentProps<typeof TextInput>) {
+  const [focused, setFocused] = useState(false);
   return <View style={styles.field}>
     <Text style={styles.label}>{label}</Text>
-    <TextInput
-      accessibilityLabel={label}
-      inputAccessoryViewID={Platform.OS === "ios" ? accessoryId : undefined}
-      returnKeyType="done"
-      onSubmitEditing={Keyboard.dismiss}
-      placeholderTextColor="#8a9591"
-      {...props}
-      style={[styles.input, props.style]}
-    />
+    <View style={styles.inputRow}>
+      <TextInput
+        {...props}
+        accessibilityLabel={label}
+        returnKeyType="done"
+        onSubmitEditing={(event) => { props.onSubmitEditing?.(event); Keyboard.dismiss(); }}
+        onFocus={(event) => { setFocused(true); props.onFocus?.(event); }}
+        onBlur={(event) => { setFocused(false); props.onBlur?.(event); }}
+        placeholderTextColor="#8a9591"
+        style={[styles.input, props.style]}
+      />
+      {focused && <Pressable accessibilityRole="button" accessibilityLabel={`${label}: Eingabe beenden`} onPress={Keyboard.dismiss} style={styles.doneButton}>
+        <Text style={styles.doneText}>Fertig</Text>
+      </Pressable>}
+    </View>
   </View>;
 }
 
 const styles = StyleSheet.create({
   field: { gap: 7 },
   label: { fontSize: 12, fontWeight: "800", color: "#52605b" },
-  input: { minHeight: 50, borderWidth: 1, borderColor: "#dfe5e1", borderRadius: 14, backgroundColor: "#ffffff", paddingHorizontal: 15, fontSize: 16, color: "#07111f" },
-  toolbar: { minHeight: 44, flexDirection: "row", justifyContent: "flex-end", alignItems: "center", backgroundColor: "#f6f7f2", borderTopWidth: StyleSheet.hairlineWidth, borderColor: "#dfe5e1", paddingHorizontal: 18 },
-  doneButton: { paddingHorizontal: 10, paddingVertical: 8 },
-  doneText: { fontSize: 16, fontWeight: "700", color: "#087a45" },
+  inputRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  input: { flex: 1, minWidth: 0, minHeight: 50, borderWidth: 1, borderColor: "#dfe5e1", borderRadius: 14, backgroundColor: "#ffffff", paddingHorizontal: 15, fontSize: 16, color: "#07111f" },
+  doneButton: { minWidth: 62, minHeight: 50, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "#dcf8e8" },
+  doneText: { fontSize: 14, fontWeight: "800", color: "#087a45" },
 });
