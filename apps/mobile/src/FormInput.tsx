@@ -14,7 +14,7 @@ export function FormInput({ label, ...props }: { label: string } & React.Compone
         onFocus={(event) => { setFocused(true); props.onFocus?.(event); }}
         onBlur={(event) => { setFocused(false); props.onBlur?.(event); }}
         placeholderTextColor="#8a9591"
-        style={[styles.input, props.style]}
+        style={[styles.input, focused && styles.inputFocused, props.style]}
       />
       {focused && <Pressable accessibilityRole="button" accessibilityLabel={`${label}: Eingabe beenden`} onPress={Keyboard.dismiss} style={styles.doneButton}>
         <Text style={styles.doneText}>Fertig</Text>
@@ -27,7 +27,8 @@ const styles = StyleSheet.create({
   field: { gap: 7 },
   label: { fontSize: 12, fontWeight: "800", color: "#52605b" },
   inputRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  input: { flex: 1, minWidth: 0, minHeight: 50, borderWidth: 1, borderColor: "#dfe5e1", borderRadius: 14, backgroundColor: "#ffffff", paddingHorizontal: 15, fontSize: 16, color: "#07111f" },
+  input: { flex: 1, minWidth: 0, minHeight: 50, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 12, backgroundColor: "#ffffff", paddingHorizontal: 14, fontSize: 16, color: "#17211f" },
+  inputFocused: { borderColor: "#72dca3" },
   doneButton: { minWidth: 62, minHeight: 50, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "#dcf8e8" },
   doneText: { fontSize: 14, fontWeight: "800", color: "#087a45" },
 });
