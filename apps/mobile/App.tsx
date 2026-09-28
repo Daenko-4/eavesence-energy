@@ -12,6 +12,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -19,12 +20,12 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import type { PurchasesPackage } from "react-native-purchases";
 
 import CostsScreen from "./src/CostsScreen";
+import { FormInput, KeyboardDoneBar } from "./src/FormInput";
 import {
   BETA_KEY,
   COSTS_KEY,
@@ -62,6 +63,17 @@ const euro = new Intl.NumberFormat("de-AT", {
 
 function parseLocalNumber(value: string) {
   return Number(value.trim().replace(",", "."));
+}
+
+function shiftMonth(month: string, change: number) {
+  const [year, number] = month.split("-").map(Number);
+  const next = new Date(year, number - 1 + change, 1);
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthLabel(month: string) {
+  const [year, number] = month.split("-").map(Number);
+  return new Intl.DateTimeFormat("de-AT", { month: "long", year: "numeric" }).format(new Date(year, number - 1, 1));
 }
 
 const initialForm = {
@@ -145,6 +157,7 @@ export default function App() {
       createdAt: new Date().toISOString(),
     };
     await writeJson(PROFILE_KEY, nextProfile);
+    Keyboard.dismiss();
     setProfile(nextProfile);
   }
 
@@ -177,6 +190,7 @@ export default function App() {
     };
     const nextDevices = [nextDevice, ...devices];
     await writeJson(DEVICES_KEY, nextDevices);
+    Keyboard.dismiss();
     setDevices(nextDevices);
     setForm(initialForm);
     setTab("home");
@@ -233,6 +247,7 @@ export default function App() {
       .sort((a, b) => b.month.localeCompare(a.month))
       .slice(0, 24);
     await writeJson(HISTORY_KEY, nextHistory);
+    Keyboard.dismiss();
     setHistory(nextHistory);
     setMonthKwh("");
     setMonthCost("");
@@ -277,8 +292,9 @@ export default function App() {
     return (
       <SafeAreaView style={styles.safe}>
         <StatusBar style="dark" />
+        <KeyboardDoneBar />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
-          <ScrollView contentContainerStyle={styles.onboarding} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={styles.onboarding} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
             <Text style={styles.eyebrow}>EAVESENCE HOME</Text>
             <Text style={styles.hero}>Richte dein Zuhause ein.</Text>
             <Text style={styles.body}>Geräte, Energiekosten und Sparziele an einem Ort – lokal gespeichert und ohne Pflichtkonto.</Text>
@@ -296,8 +312,9 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar style="dark" />
+      <KeyboardDoneBar />
       <View style={styles.appHeader}><View><Text style={styles.brand}>EAVESENCE</Text><Text style={styles.headerTitle}>{profile.name}</Text></View><View style={styles.avatar}><Text style={styles.avatarText}>{devices.length}</Text></View></View>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         {tab === "home" && <>
           <Text style={styles.eyebrow}>DEINE ÜBERSICHT</Text>
           <Text style={styles.heroSmall}>{euro.format(costSummary.monthlyTotal)} <Text style={styles.heroUnit}>laufende Kosten pro Monat</Text></Text>
@@ -341,7 +358,13 @@ export default function App() {
           <Text style={styles.eyebrow}>MONATS-CHECK</Text><Text style={styles.heroSmall}>Aus Schätzungen wird ein Verlauf.</Text>
           <Text style={styles.historyHint}>Gib Verbrauch oder Rechnungsbetrag ein. Den zweiten Wert berechnen wir automatisch mit deinem Strompreis.</Text>
           <View style={styles.modeSwitch}><Pressable style={[styles.modeButton, monthMode === "consumption" && styles.modeButtonActive]} onPress={() => setMonthMode("consumption")}><Text style={[styles.modeButtonText, monthMode === "consumption" && styles.modeButtonTextActive]}>Verbrauch</Text></Pressable><Pressable style={[styles.modeButton, monthMode === "cost" && styles.modeButtonActive]} onPress={() => setMonthMode("cost")}><Text style={[styles.modeButtonText, monthMode === "cost" && styles.modeButtonTextActive]}>Rechnung</Text></Pressable></View>
-          <Field label="Monat (JJJJ-MM)" value={month} onChangeText={setMonth} />
+          <Text style={styles.label}>Monat</Text>
+          <View style={styles.monthPicker}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Vorheriger Monat" onPress={() => { setMonth(shiftMonth(month, -1)); Keyboard.dismiss(); }} style={styles.monthButton}><Text style={styles.monthArrow}>‹</Text></Pressable>
+            <Text style={styles.monthValue}>{monthLabel(month)}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Nächster Monat" onPress={() => { setMonth(shiftMonth(month, 1)); Keyboard.dismiss(); }} style={styles.monthButton}><Text style={styles.monthArrow}>›</Text></Pressable>
+          </View>
+          {month !== currentMonth && <Pressable onPress={() => setMonth(currentMonth)} style={styles.monthToday}><Text style={styles.monthTodayText}>Aktueller Monat</Text></Pressable>}
           {monthMode === "consumption" ? <Field label="Verbrauch in kWh" value={monthKwh} onChangeText={setMonthKwh} keyboardType="decimal-pad" /> : <Field label="Rechnungsbetrag in Euro" value={monthCost} onChangeText={setMonthCost} keyboardType="decimal-pad" />}
           <PrimaryButton label="Monat speichern" onPress={() => void saveMonth()} />
           <Pressable style={styles.secondaryButton} onPress={() => void scheduleReminder()}><Text style={styles.secondaryButtonText}>Monatliche Erinnerung aktivieren</Text></Pressable>
@@ -351,14 +374,12 @@ export default function App() {
 
         {tab === "pro" && <View style={styles.proCard}><Text style={styles.eyebrowMint}>EAVESENCE PRO</Text><Text style={styles.proTitle}>Weniger eintragen. Früher reagieren.</Text><Text style={styles.proBody}>Automatische Verbrauchswarnungen, längerer Verlauf, Synchronisation, mehrere Haushalte sowie später Energieetikett- und Rechnungsscan.</Text>{isPro ? <Text style={styles.proActive}>Pro ist aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Pressable style={[styles.proButton, betaInterested && styles.proButtonDisabled]} disabled={betaInterested} onPress={() => void expressBetaInterest()}><Text style={styles.proButtonText}>{betaInterested ? "Beta-Interesse gespeichert" : "Beta-Platz vormerken"}</Text></Pressable>}<Pressable onPress={() => void restorePro().then(setIsPro)}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable><Text style={styles.proHint}>Noch keine Abbuchung ohne freigeschaltete Store-Produkte.</Text></View>}
       </ScrollView>
-      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} onPress={() => setTab(key)} style={styles.tab}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
+      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} onPress={() => { Keyboard.dismiss(); setTab(key); }} style={styles.tab}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
     </SafeAreaView>
   );
 }
 
-function Field({ label, ...props }: { label: string } & React.ComponentProps<typeof TextInput>) {
-  return <View style={styles.field}><Text style={styles.label}>{label}</Text><TextInput {...props} placeholderTextColor="#8a9591" style={styles.input} /></View>;
-}
+const Field = FormInput;
 
 function PrimaryButton({ label, onPress }: { label: string; onPress: () => void }) {
   return <Pressable style={styles.primaryButton} onPress={onPress}><Text style={styles.primaryButtonText}>{label}</Text></Pressable>;
@@ -373,6 +394,12 @@ function Empty({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
+  monthPicker: { minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderWidth: 1, borderColor: "#dfe5e1", borderRadius: 14, backgroundColor: "#ffffff", marginTop: 7 },
+  monthButton: { width: 52, minHeight: 52, alignItems: "center", justifyContent: "center" },
+  monthArrow: { fontSize: 30, color: "#087a45" },
+  monthValue: { fontSize: 16, fontWeight: "800", color: "#07111f" },
+  monthToday: { alignSelf: "flex-start", paddingVertical: 9 },
+  monthTodayText: { fontSize: 12, fontWeight: "800", color: "#087a45" },
   forecastCard: { marginBottom: 16, borderWidth: 1, borderColor: "#b8efcc", borderRadius: 18, backgroundColor: "#eefbf3", padding: 16 },
   forecastLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 0.8, color: "#087a45" },
   forecastAmount: { marginTop: 8, fontSize: 26, fontWeight: "900", color: "#07111f" },
