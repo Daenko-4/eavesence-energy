@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@eavesence/core": "*",
-    "@react-native-async-storage/async-storage": "^3.1.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "^57.0.23",
     "expo-notifications": "^57.0.19",
     "expo-status-bar": "^57.0.1",
