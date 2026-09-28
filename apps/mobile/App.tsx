@@ -30,6 +30,7 @@ import CostsScreen from "./src/CostsScreen";
 import { createMobileBackup, readMobileBackup, type MobileBackup } from "./src/backup";
 import { pickBackup, shareBackup } from "./src/backupFiles";
 import { FormInput } from "./src/FormInput";
+import { disableMonthlyReminder, enableMonthlyReminder, monthlyReminderIsActive } from "./src/reminders";
 import {
   BETA_KEY,
   COSTS_KEY,
@@ -49,6 +50,7 @@ import { createCostTile, defaultTiles, moveTile, readTiles, type MobileTile } fr
 import {
   configureSubscriptions,
   getAvailablePackages,
+  getProStatus,
   purchasePro,
   restorePro,
 } from "./src/subscriptions";
@@ -134,6 +136,7 @@ export default function App() {
   const [betaInterested, setBetaInterested] = useState(false);
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [isPro, setIsPro] = useState(false);
+  const [reminderActive, setReminderActive] = useState(false);
 
   useEffect(() => {
     void Promise.all([
@@ -160,7 +163,9 @@ export default function App() {
 
     if (configureSubscriptions()) {
       void getAvailablePackages().then(setPackages).catch(() => setPackages([]));
+      void getProStatus().then(setIsPro).catch(() => setIsPro(false));
     }
+    void monthlyReminderIsActive().then(setReminderActive).catch(() => setReminderActive(false));
   }, []);
 
   useEffect(() => {
@@ -287,10 +292,14 @@ export default function App() {
       { text: "Zurücksetzen", style: "destructive", onPress: () => { void (async () => {
         try {
           await clearAll();
+          let reminderRemovalFailed = false;
+          try { await disableMonthlyReminder(); } catch { reminderRemovalFailed = true; }
           setProfile(null);
           setDevices([]); setHistory([]); setCosts([]); setTiles(defaultTiles());
           setBetaInterested(false); setHomeName("Mein Zuhause"); setElectricityPrice("0.30"); setGoal("10");
+          if (!reminderRemovalFailed) setReminderActive(false);
           setSettingsOpen(false); setSelectedCostTileId("default-costs"); setTab("home");
+          if (reminderRemovalFailed) Alert.alert("Daten gelöscht", "Die Erinnerung konnte nicht ausgeschaltet werden. Deaktiviere sie später in der App.");
         } catch { Alert.alert("Zurücksetzen fehlgeschlagen", "Bitte versuche es erneut."); }
       })(); } },
     ]);
@@ -513,25 +522,19 @@ export default function App() {
     ]);
   }
 
-  async function scheduleReminder() {
-    const permission = await Notifications.requestPermissionsAsync();
-    if (!permission.granted) return;
-    const nextDate = new Date();
-    nextDate.setMonth(nextDate.getMonth() + 1, 1);
-    nextDate.setHours(9, 0, 0, 0);
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "EAVESENCE Monats-Check",
-        body: "Aktualisiere Verbrauch und Kosten deines Zuhauses.",
-      },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: nextDate },
-    });
-    Alert.alert("Erinnerung aktiv", "Wir erinnern dich am ersten Tag des nächsten Monats.");
-  }
-
-  async function expressBetaInterest() {
-    await writeJson(BETA_KEY, true);
-    setBetaInterested(true);
+  async function toggleReminder() {
+    try {
+      if (reminderActive) {
+        await disableMonthlyReminder();
+        setReminderActive(false);
+        Alert.alert("Erinnerung deaktiviert", "Der monatliche Monats-Check ist ausgeschaltet.");
+        return;
+      }
+      const enabled = await enableMonthlyReminder();
+      if (!enabled) { Alert.alert("Benachrichtigungen nicht erlaubt", "Aktiviere Mitteilungen für EAVESENCE in den iPhone-Einstellungen."); return; }
+      setReminderActive(true);
+      Alert.alert("Erinnerung aktiv", "Wir erinnern dich jeden Monat am 1. um 9:00 Uhr.");
+    } catch { Alert.alert("Erinnerung fehlgeschlagen", "Bitte versuche es erneut."); }
   }
 
   async function buy(selectedPackage: PurchasesPackage) {
@@ -703,13 +706,14 @@ export default function App() {
           {month !== currentMonth && <Pressable onPress={() => setMonth(currentMonth)} style={styles.monthToday}><Text style={styles.monthTodayText}>Aktueller Monat</Text></Pressable>}
           {monthMode === "consumption" ? <Field label="Verbrauch in kWh" value={monthKwh} onChangeText={setMonthKwh} keyboardType="decimal-pad" /> : <Field label="Rechnungsbetrag in Euro" value={monthCost} onChangeText={setMonthCost} keyboardType="decimal-pad" />}
           <PrimaryButton label={editingMonth ? "Monat aktualisieren" : "Monat speichern"} onPress={() => void saveMonth()} />
-          <Pressable style={styles.secondaryButton} onPress={() => void scheduleReminder()}><Text style={styles.secondaryButtonText}>Monatliche Erinnerung aktivieren</Text></Pressable>
+          <Pressable style={styles.secondaryButton} onPress={() => void toggleReminder()}><Text style={styles.secondaryButtonText}>{reminderActive ? "Monatliche Erinnerung ausschalten" : "Monatliche Erinnerung aktivieren"}</Text></Pressable>
+          <Text style={styles.financeNote}>{reminderActive ? "Aktiv · jeden 1. um 9:00 Uhr" : "Optional · jeden 1. um 9:00 Uhr"}</Text>
           </View>
           <Text style={styles.sectionTitle}>Verlauf</Text>
           {history.length === 0 ? <Empty text="Noch kein Monatswert vorhanden." /> : history.map((entry) => <View key={entry.month} style={styles.historyRow}><View style={styles.historyValues}><Text style={styles.deviceName}>{monthLabel(entry.month)}</Text><Text style={styles.muted}>{Math.round(entry.kwh * 10) / 10} kWh · {euro.format(entry.cost)}</Text></View><View style={styles.rowActions}><Pressable accessibilityRole="button" accessibilityLabel={`${monthLabel(entry.month)} bearbeiten`} onPress={() => editMonth(entry)} style={styles.financePill}><Text style={styles.financePillText}>Ändern</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`${monthLabel(entry.month)} entfernen`} onPress={() => confirmRemoveMonth(entry)}><Text style={styles.delete}>×</Text></Pressable></View></View>)}
         </>}
 
-        {tab === "pro" && <View style={styles.proCard}><Text style={styles.eyebrowMint}>EAVESENCE PRO</Text><Text style={styles.proTitle}>Weniger eintragen. Früher reagieren.</Text><Text style={styles.proBody}>Automatische Verbrauchswarnungen, längerer Verlauf, Synchronisation, mehrere Haushalte sowie später Energieetikett- und Rechnungsscan.</Text>{isPro ? <Text style={styles.proActive}>Pro ist aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Pressable style={[styles.proButton, betaInterested && styles.proButtonDisabled]} disabled={betaInterested} onPress={() => void expressBetaInterest()}><Text style={styles.proButtonText}>{betaInterested ? "Beta-Interesse gespeichert" : "Beta-Platz vormerken"}</Text></Pressable>}<Pressable onPress={() => void restorePro().then(setIsPro)}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable><Text style={styles.proHint}>Noch keine Abbuchung ohne freigeschaltete Store-Produkte.</Text></View>}
+        {tab === "pro" && <View style={styles.proCard}><Text style={styles.eyebrowMint}>EAVESENCE PRO</Text><Text style={styles.proTitle}>Weniger eintragen. Früher reagieren.</Text><Text style={styles.proBody}>Pro ist in Vorbereitung. Geplant sind Hinweise auf teure Monate und anstehende Fristen. Weitere Funktionen testen wir erst mit der Gratisversion.</Text>{isPro ? <Text style={styles.proActive}>Pro ist aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Text style={styles.proActive}>Noch kein Abo verfügbar</Text>}{packages.length > 0 && <Pressable onPress={() => void restorePro().then(setIsPro).catch(() => Alert.alert("Wiederherstellung fehlgeschlagen", "Bitte versuche es erneut."))}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable>}</View>}
       </ScrollView>
       <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: tab === key }} onPress={() => { Keyboard.dismiss(); if (key === "add" && tab !== "add") startNewDevice(); else { if (key === "costs") { setSelectedCostTileId("default-costs"); setCostStartAction("none"); } setTab(key); } }} style={[styles.tab, tab === key && styles.tabActive]}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
     </SafeAreaView>
