@@ -674,7 +674,7 @@ export default function App() {
           <PrimaryButton label="Gerät hinzufügen" onPress={startNewDevice} />
         </>}
 
-        {tab === "costs" && <CostsScreen key={`${selectedCostTileId}-${costStartAction}`} profile={profile} costs={costs} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} initialAction={costStartAction} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
+        {tab === "costs" && <CostsScreen key={`${selectedCostTileId}-${costStartAction}`} profile={profile} costs={costs} tiles={tiles} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} initialAction={costStartAction} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
 
         {tab === "add" && <>
           <Text style={styles.eyebrow}>{editingDeviceId ? "GERÄT BEARBEITEN" : "NEUES GERÄT"}</Text><Text style={styles.heroSmall}>{editingDeviceId ? "Gerät aktualisieren" : "Was kostet dein Gerät?"}</Text>
