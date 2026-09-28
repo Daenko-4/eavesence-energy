@@ -272,8 +272,7 @@ export default function Header({
       if (
         !navigationElement ||
         !indicatorElement ||
-        !indicatedNavigation ||
-        indicatedNavigation === "household"
+        !indicatedNavigation
       ) {
         if (indicatorElement) indicatorElement.style.opacity = "0";
         return;
