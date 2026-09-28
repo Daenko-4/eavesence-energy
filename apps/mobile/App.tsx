@@ -8,7 +8,7 @@ import {
 } from "@eavesence/core/householdCosts";
 import * as Notifications from "expo-notifications";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Image,
@@ -80,6 +80,11 @@ function monthLabel(month: string) {
   return new Intl.DateTimeFormat("de-AT", { month: "long", year: "numeric" }).format(new Date(year, number - 1, 1));
 }
 
+function localMonth() {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+}
+
 const initialForm = {
   name: "",
   watts: "1000",
@@ -88,6 +93,7 @@ const initialForm = {
 };
 
 export default function App() {
+  const scrollRef = useRef<ScrollView>(null);
   const [ready, setReady] = useState(false);
   const [profile, setProfile] = useState<MobileProfile | null>(null);
   const [devices, setDevices] = useState<MobileDevice[]>([]);
@@ -95,11 +101,14 @@ export default function App() {
   const [costs, setCosts] = useState<HouseholdCost[]>([]);
   const [tab, setTab] = useState<Tab>("home");
   const [upcomingOpen, setUpcomingOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [homeName, setHomeName] = useState("Mein Zuhause");
   const [electricityPrice, setElectricityPrice] = useState("0.30");
   const [goal, setGoal] = useState("10");
   const [form, setForm] = useState(initialForm);
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [editingDeviceId, setEditingDeviceId] = useState<string | null>(null);
+  const [month, setMonth] = useState(localMonth);
+  const [editingMonth, setEditingMonth] = useState<string | null>(null);
   const [monthMode, setMonthMode] = useState<"consumption" | "cost">("consumption");
   const [monthKwh, setMonthKwh] = useState("");
   const [monthCost, setMonthCost] = useState("");
@@ -116,6 +125,11 @@ export default function App() {
       readJson<boolean>(BETA_KEY, false),
     ]).then(([storedProfile, storedDevices, storedHistory, storedCosts, storedBeta]) => {
       setProfile(storedProfile);
+      if (storedProfile) {
+        setHomeName(storedProfile.name);
+        setElectricityPrice(String(storedProfile.electricityPrice));
+        setGoal(String(storedProfile.savingsGoalPercent));
+      }
       setDevices(storedDevices);
       setHistory(storedHistory);
       setCosts(readHouseholdCosts(JSON.stringify(storedCosts)));
@@ -128,6 +142,10 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [tab]);
+
   const totals = useMemo(
     () => ({
       yearlyCost: devices.reduce((sum, device) => sum + device.yearlyCost, 0),
@@ -135,7 +153,7 @@ export default function App() {
     }),
     [devices],
   );
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  const currentMonth = localMonth();
   const currentMonthEntry = history.find((entry) => entry.month === currentMonth) ?? null;
   const previousMonthEntry = [...history]
     .filter((entry) => entry.month < currentMonth)
@@ -155,10 +173,16 @@ export default function App() {
   const nextMonthLabel = new Intl.DateTimeFormat("de-AT", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${upcoming.month}-01T00:00:00Z`));
 
   async function createHome() {
+    const price = parseLocalNumber(electricityPrice);
+    const target = parseLocalNumber(goal);
+    if (!homeName.trim() || !Number.isFinite(price) || price <= 0 || !Number.isFinite(target) || target < 1 || target > 50) {
+      Alert.alert("Angaben prüfen", "Gib einen Namen, einen Strompreis über 0 und ein Sparziel zwischen 1 und 50 % ein.");
+      return;
+    }
     const nextProfile: MobileProfile = {
-      name: homeName.trim() || "Mein Zuhause",
-      electricityPrice: Math.max(0, parseLocalNumber(electricityPrice) || 0.3),
-      savingsGoalPercent: Math.min(50, Math.max(1, parseLocalNumber(goal) || 10)),
+      name: homeName.trim(),
+      electricityPrice: price,
+      savingsGoalPercent: target,
       createdAt: new Date().toISOString(),
     };
     await writeJson(PROFILE_KEY, nextProfile);
@@ -166,8 +190,49 @@ export default function App() {
     setProfile(nextProfile);
   }
 
+  async function saveSettings() {
+    if (!profile) return;
+    const price = parseLocalNumber(electricityPrice);
+    const target = parseLocalNumber(goal);
+    if (!homeName.trim() || !Number.isFinite(price) || price <= 0 || !Number.isFinite(target) || target < 1 || target > 50) {
+      Alert.alert("Angaben prüfen", "Gib einen Namen, einen Strompreis über 0 und ein Sparziel zwischen 1 und 50 % ein.");
+      return;
+    }
+    const nextProfile = { ...profile, name: homeName.trim(), electricityPrice: price, savingsGoalPercent: target };
+    await writeJson(PROFILE_KEY, nextProfile);
+    setProfile(nextProfile);
+    Keyboard.dismiss();
+    setSettingsOpen(false);
+  }
+
+  function toggleSettings() {
+    if (settingsOpen && profile) {
+      setHomeName(profile.name);
+      setElectricityPrice(String(profile.electricityPrice));
+      setGoal(String(profile.savingsGoalPercent));
+      Keyboard.dismiss();
+    }
+    setSettingsOpen(!settingsOpen);
+  }
+
+  function editDevice(device: MobileDevice) {
+    setEditingDeviceId(device.id);
+    setForm({ name: device.name, watts: String(device.watts), minutes: String(device.minutesPerUse), uses: String(device.usesPerWeek) });
+    setTab("add");
+  }
+
+  function startNewDevice() {
+    setEditingDeviceId(null);
+    setForm(initialForm);
+    setTab("add");
+  }
+
   async function saveDevice() {
-    if (!profile || !form.name.trim()) return;
+    if (!profile) return;
+    if (!form.name.trim()) {
+      Alert.alert("Gerätename fehlt", "Gib dem Gerät einen Namen, bevor du es speicherst.");
+      return;
+    }
     const result = calculateEnergyCosts({
       mode: "estimate",
       calculationType: "power",
@@ -182,8 +247,10 @@ export default function App() {
       Alert.alert("Angaben prüfen", "Leistung, Dauer und Nutzung müssen größer als null sein.");
       return;
     }
+    const existing = devices.find((device) => device.id === editingDeviceId);
     const nextDevice: MobileDevice = {
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      ...existing,
+      id: existing?.id ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       name: form.name.trim(),
       watts: parseLocalNumber(form.watts),
       minutesPerUse: parseLocalNumber(form.minutes),
@@ -193,11 +260,12 @@ export default function App() {
       monthlyCost: result.monthlyCost,
       updatedAt: new Date().toISOString(),
     };
-    const nextDevices = [nextDevice, ...devices];
+    const nextDevices = existing ? devices.map((device) => device.id === existing.id ? nextDevice : device) : [nextDevice, ...devices];
     await writeJson(DEVICES_KEY, nextDevices);
     Keyboard.dismiss();
     setDevices(nextDevices);
     setForm(initialForm);
+    setEditingDeviceId(null);
     setTab("home");
   }
 
@@ -205,6 +273,13 @@ export default function App() {
     const nextDevices = devices.filter((device) => device.id !== id);
     await writeJson(DEVICES_KEY, nextDevices);
     setDevices(nextDevices);
+  }
+
+  function confirmRemoveDevice(device: MobileDevice) {
+    Alert.alert("Gerät entfernen?", device.name, [
+      { text: "Abbrechen", style: "cancel" },
+      { text: "Entfernen", style: "destructive", onPress: () => { void removeDevice(device.id); } },
+    ]);
   }
 
   async function saveCost(cost: HouseholdCost) {
@@ -248,7 +323,7 @@ export default function App() {
       cost,
       updatedAt: new Date().toISOString(),
     };
-    const nextHistory = [nextEntry, ...history.filter((entry) => entry.month !== month)]
+    const nextHistory = [nextEntry, ...history.filter((entry) => entry.month !== month && entry.month !== editingMonth)]
       .sort((a, b) => b.month.localeCompare(a.month))
       .slice(0, 24);
     await writeJson(HISTORY_KEY, nextHistory);
@@ -256,7 +331,31 @@ export default function App() {
     setHistory(nextHistory);
     setMonthKwh("");
     setMonthCost("");
+    setEditingMonth(null);
     Alert.alert("Monatswert gespeichert", "Verbrauch und Kosten wurden aktualisiert.");
+  }
+
+  function editMonth(entry: MobileHistoryEntry) {
+    setMonth(entry.month);
+    setMonthMode("consumption");
+    setMonthKwh(String(Math.round(entry.kwh * 100) / 100));
+    setMonthCost("");
+    setEditingMonth(entry.month);
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }
+
+  function confirmRemoveMonth(entry: MobileHistoryEntry) {
+    Alert.alert("Monatswert entfernen?", monthLabel(entry.month), [
+      { text: "Abbrechen", style: "cancel" },
+      { text: "Entfernen", style: "destructive", onPress: () => {
+        void (async () => {
+          const next = history.filter((item) => item.month !== entry.month);
+          await writeJson(HISTORY_KEY, next);
+          setHistory(next);
+          if (editingMonth === entry.month) { setEditingMonth(null); setMonthKwh(""); setMonthCost(""); }
+        })();
+      } },
+    ]);
   }
 
   async function scheduleReminder() {
@@ -322,11 +421,18 @@ export default function App() {
         <View style={styles.headerCopy}><Text style={styles.headerBrand}>EAVESENCE</Text><Text style={styles.headerSubline}>HOME</Text></View>
         <View style={styles.headerBadge}><Text style={styles.headerBadgeText}>Mein Zuhause</Text></View>
       </View>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         {tab === "home" && <>
           <Text style={styles.eyebrow}>EAVESENCE HOME</Text>
-          <Text style={styles.homeTitle}>{profile.name}</Text>
+          <View style={styles.homeHeadingRow}><Text style={[styles.homeTitle, styles.homeHeadingText]}>{profile.name}</Text><Pressable accessibilityRole="button" accessibilityState={{ expanded: settingsOpen }} onPress={toggleSettings} style={styles.financePill}><Text style={styles.financePillText}>{settingsOpen ? "Schließen" : "Einstellungen"}</Text></Pressable></View>
           <Text style={styles.homeSubtitle}>Deine laufenden Kosten, Zahlungen und Geräte an einem Ort.</Text>
+          {settingsOpen && <View style={styles.formSurface}>
+            <Text style={styles.financeHeading}>Dein Zuhause</Text>
+            <Field label="Name" value={homeName} onChangeText={setHomeName} />
+            <Field label="Strompreis pro kWh (€)" value={electricityPrice} onChangeText={setElectricityPrice} keyboardType="decimal-pad" />
+            <Field label="Sparziel (%)" value={goal} onChangeText={setGoal} keyboardType="number-pad" />
+            <PrimaryButton label="Einstellungen speichern" onPress={() => void saveSettings()} />
+          </View>}
           <View style={styles.financeSection}>
             <Text style={styles.financeHeading}>Finanzen im Überblick</Text>
             <View style={styles.financeCard}>
@@ -361,20 +467,21 @@ export default function App() {
           <View style={styles.metricGrid}><Metric label="Gerätekosten/Jahr" value={euro.format(totals.yearlyCost)} /><Metric label="Verbrauch" value={`${Math.round(totals.yearlyKwh)} kWh`} /><Metric label="Ziel pro Monat" value={euro.format((totals.yearlyCost / 12) * (1 - profile.savingsGoalPercent / 100))} /><Metric label="Geräte" value={`${devices.length}`} /></View>
           {topDevice && <View style={styles.insightCard}><Text style={styles.insightLabel}>GRÖSSTER HEBEL</Text><Text style={styles.insightTitle}>{topDevice.name}</Text><Text style={styles.muted}>{euro.format(topDevice.yearlyCost)} pro Jahr · {totals.yearlyCost > 0 ? Math.round(topDevice.yearlyCost / totals.yearlyCost * 100) : 0} % der erfassten Gerätekosten</Text></View>}
           <Text style={styles.sectionTitle}>Alle Verbraucher im Haushalt</Text>
-          {devices.length === 0 ? <Empty text="Noch keine Geräte. Füge dein erstes Gerät hinzu." /> : devices.map((device) => <View key={device.id} style={styles.deviceRow}><View style={styles.flex}><Text style={styles.deviceName}>{device.name}</Text><Text style={styles.muted}>{euro.format(device.yearlyCost)} pro Jahr</Text></View><Pressable accessibilityRole="button" accessibilityLabel={`${device.name} löschen`} onPress={() => void removeDevice(device.id)}><Text style={styles.delete}>×</Text></Pressable></View>)}
-          <PrimaryButton label="Gerät hinzufügen" onPress={() => setTab("add")} />
+          {devices.length === 0 ? <Empty text="Noch keine Geräte. Füge dein erstes Gerät hinzu." /> : devices.map((device) => <View key={device.id} style={styles.deviceRow}><View style={styles.flex}><Text style={styles.deviceName}>{device.name}</Text><Text style={styles.muted}>{euro.format(device.yearlyCost)} pro Jahr</Text></View><View style={styles.rowActions}><Pressable accessibilityRole="button" accessibilityLabel={`${device.name} bearbeiten`} onPress={() => editDevice(device)} style={styles.financePill}><Text style={styles.financePillText}>Ändern</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`${device.name} entfernen`} onPress={() => confirmRemoveDevice(device)}><Text style={styles.delete}>×</Text></Pressable></View></View>)}
+          <PrimaryButton label="Gerät hinzufügen" onPress={startNewDevice} />
         </>}
 
         {tab === "costs" && <CostsScreen profile={profile} costs={costs} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
 
         {tab === "add" && <>
-          <Text style={styles.eyebrow}>NEUES GERÄT</Text><Text style={styles.heroSmall}>Was kostet dein Gerät?</Text>
+          <Text style={styles.eyebrow}>{editingDeviceId ? "GERÄT BEARBEITEN" : "NEUES GERÄT"}</Text><Text style={styles.heroSmall}>{editingDeviceId ? "Gerät aktualisieren" : "Was kostet dein Gerät?"}</Text>
           <View style={styles.formSurface}>
             <Field label="Gerätename" value={form.name} onChangeText={(value) => setForm({ ...form, name: value })} />
             <Field label="Leistung in Watt" value={form.watts} onChangeText={(value) => setForm({ ...form, watts: value })} keyboardType="number-pad" />
             <Field label="Minuten pro Nutzung" value={form.minutes} onChangeText={(value) => setForm({ ...form, minutes: value })} keyboardType="number-pad" />
             <Field label="Nutzungen pro Woche" value={form.uses} onChangeText={(value) => setForm({ ...form, uses: value })} keyboardType="decimal-pad" />
-            <PrimaryButton label="Berechnen und speichern" onPress={() => void saveDevice()} />
+            <PrimaryButton label={editingDeviceId ? "Änderungen speichern" : "Berechnen und speichern"} onPress={() => void saveDevice()} />
+            {editingDeviceId && <Pressable onPress={() => { setEditingDeviceId(null); setForm(initialForm); setTab("home"); }} style={styles.financePill}><Text style={styles.financePillText}>Abbrechen</Text></Pressable>}
           </View>
         </>}
 
@@ -391,16 +498,16 @@ export default function App() {
           </View>
           {month !== currentMonth && <Pressable onPress={() => setMonth(currentMonth)} style={styles.monthToday}><Text style={styles.monthTodayText}>Aktueller Monat</Text></Pressable>}
           {monthMode === "consumption" ? <Field label="Verbrauch in kWh" value={monthKwh} onChangeText={setMonthKwh} keyboardType="decimal-pad" /> : <Field label="Rechnungsbetrag in Euro" value={monthCost} onChangeText={setMonthCost} keyboardType="decimal-pad" />}
-          <PrimaryButton label="Monat speichern" onPress={() => void saveMonth()} />
+          <PrimaryButton label={editingMonth ? "Monat aktualisieren" : "Monat speichern"} onPress={() => void saveMonth()} />
           <Pressable style={styles.secondaryButton} onPress={() => void scheduleReminder()}><Text style={styles.secondaryButtonText}>Monatliche Erinnerung aktivieren</Text></Pressable>
           </View>
           <Text style={styles.sectionTitle}>Verlauf</Text>
-          {history.length === 0 ? <Empty text="Noch kein Monatswert vorhanden." /> : history.map((entry) => <View key={entry.month} style={styles.deviceRow}><View><Text style={styles.deviceName}>{entry.month}</Text><Text style={styles.muted}>{entry.kwh} kWh</Text></View><Text style={styles.deviceName}>{euro.format(entry.cost)}</Text></View>)}
+          {history.length === 0 ? <Empty text="Noch kein Monatswert vorhanden." /> : history.map((entry) => <View key={entry.month} style={styles.historyRow}><View style={styles.historyValues}><Text style={styles.deviceName}>{monthLabel(entry.month)}</Text><Text style={styles.muted}>{Math.round(entry.kwh * 10) / 10} kWh · {euro.format(entry.cost)}</Text></View><View style={styles.rowActions}><Pressable accessibilityRole="button" accessibilityLabel={`${monthLabel(entry.month)} bearbeiten`} onPress={() => editMonth(entry)} style={styles.financePill}><Text style={styles.financePillText}>Ändern</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`${monthLabel(entry.month)} entfernen`} onPress={() => confirmRemoveMonth(entry)}><Text style={styles.delete}>×</Text></Pressable></View></View>)}
         </>}
 
         {tab === "pro" && <View style={styles.proCard}><Text style={styles.eyebrowMint}>EAVESENCE PRO</Text><Text style={styles.proTitle}>Weniger eintragen. Früher reagieren.</Text><Text style={styles.proBody}>Automatische Verbrauchswarnungen, längerer Verlauf, Synchronisation, mehrere Haushalte sowie später Energieetikett- und Rechnungsscan.</Text>{isPro ? <Text style={styles.proActive}>Pro ist aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Pressable style={[styles.proButton, betaInterested && styles.proButtonDisabled]} disabled={betaInterested} onPress={() => void expressBetaInterest()}><Text style={styles.proButtonText}>{betaInterested ? "Beta-Interesse gespeichert" : "Beta-Platz vormerken"}</Text></Pressable>}<Pressable onPress={() => void restorePro().then(setIsPro)}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable><Text style={styles.proHint}>Noch keine Abbuchung ohne freigeschaltete Store-Produkte.</Text></View>}
       </ScrollView>
-      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: tab === key }} onPress={() => { Keyboard.dismiss(); setTab(key); }} style={[styles.tab, tab === key && styles.tabActive]}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
+      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: tab === key }} onPress={() => { Keyboard.dismiss(); if (key === "add" && tab !== "add") startNewDevice(); else setTab(key); }} style={[styles.tab, tab === key && styles.tabActive]}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
     </SafeAreaView>
   );
 }
@@ -420,6 +527,11 @@ function Empty({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
+  homeHeadingRow: { flexDirection: "row", alignItems: "center", gap: 9 },
+  homeHeadingText: { flex: 1 },
+  rowActions: { flexDirection: "row", alignItems: "center", gap: 4 },
+  historyRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 9, padding: 14, borderWidth: 1, borderRadius: 14, borderColor: "#dfe5dd", backgroundColor: "#fbfcf8" },
+  historyValues: { flex: 1 },
   onboardingMark: { width: 54, height: 54, borderRadius: 11, marginBottom: 2 },
   formSurface: { borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22, backgroundColor: "#f6f6f0", padding: 18, gap: 13 },
   headerMark: { width: 34, height: 34, borderRadius: 7 },

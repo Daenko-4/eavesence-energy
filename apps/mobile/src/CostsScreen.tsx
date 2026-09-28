@@ -158,6 +158,14 @@ export default function CostsScreen({ profile, costs, onSaveCost, onDeleteCost, 
       <View style={styles.metric}><Text style={styles.label}>PRO JAHR</Text><Text style={styles.value}>{money.format(summary.annualTotal)}</Text></View>
     </View>
 
+    <View style={styles.panel}>
+      <Text style={styles.panelTitle}>Nettoeinkommen</Text>
+      <Text style={styles.help}>Das Budget zieht nur deine erfassten regelmäßigen Kosten ab; variable Ausgaben bleiben außen vor.</Text>
+      <FormInput label="Nettoeinkommen" value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder="0,00" />
+      <Choice options={[["monthly", "Monatlich"], ["yearly", "Jährlich"]]} value={incomeFrequency} onChange={setIncomeFrequency} />
+      <Pressable onPress={() => { void saveIncome(); }} style={styles.secondary}><Text style={styles.secondaryText}>Einkommen speichern</Text></Pressable>
+    </View>
+
     {costs.length < 3 && !formOpen && <View style={styles.panel}>
       <Text style={styles.panelTitle}>Schnell starten · {costs.length} von 3</Text>
       <Text style={styles.help}>Beginne mit Wohnen, Energie oder einem Vertrag. Anbieterangaben sind nicht nötig.</Text>
@@ -176,14 +184,6 @@ export default function CostsScreen({ profile, costs, onSaveCost, onDeleteCost, 
       <Pressable onPress={() => { void save(); }} style={styles.primary}><Text style={styles.primaryText}>{editingId ? "Aktualisieren" : "Speichern"}</Text></Pressable>
       <Pressable onPress={() => setFormOpen(false)} style={styles.secondary}><Text style={styles.secondaryText}>Abbrechen</Text></Pressable>
     </View> : <Pressable onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
-
-    <View style={styles.panel}>
-      <Text style={styles.panelTitle}>Nettoeinkommen</Text>
-      <Text style={styles.help}>Das Budget zieht nur deine erfassten regelmäßigen Kosten ab; variable Ausgaben bleiben außen vor.</Text>
-      <FormInput label="Nettoeinkommen" value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder="0,00" />
-      <Choice options={[["monthly", "Monatlich"], ["yearly", "Jährlich"]]} value={incomeFrequency} onChange={setIncomeFrequency} />
-      <Pressable onPress={() => { void saveIncome(); }} style={styles.secondary}><Text style={styles.secondaryText}>Einkommen speichern</Text></Pressable>
-    </View>
 
     <Text style={styles.sectionTitle}>Angelegte Kosten</Text>
     {costs.length === 0 ? <Text style={styles.help}>Noch keine Kosten angelegt.</Text> : costs.map((cost) => <View key={cost.id} style={styles.costRow}>
