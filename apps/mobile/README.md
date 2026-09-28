@@ -1,12 +1,16 @@
 # EAVESENCE Home mobile
 
+This branch is a temporary **free iPhone preview** using Expo SDK 54, which
+matches Expo Go from the iPhone App Store. It keeps household costs, income,
+forecast, devices and history from the regular SDK 57 app. Purchases are
+disabled in this preview; the Pro screen only records beta interest. Keep this
+SDK downgrade separate from the regular release.
+
 Shared Expo/React Native application for iOS and Android. It is local-first:
 onboarding, recurring household costs, net income, devices and monthly history
 are stored on the device. The home screen previews payments next month when
 payment dates are entered. The cost calculations are shared with the website;
-mobile data is currently separate from website data. A RevenueCat
-SDK key enables real store offerings only after Apple and Google products have
-been configured.
+mobile data is currently separate from website data.
 
 ## Local start
 
@@ -16,12 +20,20 @@ From the repository root:
 npm run mobile:start
 ```
 
-Use a compatible Expo Go version on Android. The iPhone App Store version of
-Expo Go does not support this project's SDK 57; use the TestFlight build below
-for a physical iPhone. Native purchases need store products and a separate
-sandbox test.
+Install Expo Go from the iPhone App Store. On a physical iPhone, sign in to the
+same free Expo account in Expo Go and Expo CLI (`cd apps/mobile`,
+`npx expo login`, `npx expo whoami`). Keep the phone and PC on the same Wi-Fi,
+run `npm run mobile:start` from the repository root and scan the QR code with
+the iPhone camera. If the connection fails, stop the server and run
+`npx expo start --tunnel` from `apps/mobile`.
+
+After switching from the regular SDK 57 app, run `npm ci` at the repository
+root before starting Expo. The regular SDK 57 app is on `main`.
 
 ## Test on an iPhone with TestFlight
+
+Switch back to `main` and run `npm ci` before using this section. The preview
+branch has purchases disabled and is intended for Expo Go testing only.
 
 A paid Apple Developer Program membership, access to App Store Connect, and a
 free Expo account are required. These steps work from Windows; no Mac is needed.
@@ -66,5 +78,5 @@ That path uses Apple ad hoc signing and only registered devices can install it.
 6. Configure EAS credentials with `eas build:configure`.
 7. Run preview builds, internal testing and TestFlight before production.
 
-The app deliberately shows beta interest instead of attempting a purchase when
-no RevenueCat key or store offering is configured.
+This Expo Go preview deliberately shows beta interest instead of attempting a
+purchase.

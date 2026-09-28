@@ -22,9 +22,9 @@ import {
   TextInput,
   View,
 } from "react-native";
-import type { PurchasesPackage } from "react-native-purchases";
 
 import CostsScreen from "./src/CostsScreen";
+import type { PurchasesPackage } from "./src/subscriptions";
 import {
   BETA_KEY,
   COSTS_KEY,
