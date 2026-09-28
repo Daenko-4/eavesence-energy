@@ -78,9 +78,11 @@ function Choice<T extends string>({ options, value, onChange }: {
   return <View style={styles.choices}>{options.map(([key, label]) => <Pressable key={key} accessibilityRole="button" accessibilityState={{ selected: value === key }} onPress={() => onChange(key)} style={[styles.choice, value === key && styles.choiceActive]}><Text style={[styles.choiceText, value === key && styles.choiceTextActive]}>{label}</Text></Pressable>)}</View>;
 }
 
-export default function CostsScreen({ profile, costs, onSaveCost, onDeleteCost, onSaveIncome }: {
+export default function CostsScreen({ profile, costs, tileId, tileTitle, onSaveCost, onDeleteCost, onSaveIncome }: {
   profile: MobileProfile;
   costs: HouseholdCost[];
+  tileId: string;
+  tileTitle: string;
   onSaveCost: (cost: HouseholdCost) => Promise<void>;
   onDeleteCost: (id: string) => Promise<void>;
   onSaveIncome: (amount: number, frequency: "monthly" | "yearly") => Promise<void>;
@@ -95,7 +97,8 @@ export default function CostsScreen({ profile, costs, onSaveCost, onDeleteCost, 
   const [deadline, setDeadline] = useState("");
   const [income, setIncome] = useState(profile.incomeAmount ? String(profile.incomeAmount) : "");
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">(profile.incomeFrequency ?? "monthly");
-  const summary = summarizeHouseholdCosts(costs);
+  const visibleCosts = costs.filter((cost) => tileId === "default-costs" ? !cost.tileId || cost.tileId === tileId : cost.tileId === tileId);
+  const summary = summarizeHouseholdCosts(visibleCosts);
 
   function openNew(suggestion?: [HouseholdCostCategory, string, HouseholdCostFrequency]) {
     setEditingId(null);
@@ -120,7 +123,7 @@ export default function CostsScreen({ profile, costs, onSaveCost, onDeleteCost, 
   }
 
   async function save() {
-    const cost = createHouseholdCost({ id: editingId ?? undefined, name, amount: parseAmount(amount), category, frequency, nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
+    const cost = createHouseholdCost({ id: editingId ?? undefined, name, amount: parseAmount(amount), category, frequency, tileId, nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
     if (!cost) {
       Alert.alert("Angaben prüfen", "Gib eine Bezeichnung, einen Betrag über 0 und gültige Termine im Format TT.MM.JJJJ ein.");
       return;
@@ -151,23 +154,23 @@ export default function CostsScreen({ profile, costs, onSaveCost, onDeleteCost, 
 
   return <>
     <Text style={styles.eyebrow}>HAUSHALTSKOSTEN</Text>
-    <Text style={styles.title}>Was kostet dein Zuhause?</Text>
+    <Text style={styles.title}>{tileId === "default-costs" ? "Was kostet dein Zuhause?" : tileTitle}</Text>
     <Text style={styles.explanation}>Regelmäßige Kosten einmal erfassen. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um.</Text>
     <View style={styles.metrics}>
       <View style={styles.metric}><Text style={styles.label}>PRO MONAT</Text><Text style={styles.value}>{money.format(summary.monthlyTotal)}</Text></View>
       <View style={styles.metric}><Text style={styles.label}>PRO JAHR</Text><Text style={styles.value}>{money.format(summary.annualTotal)}</Text></View>
     </View>
 
-    <View style={styles.panel}>
+    {tileId === "default-costs" && <View style={styles.panel}>
       <Text style={styles.panelTitle}>Nettoeinkommen</Text>
       <Text style={styles.help}>Das Budget zieht nur deine erfassten regelmäßigen Kosten ab; variable Ausgaben bleiben außen vor.</Text>
       <FormInput label="Nettoeinkommen" value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder="0,00" />
       <Choice options={[["monthly", "Monatlich"], ["yearly", "Jährlich"]]} value={incomeFrequency} onChange={setIncomeFrequency} />
       <Pressable onPress={() => { void saveIncome(); }} style={styles.secondary}><Text style={styles.secondaryText}>Einkommen speichern</Text></Pressable>
-    </View>
+    </View>}
 
-    {costs.length < 3 && !formOpen && <View style={styles.panel}>
-      <Text style={styles.panelTitle}>Schnell starten · {costs.length} von 3</Text>
+    {visibleCosts.length < 3 && !formOpen && <View style={styles.panel}>
+      <Text style={styles.panelTitle}>Schnell starten · {visibleCosts.length} von 3</Text>
       <Text style={styles.help}>Beginne mit Wohnen, Energie oder einem Vertrag. Anbieterangaben sind nicht nötig.</Text>
       <View style={styles.choices}>{suggestions.map((suggestion) => <Pressable key={suggestion[0]} onPress={() => openNew(suggestion)} style={styles.choice}><Text style={styles.choiceText}>{suggestion[1]}</Text></Pressable>)}</View>
     </View>}
@@ -186,7 +189,7 @@ export default function CostsScreen({ profile, costs, onSaveCost, onDeleteCost, 
     </View> : <Pressable onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
 
     <Text style={styles.sectionTitle}>Angelegte Kosten</Text>
-    {costs.length === 0 ? <Text style={styles.help}>Noch keine Kosten angelegt.</Text> : costs.map((cost) => <View key={cost.id} style={styles.costRow}>
+    {visibleCosts.length === 0 ? <Text style={styles.help}>Noch keine Kosten angelegt.</Text> : visibleCosts.map((cost) => <View key={cost.id} style={styles.costRow}>
       <Text style={styles.costName}>{cost.name}</Text>
       <Text style={styles.costDetail}>{categories.find(([key]) => key === cost.category)?.[1]} · {frequencies.find(([key]) => key === cost.frequency)?.[1]}</Text>
       <Text style={styles.costDetail}>{money.format(cost.amount)} je Zahlung · {money.format(monthlyCost(cost.amount, cost.frequency))} pro Monat · {money.format(annualCost(cost.amount, cost.frequency))} pro Jahr</Text>

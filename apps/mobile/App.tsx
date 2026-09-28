@@ -1,6 +1,7 @@
 import { calculateEnergyCosts } from "@eavesence/core";
 import {
   forecastHouseholdCosts,
+  monthlyCost,
   readHouseholdCosts,
   removeHouseholdCost,
   upsertHouseholdCost,
@@ -23,8 +24,11 @@ import {
   View,
 } from "react-native";
 import type { PurchasesPackage } from "react-native-purchases";
+import { devices as libraryDevices, getDeviceCalculationDefaults } from "../../src/data/devices";
 
 import CostsScreen from "./src/CostsScreen";
+import { createMobileBackup, readMobileBackup, type MobileBackup } from "./src/backup";
+import { pickBackup, shareBackup } from "./src/backupFiles";
 import { FormInput } from "./src/FormInput";
 import {
   BETA_KEY,
@@ -32,12 +36,16 @@ import {
   DEVICES_KEY,
   HISTORY_KEY,
   PROFILE_KEY,
+  TILES_KEY,
+  clearAll,
   readJson,
+  writeAll,
   writeJson,
   type MobileDevice,
   type MobileHistoryEntry,
   type MobileProfile,
 } from "./src/storage";
+import { createCostTile, defaultTiles, moveTile, readTiles, type MobileTile } from "./src/tiles";
 import {
   configureSubscriptions,
   getAvailablePackages,
@@ -92,13 +100,22 @@ const initialForm = {
   uses: "3",
 };
 
+const suggestedDevices = ["wlan-router", "wasserkocher", "kaffeemaschine", "fernseher", "staubsauger", "mikrowelle"]
+  .flatMap((slug) => libraryDevices.filter((device) => device.slug === slug && device.calculationType === "power"));
+
 export default function App() {
   const scrollRef = useRef<ScrollView>(null);
+  const energySectionY = useRef(0);
   const [ready, setReady] = useState(false);
   const [profile, setProfile] = useState<MobileProfile | null>(null);
   const [devices, setDevices] = useState<MobileDevice[]>([]);
   const [history, setHistory] = useState<MobileHistoryEntry[]>([]);
   const [costs, setCosts] = useState<HouseholdCost[]>([]);
+  const [tiles, setTiles] = useState<MobileTile[]>(defaultTiles);
+  const [selectedCostTileId, setSelectedCostTileId] = useState("default-costs");
+  const [tileFormOpen, setTileFormOpen] = useState(false);
+  const [tileName, setTileName] = useState("");
+  const [editingTileId, setEditingTileId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("home");
   const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -123,7 +140,8 @@ export default function App() {
       readJson<MobileHistoryEntry[]>(HISTORY_KEY, []),
       readJson<unknown>(COSTS_KEY, []),
       readJson<boolean>(BETA_KEY, false),
-    ]).then(([storedProfile, storedDevices, storedHistory, storedCosts, storedBeta]) => {
+      readJson<unknown>(TILES_KEY, null),
+    ]).then(([storedProfile, storedDevices, storedHistory, storedCosts, storedBeta, storedTiles]) => {
       setProfile(storedProfile);
       if (storedProfile) {
         setHomeName(storedProfile.name);
@@ -133,6 +151,7 @@ export default function App() {
       setDevices(storedDevices);
       setHistory(storedHistory);
       setCosts(readHouseholdCosts(JSON.stringify(storedCosts)));
+      setTiles(readTiles(storedTiles));
       setBetaInterested(storedBeta);
       setReady(true);
     });
@@ -203,6 +222,128 @@ export default function App() {
     setProfile(nextProfile);
     Keyboard.dismiss();
     setSettingsOpen(false);
+  }
+
+  async function exportData() {
+    if (!profile) return;
+    try {
+      await shareBackup(createMobileBackup({ profile, devices, history, costs, tiles, betaInterested }));
+    } catch {
+      Alert.alert("Sicherung fehlgeschlagen", "Die Datei konnte nicht geteilt werden. Bitte versuche es erneut.");
+    }
+  }
+
+  async function applyBackup(backup: MobileBackup) {
+    try {
+      await writeAll([
+        [PROFILE_KEY, backup.profile], [DEVICES_KEY, backup.devices], [HISTORY_KEY, backup.history],
+        [COSTS_KEY, backup.costs], [TILES_KEY, backup.tiles], [BETA_KEY, backup.betaInterested],
+      ]);
+      setProfile(backup.profile);
+      setHomeName(backup.profile.name);
+      setElectricityPrice(String(backup.profile.electricityPrice));
+      setGoal(String(backup.profile.savingsGoalPercent));
+      setDevices(backup.devices);
+      setHistory(backup.history);
+      setCosts(backup.costs);
+      setTiles(backup.tiles);
+      setBetaInterested(backup.betaInterested);
+      setSelectedCostTileId("default-costs");
+      setSettingsOpen(false);
+      setTab("home");
+      Alert.alert("Sicherung importiert", "Deine App-Daten wurden ersetzt.");
+    } catch {
+      Alert.alert("Import fehlgeschlagen", "Die Daten konnten nicht gespeichert werden. Bitte versuche es erneut.");
+    }
+  }
+
+  async function importData() {
+    try {
+      const json = await pickBackup();
+      if (json === null) return;
+      const backup = readMobileBackup(json);
+      if (!backup) {
+        Alert.alert("Ungültige Sicherung", "Wähle eine vollständige EAVESENCE-App-Sicherung als JSON-Datei.");
+        return;
+      }
+      Alert.alert("App-Daten ersetzen?", `Die Sicherung vom ${new Date(backup.exportedAt).toLocaleDateString("de-AT")} ersetzt dein aktuelles Zuhause samt Kosten, Geräten und Verlauf.`, [
+        { text: "Abbrechen", style: "cancel" },
+        { text: "Importieren", onPress: () => { void applyBackup(backup); } },
+      ]);
+    } catch {
+      Alert.alert("Import fehlgeschlagen", "Die Datei konnte nicht gelesen werden.");
+    }
+  }
+
+  function confirmReset() {
+    Alert.alert("My Home zurücksetzen?", "Dein Zuhause, Geräte, Kosten und Verlauf werden auf diesem Gerät gelöscht. Exportiere vorher eine Sicherung, wenn du sie behalten möchtest.", [
+      { text: "Abbrechen", style: "cancel" },
+      { text: "Zurücksetzen", style: "destructive", onPress: () => { void (async () => {
+        try {
+          await clearAll();
+          setProfile(null);
+          setDevices([]); setHistory([]); setCosts([]); setTiles(defaultTiles());
+          setBetaInterested(false); setHomeName("Mein Zuhause"); setElectricityPrice("0.30"); setGoal("10");
+          setSettingsOpen(false); setSelectedCostTileId("default-costs"); setTab("home");
+        } catch { Alert.alert("Zurücksetzen fehlgeschlagen", "Bitte versuche es erneut."); }
+      })(); } },
+    ]);
+  }
+
+  async function saveTile() {
+    const title = tileName.trim();
+    if (!title) { Alert.alert("Name fehlt", "Gib der Kachel einen Namen."); return; }
+    if (title.length > 40) { Alert.alert("Name zu lang", "Verwende höchstens 40 Zeichen."); return; }
+    if (tiles.some((tile) => tile.id !== editingTileId && tile.title.toLowerCase() === title.toLowerCase())) {
+      Alert.alert("Name bereits vorhanden", "Wähle einen anderen Kachelnamen."); return;
+    }
+    const next = editingTileId
+      ? tiles.map((tile) => tile.id === editingTileId ? { ...tile, title } : tile)
+      : [...tiles, createCostTile(title)];
+    if (next.length > 30) { Alert.alert("Zu viele Kacheln", "Maximal 30 Kacheln sind möglich."); return; }
+    try {
+      await writeJson(TILES_KEY, next);
+      setTiles(next); setTileFormOpen(false); setEditingTileId(null); setTileName(""); Keyboard.dismiss();
+    } catch { Alert.alert("Speichern fehlgeschlagen", "Die Kachel konnte nicht gespeichert werden."); }
+  }
+
+  async function shiftTile(id: string, direction: -1 | 1) {
+    const next = moveTile(tiles, id, direction);
+    if (next === tiles) return;
+    try {
+      await writeJson(TILES_KEY, next);
+      setTiles(next);
+    } catch { Alert.alert("Speichern fehlgeschlagen", "Die Reihenfolge konnte nicht gespeichert werden."); }
+  }
+
+  function confirmRemoveTile(tile: MobileTile) {
+    const count = costs.filter((cost) => cost.tileId === tile.id).length;
+    Alert.alert("Kachel entfernen?", count ? `${count} ${count === 1 ? "Kostenposten wird" : "Kostenposten werden"} zu Haushaltskosten verschoben.` : tile.title, [
+      { text: "Abbrechen", style: "cancel" },
+      { text: "Entfernen", style: "destructive", onPress: () => { void (async () => {
+        try {
+          const nextTiles = tiles.filter((item) => item.id !== tile.id);
+          const nextCosts = costs.map((cost) => cost.tileId === tile.id ? { ...cost, tileId: "default-costs" } : cost);
+          await writeAll([[TILES_KEY, nextTiles], [COSTS_KEY, nextCosts]]);
+          setTiles(nextTiles); setCosts(nextCosts); setSelectedCostTileId("default-costs");
+        } catch { Alert.alert("Entfernen fehlgeschlagen", "Die Kachel konnte nicht entfernt werden."); }
+      })(); } },
+    ]);
+  }
+
+  function openTile(tile: MobileTile) {
+    if (tile.kind === "energy") {
+      setTab("home");
+      scrollRef.current?.scrollTo({ y: energySectionY.current, animated: true });
+    } else {
+      setSelectedCostTileId(tile.id);
+      setTab("costs");
+    }
+  }
+
+  function openMainCosts() {
+    setSelectedCostTileId("default-costs");
+    setTab("costs");
   }
 
   function toggleSettings() {
@@ -432,6 +573,15 @@ export default function App() {
             <Field label="Strompreis pro kWh (€)" value={electricityPrice} onChangeText={setElectricityPrice} keyboardType="decimal-pad" />
             <Field label="Sparziel (%)" value={goal} onChangeText={setGoal} keyboardType="number-pad" />
             <PrimaryButton label="Einstellungen speichern" onPress={() => void saveSettings()} />
+            <View style={styles.dataSection}>
+              <Text style={styles.dataTitle}>Deine Daten</Text>
+              <Text style={styles.financeNote}>Die App-Sicherung enthält Einstellungen, Kacheln, Kosten, Geräte und Monatswerte. Speichere sie in „Dateien“ oder teile sie über das iOS-Menü.</Text>
+              <View style={styles.dataActions}>
+                <Pressable onPress={() => void exportData()} style={styles.financePill}><Text style={styles.financePillText}>Sicherung exportieren</Text></Pressable>
+                <Pressable onPress={() => void importData()} style={styles.financePill}><Text style={styles.financePillText}>Sicherung importieren</Text></Pressable>
+                <Pressable onPress={confirmReset} style={styles.dangerPill}><Text style={styles.dangerText}>My Home zurücksetzen</Text></Pressable>
+              </View>
+            </View>
           </View>}
           <View style={styles.financeSection}>
             <Text style={styles.financeHeading}>Finanzen im Überblick</Text>
@@ -442,19 +592,39 @@ export default function App() {
               <Pressable accessibilityRole="button" accessibilityState={{ expanded: upcomingOpen }} onPress={() => setUpcomingOpen(!upcomingOpen)} style={styles.financePill}><Text style={styles.financePillText}>{upcomingOpen ? "Zahlungen schließen" : "Fällige Zahlungen"}</Text></Pressable>
               {upcomingOpen && <View style={styles.financeExpanded}>
                 {upcoming.payments.length === 0 ? <Text style={styles.financeNote}>Keine datierten Zahlungen vorhanden.</Text> : upcoming.payments.map(({ cost, date }) => <View key={`${cost.id}-${date}`} style={styles.paymentRow}><Text style={styles.paymentName}>{date.slice(8)}.{date.slice(5, 7)}. · {cost.name}</Text><Text style={styles.paymentAmount}>{euro.format(cost.amount)}</Text></View>)}
-                <Pressable onPress={() => setTab("costs")} style={styles.financePill}><Text style={styles.financePillText}>Kosten bearbeiten</Text></Pressable>
+                <Pressable onPress={openMainCosts} style={styles.financePill}><Text style={styles.financePillText}>Kosten bearbeiten</Text></Pressable>
               </View>}
             </View>
             <View style={styles.financeCard}>
               <Text style={styles.financeLabel}>NETTOEINKOMMEN / MONAT</Text>
               {monthlyIncome > 0 && <Text style={styles.financeValue}>{euro.format(monthlyIncome)}</Text>}
-              <Pressable onPress={() => setTab("costs")} style={styles.financePill}><Text style={styles.financePillText}>{monthlyIncome > 0 ? "Einkommen ändern" : "Einkommen hinzufügen"}</Text></Pressable>
+              <Pressable onPress={openMainCosts} style={styles.financePill}><Text style={styles.financePillText}>{monthlyIncome > 0 ? "Einkommen ändern" : "Einkommen hinzufügen"}</Text></Pressable>
             </View>
             <View style={[styles.financeCard, styles.financeCardAccent]}>
               <Text style={styles.financeLabel}>LAUFENDE KOSTEN / MONAT</Text>
               <Text style={styles.financeValue}>{euro.format(costSummary.monthlyTotal)}</Text>
               {monthlyIncome > 0 && <Text style={styles.financeNote}>Budget nach laufenden Kosten: {euro.format(monthlyIncome - costSummary.monthlyTotal)}</Text>}
             </View>
+          </View>
+          <View style={styles.tilesSection}>
+            <Text style={styles.financeHeading}>Deine Kacheln</Text>
+            <Text style={styles.financeNote}>Öffne einen Bereich oder ändere seine Reihenfolge mit den Pfeilen.</Text>
+            <View style={styles.tilesGrid}>{tiles.map((tile, index) => {
+              const tileCosts = costs.filter((cost) => tile.kind === "costs" && (tile.id === "default-costs" ? !cost.tileId || cost.tileId === tile.id : cost.tileId === tile.id));
+              return <View key={tile.id} style={styles.tileCard}>
+                <Pressable accessibilityRole="button" onPress={() => openTile(tile)} style={styles.tileMain}>
+                  <Text style={styles.tileName}>{tile.title}</Text>
+                  <Text style={styles.tileDetail}>{tile.kind === "energy" ? `${devices.length} Geräte` : `${tileCosts.length} Kosten · ${euro.format(tileCosts.reduce((sum, cost) => sum + monthlyCost(cost.amount, cost.frequency), 0))}/Monat`}</Text>
+                </Pressable>
+                <View style={styles.tileControls}>
+                  <Pressable accessibilityRole="button" accessibilityLabel={`${tile.title} nach vorne verschieben`} disabled={index === 0} onPress={() => void shiftTile(tile.id, -1)} style={styles.tileMove}><Text style={[styles.tileMoveText, index === 0 && styles.tileMoveDisabled]}>‹</Text></Pressable>
+                  <Pressable accessibilityRole="button" accessibilityLabel={`${tile.title} nach hinten verschieben`} disabled={index === tiles.length - 1} onPress={() => void shiftTile(tile.id, 1)} style={styles.tileMove}><Text style={[styles.tileMoveText, index === tiles.length - 1 && styles.tileMoveDisabled]}>›</Text></Pressable>
+                  {!tile.id.startsWith("default-") && <><Pressable onPress={() => { setTileName(tile.title); setEditingTileId(tile.id); setTileFormOpen(true); }} style={styles.tileEdit}><Text style={styles.financePillText}>Ändern</Text></Pressable><Pressable accessibilityLabel={`${tile.title} entfernen`} onPress={() => confirmRemoveTile(tile)} style={styles.tileEdit}><Text style={styles.dangerText}>×</Text></Pressable></>}
+                </View>
+              </View>;
+            })}</View>
+            {tileFormOpen ? <View style={styles.tileForm}><Field label="Kachelname" value={tileName} onChangeText={setTileName} placeholder="z. B. Versicherungen" /><PrimaryButton label={editingTileId ? "Kachel umbenennen" : "Kachel erstellen"} onPress={() => void saveTile()} /><Pressable onPress={() => { setTileFormOpen(false); setEditingTileId(null); setTileName(""); }} style={styles.financePill}><Text style={styles.financePillText}>Abbrechen</Text></Pressable></View>
+              : <Pressable onPress={() => { setTileName(""); setEditingTileId(null); setTileFormOpen(true); }} style={styles.addTile}><Text style={styles.addTileText}>+ Eigene Kachel</Text></Pressable>}
           </View>
           {costs.length > 0 && forecastComplete && Math.abs(forecastDifference) > 0.01 && <View style={styles.insightCard}><Text style={styles.insightLabel}>BLICK AUF DEN NÄCHSTEN MONAT</Text><Text style={styles.muted}>{euro.format(Math.abs(forecastDifference))} {forecastDifference > 0 ? "mehr" : "weniger"} als dein monatlicher Kostendurchschnitt{forecastDifference > 0.01 && forecastDriver ? ` · ${forecastDriver.cost.name} ist ein wichtiger Posten.` : "."}</Text></View>}
           <View style={[styles.pulseCard, currentMonthEntry ? styles.pulseCardComplete : styles.pulseCardOpen]}>
@@ -463,7 +633,7 @@ export default function App() {
             <Text style={styles.pulseBody}>{currentMonthEntry ? `${Math.round(currentMonthEntry.kwh * 10) / 10} kWh · ${euro.format(currentMonthEntry.cost)}` : "Erfasse einmal im Monat Verbrauch oder Rechnungsbetrag. Den zweiten Wert berechnen wir automatisch."}</Text>
             {!currentMonthEntry && <Pressable style={styles.pulseAction} onPress={() => setTab("history")}><Text style={styles.pulseActionText}>Monatswert eintragen</Text></Pressable>}
           </View>
-          <Text style={styles.sectionTitle}>Strom & Geräte</Text>
+          <Text onLayout={(event) => { energySectionY.current = event.nativeEvent.layout.y; }} style={styles.sectionTitle}>Strom & Geräte</Text>
           <View style={styles.metricGrid}><Metric label="Gerätekosten/Jahr" value={euro.format(totals.yearlyCost)} /><Metric label="Verbrauch" value={`${Math.round(totals.yearlyKwh)} kWh`} /><Metric label="Ziel pro Monat" value={euro.format((totals.yearlyCost / 12) * (1 - profile.savingsGoalPercent / 100))} /><Metric label="Geräte" value={`${devices.length}`} /></View>
           {topDevice && <View style={styles.insightCard}><Text style={styles.insightLabel}>GRÖSSTER HEBEL</Text><Text style={styles.insightTitle}>{topDevice.name}</Text><Text style={styles.muted}>{euro.format(topDevice.yearlyCost)} pro Jahr · {totals.yearlyCost > 0 ? Math.round(topDevice.yearlyCost / totals.yearlyCost * 100) : 0} % der erfassten Gerätekosten</Text></View>}
           <Text style={styles.sectionTitle}>Alle Verbraucher im Haushalt</Text>
@@ -471,11 +641,12 @@ export default function App() {
           <PrimaryButton label="Gerät hinzufügen" onPress={startNewDevice} />
         </>}
 
-        {tab === "costs" && <CostsScreen profile={profile} costs={costs} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
+        {tab === "costs" && <CostsScreen key={selectedCostTileId} profile={profile} costs={costs} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
 
         {tab === "add" && <>
           <Text style={styles.eyebrow}>{editingDeviceId ? "GERÄT BEARBEITEN" : "NEUES GERÄT"}</Text><Text style={styles.heroSmall}>{editingDeviceId ? "Gerät aktualisieren" : "Was kostet dein Gerät?"}</Text>
           <View style={styles.formSurface}>
+            {!editingDeviceId && <><Text style={styles.dataTitle}>Schnell starten</Text><Text style={styles.financeNote}>Richtwerte der Website. Passe Leistung und Nutzung an dein Gerät an.</Text><View style={styles.presetRow}>{suggestedDevices.map((device) => <Pressable key={device.slug} onPress={() => { const defaults = getDeviceCalculationDefaults(device); setForm({ name: device.name, watts: String(defaults.watts), minutes: String(defaults.minutesPerUse), uses: String(defaults.usesPerWeek) }); Keyboard.dismiss(); }} style={styles.financePill}><Text style={styles.financePillText}>{device.name}</Text></Pressable>)}</View></>}
             <Field label="Gerätename" value={form.name} onChangeText={(value) => setForm({ ...form, name: value })} />
             <Field label="Leistung in Watt" value={form.watts} onChangeText={(value) => setForm({ ...form, watts: value })} keyboardType="number-pad" />
             <Field label="Minuten pro Nutzung" value={form.minutes} onChangeText={(value) => setForm({ ...form, minutes: value })} keyboardType="number-pad" />
@@ -507,7 +678,7 @@ export default function App() {
 
         {tab === "pro" && <View style={styles.proCard}><Text style={styles.eyebrowMint}>EAVESENCE PRO</Text><Text style={styles.proTitle}>Weniger eintragen. Früher reagieren.</Text><Text style={styles.proBody}>Automatische Verbrauchswarnungen, längerer Verlauf, Synchronisation, mehrere Haushalte sowie später Energieetikett- und Rechnungsscan.</Text>{isPro ? <Text style={styles.proActive}>Pro ist aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Pressable style={[styles.proButton, betaInterested && styles.proButtonDisabled]} disabled={betaInterested} onPress={() => void expressBetaInterest()}><Text style={styles.proButtonText}>{betaInterested ? "Beta-Interesse gespeichert" : "Beta-Platz vormerken"}</Text></Pressable>}<Pressable onPress={() => void restorePro().then(setIsPro)}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable><Text style={styles.proHint}>Noch keine Abbuchung ohne freigeschaltete Store-Produkte.</Text></View>}
       </ScrollView>
-      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: tab === key }} onPress={() => { Keyboard.dismiss(); if (key === "add" && tab !== "add") startNewDevice(); else setTab(key); }} style={[styles.tab, tab === key && styles.tabActive]}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
+      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: tab === key }} onPress={() => { Keyboard.dismiss(); if (key === "add" && tab !== "add") startNewDevice(); else { if (key === "costs") setSelectedCostTileId("default-costs"); setTab(key); } }} style={[styles.tab, tab === key && styles.tabActive]}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
     </SafeAreaView>
   );
 }
@@ -527,6 +698,26 @@ function Empty({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
+  dataSection: { marginTop: 8, paddingTop: 16, borderTopWidth: 1, borderColor: "#dfe5dd", gap: 7 },
+  dataTitle: { fontSize: 15, fontWeight: "900", color: "#17211f" },
+  dataActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "center" },
+  dangerPill: { alignSelf: "flex-start", minHeight: 30, borderRadius: 16, backgroundColor: "#fef2f2", paddingHorizontal: 12, justifyContent: "center" },
+  dangerText: { fontSize: 12, fontWeight: "800", color: "#b42318" },
+  tilesSection: { marginTop: 18, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 23, backgroundColor: "#f4f6f2", padding: 15, gap: 10 },
+  tilesGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
+  tileCard: { width: "48%", minHeight: 132, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 12, justifyContent: "space-between" },
+  tileMain: { minHeight: 60 },
+  tileName: { fontSize: 14, fontWeight: "900", color: "#17211f" },
+  tileDetail: { marginTop: 5, fontSize: 11, lineHeight: 16, color: "#65716d" },
+  tileControls: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 3, marginTop: 7 },
+  tileMove: { width: 29, height: 29, alignItems: "center", justifyContent: "center", borderRadius: 15, backgroundColor: "#ddf8e9" },
+  tileMoveText: { fontSize: 22, lineHeight: 27, fontWeight: "700", color: "#087a45" },
+  tileMoveDisabled: { color: "#aab8b0" },
+  tileEdit: { minHeight: 29, justifyContent: "center", paddingHorizontal: 4 },
+  addTile: { minHeight: 45, borderWidth: 1, borderStyle: "dashed", borderColor: "#aebbb2", borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  addTileText: { fontSize: 13, fontWeight: "800", color: "#087a45" },
+  tileForm: { borderWidth: 1, borderColor: "#b8efcc", borderRadius: 14, backgroundColor: "#eefbf3", padding: 14, gap: 10 },
+  presetRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   homeHeadingRow: { flexDirection: "row", alignItems: "center", gap: 9 },
   homeHeadingText: { flex: 1 },
   rowActions: { flexDirection: "row", alignItems: "center", gap: 4 },
