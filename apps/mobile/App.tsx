@@ -113,6 +113,8 @@ export default function App() {
   const [costs, setCosts] = useState<HouseholdCost[]>([]);
   const [tiles, setTiles] = useState<MobileTile[]>(defaultTiles);
   const [selectedCostTileId, setSelectedCostTileId] = useState("default-costs");
+  const [costStartAction, setCostStartAction] = useState<"none" | "income" | "cost">("none");
+  const [customizeSetup, setCustomizeSetup] = useState(false);
   const [tileFormOpen, setTileFormOpen] = useState(false);
   const [tileName, setTileName] = useState("");
   const [editingTileId, setEditingTileId] = useState<string | null>(null);
@@ -186,6 +188,8 @@ export default function App() {
   const costSummary = forecast.summary;
   const upcoming = forecast.next;
   const monthlyIncome = (profile?.incomeAmount ?? 0) / (profile?.incomeFrequency === "yearly" ? 12 : 1);
+  const hasIncome = Boolean(profile?.incomeAmount && profile.incomeAmount > 0);
+  const hasCosts = costs.length > 0;
   const forecastComplete = forecast.complete;
   const forecastDifference = forecast.difference;
   const forecastDriver = forecast.drivers[0];
@@ -204,9 +208,11 @@ export default function App() {
       savingsGoalPercent: target,
       createdAt: new Date().toISOString(),
     };
-    await writeJson(PROFILE_KEY, nextProfile);
-    Keyboard.dismiss();
-    setProfile(nextProfile);
+    try {
+      await writeJson(PROFILE_KEY, nextProfile);
+      Keyboard.dismiss();
+      setProfile(nextProfile);
+    } catch { Alert.alert("Start fehlgeschlagen", "Dein Zuhause konnte nicht gespeichert werden. Bitte versuche es erneut."); }
   }
 
   async function saveSettings() {
@@ -336,12 +342,20 @@ export default function App() {
       setTab("home");
       scrollRef.current?.scrollTo({ y: energySectionY.current, animated: true });
     } else {
+      setCostStartAction("none");
       setSelectedCostTileId(tile.id);
       setTab("costs");
     }
   }
 
   function openMainCosts() {
+    setCostStartAction("none");
+    setSelectedCostTileId("default-costs");
+    setTab("costs");
+  }
+
+  function startWith(action: "income" | "cost") {
+    setCostStartAction(action);
     setSelectedCostTileId("default-costs");
     setTab("costs");
   }
@@ -541,13 +555,17 @@ export default function App() {
           <ScrollView contentContainerStyle={styles.onboarding} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
             <Image source={brandIcon} alt="EAVESENCE" style={styles.onboardingMark} />
             <Text style={styles.eyebrow}>EAVESENCE HOME</Text>
-            <Text style={styles.hero}>Richte dein Zuhause ein.</Text>
-            <Text style={styles.body}>Geräte, Energiekosten und Sparziele an einem Ort – lokal gespeichert und ohne Pflichtkonto.</Text>
-            <Field label="Name" value={homeName} onChangeText={setHomeName} />
-            <Field label="Strompreis pro kWh" value={electricityPrice} onChangeText={setElectricityPrice} keyboardType="decimal-pad" />
-            <Field label="Sparziel in Prozent" value={goal} onChangeText={setGoal} keyboardType="number-pad" />
-            <PrimaryButton label="Zuhause erstellen" onPress={() => void createHome()} />
+            <Text style={styles.hero}>Was bleibt dir nächsten Monat?</Text>
+            <Text style={styles.body}>Erfasse dein Nettoeinkommen und deine festen Kosten. EAVESENCE zeigt dir, welche Zahlungen anstehen und was übrig bleibt.</Text>
+            <PrimaryButton label="Jetzt starten" onPress={() => void createHome()} />
+            <Pressable accessibilityRole="button" accessibilityState={{ expanded: customizeSetup }} onPress={() => setCustomizeSetup(!customizeSetup)} style={styles.setupToggle}><Text style={styles.setupToggleText}>{customizeSetup ? "Angaben schließen" : "Name und Strompreis anpassen"}</Text></Pressable>
+            {customizeSetup && <View style={styles.formSurface}>
+              <Field label="Name deines Zuhauses" value={homeName} onChangeText={setHomeName} />
+              <Field label="Strompreis pro kWh (€)" value={electricityPrice} onChangeText={setElectricityPrice} keyboardType="decimal-pad" />
+              <Field label="Sparziel (%)" value={goal} onChangeText={setGoal} keyboardType="number-pad" />
+            </View>}
             <Text style={styles.privateText}>Ohne Konto · lokal gespeichert · jederzeit löschbar</Text>
+            <Text style={styles.setupNote}>Für Geräte starten wir mit 0,30 €/kWh. Du kannst den Strompreis später in den Einstellungen ändern.</Text>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -566,7 +584,7 @@ export default function App() {
         {tab === "home" && <>
           <Text style={styles.eyebrow}>EAVESENCE HOME</Text>
           <View style={styles.homeHeadingRow}><Text style={[styles.homeTitle, styles.homeHeadingText]}>{profile.name}</Text><Pressable accessibilityRole="button" accessibilityState={{ expanded: settingsOpen }} onPress={toggleSettings} style={styles.financePill}><Text style={styles.financePillText}>{settingsOpen ? "Schließen" : "Einstellungen"}</Text></Pressable></View>
-          <Text style={styles.homeSubtitle}>Deine laufenden Kosten, Zahlungen und Geräte an einem Ort.</Text>
+          <Text style={styles.homeSubtitle}>Dein Überblick über Einkommen, feste Kosten und nächste Zahlungen.</Text>
           {settingsOpen && <View style={styles.formSurface}>
             <Text style={styles.financeHeading}>Dein Zuhause</Text>
             <Field label="Name" value={homeName} onChangeText={setHomeName} />
@@ -583,6 +601,21 @@ export default function App() {
               </View>
             </View>
           </View>}
+          <View style={styles.startCard}>
+            <Text style={styles.startEyebrow}>{hasIncome && hasCosts ? "DEIN ÜBERBLICK" : "IN ZWEI SCHRITTEN STARTEN"}</Text>
+            <Text style={styles.startTitle}>{hasIncome && hasCosts ? forecastComplete ? `Was bleibt im ${nextMonthLabel}?` : "Was bleibt dir im Monat?" : "Was bleibt dir nächsten Monat?"}</Text>
+            {hasIncome && hasCosts ? <>
+              <Text style={styles.startAmount}>{euro.format(monthlyIncome - (forecastComplete ? upcoming.total : costSummary.monthlyTotal))}</Text>
+              <Text style={styles.startBody}>{forecastComplete ? `Monatliches Nettoeinkommen minus die für ${nextMonthLabel} erfassten Zahlungen. Variable Ausgaben sind nicht enthalten.` : `Richtwert: monatliches Nettoeinkommen minus Durchschnitt deiner festen Kosten. ${upcoming.undatedCount} ${upcoming.undatedCount === 1 ? "Posten hat" : "Posten haben"} noch keinen Zahlungstermin; deshalb ist dies keine genaue Vorschau für ${nextMonthLabel}.`}</Text>
+              {!forecastComplete && <Pressable onPress={openMainCosts} style={styles.startLink}><Text style={styles.startLinkText}>Zahlungstermine ergänzen</Text></Pressable>}
+            </> : <>
+              <Text style={styles.startBody}>Trage erst dein Nettoeinkommen und mindestens eine regelmäßige Ausgabe ein. Das dauert nur einen Moment.</Text>
+              <View style={styles.startSteps}>
+                <Pressable accessibilityRole="button" onPress={() => startWith("income")} style={styles.startStep}><Text style={styles.startStepText}>{hasIncome ? "✓ Einkommen eingetragen" : "1 · Nettoeinkommen eintragen"}</Text></Pressable>
+                <Pressable accessibilityRole="button" onPress={() => startWith("cost")} style={styles.startStep}><Text style={styles.startStepText}>{hasCosts ? "✓ Feste Kosten erfasst" : "2 · Erste feste Ausgabe erfassen"}</Text></Pressable>
+              </View>
+            </>}
+          </View>
           <View style={styles.financeSection}>
             <Text style={styles.financeHeading}>Finanzen im Überblick</Text>
             <View style={styles.financeCard}>
@@ -641,7 +674,7 @@ export default function App() {
           <PrimaryButton label="Gerät hinzufügen" onPress={startNewDevice} />
         </>}
 
-        {tab === "costs" && <CostsScreen key={selectedCostTileId} profile={profile} costs={costs} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
+        {tab === "costs" && <CostsScreen key={`${selectedCostTileId}-${costStartAction}`} profile={profile} costs={costs} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} initialAction={costStartAction} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
 
         {tab === "add" && <>
           <Text style={styles.eyebrow}>{editingDeviceId ? "GERÄT BEARBEITEN" : "NEUES GERÄT"}</Text><Text style={styles.heroSmall}>{editingDeviceId ? "Gerät aktualisieren" : "Was kostet dein Gerät?"}</Text>
@@ -678,7 +711,7 @@ export default function App() {
 
         {tab === "pro" && <View style={styles.proCard}><Text style={styles.eyebrowMint}>EAVESENCE PRO</Text><Text style={styles.proTitle}>Weniger eintragen. Früher reagieren.</Text><Text style={styles.proBody}>Automatische Verbrauchswarnungen, längerer Verlauf, Synchronisation, mehrere Haushalte sowie später Energieetikett- und Rechnungsscan.</Text>{isPro ? <Text style={styles.proActive}>Pro ist aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Pressable style={[styles.proButton, betaInterested && styles.proButtonDisabled]} disabled={betaInterested} onPress={() => void expressBetaInterest()}><Text style={styles.proButtonText}>{betaInterested ? "Beta-Interesse gespeichert" : "Beta-Platz vormerken"}</Text></Pressable>}<Pressable onPress={() => void restorePro().then(setIsPro)}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable><Text style={styles.proHint}>Noch keine Abbuchung ohne freigeschaltete Store-Produkte.</Text></View>}
       </ScrollView>
-      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: tab === key }} onPress={() => { Keyboard.dismiss(); if (key === "add" && tab !== "add") startNewDevice(); else { if (key === "costs") setSelectedCostTileId("default-costs"); setTab(key); } }} style={[styles.tab, tab === key && styles.tabActive]}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
+      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: tab === key }} onPress={() => { Keyboard.dismiss(); if (key === "add" && tab !== "add") startNewDevice(); else { if (key === "costs") { setSelectedCostTileId("default-costs"); setCostStartAction("none"); } setTab(key); } }} style={[styles.tab, tab === key && styles.tabActive]}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
     </SafeAreaView>
   );
 }
@@ -698,6 +731,19 @@ function Empty({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
+  setupToggle: { alignSelf: "center", paddingVertical: 8 },
+  setupToggleText: { fontSize: 13, fontWeight: "800", color: "#087a45" },
+  setupNote: { textAlign: "center", fontSize: 11, lineHeight: 16, color: "#65716d" },
+  startCard: { marginBottom: 16, padding: 19, borderRadius: 22, backgroundColor: "#17211f", gap: 9 },
+  startEyebrow: { fontSize: 11, fontWeight: "900", letterSpacing: 1, color: "#72dca3" },
+  startTitle: { fontSize: 23, lineHeight: 28, fontWeight: "900", letterSpacing: -0.5, color: "#ffffff" },
+  startAmount: { fontSize: 33, lineHeight: 39, fontWeight: "900", color: "#ffffff" },
+  startBody: { fontSize: 13, lineHeight: 20, color: "#d2ded6" },
+  startSteps: { marginTop: 5, gap: 8 },
+  startStep: { minHeight: 44, borderRadius: 14, backgroundColor: "#ddf8e9", paddingHorizontal: 14, justifyContent: "center" },
+  startStepText: { fontSize: 13, fontWeight: "800", color: "#087a45" },
+  startLink: { alignSelf: "flex-start", minHeight: 34, marginTop: 3, justifyContent: "center" },
+  startLinkText: { fontSize: 13, fontWeight: "800", color: "#72dca3" },
   dataSection: { marginTop: 8, paddingTop: 16, borderTopWidth: 1, borderColor: "#dfe5dd", gap: 7 },
   dataTitle: { fontSize: 15, fontWeight: "900", color: "#17211f" },
   dataActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "center" },

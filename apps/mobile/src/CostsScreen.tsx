@@ -78,17 +78,18 @@ function Choice<T extends string>({ options, value, onChange }: {
   return <View style={styles.choices}>{options.map(([key, label]) => <Pressable key={key} accessibilityRole="button" accessibilityState={{ selected: value === key }} onPress={() => onChange(key)} style={[styles.choice, value === key && styles.choiceActive]}><Text style={[styles.choiceText, value === key && styles.choiceTextActive]}>{label}</Text></Pressable>)}</View>;
 }
 
-export default function CostsScreen({ profile, costs, tileId, tileTitle, onSaveCost, onDeleteCost, onSaveIncome }: {
+export default function CostsScreen({ profile, costs, tileId, tileTitle, initialAction = "none", onSaveCost, onDeleteCost, onSaveIncome }: {
   profile: MobileProfile;
   costs: HouseholdCost[];
   tileId: string;
   tileTitle: string;
+  initialAction?: "none" | "income" | "cost";
   onSaveCost: (cost: HouseholdCost) => Promise<void>;
   onDeleteCost: (id: string) => Promise<void>;
   onSaveIncome: (amount: number, frequency: "monthly" | "yearly") => Promise<void>;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(initialAction === "cost");
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<HouseholdCostCategory>("housing");
@@ -161,7 +162,7 @@ export default function CostsScreen({ profile, costs, tileId, tileTitle, onSaveC
       <View style={styles.metric}><Text style={styles.label}>PRO JAHR</Text><Text style={styles.value}>{money.format(summary.annualTotal)}</Text></View>
     </View>
 
-    {tileId === "default-costs" && <View style={styles.panel}>
+    {tileId === "default-costs" && !formOpen && <View style={styles.panel}>
       <Text style={styles.panelTitle}>Nettoeinkommen</Text>
       <Text style={styles.help}>Das Budget zieht nur deine erfassten regelmäßigen Kosten ab; variable Ausgaben bleiben außen vor.</Text>
       <FormInput label="Nettoeinkommen" value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder="0,00" />
@@ -183,7 +184,7 @@ export default function CostsScreen({ profile, costs, tileId, tileTitle, onSaveC
       <Text style={styles.label}>WIE OFT?</Text><Choice options={frequencies} value={frequency} onChange={setFrequency} />
       <DateField label="Nächste Zahlung (optional)" value={dueDate} onChangeText={setDueDate} />
       <DateField label="Kündigungsfrist (optional)" value={deadline} onChangeText={setDeadline} />
-      <Text style={styles.help}>Ohne Zahlungstermin bleibt der Posten im Monatsdurchschnitt, fehlt aber in der Vorschau.</Text>
+      <Text style={styles.help}>Mit Zahlungstermin können wir den nächsten Monat genau berechnen. Ohne Termin fließt der Posten nur in den Monatsdurchschnitt ein.</Text>
       <Pressable onPress={() => { void save(); }} style={styles.primary}><Text style={styles.primaryText}>{editingId ? "Aktualisieren" : "Speichern"}</Text></Pressable>
       <Pressable onPress={() => setFormOpen(false)} style={styles.secondary}><Text style={styles.secondaryText}>Abbrechen</Text></Pressable>
     </View> : <Pressable onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
