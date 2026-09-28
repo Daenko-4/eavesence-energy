@@ -12,6 +12,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -25,7 +26,7 @@ import {
 import type { PurchasesPackage } from "react-native-purchases";
 
 import CostsScreen from "./src/CostsScreen";
-import { FormInput, KeyboardDoneBar } from "./src/FormInput";
+import { FormInput } from "./src/FormInput";
 import {
   BETA_KEY,
   COSTS_KEY,
@@ -60,6 +61,10 @@ const euro = new Intl.NumberFormat("de-AT", {
   style: "currency",
   currency: "EUR",
 });
+
+// Metro resolves bundled images through a static require call.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const brandIcon = require("./assets/brand-icon.png");
 
 function parseLocalNumber(value: string) {
   return Number(value.trim().replace(",", "."));
@@ -285,14 +290,13 @@ export default function App() {
   }
 
   if (!ready) {
-    return <SafeAreaView style={styles.loading}><StatusBar style="dark" /><Text style={styles.brand}>EAVESENCE</Text></SafeAreaView>;
+    return <SafeAreaView style={styles.loading}><StatusBar style="dark" /><Image source={brandIcon} alt="EAVESENCE Logo" style={styles.loadingMark} /><Text style={styles.loadingBrand}>EAVESENCE</Text></SafeAreaView>;
   }
 
   if (!profile) {
     return (
       <SafeAreaView style={styles.safe}>
         <StatusBar style="dark" />
-        <KeyboardDoneBar />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
           <ScrollView contentContainerStyle={styles.onboarding} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
             <Text style={styles.eyebrow}>EAVESENCE HOME</Text>
@@ -312,7 +316,6 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar style="dark" />
-      <KeyboardDoneBar />
       <View style={styles.appHeader}><View><Text style={styles.brand}>EAVESENCE</Text><Text style={styles.headerTitle}>{profile.name}</Text></View><View style={styles.avatar}><Text style={styles.avatarText}>{devices.length}</Text></View></View>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         {tab === "home" && <>
@@ -394,6 +397,8 @@ function Empty({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
+  loadingMark: { width: 90, height: 90, borderRadius: 18, marginBottom: 14 },
+  loadingBrand: { fontSize: 18, fontWeight: "900", letterSpacing: 1.8, color: "#10283a" },
   monthPicker: { minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderWidth: 1, borderColor: "#dfe5e1", borderRadius: 14, backgroundColor: "#ffffff", marginTop: 7 },
   monthButton: { width: 52, minHeight: 52, alignItems: "center", justifyContent: "center" },
   monthArrow: { fontSize: 30, color: "#087a45" },
