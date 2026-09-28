@@ -63,7 +63,7 @@ const euro = new Intl.NumberFormat("de-AT", {
 
 // Metro resolves bundled images through a static require call.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const brandIcon = require("./assets/brand-icon.png");
+const brandIcon = require("./assets/brand-icon-safe.png");
 
 function parseLocalNumber(value: string) {
   return Number(value.trim().replace(",", "."));
