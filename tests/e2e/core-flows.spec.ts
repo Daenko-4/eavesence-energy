@@ -184,6 +184,41 @@ test("PWA metadata, service worker and offline fallback are available", async ({
   ).toHaveAttribute("href", "/home");
 });
 
+test("savings scenarios persist and ask for confirmation when the effective month arrives", async ({ page }) => {
+  await page.goto("/home");
+  await page.evaluate(() => {
+    const now = new Date();
+    const current = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const due = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-01`;
+    const stamp = now.toISOString();
+    localStorage.setItem("eavesence-home-profile-v1", JSON.stringify({ version: 1, name: "Test home", currency: "EUR", electricityPrice: .3,
+      incomeAmount: 2000, incomeFrequency: "monthly", variableMonthly: 500, bufferMonthly: 100, goalMonthly: 200,
+      savingsGoalPercent: 10, rooms: [], deviceRooms: {}, createdAt: stamp, updatedAt: stamp, onboardingCompletedAt: stamp }));
+    localStorage.setItem("eavesence-home-costs-v1", JSON.stringify([{ id: "internet", name: "Internet", category: "subscriptions", amount: 40,
+      frequency: "monthly", nextDueDate: due, updatedAt: stamp }]));
+    sessionStorage.setItem("test-current-month", current);
+  });
+  await page.reload();
+  const panel = page.locator("#savings-plan");
+  await expect(panel.getByRole("heading", { name: "What would actually change?" })).toBeVisible();
+  await panel.getByLabel(/New amount per payment/).fill("25");
+  await expect(panel).toContainText("€180.00 less in payments over the next 12 months");
+  await panel.getByRole("button", { name: "Save scenario" }).click();
+  await page.reload();
+  await expect(panel).toContainText("planned, not yet done");
+  await page.evaluate(() => {
+    const profile = JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!);
+    profile.savingsActions[0].effectiveMonth = sessionStorage.getItem("test-current-month");
+    localStorage.setItem("eavesence-home-profile-v1", JSON.stringify(profile));
+  });
+  await page.reload();
+  await expect(panel).toContainText("Check-in: Did the amount actually change?");
+  await panel.getByRole("button", { name: "Mark as done" }).click();
+  await expect(panel).toContainText("marked done by you");
+  await expect(panel).toContainText("€180.00");
+});
+
 test("EAVESENCE Home onboarding builds a household and records a monthly check-in", async ({
   page,
 }) => {

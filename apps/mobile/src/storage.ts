@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { SavingsAction } from "@eavesence/core/savingsPlan";
 
 export const PROFILE_KEY = "eavesence-mobile-profile-v1";
 export const DEVICES_KEY = "eavesence-mobile-devices-v1";
@@ -18,6 +19,7 @@ export type MobileProfile = {
   variableMonthly?: number | null;
   bufferMonthly?: number;
   goalMonthly?: number;
+  savingsActions?: SavingsAction[];
   createdAt: string;
 };
 

@@ -1,4 +1,5 @@
 import { readHouseholdCosts, type HouseholdCost } from "@eavesence/core/householdCosts";
+import { readSavingsActions } from "@eavesence/core/savingsPlan";
 
 import type { MobileDevice, MobileHistoryEntry, MobileProfile } from "./storage.ts";
 import { parseTiles, type MobileTile } from "./tiles.ts";
@@ -39,6 +40,7 @@ export function readMobileBackup(json: string): MobileBackup | null {
       typeof profile.createdAt !== "string" ||
       (profile.incomeAmount !== undefined && !positive(profile.incomeAmount)) ||
       (profile.incomeFrequency !== undefined && profile.incomeFrequency !== "monthly" && profile.incomeFrequency !== "yearly") ||
+      (profile.savingsActions !== undefined && (!Array.isArray(profile.savingsActions) || readSavingsActions(profile.savingsActions).length !== profile.savingsActions.length)) ||
       !tiles || !Array.isArray(data.devices) || !Array.isArray(data.history) || !Array.isArray(data.costs) ||
       typeof data.betaInterested !== "boolean") return null;
 

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { createSavingsPlan } from "@eavesence/core/savingsPlan";
+import { createSavingsPlan, type SavingsAction } from "@eavesence/core/savingsPlan";
 import type { HouseholdCost } from "@/lib/householdCosts";
 import type { Locale } from "@/i18n/config";
+import SavingsActionsPanel from "@/components/SavingsActionsPanel";
 
 type Props = {
   locale: Locale;
@@ -13,10 +14,12 @@ type Props = {
   variableMonthly?: number | null;
   bufferMonthly?: number;
   goalMonthly?: number;
+  actions?: SavingsAction[];
   onSave: (values: { variableMonthly: number | null; bufferMonthly: number; goalMonthly: number }) => void;
+  onSaveActions: (actions: SavingsAction[]) => void;
 };
 
-export default function SavingsPlanPanel({ locale, currency, incomeMonthly, costs, variableMonthly, bufferMonthly, goalMonthly, onSave }: Props) {
+export default function SavingsPlanPanel({ locale, currency, incomeMonthly, costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], onSave, onSaveActions }: Props) {
   const [variable, setVariable] = useState(variableMonthly == null ? "" : String(variableMonthly));
   const [buffer, setBuffer] = useState(String(bufferMonthly ?? 0));
   const [goal, setGoal] = useState(String(goalMonthly ?? 0));
@@ -49,7 +52,7 @@ export default function SavingsPlanPanel({ locale, currency, incomeMonthly, cost
       <div className="mt-5 rounded-xl bg-white p-4"><p className="text-[12px] text-[#52605b]">{result.complete ? de ? "Rechnerischer Spielraum / Monat" : "Estimated room / month" : de ? "Richtwert aus bisher erfassten Daten" : "Estimate from the data entered so far"}</p><p className="mt-1 text-2xl font-extrabold">{money(result.averageRoom)}</p><p className="mt-1 text-[12px] text-[#52605b]">{de ? `Feste Kosten: ${money(result.averageFixed)} / Monat. ${result.undatedCount} Kosten ohne Termin werden monatlich gemittelt. ${variableMonthly == null ? "Alltagsausgaben fehlen." : ""}` : `Fixed costs: ${money(result.averageFixed)} / month. ${result.undatedCount} undated costs use a monthly average. ${variableMonthly == null ? "Everyday spending is missing." : ""}`}</p></div>
       <div className="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-4">{result.months.map((item) => <div key={item.month} className={`rounded-xl border p-3 ${item.afterGoal < 0 ? "border-amber-300 bg-amber-50" : "border-[#dfe5dd] bg-white"}`}><p className="text-[12px] font-bold">{new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${item.month}-01T00:00:00Z`))}</p><p className="mt-1 text-[15px] font-extrabold">{money(item.remaining)}</p><p className="text-[11px] text-[#52605b]">{de ? "Rest vor Sparziel" : "Left before savings goal"}</p></div>)}</div>
       <p className="mt-3 text-[12px] text-[#52605b]">{de ? `${result.tightMonths.length} Monate liegen unter deinem Sparziel. Prognose auf Basis der heute erfassten Werte; keine garantierte Ersparnis.` : `${result.tightMonths.length} months fall below your savings goal. Forecast based on today's entries; savings are not guaranteed.`}</p>
-      {result.actions.length > 0 && <div className="mt-4"><h3 className="text-[14px] font-bold">{de ? "Kosten prüfen" : "Costs to review"}</h3><ul className="mt-2 grid gap-2 sm:grid-cols-3">{result.actions.map((item) => <li key={item.id} className="rounded-xl bg-white p-3 text-[12px]">{item.name} · {money(item.annual)} {de ? "pro Jahr" : "per year"}<span className="mt-1 block text-[#52605b]">{de ? `10 % günstiger wären rechnerisch ${money(item.exampleAtTenPercent)} pro Jahr.` : `A 10% lower price would be ${money(item.exampleAtTenPercent)} less per year.`}</span>{item.deadline ? ` · ${de ? "Frist" : "Deadline"}: ${item.deadline}` : ""}</li>)}</ul></div>}
+      <SavingsActionsPanel locale={locale} currency={currency} input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} />
     </>}
   </section>;
 }

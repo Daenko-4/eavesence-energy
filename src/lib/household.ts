@@ -2,6 +2,7 @@ import type { SavedDevice, SavedDeviceCurrency } from "./savedDevices";
 import type { HouseholdCost } from "./householdCosts";
 import type { CostEvent } from "./householdInsights";
 import type { HomeTile, HomeTileKind } from "./homeTiles";
+import { readSavingsActions, type SavingsAction } from "@eavesence/core/savingsPlan";
 
 export const HOUSEHOLD_PROFILE_STORAGE_KEY = "eavesence-home-profile-v1";
 export const HOUSEHOLD_HISTORY_STORAGE_KEY = "eavesence-home-history-v1";
@@ -28,6 +29,7 @@ export type HouseholdProfile = {
   variableMonthly?: number | null;
   bufferMonthly?: number;
   goalMonthly?: number;
+  savingsActions?: SavingsAction[];
   electricityCostMigrated?: boolean;
   savingsGoalPercent: number;
   rooms: HouseholdRoom[];
@@ -285,6 +287,9 @@ export function readHouseholdProfile(value: string | null) {
     }
     if (candidate.variableMonthly !== undefined && candidate.variableMonthly !== null &&
       (typeof candidate.variableMonthly !== "number" || !Number.isFinite(candidate.variableMonthly) || candidate.variableMonthly < 0)) return null;
+    if (candidate.savingsActions !== undefined) {
+      candidate.savingsActions = readSavingsActions(candidate.savingsActions);
+    }
     if (candidate.electricityCostMigrated !== undefined && typeof candidate.electricityCostMigrated !== "boolean") return null;
     if (
       candidate.electricityBillIncludesBonus !== undefined &&

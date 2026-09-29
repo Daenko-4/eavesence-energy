@@ -1812,7 +1812,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             variableMonthly={profile.variableMonthly}
             bufferMonthly={profile.bufferMonthly}
             goalMonthly={profile.goalMonthly}
+            actions={profile.savingsActions}
             onSave={(values) => persistProfile({ ...profile, ...values, updatedAt: new Date().toISOString() })}
+            onSaveActions={(savingsActions) => persistProfile({ ...profile, savingsActions, updatedAt: new Date().toISOString() })}
           />
 
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
