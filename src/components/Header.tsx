@@ -70,7 +70,7 @@ function NavigationLink({
       onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
-      className="group relative flex h-full items-center whitespace-nowrap px-1 text-[13px] !font-semibold uppercase tracking-[0.05em] !text-[#52605b] transition duration-150 hover:!text-[var(--brand-green)]"
+      className="group relative flex h-full items-center whitespace-nowrap px-1 text-[13px] !font-bold uppercase tracking-[0.05em] !text-[#52605b] transition duration-150 hover:!text-[var(--brand-green)]"
     >
       {children}
     </a>
@@ -565,7 +565,7 @@ export default function Header({
                       handleFaqActivate(event);
                     }
                   }}
-                  className="rounded-xl px-3 py-2.5 text-sm font-semibold uppercase tracking-[0.05em] text-slate-700 transition hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
+                  className="rounded-xl px-3 py-2.5 text-sm font-bold uppercase tracking-[0.05em] text-slate-700 transition hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
                 >
                   {label}
                 </a>
