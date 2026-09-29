@@ -1,5 +1,5 @@
 import { calculateEnergyCosts } from "@eavesence/core";
-import { createSavingsPlan } from "@eavesence/core/savingsPlan";
+import { createSavingsPlan, readSavingsActions, type SavingsAction } from "@eavesence/core/savingsPlan";
 import {
   forecastHouseholdCosts,
   monthlyCost,
@@ -30,6 +30,7 @@ import CostsScreen from "./src/CostsScreen";
 import { createMobileBackup, readMobileBackup, type MobileBackup } from "./src/backup";
 import { pickBackup, shareBackup } from "./src/backupFiles";
 import { FormInput } from "./src/FormInput";
+import { SavingsActionsScreen } from "./src/SavingsActionsScreen";
 import { LocaleContext, LocalizedText as Text, localize, type MobileLocale } from "./src/i18n";
 import { disableMonthlyReminder, enableMonthlyReminder, monthlyReminderIsActive } from "./src/reminders";
 import {
@@ -298,6 +299,13 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     const next = { ...profile, variableMonthly: variable, bufferMonthly: buffer, goalMonthly: target };
     try { await writeJson(PROFILE_KEY, next); setProfile(next); Keyboard.dismiss(); Alert.alert("Gespeichert", "Dein Sparplan wurde aktualisiert."); }
     catch { Alert.alert("Speichern fehlgeschlagen", "Bitte versuche es erneut."); }
+  }
+
+  async function saveSavingsActions(actions: SavingsAction[]) {
+    if (!profile) return;
+    const next = { ...profile, savingsActions: actions };
+    await writeJson(PROFILE_KEY, next);
+    setProfile(next);
   }
 
   async function exportData() {
@@ -823,7 +831,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           {savingsPlan && <><Text style={styles.financeHeading}>{savingsPlan.complete ? `${euro.format(savingsPlan.averageRoom)} ${locale === "de" ? "rechnerischer Spielraum" : "estimated room"}` : locale === "de" ? "Richtwert aus den bisher erfassten Daten" : "Estimate from the data entered so far"}</Text><Text style={styles.financeNote}>{locale === "de" ? "Feste Kosten im Monatsdurchschnitt" : "Average monthly fixed costs"}: {euro.format(savingsPlan.averageFixed)}. {savingsPlan.complete ? locale === "de" ? "Alltagsausgaben und Puffer sind berücksichtigt; tatsächliche Ausgaben können abweichen." : "Everyday spending and buffer are included; actual spending may differ." : locale === "de" ? `${profile?.variableMonthly == null ? "Alltagsausgaben fehlen. " : ""}${savingsPlan.undatedCount} Kosten ohne Zahlungstermin werden nur als Monatsdurchschnitt berücksichtigt.` : `${profile?.variableMonthly == null ? "Everyday spending is missing. " : ""}${savingsPlan.undatedCount} costs without payment dates use a monthly average.`}</Text>
             <Text style={styles.financeHeading}>Die nächsten 12 Monate</Text>{savingsPlan.months.map((item) => <View key={item.month} style={styles.paymentRow}><Text style={styles.paymentName}>{monthLabel(item.month, locale)} · {euro.format(item.fixed)} {locale === "de" ? "feste Kosten" : "fixed costs"}</Text><Text style={styles.paymentAmount}>{euro.format(item.remaining)}</Text></View>)}
             <Text style={styles.financeNote}>{locale === "de" ? `Rest nach festen Kosten, Alltag und Puffer; das Sparziel ist darin noch enthalten. Monate unter deinem Sparziel: ${savingsPlan.tightMonths.length}. Bei fehlenden Zahlungsterminen ist die Monatsverteilung nur geschätzt.` : `Left after fixed costs, everyday spending and buffer; the savings goal is not yet deducted. ${savingsPlan.tightMonths.length} months fall below your goal. Undated costs make the monthly distribution approximate.`}</Text>
-            <Text style={styles.financeHeading}>Kosten prüfen</Text>{savingsPlan.actions.map((action) => <Text key={action.id} style={styles.financeNote}>{action.name} · {euro.format(action.annual)} {locale === "de" ? "im Jahr" : "per year"}. {locale === "de" ? `10 % günstiger wären rechnerisch ${euro.format(action.exampleAtTenPercent)} im Jahr.` : `A 10% lower price would be ${euro.format(action.exampleAtTenPercent)} less per year.`}{action.deadline ? ` · ${locale === "de" ? "Frist" : "Deadline"} ${action.deadline.slice(8)}.${action.deadline.slice(5, 7)}.${action.deadline.slice(0, 4)}` : ""}</Text>)}
+            <SavingsActionsScreen input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} actions={readSavingsActions(profile.savingsActions)} currency={profile.currency ?? "EUR"} onChange={saveSavingsActions} />
           </>}
           {isPro ? <Text style={styles.proActive}>Pro aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Text style={styles.financeNote}>Ein kostenpflichtiges Abo ist derzeit nicht verfügbar.</Text>}
           {packages.length > 0 && <Pressable onPress={() => void restorePro().then(setIsPro).catch(() => Alert.alert("Wiederherstellung fehlgeschlagen", "Bitte versuche es erneut."))}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable>}
