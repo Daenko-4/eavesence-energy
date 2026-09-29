@@ -21,6 +21,12 @@ export async function getAvailablePackages() {
   return offerings.current?.availablePackages ?? [];
 }
 
+export async function getProStatus() {
+  if (!configured) return false;
+  const customerInfo = await Purchases.getCustomerInfo();
+  return Boolean(customerInfo.entitlements.active.pro);
+}
+
 export async function purchasePro(selectedPackage: PurchasesPackage) {
   const { customerInfo } = await Purchases.purchasePackage(selectedPackage);
   return Boolean(customerInfo.entitlements.active.pro);
