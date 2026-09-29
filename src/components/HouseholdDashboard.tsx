@@ -15,6 +15,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import HouseholdCostsPanel from "@/components/HouseholdCostsPanel";
 import HouseholdInsightsPanel from "@/components/HouseholdInsightsPanel";
+import SavingsPlanPanel from "@/components/SavingsPlanPanel";
 import ConnectivityStatus from "@/components/ConnectivityStatus";
 import MyDevicesPanel, {
   SAVED_DEVICE_EDIT_REQUEST_KEY,
@@ -783,8 +784,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     message: string;
   } | null>(null);
   const [historyNotice, setHistoryNotice] = useState("");
-  const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
-  const [betaInterested, setBetaInterested] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [homeTiles, setHomeTiles] = useState<HomeTile[]>(defaultHomeTiles);
   const [activeTileId, setActiveTileId] = useState<string | null>(null);
@@ -860,7 +859,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setHouseholdCosts(costs);
     setCostEvents(readCostEvents(window.localStorage.getItem(COST_EVENTS_STORAGE_KEY)));
     setHomeTiles(tiles);
-    setBetaInterested(window.localStorage.getItem(BETA_INTEREST_STORAGE_KEY) === "true");
   }, [locale]);
 
   useEffect(() => {
@@ -1274,7 +1272,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setMonthlyElectricityPayment("");
     setElectricityBillIncludesBonus(false);
     setGoal(10);
-    setBetaInterested(false);
     setHomeTiles(defaultHomeTiles());
     setActiveTileId(null);
     setCheckInFeedback(null);
@@ -1417,12 +1414,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setCheckInFeedback(null);
     setHistoryNotice(text.monthDeleted);
     track("Home Monthly Check In Deleted", { locale, month: entry.month });
-  }
-
-  function submitBetaInterest() {
-    window.localStorage.setItem(BETA_INTEREST_STORAGE_KEY, "true");
-    setBetaInterested(true);
-    track("Home Beta Interest Submitted", { locale, plan });
   }
 
   if (!ready) return <div className="min-h-screen bg-[var(--background)]" />;
@@ -1598,7 +1589,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           ),
         )
     : null;
-  const proReady = history.length >= 2;
   const householdCostSummary = summarizeHouseholdCosts(householdCosts);
   const upcomingPayments = paymentsNextMonth(householdCosts);
   const monthlyIncome = (profile.incomeAmount ?? 0) / (profile.incomeFrequency === "yearly" ? 12 : 1);
@@ -1812,6 +1802,17 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             events={costEvents}
             onAdd={(category) => openCostForm(undefined, category)}
             onReview={(cost) => openCostForm(cost)}
+          />
+          <SavingsPlanPanel
+            key={profile.updatedAt}
+            locale={locale}
+            currency={profile.currency}
+            incomeMonthly={monthlyIncome}
+            costs={householdCosts}
+            variableMonthly={profile.variableMonthly}
+            bufferMonthly={profile.bufferMonthly}
+            goalMonthly={profile.goalMonthly}
+            onSave={(values) => persistProfile({ ...profile, ...values, updatedAt: new Date().toISOString() })}
           />
 
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
@@ -2211,17 +2212,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           {activeTile && <PwaInstallCard locale={locale} />}
 
-          {activeTile && (proReady ? (
-            <section className="mt-8 overflow-hidden rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] p-6 text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] sm:p-8">
-              <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end"><div><p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green-mint)]">{text.proEyebrow}</p><h2 className="mt-3 text-2xl font-extrabold tracking-[-0.04em]">{text.proTitle}</h2><p className="mt-4 max-w-2xl text-[13px] leading-6 text-slate-300">{text.proText}</p><p className="mt-5 text-[11px] leading-5 text-slate-400">{text.betaDetail}</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-5"><div className="grid grid-cols-2 rounded-full bg-black/20 p-1"><button type="button" onClick={() => { setPlan("monthly"); track("Home Pro Preview Opened", { locale, plan: "monthly" }); }} className={`home-primary-action rounded-full border-0 px-3 py-1 font-bold transition ${plan === "monthly" ? "bg-[#ddf8e9] text-[var(--brand-green)]" : "bg-transparent text-slate-300 hover:bg-white/10"}`}>{text.monthlyPlan}</button><button type="button" onClick={() => { setPlan("yearly"); track("Home Pro Preview Opened", { locale, plan: "yearly" }); }} className={`home-primary-action rounded-full border-0 px-3 py-1 font-bold transition ${plan === "yearly" ? "bg-[#ddf8e9] text-[var(--brand-green)]" : "bg-transparent text-slate-300 hover:bg-white/10"}`}>{text.yearlyPlan}</button></div><div className="mt-5 flex min-h-8 flex-wrap items-center justify-center gap-4"><p className="text-center text-2xl font-extrabold">{plan === "yearly" ? text.yearlyPrice : text.monthlyPrice}</p>{plan === "yearly" && <span className="rounded-full border border-[var(--brand-green-mint)]/30 bg-[var(--brand-green-mint)]/10 px-2.5 py-1 text-[11px] font-extrabold text-[var(--brand-green-mint)]">{text.yearlyHint}</span>}</div><p className="mt-2 text-center text-[11px] font-semibold text-slate-400">{text.proBilling}</p><button type="button" onClick={submitBetaInterest} disabled={betaInterested} className="eavesence-pill-button home-primary-action mt-5 w-full disabled:bg-white/15 disabled:text-slate-300">{betaInterested ? text.betaSaved : text.beta}</button></div></div>
-            </section>
-          ) : (
-            <section className="mt-8 rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-5 py-4">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.proEyebrow}</p>
-              <h2 className={`mt-1 ${homeSectionTitleClass}`}>{text.proPreviewTitle}</h2>
-              <p className="mt-1 max-w-3xl text-[13px] leading-6 text-[#52605b]">{text.proPreviewText}</p>
-            </section>
-          ))}
+          {activeTile && <section className="mt-7 rounded-xl border border-[#b8efcc] bg-[#dcfce8] px-5 py-4">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">EAVESENCE Pro</p>
+            <h2 className={`mt-1 ${homeSectionTitleClass}`}>{locale === "de" ? "Sparplan jetzt ausprobieren" : "Try the savings plan"}</h2>
+            <p className="mt-1 text-[13px] text-[#52605b]">{locale === "de" ? "Die Pro-Vorschau oben ist kostenlos testbar. Ein Abo ist noch nicht erhältlich." : "The Pro preview above is free to try. Subscriptions are not available yet."}</p>
+            <a href="#savings-plan" className="eavesence-pill-link mt-3 inline-flex">{locale === "de" ? "Zum Sparplan" : "Open savings plan"}</a>
+          </section>}
         </div>
       </main>
       <PwaMobileNavigation

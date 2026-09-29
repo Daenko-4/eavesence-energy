@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { LocalizedText as Text, localize, useMobileLocale } from "./i18n";
 
 export function FormInput({ label, ...props }: { label: string } & React.ComponentProps<typeof TextInput>) {
   const [focused, setFocused] = useState(false);
+  const locale = useMobileLocale();
   return <View style={styles.field}>
-    <Text style={styles.label}>{label}</Text>
+    <Text style={styles.label}>{localize(locale, label)}</Text>
     <View style={styles.inputRow}>
       <TextInput
         {...props}
-        accessibilityLabel={label}
+        accessibilityLabel={localize(locale, label)}
+        placeholder={props.placeholder ? localize(locale, props.placeholder) : undefined}
         returnKeyType="done"
         onSubmitEditing={(event) => { props.onSubmitEditing?.(event); Keyboard.dismiss(); }}
         onFocus={(event) => { setFocused(true); props.onFocus?.(event); }}
@@ -16,8 +19,8 @@ export function FormInput({ label, ...props }: { label: string } & React.Compone
         placeholderTextColor="#8a9591"
         style={[styles.input, focused && styles.inputFocused, props.style]}
       />
-      {focused && <Pressable accessibilityRole="button" accessibilityLabel={`${label}: Eingabe beenden`} onPress={Keyboard.dismiss} style={styles.doneButton}>
-        <Text style={styles.doneText}>Fertig</Text>
+      {focused && <Pressable accessibilityRole="button" accessibilityLabel={`${localize(locale, label)}: ${locale === "de" ? "Eingabe beenden" : "Dismiss keyboard"}`} onPress={Keyboard.dismiss} style={styles.doneButton}>
+        <Text style={styles.doneText}>{locale === "de" ? "Fertig" : "Done"}</Text>
       </Pressable>}
     </View>
   </View>;

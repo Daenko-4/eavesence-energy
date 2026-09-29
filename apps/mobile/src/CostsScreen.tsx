@@ -8,14 +8,15 @@ import {
   type HouseholdCostFrequency,
 } from "@eavesence/core/householdCosts";
 import { useState } from "react";
-import { Alert, Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Keyboard, Pressable, StyleSheet, View } from "react-native";
 
 import { costsForTile, destinationTileId } from "./costTiles";
 import type { MobileProfile } from "./storage";
 import type { MobileTile } from "./tiles";
 import { FormInput } from "./FormInput";
+import { shareDeadline } from "./deadlineFile";
+import { LocalizedText as Text, localize, useMobileLocale } from "./i18n";
 
-const money = new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR" });
 const categories: Array<[HouseholdCostCategory, string]> = [
   ["housing", "Wohnen"], ["energy", "Energie"], ["insurance", "Versicherung"],
   ["subscriptions", "Verträge & Abos"], ["mobility", "Mobilität"],
@@ -63,12 +64,23 @@ function suggestedDate(daysFromNow: number) {
   return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`;
 }
 
+function nextMonthDate(day: number | "last") {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const date = new Date(year, month + 1, day === "last" ? 0 : day);
+  return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`;
+}
+
 function DateField({ label, value, onChangeText }: { label: string; value: string; onChangeText: (value: string) => void }) {
   return <View>
     <FormInput label={label} value={value} onChangeText={(text) => onChangeText(maskDate(text, value))} placeholder="TT.MM.JJJJ" keyboardType="number-pad" maxLength={10} />
     <View style={styles.dateSuggestions}>
       <Pressable onPress={() => { onChangeText(suggestedDate(0)); Keyboard.dismiss(); }} style={styles.dateSuggestion}><Text style={styles.dateSuggestionText}>Heute</Text></Pressable>
       <Pressable onPress={() => { onChangeText(suggestedDate(30)); Keyboard.dismiss(); }} style={styles.dateSuggestion}><Text style={styles.dateSuggestionText}>In 30 Tagen</Text></Pressable>
+      <Pressable onPress={() => { onChangeText(nextMonthDate(1)); Keyboard.dismiss(); }} style={styles.dateSuggestion}><Text style={styles.dateSuggestionText}>Nächster 1.</Text></Pressable>
+      <Pressable onPress={() => { onChangeText(nextMonthDate(15)); Keyboard.dismiss(); }} style={styles.dateSuggestion}><Text style={styles.dateSuggestionText}>Nächster 15.</Text></Pressable>
+      <Pressable onPress={() => { onChangeText(nextMonthDate("last")); Keyboard.dismiss(); }} style={styles.dateSuggestion}><Text style={styles.dateSuggestionText}>Monatsende</Text></Pressable>
       {value !== "" && <Pressable onPress={() => onChangeText("")} style={styles.dateSuggestion}><Text style={styles.dateSuggestionText}>Löschen</Text></Pressable>}
     </View>
   </View>;
@@ -93,6 +105,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   onDeleteCost: (id: string) => Promise<void>;
   onSaveIncome: (amount: number, frequency: "monthly" | "yearly") => Promise<void>;
 }) {
+  const locale = useMobileLocale();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(initialAction === "cost");
   const [name, setName] = useState("");
@@ -103,6 +116,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   const [deadline, setDeadline] = useState("");
   const [income, setIncome] = useState(profile.incomeAmount ? String(profile.incomeAmount) : "");
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">(profile.incomeFrequency ?? "monthly");
+  const money = new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", { style: "currency", currency: profile.currency ?? "EUR" });
   const visibleCosts = costsForTile(costs, tileId);
   const summary = summarizeHouseholdCosts(visibleCosts);
 
@@ -160,8 +174,8 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
 
   return <>
     <Text style={styles.eyebrow}>HAUSHALTSKOSTEN</Text>
-    <Text style={styles.title}>{tileId === "default-costs" ? "Was kostet dein Zuhause?" : tileTitle}</Text>
-    <Text style={styles.explanation}>{tileId === "default-costs" ? "Alle regelmäßigen Kosten aus deinen Kacheln an einem Ort. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um." : "Die regelmäßigen Kosten in dieser Kachel. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um."}</Text>
+    <Text style={styles.title}>{tileId === "default-costs" ? localize(locale, "Was kostet dein Zuhause?") : tileTitle}</Text>
+    <Text style={styles.explanation}>{localize(locale, tileId === "default-costs" ? "Alle regelmäßigen Kosten aus deinen Kacheln an einem Ort. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um." : "Die regelmäßigen Kosten in dieser Kachel. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um.")}</Text>
     <View style={styles.metrics}>
       <View style={styles.metric}><Text style={styles.label}>PRO MONAT</Text><Text style={styles.value}>{money.format(summary.monthlyTotal)}</Text></View>
       <View style={styles.metric}><Text style={styles.label}>PRO JAHR</Text><Text style={styles.value}>{money.format(summary.annualTotal)}</Text></View>
@@ -176,7 +190,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
     </View>}
 
     {visibleCosts.length < 3 && !formOpen && <View style={styles.panel}>
-      <Text style={styles.panelTitle}>Schnell starten · {visibleCosts.length} von 3</Text>
+      <Text style={styles.panelTitle}>{locale === "de" ? `Schnell starten · ${visibleCosts.length} von 3` : `Quick start · ${visibleCosts.length} of 3`}</Text>
       <Text style={styles.help}>Beginne mit Wohnen, Energie oder einem Vertrag. Anbieterangaben sind nicht nötig.</Text>
       <View style={styles.choices}>{suggestions.map((suggestion) => <Pressable key={suggestion[0]} onPress={() => openNew(suggestion)} style={styles.choice}><Text style={styles.choiceText}>{suggestion[1]}</Text></Pressable>)}</View>
     </View>}
@@ -198,8 +212,8 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <Text style={styles.sectionTitle}>Kosten nach Kategorie</Text>
       <View style={styles.categoryGrid}>{summary.categoryTotals.filter((item) => item.entryCount > 0).map((item) => <View key={item.category} style={styles.categoryCard}>
         <Text style={styles.categoryLabel}>{categories.find(([key]) => key === item.category)?.[1]}</Text>
-        <Text style={styles.categoryAmount}>{money.format(item.monthlyTotal)} / Monat</Text>
-        <Text style={styles.costDetail}>{item.entryCount} {item.entryCount === 1 ? "Eintrag" : "Einträge"}</Text>
+        <Text style={styles.categoryAmount}>{money.format(item.monthlyTotal)} / {locale === "de" ? "Monat" : "month"}</Text>
+        <Text style={styles.costDetail}>{item.entryCount} {locale === "de" ? item.entryCount === 1 ? "Eintrag" : "Einträge" : item.entryCount === 1 ? "entry" : "entries"}</Text>
       </View>)}</View>
     </>}
     <Text style={styles.sectionTitle}>Angelegte Kosten</Text>
@@ -207,9 +221,10 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <Text style={styles.costName}>{cost.name}</Text>
       {tileId === "default-costs" && cost.tileId && cost.tileId !== "default-costs" && <Text style={styles.costArea}>{tiles.find((tile) => tile.id === cost.tileId)?.title ?? "Eigene Kachel"}</Text>}
       <Text style={styles.costDetail}>{categories.find(([key]) => key === cost.category)?.[1]} · {frequencies.find(([key]) => key === cost.frequency)?.[1]}</Text>
-      <Text style={styles.costDetail}>{money.format(cost.amount)} je Zahlung · {money.format(monthlyCost(cost.amount, cost.frequency))} pro Monat · {money.format(annualCost(cost.amount, cost.frequency))} pro Jahr</Text>
-      <Text style={styles.costDetail}>{cost.nextDueDate ? `Nächste Zahlung: ${displayDate(cost.nextDueDate)}` : "Ohne Zahlungstermin"}</Text>
-      <View style={styles.actions}><Pressable onPress={() => edit(cost)} style={styles.choice}><Text style={styles.choiceText}>Bearbeiten</Text></Pressable><Pressable onPress={() => confirmDelete(cost)} style={styles.choice}><Text style={styles.deleteText}>Entfernen</Text></Pressable></View>
+      <Text style={styles.costDetail}>{money.format(cost.amount)} {locale === "de" ? "je Zahlung" : "per payment"} · {money.format(monthlyCost(cost.amount, cost.frequency))} / {locale === "de" ? "Monat" : "month"} · {money.format(annualCost(cost.amount, cost.frequency))} / {locale === "de" ? "Jahr" : "year"}</Text>
+      <Text style={styles.costDetail}>{cost.nextDueDate ? `${locale === "de" ? "Nächste Zahlung" : "Next payment"}: ${displayDate(cost.nextDueDate)}` : "Ohne Zahlungstermin"}</Text>
+      {cost.cancellationDeadline && <Text style={styles.costDetail}>{locale === "de" ? "Kündigungsfrist" : "Cancellation deadline"}: {displayDate(cost.cancellationDeadline)}</Text>}
+      <View style={styles.actions}><Pressable onPress={() => edit(cost)} style={styles.choice}><Text style={styles.choiceText}>Bearbeiten</Text></Pressable>{cost.cancellationDeadline && <Pressable onPress={() => void shareDeadline(cost.name, cost.cancellationDeadline!).catch(() => Alert.alert(locale === "de" ? "Kalender nicht verfügbar" : "Calendar unavailable", locale === "de" ? "Die Frist konnte nicht geteilt werden." : "Could not share this deadline."))} style={styles.choice}><Text style={styles.choiceText}>{locale === "de" ? "Frist vormerken" : "Add to calendar"}</Text></Pressable>}<Pressable onPress={() => confirmDelete(cost)} style={styles.choice}><Text style={styles.deleteText}>Entfernen</Text></Pressable></View>
     </View>)}
   </>;
 }

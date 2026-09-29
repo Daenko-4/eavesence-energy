@@ -1,7 +1,7 @@
-import type { SavedDevice, SavedDeviceCurrency } from "@/lib/savedDevices";
-import type { HouseholdCost } from "@/lib/householdCosts";
-import type { CostEvent } from "@/lib/householdInsights";
-import type { HomeTile, HomeTileKind } from "@/lib/homeTiles";
+import type { SavedDevice, SavedDeviceCurrency } from "./savedDevices";
+import type { HouseholdCost } from "./householdCosts";
+import type { CostEvent } from "./householdInsights";
+import type { HomeTile, HomeTileKind } from "./homeTiles";
 
 export const HOUSEHOLD_PROFILE_STORAGE_KEY = "eavesence-home-profile-v1";
 export const HOUSEHOLD_HISTORY_STORAGE_KEY = "eavesence-home-history-v1";
@@ -25,6 +25,9 @@ export type HouseholdProfile = {
   electricityBillIncludesBonus?: boolean;
   incomeAmount?: number;
   incomeFrequency?: "monthly" | "yearly";
+  variableMonthly?: number | null;
+  bufferMonthly?: number;
+  goalMonthly?: number;
   electricityCostMigrated?: boolean;
   savingsGoalPercent: number;
   rooms: HouseholdRoom[];
@@ -266,6 +269,8 @@ export function readHouseholdProfile(value: string | null) {
       candidate.annualElectricityKwh,
       candidate.monthlyElectricityPayment,
       candidate.incomeAmount,
+      candidate.bufferMonthly,
+      candidate.goalMonthly,
     ]) {
       if (value !== undefined && (typeof value !== "number" || value < 0)) {
         return null;
@@ -278,6 +283,8 @@ export function readHouseholdProfile(value: string | null) {
     ) {
       return null;
     }
+    if (candidate.variableMonthly !== undefined && candidate.variableMonthly !== null &&
+      (typeof candidate.variableMonthly !== "number" || !Number.isFinite(candidate.variableMonthly) || candidate.variableMonthly < 0)) return null;
     if (candidate.electricityCostMigrated !== undefined && typeof candidate.electricityCostMigrated !== "boolean") return null;
     if (
       candidate.electricityBillIncludesBonus !== undefined &&

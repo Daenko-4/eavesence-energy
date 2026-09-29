@@ -16,10 +16,19 @@ From the repository root:
 npm run mobile:start
 ```
 
-Use a compatible Expo Go version on Android. The iPhone App Store version of
-Expo Go does not support this project's SDK 57; use the TestFlight build below
-for a physical iPhone. Native purchases need store products and a separate
-sandbox test.
+For the current SDK 57, use a compatible Expo Go version on iPhone or Android.
+Expo Go can exercise the household flows but native subscriptions and some
+notification behavior require a development or TestFlight build. Native
+purchases need store products and a separate sandbox test.
+
+The app offers German and English, EUR and CHF, a searchable device list,
+recurring cost entry with date shortcuts, monthly history and an experimental
+12-month savings plan. Settings can import a complete EAVESENCE website backup
+in EUR or CHF after a replacement confirmation. Website and app remain separate;
+there is no automatic synchronization. Export an app backup before replacing data.
+The savings plan needs an everyday spending estimate for a fuller projection;
+undated recurring costs are averaged and marked as incomplete. Its Pro preview
+is free to try while the subscription offering is being prepared.
 
 ## Test on an iPhone with TestFlight
 
