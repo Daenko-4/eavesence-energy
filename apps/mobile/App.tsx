@@ -72,6 +72,25 @@ const euro = new Intl.NumberFormat("de-AT", {
 // Metro resolves bundled images through a static require call.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const brandIcon = require("./assets/brand-icon-safe.png");
+// Monochrome icons are tinted to match the website's mint navigation states.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const tabHomeIcon = require("./assets/tab-home.png");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const tabCostsIcon = require("./assets/tab-costs.png");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const tabAddIcon = require("./assets/tab-add.png");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const tabHistoryIcon = require("./assets/tab-history.png");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const tabProIcon = require("./assets/tab-pro.png");
+
+const navigationTabs: Array<{ key: Tab; label: string; icon: number }> = [
+  { key: "home", label: "Zuhause", icon: tabHomeIcon },
+  { key: "costs", label: "Kosten", icon: tabCostsIcon },
+  { key: "add", label: "Gerät", icon: tabAddIcon },
+  { key: "history", label: "Verlauf", icon: tabHistoryIcon },
+  { key: "pro", label: "Pro", icon: tabProIcon },
+];
 
 function parseLocalNumber(value: string) {
   return Number(value.trim().replace(",", "."));
@@ -119,6 +138,7 @@ export default function App() {
   const [tileName, setTileName] = useState("");
   const [editingTileId, setEditingTileId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("home");
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [homeName, setHomeName] = useState("Mein Zuhause");
@@ -166,6 +186,12 @@ export default function App() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   }, [tab]);
+
+  useEffect(() => {
+    const shown = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
+    const hidden = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
+    return () => { shown.remove(); hidden.remove(); };
+  }, []);
 
   const totals = useMemo(
     () => ({
@@ -360,6 +386,15 @@ export default function App() {
     setTab("costs");
   }
 
+  function selectTab(key: Tab) {
+    Keyboard.dismiss();
+    if (key === "add" && tab !== "add") startNewDevice();
+    else {
+      if (key === "costs") { setSelectedCostTileId("default-costs"); setCostStartAction("none"); }
+      setTab(key);
+    }
+  }
+
   function toggleSettings() {
     if (settingsOpen && profile) {
       setHomeName(profile.name);
@@ -549,7 +584,7 @@ export default function App() {
 
   if (!profile) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={[styles.safe, styles.onboardingSafe]}>
         <StatusBar style="dark" />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
           <ScrollView contentContainerStyle={styles.onboarding} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
@@ -578,12 +613,11 @@ export default function App() {
       <View style={styles.appHeader}>
         <Image source={brandIcon} alt="EAVESENCE" style={styles.headerMark} />
         <View style={styles.headerCopy}><Text style={styles.headerBrand}>EAVESENCE</Text><Text style={styles.headerSubline}>HOME</Text></View>
-        <View style={styles.headerBadge}><Text style={styles.headerBadgeText}>Mein Zuhause</Text></View>
       </View>
-      <ScrollView ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <ScrollView ref={scrollRef} style={styles.scrollSurface} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         {tab === "home" && <>
           <Text style={styles.eyebrow}>EAVESENCE HOME</Text>
-          <View style={styles.homeHeadingRow}><Text style={[styles.homeTitle, styles.homeHeadingText]}>{profile.name}</Text><Pressable accessibilityRole="button" accessibilityState={{ expanded: settingsOpen }} onPress={toggleSettings} style={styles.financePill}><Text style={styles.financePillText}>{settingsOpen ? "Schließen" : "Einstellungen"}</Text></Pressable></View>
+          <View style={styles.homeHeadingRow}><Text style={[styles.homeTitle, styles.homeHeadingText]}>{profile.name}</Text><Pressable accessibilityRole="button" accessibilityState={{ expanded: settingsOpen }} onPress={toggleSettings} style={[styles.financePill, styles.headingSettingsButton]}><Text style={styles.financePillText}>{settingsOpen ? "Schließen" : "Einstellungen"}</Text></Pressable></View>
           <Text style={styles.homeSubtitle}>Dein Überblick über Einkommen, feste Kosten und nächste Zahlungen.</Text>
           {settingsOpen && <View style={styles.formSurface}>
             <Text style={styles.financeHeading}>Dein Zuhause</Text>
@@ -628,15 +662,17 @@ export default function App() {
                 <Pressable onPress={openMainCosts} style={styles.financePill}><Text style={styles.financePillText}>Kosten bearbeiten</Text></Pressable>
               </View>}
             </View>
-            <View style={styles.financeCard}>
-              <Text style={styles.financeLabel}>NETTOEINKOMMEN / MONAT</Text>
-              {monthlyIncome > 0 && <Text style={styles.financeValue}>{euro.format(monthlyIncome)}</Text>}
-              <Pressable onPress={openMainCosts} style={styles.financePill}><Text style={styles.financePillText}>{monthlyIncome > 0 ? "Einkommen ändern" : "Einkommen hinzufügen"}</Text></Pressable>
-            </View>
-            <View style={[styles.financeCard, styles.financeCardAccent]}>
-              <Text style={styles.financeLabel}>LAUFENDE KOSTEN / MONAT</Text>
-              <Text style={styles.financeValue}>{euro.format(costSummary.monthlyTotal)}</Text>
-              {monthlyIncome > 0 && <Text style={styles.financeNote}>Budget nach laufenden Kosten: {euro.format(monthlyIncome - costSummary.monthlyTotal)}</Text>}
+            <View style={styles.financePair}>
+              <View style={[styles.financeCard, styles.financeCardCompact]}>
+                <Text style={styles.financeLabel}>NETTO / MONAT</Text>
+                {monthlyIncome > 0 && <Text adjustsFontSizeToFit numberOfLines={1} style={[styles.financeValue, styles.financeValueCompact]}>{euro.format(monthlyIncome)}</Text>}
+                <Pressable onPress={openMainCosts} style={[styles.financePill, styles.financeCompactAction]}><Text style={styles.financePillText}>{monthlyIncome > 0 ? "Ändern" : "Hinzufügen"}</Text></Pressable>
+              </View>
+              <View style={[styles.financeCard, styles.financeCardCompact, styles.financeCardAccent]}>
+                <Text style={styles.financeLabel}>KOSTEN / MONAT</Text>
+                <Text adjustsFontSizeToFit numberOfLines={1} style={[styles.financeValue, styles.financeValueCompact]}>{euro.format(costSummary.monthlyTotal)}</Text>
+                <Text style={styles.financeNote}>Feste Ausgaben</Text>
+              </View>
             </View>
           </View>
           <View style={styles.tilesSection}>
@@ -711,7 +747,14 @@ export default function App() {
 
         {tab === "pro" && <View style={styles.proCard}><Text style={styles.eyebrowMint}>EAVESENCE PRO</Text><Text style={styles.proTitle}>Weniger eintragen. Früher reagieren.</Text><Text style={styles.proBody}>Automatische Verbrauchswarnungen, längerer Verlauf, Synchronisation, mehrere Haushalte sowie später Energieetikett- und Rechnungsscan.</Text>{isPro ? <Text style={styles.proActive}>Pro ist aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Pressable style={[styles.proButton, betaInterested && styles.proButtonDisabled]} disabled={betaInterested} onPress={() => void expressBetaInterest()}><Text style={styles.proButtonText}>{betaInterested ? "Beta-Interesse gespeichert" : "Beta-Platz vormerken"}</Text></Pressable>}<Pressable onPress={() => void restorePro().then(setIsPro)}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable><Text style={styles.proHint}>Noch keine Abbuchung ohne freigeschaltete Store-Produkte.</Text></View>}
       </ScrollView>
-      <View style={styles.tabBar}>{([['home', 'Zuhause'], ['costs', 'Kosten'], ['add', 'Gerät'], ['history', 'Verlauf'], ['pro', 'Pro']] as const).map(([key, label]) => <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: tab === key }} onPress={() => { Keyboard.dismiss(); if (key === "add" && tab !== "add") startNewDevice(); else { if (key === "costs") { setSelectedCostTileId("default-costs"); setCostStartAction("none"); } setTab(key); } }} style={[styles.tab, tab === key && styles.tabActive]}><Text style={[styles.tabText, tab === key && styles.tabTextActive]}>{label}</Text></Pressable>)}</View>
+      {!keyboardVisible && <View style={styles.tabBar} accessibilityRole="tablist" accessibilityLabel="App-Navigation">{navigationTabs.map(({ key, label, icon }) => {
+        const active = tab === key;
+        const primary = key === "add";
+        return <Pressable key={key} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected: active }} onPress={() => selectTab(key)} style={styles.tab}>
+          <View style={[styles.tabIconSurface, active && styles.tabIconActive, primary && styles.tabIconPrimary]}><Image source={icon} alt="" style={[styles.tabIcon, { tintColor: primary ? "#ffffff" : active ? "#087a45" : "#65716d" }]} /></View>
+          <Text numberOfLines={1} style={[styles.tabText, active && styles.tabTextActive]}>{label}</Text>
+        </Pressable>;
+      })}</View>}
     </SafeAreaView>
   );
 }
@@ -766,6 +809,7 @@ const styles = StyleSheet.create({
   presetRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   homeHeadingRow: { flexDirection: "row", alignItems: "center", gap: 9 },
   homeHeadingText: { flex: 1 },
+  headingSettingsButton: { marginTop: 0, minHeight: 36 },
   rowActions: { flexDirection: "row", alignItems: "center", gap: 4 },
   historyRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 9, padding: 14, borderWidth: 1, borderRadius: 14, borderColor: "#dfe5dd", backgroundColor: "#fbfcf8" },
   historyValues: { flex: 1 },
@@ -775,18 +819,20 @@ const styles = StyleSheet.create({
   headerCopy: { flex: 1, marginLeft: 9 },
   headerBrand: { fontSize: 15, fontWeight: "900", letterSpacing: -0.4, color: "#10283a" },
   headerSubline: { marginTop: 1, fontSize: 9, fontWeight: "800", letterSpacing: 1.7, color: "#087a45" },
-  headerBadge: { borderRadius: 16, backgroundColor: "#ddf8e9", paddingHorizontal: 10, paddingVertical: 6 },
-  headerBadgeText: { fontSize: 11, fontWeight: "700", color: "#087a45" },
   homeTitle: { marginTop: 9, fontSize: 32, lineHeight: 36, fontWeight: "900", letterSpacing: -1.3, color: "#17211f" },
   homeSubtitle: { marginTop: 8, marginBottom: 20, fontSize: 14, lineHeight: 21, color: "#65716d" },
   financeSection: { borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 23, backgroundColor: "#f4f6f2", padding: 15, gap: 11 },
+  financePair: { flexDirection: "row", gap: 9 },
   financeHeading: { marginBottom: 3, fontSize: 20, fontWeight: "900", letterSpacing: -0.5, color: "#17211f" },
   financeCard: { borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 16, alignItems: "flex-start" },
+  financeCardCompact: { flex: 1, minWidth: 0, minHeight: 131, padding: 13 },
   financeCardAccent: { borderColor: "#b8efcc", backgroundColor: "#eefbf3" },
   financeLabel: { fontSize: 11, lineHeight: 16, fontWeight: "700", letterSpacing: 0.6, color: "#65716d" },
   financeValue: { marginTop: 8, fontSize: 25, fontWeight: "900", letterSpacing: -0.7, color: "#17211f" },
+  financeValueCompact: { fontSize: 22, alignSelf: "stretch" },
   financeNote: { marginTop: 5, fontSize: 12, lineHeight: 18, color: "#65716d" },
   financePill: { alignSelf: "flex-start", marginTop: 12, minHeight: 30, borderRadius: 16, backgroundColor: "#ddf8e9", paddingHorizontal: 12, justifyContent: "center" },
+  financeCompactAction: { marginTop: "auto" },
   financePillText: { fontSize: 12, fontWeight: "700", color: "#087a45" },
   financeExpanded: { alignSelf: "stretch", marginTop: 14, paddingTop: 10, borderTopWidth: 1, borderColor: "#dfe5dd" },
   paymentRow: { flexDirection: "row", justifyContent: "space-between", gap: 8, paddingVertical: 5 },
@@ -806,10 +852,12 @@ const styles = StyleSheet.create({
   modeButtonText: { fontSize: 12, fontWeight: "800", color: "#64748b" },
   modeButtonTextActive: { color: "#087a45" },
   flex: { flex: 1 },
-  safe: { flex: 1, backgroundColor: "#f6f7f2" },
+  safe: { flex: 1, backgroundColor: "#ffffff" },
+  onboardingSafe: { backgroundColor: "#f6f7f2" },
+  scrollSurface: { backgroundColor: "#f6f7f2" },
   loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#f6f7f2" },
   onboarding: { flexGrow: 1, justifyContent: "center", padding: 24, gap: 18 },
-  content: { paddingHorizontal: 20, paddingTop: 27, paddingBottom: 42 },
+  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 34 },
   appHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 13, borderBottomWidth: 1, borderColor: "#e2e8e4", backgroundColor: "#ffffff" },
   eyebrow: { fontSize: 11, fontWeight: "900", letterSpacing: 1.6, color: "#087a45" },
   eyebrowMint: { fontSize: 11, fontWeight: "900", letterSpacing: 1.6, color: "#72dca3" },
@@ -820,5 +868,12 @@ const styles = StyleSheet.create({
   primaryButton: { minHeight: 50, marginTop: 14, borderRadius: 25, alignItems: "center", justifyContent: "center", backgroundColor: "#087a45", paddingHorizontal: 20 },
   primaryButtonText: { fontSize: 14, fontWeight: "800", color: "#ffffff" },
   privateText: { textAlign: "center", fontSize: 12, fontWeight: "600", color: "#65716d" },
-  pulseCard: { marginBottom: 16, borderWidth: 1, borderRadius: 18, padding: 15 }, pulseCardOpen: { borderColor: "#f4cf73", backgroundColor: "#fff9e9" }, pulseCardComplete: { borderColor: "#b8efcc", backgroundColor: "#eefbf3" }, pulseLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 1 }, pulseLabelOpen: { color: "#a85d00" }, pulseLabelComplete: { color: "#087a45" }, pulseTitle: { marginTop: 5, fontSize: 15, fontWeight: "900", color: "#07111f" }, pulseBody: { marginTop: 4, fontSize: 13, lineHeight: 19, color: "#52605b" }, pulseAction: { alignSelf: "flex-start", minHeight: 30, marginTop: 12, borderRadius: 15, justifyContent: "center", backgroundColor: "#dcf8e8", paddingHorizontal: 12 }, pulseActionText: { fontSize: 12, fontWeight: "900", color: "#087a45" }, metricGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 }, metric: { width: "48%", minHeight: 94, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 14 }, metricLabel: { fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.7, color: "#64748b" }, metricValue: { marginTop: 12, fontSize: 19, fontWeight: "900", color: "#07111f" }, insightCard: { marginTop: 16, borderRadius: 16, backgroundColor: "#e7f7ed", padding: 15 }, insightLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 0.8, color: "#087a45" }, insightTitle: { marginTop: 5, fontSize: 15, fontWeight: "900", color: "#07111f" }, historyHint: { marginTop: -12, marginBottom: 18, fontSize: 13, lineHeight: 19, color: "#64748b" }, sectionTitle: { marginTop: 28, marginBottom: 10, fontSize: 20, fontWeight: "900", color: "#07111f" }, deviceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 9, padding: 14, borderWidth: 1, borderRadius: 14, borderColor: "#dfe5dd", backgroundColor: "#fbfcf8" }, deviceName: { fontSize: 15, fontWeight: "800", color: "#07111f" }, muted: { marginTop: 3, fontSize: 12, color: "#64748b" }, delete: { padding: 8, fontSize: 24, color: "#94a3b8" }, empty: { borderWidth: 1, borderStyle: "dashed", borderColor: "#cbd5e1", borderRadius: 16, padding: 20, backgroundColor: "#ffffff" }, secondaryButton: { minHeight: 48, marginTop: 10, borderWidth: 1, borderColor: "#b9d9c7", borderRadius: 24, alignItems: "center", justifyContent: "center" }, secondaryButtonText: { fontSize: 14, fontWeight: "800", color: "#087a45" }, proCard: { borderRadius: 26, backgroundColor: "#17211f", padding: 24 }, proTitle: { marginTop: 12, fontSize: 32, lineHeight: 35, fontWeight: "900", letterSpacing: -1.2, color: "#ffffff" }, proBody: { marginTop: 15, fontSize: 15, lineHeight: 23, color: "#cbd5d1" }, proButton: { minHeight: 52, marginTop: 24, borderRadius: 26, alignItems: "center", justifyContent: "center", backgroundColor: "#72dca3", paddingHorizontal: 16 }, proButtonDisabled: { backgroundColor: "#43514c" }, proButtonText: { fontSize: 14, fontWeight: "900", color: "#10231b" }, proActive: { marginTop: 24, fontSize: 17, fontWeight: "900", color: "#72dca3" }, restore: { marginTop: 18, textAlign: "center", fontSize: 13, fontWeight: "800", color: "#ffffff" }, proHint: { marginTop: 10, textAlign: "center", fontSize: 11, lineHeight: 17, color: "#94a3a0" }, tabBar: { flexDirection: "row", gap: 2, marginHorizontal: 12, marginBottom: Platform.OS === "ios" ? 8 : 6, padding: 5, borderWidth: 1, borderColor: "#cfe7d7", borderRadius: 18, backgroundColor: "#fbfdf9", shadowColor: "#10283a", shadowOpacity: 0.12, shadowRadius: 16, elevation: 5 }, tab: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 46, borderRadius: 13 }, tabActive: { backgroundColor: "#ddf8e9" }, tabText: { fontSize: 11, fontWeight: "700", color: "#65716d" }, tabTextActive: { color: "#087a45", fontWeight: "900" },
+  pulseCard: { marginBottom: 16, borderWidth: 1, borderRadius: 18, padding: 15 }, pulseCardOpen: { borderColor: "#f4cf73", backgroundColor: "#fff9e9" }, pulseCardComplete: { borderColor: "#b8efcc", backgroundColor: "#eefbf3" }, pulseLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 1 }, pulseLabelOpen: { color: "#a85d00" }, pulseLabelComplete: { color: "#087a45" }, pulseTitle: { marginTop: 5, fontSize: 15, fontWeight: "900", color: "#07111f" }, pulseBody: { marginTop: 4, fontSize: 13, lineHeight: 19, color: "#52605b" }, pulseAction: { alignSelf: "flex-start", minHeight: 30, marginTop: 12, borderRadius: 15, justifyContent: "center", backgroundColor: "#dcf8e8", paddingHorizontal: 12 }, pulseActionText: { fontSize: 12, fontWeight: "900", color: "#087a45" }, metricGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 }, metric: { width: "48%", minHeight: 94, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 14 }, metricLabel: { fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.7, color: "#64748b" }, metricValue: { marginTop: 12, fontSize: 19, fontWeight: "900", color: "#07111f" }, insightCard: { marginTop: 16, borderRadius: 16, backgroundColor: "#e7f7ed", padding: 15 }, insightLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 0.8, color: "#087a45" }, insightTitle: { marginTop: 5, fontSize: 15, fontWeight: "900", color: "#07111f" }, historyHint: { marginTop: -12, marginBottom: 18, fontSize: 13, lineHeight: 19, color: "#64748b" }, sectionTitle: { marginTop: 28, marginBottom: 10, fontSize: 20, fontWeight: "900", color: "#07111f" }, deviceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 9, padding: 14, borderWidth: 1, borderRadius: 14, borderColor: "#dfe5dd", backgroundColor: "#fbfcf8" }, deviceName: { fontSize: 15, fontWeight: "800", color: "#07111f" }, muted: { marginTop: 3, fontSize: 12, color: "#64748b" }, delete: { padding: 8, fontSize: 24, color: "#94a3b8" }, empty: { borderWidth: 1, borderStyle: "dashed", borderColor: "#cbd5e1", borderRadius: 16, padding: 20, backgroundColor: "#ffffff" }, secondaryButton: { minHeight: 48, marginTop: 10, borderWidth: 1, borderColor: "#b9d9c7", borderRadius: 24, alignItems: "center", justifyContent: "center" }, secondaryButtonText: { fontSize: 14, fontWeight: "800", color: "#087a45" }, proCard: { borderRadius: 26, backgroundColor: "#17211f", padding: 24 }, proTitle: { marginTop: 12, fontSize: 32, lineHeight: 35, fontWeight: "900", letterSpacing: -1.2, color: "#ffffff" }, proBody: { marginTop: 15, fontSize: 15, lineHeight: 23, color: "#cbd5d1" }, proButton: { minHeight: 52, marginTop: 24, borderRadius: 26, alignItems: "center", justifyContent: "center", backgroundColor: "#72dca3", paddingHorizontal: 16 }, proButtonDisabled: { backgroundColor: "#43514c" }, proButtonText: { fontSize: 14, fontWeight: "900", color: "#10231b" }, proActive: { marginTop: 24, fontSize: 17, fontWeight: "900", color: "#72dca3" }, restore: { marginTop: 18, textAlign: "center", fontSize: 13, fontWeight: "800", color: "#ffffff" }, proHint: { marginTop: 10, textAlign: "center", fontSize: 11, lineHeight: 17, color: "#94a3a0" }, tabBar: { flexDirection: "row", borderTopWidth: 1, borderColor: "#e2e8e4", backgroundColor: "#ffffff", paddingHorizontal: 12, paddingTop: 7, paddingBottom: 3 },
+  tab: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 58, gap: 2 },
+  tabIconSurface: { width: 37, height: 32, alignItems: "center", justifyContent: "center", borderRadius: 13 },
+  tabIconActive: { backgroundColor: "#ddf8e9" },
+  tabIconPrimary: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#087a45" },
+  tabIcon: { width: 21, height: 21 },
+  tabText: { fontSize: 11, fontWeight: "700", color: "#65716d" },
+  tabTextActive: { color: "#087a45", fontWeight: "900" },
 });
