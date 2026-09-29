@@ -9,10 +9,15 @@ export const TILES_KEY = "eavesence-mobile-tiles-v1";
 
 export type MobileProfile = {
   name: string;
+  locale?: "de" | "en";
+  currency?: "EUR" | "CHF";
   electricityPrice: number;
   savingsGoalPercent: number;
   incomeAmount?: number;
   incomeFrequency?: "monthly" | "yearly";
+  variableMonthly?: number | null;
+  bufferMonthly?: number;
+  goalMonthly?: number;
   createdAt: string;
 };
 
@@ -22,6 +27,11 @@ export type MobileDevice = {
   watts: number;
   minutesPerUse: number;
   usesPerWeek: number;
+  calculationType?: "power" | "consumption";
+  mode?: "estimate" | "exact";
+  estimatedKwhPerUse?: number;
+  measuredKwhPerUse?: number;
+  librarySlug?: string;
   yearlyKwh: number;
   yearlyCost: number;
   monthlyCost: number;
