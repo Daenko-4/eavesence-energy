@@ -6,6 +6,9 @@ export const LocaleContext = createContext<MobileLocale>("de");
 export const useMobileLocale = () => useContext(LocaleContext);
 
 const en: Record<string, string> = {
+  "z. B. Versicherungen": "e.g. insurance", "z. B. Kühlschrank": "e.g. refrigerator",
+  "z. B. Lebensmittel, Freizeit": "e.g. groceries, leisure", "z. B. Internet": "e.g. internet",
+  "TT.MM.JJJJ": "DD.MM.YYYY", "0,00": "0.00",
   "Jetzt starten": "Get started", "Angaben schließen": "Close options", "Name und Strompreis anpassen": "Change name and electricity price",
   "BLICK AUF DEN NÄCHSTEN MONAT": "LOOKING AHEAD", "Bearbeiten": "Edit", "EAVESENCE HOME": "EAVESENCE HOME", "SPRACHE / LANGUAGE": "LANGUAGE",
   "Name deines Zuhauses": "Name your home", "Strompreis pro kWh (€)": "Electricity price per kWh", "Sparziel (%)": "Savings target (%)",
