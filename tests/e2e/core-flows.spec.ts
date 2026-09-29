@@ -445,9 +445,13 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await septemberEntry.getByRole("button", { name: "Delete" }).click();
   await expect(septemberEntry).toHaveCount(0);
 
-  await expect(
-    page.getByRole("heading", { name: "Discover EAVESENCE Pro later" }),
-  ).toBeVisible();
+  const savingsPlan = page.locator("#savings-plan");
+  await expect(savingsPlan.getByRole("heading", { name: "Your 12-month savings plan" })).toBeVisible();
+  await savingsPlan.getByLabel("Everyday spending / month").fill("500");
+  await savingsPlan.getByLabel("Buffer / month").fill("100");
+  await savingsPlan.getByLabel("Savings goal / month").fill("200");
+  await savingsPlan.getByRole("button", { name: "Save plan" }).click();
+  await expect(savingsPlan).toContainText("€1,400.00");
   await expect(
     page.getByRole("button", { name: "Reserve a beta place" }),
   ).toHaveCount(0);
@@ -1210,7 +1214,7 @@ test.describe("mobile", () => {
     expect((navigationBounds?.x ?? 0) + (navigationBounds?.width ?? 0)).toBeLessThanOrEqual(390);
 
     await expect(
-      page.getByRole("heading", { name: "Discover EAVESENCE Pro later" }),
+      page.getByRole("heading", { name: "Your 12-month savings plan" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Reserve a beta place" }),
