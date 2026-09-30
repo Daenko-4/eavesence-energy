@@ -364,25 +364,29 @@ export default function HouseholdCostsPanel({
           <h3 className="text-[14px] font-bold">
             {editingId ? text.formEdit : text.formNew}
           </h3>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] lg:col-span-2">
               {text.name}
-              <input id="household-cost-name" value={name} onChange={(event) => setName(event.target.value)} className={fieldClass} />
+              <input id="household-cost-name" value={name} onChange={(event) => setName(event.target.value)} onBlur={() => { if (!editingId && category === "housing") { const value = name.toLowerCase(); if (/internet|abo|stream|telefon/.test(value)) setCategory("subscriptions"); else if (/strom|heiz|electric|gas/.test(value)) setCategory("energy"); else if (/versicherung|insurance/.test(value)) setCategory("insurance"); } }} className={fieldClass} />
             </label>
             <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">
               {text.amount}
               <input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" className={fieldClass} />
             </label>
-            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">
-              {text.category}
-              <select value={category} onChange={(event) => setCategory(event.target.value as HouseholdCostCategory)} className={fieldClass}>
-                {categories.map((item) => <option key={item} value={item}>{text.categories[item]}</option>)}
-              </select>
-            </label>
+
             <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">
               {text.frequency}
               <select value={frequency} onChange={(event) => setFrequency(event.target.value as HouseholdCostFrequency)} className={fieldClass}>
                 {frequencies.map((item) => <option key={item} value={item}>{text.frequencies[item]}</option>)}
+              </select>
+            </label>
+
+          </div>
+          <details open={Boolean(editingId)} className="mt-3 text-[12px]"><summary className="cursor-pointer font-semibold">{locale === "de" ? "Weitere Angaben: Kategorie und Termine" : "More details: category and dates"}</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">
+              {text.category}
+              <select value={category} onChange={(event) => setCategory(event.target.value as HouseholdCostCategory)} className={fieldClass}>
+                {categories.map((item) => <option key={item} value={item}>{text.categories[item]}</option>)}
               </select>
             </label>
             <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">
@@ -393,7 +397,7 @@ export default function HouseholdCostsPanel({
               {text.deadline}
               <input type="date" value={cancellationDeadline} onChange={(event) => setCancellationDeadline(event.target.value)} className={fieldClass} />
             </label>
-          </div>
+          </div></details>
           <div className="mt-4 flex flex-wrap gap-2">
             <button type="submit" className={pillClass}>
               {editingId ? text.update : text.save}

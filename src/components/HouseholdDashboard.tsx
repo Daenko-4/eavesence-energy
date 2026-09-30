@@ -110,7 +110,7 @@ const copy = {
     onboardingEyebrow: "EAVESENCE Home",
     onboardingTitle: "Richte dein Zuhause ein",
     onboardingText:
-      "In weniger als einer Minute entsteht aus einzelnen Berechnungen deine persönliche Energieübersicht. Alles bleibt zunächst lokal in diesem Browser.",
+      "Starte mit deinem Einkommen und deinen regelmäßigen Haushaltskosten. Danach siehst du, was dir im Monat bleibt. Alles bleibt in diesem Browser.",
     householdName: "Name des Zuhauses",
     householdNamePlaceholder: "Mein Zuhause",
     price: "Strompreis pro kWh",
@@ -367,7 +367,7 @@ const copy = {
     onboardingEyebrow: "EAVESENCE Home",
     onboardingTitle: "Set up your home",
     onboardingText:
-      "Turn individual calculations into a personal energy overview in less than a minute. Everything initially stays in this browser.",
+      "Start with your income and recurring household costs. Then see what is left each month. Everything stays in this browser.",
     householdName: "Home name",
     householdNamePlaceholder: "My home",
     price: "Electricity price per kWh",
@@ -1440,10 +1440,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   {currencies.map((item) => <option key={item}>{item}</option>)}
                 </select>
               </label>
-              <label className="grid gap-2 text-[13px] font-semibold text-[#52605b] sm:col-span-2">
-                <span className="flex items-center justify-between"><span>{text.goal}</span><span className="text-[var(--brand-green)]">{goal}{text.goalSuffix}</span></span>
-                <input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="accent-[var(--brand-green)]" />
-              </label>
+
             </div>
 
             <button type="submit" className={`mt-8 w-full sm:w-auto ${homePrimaryActionClass}`}>{text.start}</button>
@@ -1653,7 +1650,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
-            <button type="button" onClick={() => setSettingsOpen((current) => !current)} className={`${homeDashboardActionClass} w-fit`}>{text.settings}</button>
+            <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} className={`${homeDashboardActionClass} w-fit`}>{text.settings}</button>
           </div>
 
           {settingsOpen && (
@@ -1751,7 +1748,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <article className="w-full rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
                 <div className="flex min-h-[104px] flex-col">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">{text.financeUpcoming} · {nextMonthLabel}</p>
-                <p className="mt-2 text-xl font-extrabold tracking-[-0.035em]">{formatMoney(upcomingPayments.total, locale, profile.currency)}</p>
+                <p className="mt-2 text-xl font-extrabold tracking-[-0.035em]">{upcomingPayments.undatedCount > 0 ? (locale === "de" ? "Vorschau unvollständig" : "Forecast incomplete") : formatMoney(upcomingPayments.total, locale, profile.currency)}</p>
                 <p className="mt-1 text-[11px] text-[#65716d]">
                   {householdCosts.length === 0
                     ? text.financeUpcomingNoCosts
@@ -1794,29 +1791,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
           </section>
 
-          <HouseholdInsightsPanel
-            locale={locale}
-            currency={profile.currency}
-            costs={householdCosts}
-            history={history}
-            events={costEvents}
-            onAdd={(category) => openCostForm(undefined, category)}
-            onReview={(cost) => openCostForm(cost)}
-          />
-          <SavingsPlanPanel
-            key={profile.updatedAt}
-            locale={locale}
-            currency={profile.currency}
-            incomeMonthly={monthlyIncome}
-            costs={householdCosts}
-            variableMonthly={profile.variableMonthly}
-            bufferMonthly={profile.bufferMonthly}
-            goalMonthly={profile.goalMonthly}
-            actions={profile.savingsActions}
-            onSave={(values) => persistProfile({ ...profile, ...values, updatedAt: new Date().toISOString() })}
-            onSaveActions={(savingsActions) => persistProfile({ ...profile, savingsActions, updatedAt: new Date().toISOString() })}
-          />
 
+          <div className="mt-5 flex flex-wrap gap-3"><button type="button" className={homePrimaryActionClass} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button><button type="button" className={homeDashboardActionClass} onClick={() => { setIncomeOpen(true); document.getElementById("home-overview")?.scrollIntoView({ behavior: "smooth" }); }}>{locale === "de" ? "Einkommen eintragen / ändern" : "Add / update income"}</button></div>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
               <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
@@ -1970,6 +1946,36 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           />
           </div>
           )}
+
+          <details className="mt-5 rounded-xl border border-[#dfe5dd] p-4"><summary className="cursor-pointer text-[14px] font-bold">{locale === "de" ? "Zahlungsvorschau und Auswertungen ansehen" : "View payment forecast and insights"}</summary>
+          <HouseholdInsightsPanel
+            locale={locale}
+            currency={profile.currency}
+            costs={householdCosts}
+            history={history}
+            events={costEvents}
+            onAdd={(category) => openCostForm(undefined, category)}
+            onReview={(cost) => openCostForm(cost)}
+          />
+          </details>
+          <SavingsPlanPanel
+            key={profile.createdAt}
+            locale={locale}
+            currency={profile.currency}
+            incomeMonthly={monthlyIncome}
+            costs={householdCosts}
+            variableMonthly={profile.variableMonthly}
+            bufferMonthly={profile.bufferMonthly}
+            goalMonthly={profile.goalMonthly}
+            actions={profile.savingsActions}
+            planning={profile.planning}
+            onSavePlanning={(planning) => persistProfile({ ...profile, planning, updatedAt: new Date().toISOString() })}
+            onEditIncome={() => { setIncomeOpen(true); document.getElementById("home-overview")?.scrollIntoView({ behavior: "smooth" }); }}
+            onEditCosts={() => { setCostRequest(null); activateTileKind("costs"); window.setTimeout(() => document.getElementById("household-costs")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
+            onSave={(values) => persistProfile({ ...profile, ...values, updatedAt: new Date().toISOString() })}
+            onSaveActions={(savingsActions) => persistProfile({ ...profile, savingsActions, updatedAt: new Date().toISOString() })}
+          />
+
 
           {activeTile?.kind === "energy" && (
           <>
@@ -2224,10 +2230,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       </main>
       <PwaMobileNavigation
         locale={locale}
-        calculatorHref={calculatorHref}
+
         settingsOpen={settingsOpen}
-        onOpenSettings={openAppSettings}
-      />
+              />
       <ConnectivityStatus locale={locale} />
       <Footer locale={locale} />
     </div>

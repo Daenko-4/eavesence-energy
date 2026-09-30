@@ -1,11 +1,73 @@
 import { createContext, useContext, type ComponentProps, type ReactNode } from "react";
-import { Text as NativeText } from "react-native";
+import { Alert, Text as NativeText, type AlertButton, type AlertOptions } from "react-native";
 
 export type MobileLocale = "de" | "en";
 export const LocaleContext = createContext<MobileLocale>("de");
 export const useMobileLocale = () => useContext(LocaleContext);
 
 const en: Record<string, string> = {
+  "Angaben prüfen": "Check your entries",
+  "Gib einen Namen, einen Strompreis über 0 und ein Sparziel zwischen 1 und 50 % ein.": "Enter a name, a positive electricity price and an energy savings target between 1 and 50%.",
+  "Start fehlgeschlagen": "Could not start",
+  "Dein Zuhause konnte nicht gespeichert werden. Bitte versuche es erneut.": "Could not save your home. Please try again.",
+  "Beträge prüfen": "Check amounts",
+  "Gib Beträge ab 0 ein. Alltagsausgaben dürfen offen bleiben.": "Enter amounts of 0 or more. Everyday spending may be left blank.",
+  "Gespeichert": "Saved",
+  "Dein Sparplan wurde aktualisiert.": "Your savings plan was updated.",
+  "Speichern fehlgeschlagen": "Could not save",
+  "Bitte versuche es erneut.": "Please try again.",
+  "Sicherung fehlgeschlagen": "Backup failed",
+  "Die Datei konnte nicht geteilt werden. Bitte versuche es erneut.": "Could not share the file. Please try again.",
+  "Sicherung importiert": "Backup imported",
+  "Deine App-Daten wurden ersetzt.": "Your app data was replaced.",
+  "Import fehlgeschlagen": "Import failed",
+  "Die Daten konnten nicht gespeichert werden. Bitte versuche es erneut.": "Could not save the data. Please try again.",
+  "Ungültige Sicherung": "Invalid backup",
+  "Wähle eine vollständige EAVESENCE-App- oder Website-Sicherung in EUR oder CHF.": "Choose a complete EAVESENCE app or website backup in EUR or CHF.",
+  "App-Daten ersetzen?": "Replace app data?",
+  "Die Datei konnte nicht gelesen werden.": "Could not read the file.",
+  "My Home zurücksetzen?": "Reset My Home?",
+  "Dein Zuhause, Geräte, Kosten und Verlauf werden auf diesem Gerät gelöscht. Exportiere vorher eine Sicherung, wenn du sie behalten möchtest.": "Your home, devices, costs and history will be deleted on this device. Export a backup first if you want to keep them.",
+  "Daten gelöscht": "Data deleted",
+  "Die Erinnerung konnte nicht ausgeschaltet werden. Deaktiviere sie später in der App.": "Could not disable the reminder. Turn it off later in the app.",
+  "Zurücksetzen fehlgeschlagen": "Reset failed",
+  "Name fehlt": "Name missing",
+  "Gib der Kachel einen Namen.": "Enter a tile name.",
+  "Name zu lang": "Name too long",
+  "Verwende höchstens 40 Zeichen.": "Use no more than 40 characters.",
+  "Name bereits vorhanden": "Name already exists",
+  "Wähle einen anderen Kachelnamen.": "Choose a different tile name.",
+  "Zu viele Kacheln": "Too many tiles",
+  "Maximal 30 Kacheln sind möglich.": "You can have up to 30 tiles.",
+  "Die Kachel konnte nicht gespeichert werden.": "Could not save the tile.",
+  "Die Reihenfolge konnte nicht gespeichert werden.": "Could not save the order.",
+  "Kachel entfernen?": "Remove tile?",
+  "Entfernen fehlgeschlagen": "Could not remove",
+  "Die Kachel konnte nicht entfernt werden.": "Could not remove the tile.",
+  "Gerätename fehlt": "Device name missing",
+  "Gib dem Gerät einen Namen, bevor du es speicherst.": "Enter a device name before saving.",
+  "Gib einen Verbrauch oder Leistung und Dauer sowie eine Nutzung größer als null ein.": "Enter consumption or power and duration, and usage greater than zero.",
+  "Gerät entfernen?": "Remove device?",
+  "Strompreis fehlt": "Electricity price missing",
+  "Hinterlege zuerst einen gültigen Strompreis.": "First enter a valid electricity price.",
+  "Wert fehlt": "Value missing",
+  "Gib den Verbrauch oder den Rechnungsbetrag ein.": "Enter usage or the bill amount.",
+  "Monatswert gespeichert": "Monthly entry saved",
+  "Verbrauch und Kosten wurden aktualisiert.": "Usage and costs were updated.",
+  "Monatswert entfernen?": "Remove monthly entry?",
+  "Erinnerung deaktiviert": "Reminder disabled",
+  "Der monatliche Monats-Check ist ausgeschaltet.": "The monthly check reminder is off.",
+  "Benachrichtigungen nicht erlaubt": "Notifications not allowed",
+  "Aktiviere Mitteilungen für EAVESENCE in den iPhone-Einstellungen.": "Enable notifications for EAVESENCE in iPhone settings.",
+  "Erinnerung aktiv": "Reminder enabled",
+  "Wir erinnern dich jeden Monat am 1. um 9:00 Uhr.": "We will remind you on the 1st of each month at 09:00.",
+  "Erinnerung fehlgeschlagen": "Reminder failed",
+  "Wiederherstellung fehlgeschlagen": "Restore failed",
+  "Importieren": "Import",
+  "Zurücksetzen": "Reset",
+
+  "Übersicht": "Overview", "Plan": "Plan", "Weitere Angaben: Kategorie und Termine": "More details: category and dates",
+  "Stromverlauf öffnen": "Open electricity history", "Geräte verwalten": "Manage devices",
   "z. B. Versicherungen": "e.g. insurance", "z. B. Kühlschrank": "e.g. refrigerator",
   "z. B. Lebensmittel, Freizeit": "e.g. groceries, leisure", "z. B. Internet": "e.g. internet",
   "TT.MM.JJJJ": "DD.MM.YYYY", "0,00": "0.00",
@@ -82,4 +144,8 @@ export function LocalizedText({ children, ...props }: ComponentProps<typeof Nati
     return value;
   }
   return <NativeText {...props}>{map(children)}</NativeText>;
+}
+
+export function showLocalizedAlert(locale: MobileLocale, title: string, message?: string, buttons?: AlertButton[], options?: AlertOptions) {
+  Alert.alert(localize(locale, title), message ? localize(locale, message) : undefined, buttons?.map(button => ({ ...button, text: button.text ? localize(locale, button.text) : undefined })), options);
 }

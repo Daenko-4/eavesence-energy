@@ -20,7 +20,7 @@ export async function disableMonthlyReminder() {
   await Promise.all(requests.map((request) => Notifications.cancelScheduledNotificationAsync(request.identifier)));
 }
 
-export async function enableMonthlyReminder() {
+export async function enableMonthlyReminder(locale: "de" | "en" = "de") {
   const permission = await Notifications.requestPermissionsAsync();
   if (!permission.granted) return false;
 
@@ -29,7 +29,7 @@ export async function enableMonthlyReminder() {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: reminderTitle,
-      body: "Aktualisiere Verbrauch und Kosten deines Zuhauses.",
+      body: locale === "de" ? "Prüfe Einkommen, Fixkosten und Alltagsschätzung. Dein Monatscheck ist bereit." : "Review income, fixed costs and your everyday estimate. Your monthly check is ready.",
       data: { eavesenceMonthlyCheck: true },
     },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.MONTHLY, day: 1, hour: 9, minute: 0 },

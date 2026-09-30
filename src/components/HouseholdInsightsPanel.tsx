@@ -165,7 +165,7 @@ export default function HouseholdInsightsPanel({ locale, currency, costs, histor
       <div className="rounded-[1.45rem] border border-[#b8efcc] bg-[#eefbf3] p-5" data-monthly-forecast>
         <h2 className="text-lg font-extrabold">{text.title} · {monthLabel(insight.next.month, locale)}</h2>
         <p className="mt-1 text-[12px] leading-5 text-[#52605b]">{text.intro}</p>
-        <p className="mt-4 text-2xl font-extrabold text-[#17211f]">{moneyText(insight.next.total)}</p>
+        <p className="mt-4 text-2xl font-extrabold text-[#17211f]">{insight.complete ? moneyText(insight.next.total) : (locale === "de" ? "Vorschau unvollständig" : "Forecast incomplete")}</p>
         {insight.complete ? (
           <>
             <p className="mt-2 text-[13px] font-bold text-[#17211f]">{differenceText.replace("{amount}", moneyText(difference))}</p>
@@ -200,7 +200,7 @@ export default function HouseholdInsightsPanel({ locale, currency, costs, histor
       <div className="rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] p-5 lg:col-span-2" data-monthly-review>
         <h2 className="text-lg font-extrabold">{text.recapTitle}</h2>
         <p className="mt-1 text-[12px] leading-5 text-[#52605b]">{text.recapIntro}</p>
-        {costs.length > 0 && <p className="mt-3 text-[13px] font-semibold">{text.recapValues.replace("{previous}", monthLabel(insight.previous.month, locale)).replace("{before}", moneyText(insight.previous.total)).replace("{current}", monthLabel(thisMonth, locale)).replace("{after}", moneyText(insight.current.total))}</p>}
+        {costs.length > 0 && insight.complete && <p className="mt-3 text-[13px] font-semibold">{text.recapValues.replace("{previous}", monthLabel(insight.previous.month, locale)).replace("{before}", moneyText(insight.previous.total)).replace("{current}", monthLabel(thisMonth, locale)).replace("{after}", moneyText(insight.current.total))}</p>}
         {costs.length > 0 && <p className="mt-1 text-[12px] text-[#52605b]">{insight.current.undatedCount ? text.recapIncomplete.replace("{count}", String(insight.current.undatedCount)) : (plannedDifference > 0.01 ? text.recapUp : plannedDifference < -0.01 ? text.recapDown : text.recapSame).replace("{amount}", moneyText(Math.abs(plannedDifference)))}</p>}
         <div className="mt-3 border-t border-[#dfe5dd] pt-3">
           <h3 className="text-[12px] font-bold">{text.changesTitle}</h3>

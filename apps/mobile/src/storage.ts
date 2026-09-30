@@ -1,3 +1,4 @@
+import type { PlanningData } from "@eavesence/core/planning";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { SavingsAction } from "@eavesence/core/savingsPlan";
 
@@ -20,6 +21,7 @@ export type MobileProfile = {
   bufferMonthly?: number;
   goalMonthly?: number;
   savingsActions?: SavingsAction[];
+  planning?: PlanningData;
   createdAt: string;
 };
 
