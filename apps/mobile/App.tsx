@@ -31,6 +31,7 @@ import { createMobileBackup, readMobileBackup, type MobileBackup } from "./src/b
 import { pickBackup, shareBackup } from "./src/backupFiles";
 import { FormInput } from "./src/FormInput";
 import { SavingsActionsScreen } from "./src/SavingsActionsScreen";
+import { SavingsBudgetSummary } from "./src/SavingsBudgetSummary";
 import { LocaleContext, LocalizedText as Text, localize, type MobileLocale } from "./src/i18n";
 import { disableMonthlyReminder, enableMonthlyReminder, monthlyReminderIsActive } from "./src/reminders";
 import {
@@ -154,6 +155,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   const [variableBudget, setVariableBudget] = useState("");
   const [bufferBudget, setBufferBudget] = useState("0");
   const [savingsGoal, setSavingsGoal] = useState("0");
+  const [reserveOptionsOpen, setReserveOptionsOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [deviceSearch, setDeviceSearch] = useState("");
   const [editingDeviceId, setEditingDeviceId] = useState<string | null>(null);
@@ -823,14 +825,15 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
         {tab === "pro" && <View style={styles.formSurface}>
           <Text style={styles.eyebrow}>SPARPLAN · PRO-VORSCHAU</Text><Text style={styles.heroSmall}>Was kannst du einplanen?</Text>
-          <Text style={styles.financeNote}>Einkommen und feste Kosten kommen aus My Home. Ergänze nur einen groben Alltagsbetrag. Diese Vorschau ist während der Entwicklung kostenlos testbar.</Text>
-          <Field label="Alltagsausgaben pro Monat (optional)" value={variableBudget} onChangeText={setVariableBudget} keyboardType="decimal-pad" placeholder="z. B. Lebensmittel, Freizeit" />
-          <Field label="Sicherheitspuffer pro Monat" value={bufferBudget} onChangeText={setBufferBudget} keyboardType="decimal-pad" />
-          <Field label="Gewünschter Sparbetrag pro Monat" value={savingsGoal} onChangeText={setSavingsGoal} keyboardType="decimal-pad" />
+          <Text style={styles.financeNote}>{locale === "de" ? "Einkommen und Fixkosten sind schon übernommen. Schätze noch deine übrigen Alltagsausgaben – daraus berechnen wir, was dir im Monat bleibt." : "Income and fixed costs are already included. Estimate your other everyday spending to see what is left each month."}</Text>
+          <Field label={locale === "de" ? "Alltagsausgaben / Monat (geschätzt)" : "Everyday spending / month (estimate)"} value={variableBudget} onChangeText={setVariableBudget} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 500" : "e.g. 500"} />
+          <Text style={styles.financeNote}>{locale === "de" ? "Zum Beispiel Lebensmittel und Freizeit. Nur Ausgaben, die noch nicht in deinen Fixkosten stehen. Du kannst die Schätzung später ändern." : "For example groceries and leisure. Only spending not already in your fixed costs. You can change the estimate later."}</Text>
+          <Field label={locale === "de" ? "Davon möchtest du sparen / Monat (optional)" : "Amount to save / month (optional)"} value={savingsGoal} onChangeText={setSavingsGoal} keyboardType="decimal-pad" />
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: reserveOptionsOpen }} onPress={() => setReserveOptionsOpen(!reserveOptionsOpen)} style={styles.financePill}><Text style={styles.financePillText}>{locale === "de" ? "Erweiterte Optionen: freiwillige Reserve" : "More options: optional reserve"}</Text></Pressable>
+          {reserveOptionsOpen && <><Text style={styles.financeNote}>{locale === "de" ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</Text><Field label={locale === "de" ? "Freiwillige Reserve / Monat" : "Optional reserve / month"} value={bufferBudget} onChangeText={setBufferBudget} keyboardType="decimal-pad" /></>}
           <PrimaryButton label="Plan speichern" onPress={() => void saveBudget()} />
-          {savingsPlan && <><Text style={styles.financeHeading}>{savingsPlan.complete ? `${euro.format(savingsPlan.averageRoom)} ${locale === "de" ? "rechnerischer Spielraum" : "estimated room"}` : locale === "de" ? "Richtwert aus den bisher erfassten Daten" : "Estimate from the data entered so far"}</Text><Text style={styles.financeNote}>{locale === "de" ? "Feste Kosten im Monatsdurchschnitt" : "Average monthly fixed costs"}: {euro.format(savingsPlan.averageFixed)}. {savingsPlan.complete ? locale === "de" ? "Alltagsausgaben und Puffer sind berücksichtigt; tatsächliche Ausgaben können abweichen." : "Everyday spending and buffer are included; actual spending may differ." : locale === "de" ? `${profile?.variableMonthly == null ? "Alltagsausgaben fehlen. " : ""}${savingsPlan.undatedCount} Kosten ohne Zahlungstermin werden nur als Monatsdurchschnitt berücksichtigt.` : `${profile?.variableMonthly == null ? "Everyday spending is missing. " : ""}${savingsPlan.undatedCount} costs without payment dates use a monthly average.`}</Text>
-            <Text style={styles.financeHeading}>Die nächsten 12 Monate</Text>{savingsPlan.months.map((item) => <View key={item.month} style={styles.paymentRow}><Text style={styles.paymentName}>{monthLabel(item.month, locale)} · {euro.format(item.fixed)} {locale === "de" ? "feste Kosten" : "fixed costs"}</Text><Text style={styles.paymentAmount}>{euro.format(item.remaining)}</Text></View>)}
-            <Text style={styles.financeNote}>{locale === "de" ? `Rest nach festen Kosten, Alltag und Puffer; das Sparziel ist darin noch enthalten. Monate unter deinem Sparziel: ${savingsPlan.tightMonths.length}. Bei fehlenden Zahlungsterminen ist die Monatsverteilung nur geschätzt.` : `Left after fixed costs, everyday spending and buffer; the savings goal is not yet deducted. ${savingsPlan.tightMonths.length} months fall below your goal. Undated costs make the monthly distribution approximate.`}</Text>
+          {savingsPlan && <>
+            <SavingsBudgetSummary input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} currency={profile.currency ?? "EUR"} />
             <SavingsActionsScreen input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} actions={readSavingsActions(profile.savingsActions)} currency={profile.currency ?? "EUR"} onChange={saveSavingsActions} />
           </>}
           {isPro ? <Text style={styles.proActive}>Pro aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Text style={styles.financeNote}>Ein kostenpflichtiges Abo ist derzeit nicht verfügbar.</Text>}

@@ -1,4 +1,4 @@
-import { monthlyCost, type HouseholdCost } from "@eavesence/core/householdCosts";
+import { monthlyCost, type HouseholdCostFrequency } from "@eavesence/core/householdCosts";
 import { compareSavingsActions, createSavingsAction, savingsReviewCandidates, type SavingsAction, type SavingsPlanInput } from "@eavesence/core/savingsPlan";
 import { useState } from "react";
 import { Alert, Keyboard, Pressable, StyleSheet, View } from "react-native";
@@ -22,6 +22,7 @@ export function SavingsActionsScreen({ input, actions, currency, onChange }: {
   const [offset, setOffset] = useState(0);
   const money = (value: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(value);
   const selected = input.costs.find((cost) => cost.id === costId) ?? input.costs[0];
+  const cadence = (frequency: HouseholdCostFrequency) => (de ? { weekly: "pro Woche", monthly: "pro Monat", quarterly: "alle 3 Monate", "half-yearly": "alle 6 Monate", yearly: "pro Jahr" } : { weekly: "per week", monthly: "per month", quarterly: "every 3 months", "half-yearly": "every 6 months", yearly: "per year" })[frequency];
   const [year, number] = input.startMonth.split("-").map(Number);
   const effectiveMonth = new Date(Date.UTC(year, number - 1 + offset, 1)).toISOString().slice(0, 7);
   const monthLabel = (value: string) => new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}-01T00:00:00Z`));
@@ -46,19 +47,27 @@ export function SavingsActionsScreen({ input, actions, currency, onChange }: {
 
   return <View style={styles.container}>
     <Text style={styles.eyebrow}>{de ? "DEIN NÄCHSTER SCHRITT" : "YOUR NEXT STEP"}</Text>
-    <Text style={styles.heading}>{de ? "Was würde sich wirklich ändern?" : "What would actually change?"}</Text>
-    <Text style={styles.note}>{de ? "Wähle eine Ausgabe, einen Zielbetrag und den Monat, ab dem die Änderung gilt. Fristen erinnern dich; die Vertragslaufzeit bestimmst du selbst." : "Choose a cost, a target amount and when the change takes effect. Deadlines remind you; you decide the contract timing."}</Text>
-    {suggested && <Text style={styles.preview}>{de ? "Zuerst prüfen" : "Review first"}: {suggested.name} · {money(monthlyCost(suggested.amount, suggested.frequency) * 12)} {de ? "jährliche Kosten" : "annual cost"}{suggested.cancellationDeadline && suggested.cancellationDeadline >= today ? ` · ${de ? "Frist" : "Deadline"}: ${suggested.cancellationDeadline.split("-").reverse().join(".")}` : ""}. {de ? "Die mögliche Ersparnis legst du selbst fest." : "You choose a realistic target amount."}</Text>}
+    <Text style={styles.heading}>{de ? "Was wäre, wenn du weniger zahlst?" : "What if you paid less?"}</Text>
+    <Text style={styles.note}>{de ? "Teste eine günstigere Ausgabe oder eine Kündigung. Wir zeigen dir die mögliche Ersparnis. Deine eingetragenen Kosten werden dabei nicht geändert." : "Try a lower cost or a cancellation to see the possible saving. Your recorded costs stay the same."}</Text>
+    {suggested && <Text style={styles.note}>{de ? "Vorschlag zum Start" : "Suggested starting point"}: {suggested.name}.</Text>}
     {input.costs.length > 0 ? <>
-      <Text style={styles.label}>{de ? "Ausgabe" : "Cost"}</Text>
-      <View style={styles.options}>{input.costs.map((cost: HouseholdCost) => <Pressable key={cost.id} accessibilityRole="button" accessibilityState={{ selected: selected?.id === cost.id }} onPress={() => { setCostId(cost.id); setAmount(""); }} style={[styles.chip, selected?.id === cost.id && styles.chipActive]}><Text style={[styles.chipText, selected?.id === cost.id && styles.chipTextActive]}>{cost.name} · {money(monthlyCost(cost.amount, cost.frequency))}/{de ? "Mo." : "mo."}</Text></Pressable>)}</View>
-      <Text style={styles.label}>{de ? "Wirksam ab" : "Effective from"}</Text>
+      <Text style={styles.label}>{de ? "1. Welche Ausgabe?" : "1. Which cost?"}</Text>
+      <View style={styles.options}>{input.costs.map((cost) => <Pressable key={cost.id} accessibilityRole="button" accessibilityState={{ selected: selected?.id === cost.id }} onPress={() => { setCostId(cost.id); setAmount(""); }} style={[styles.chip, selected?.id === cost.id && styles.chipActive]}><Text style={[styles.chipText, selected?.id === cost.id && styles.chipTextActive]}>{cost.name} · {money(cost.amount)} {cadence(cost.frequency)}</Text></Pressable>)}</View>
+      <Text style={styles.label}>{de ? "2. Wie möchtest du sparen?" : "2. How would you save?"}</Text>
+      <View style={styles.options}>{(["reduce", "stop"] as const).map((value) => <Pressable key={value} accessibilityRole="button" accessibilityState={{ selected: mode === value }} onPress={() => setMode(value)} style={[styles.chip, mode === value && styles.chipActive]}><Text style={[styles.chipText, mode === value && styles.chipTextActive]}>{value === "reduce" ? de ? "Günstiger zahlen" : "Pay less" : de ? "Ausgabe beenden" : "End this cost"}</Text></Pressable>)}</View>
+      {mode === "reduce" && <FormInput label={de ? `Neuer Betrag ${selected ? cadence(selected.frequency) : ""}` : `New amount ${selected ? cadence(selected.frequency) : ""}`} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder={de ? "z. B. 25" : "e.g. 25"} />}
+      <Text style={styles.label}>{de ? "3. Ab welchem Monat zahlst du weniger?" : "3. From which month will you pay less?"}</Text>
       <View style={styles.monthRow}><Pressable accessibilityRole="button" accessibilityLabel={de ? "Vorheriger Monat" : "Previous month"} disabled={offset === 0} onPress={() => setOffset(offset - 1)} style={styles.monthButton}><Text style={styles.monthButtonText}>‹</Text></Pressable><Text style={styles.monthText}>{monthLabel(effectiveMonth)}</Text><Pressable accessibilityRole="button" accessibilityLabel={de ? "Nächster Monat" : "Next month"} disabled={offset === 11} onPress={() => setOffset(offset + 1)} style={styles.monthButton}><Text style={styles.monthButtonText}>›</Text></Pressable></View>
-      <View style={styles.options}>{(["reduce", "stop"] as const).map((value) => <Pressable key={value} accessibilityRole="button" accessibilityState={{ selected: mode === value }} onPress={() => setMode(value)} style={[styles.chip, mode === value && styles.chipActive]}><Text style={[styles.chipText, mode === value && styles.chipTextActive]}>{value === "reduce" ? de ? "Betrag senken" : "Reduce amount" : de ? "Beenden" : "End cost"}</Text></Pressable>)}</View>
-      {mode === "reduce" && <FormInput label={de ? `Neuer Betrag je Zahlung (bisher ${money(selected?.amount ?? 0)})` : `New amount per payment (currently ${money(selected?.amount ?? 0)})`} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder={de ? "z. B. 25" : "e.g. 25"} />}
+      <Text style={styles.note}>{de ? "Wähle den Monat, ab dem der neue Preis gilt oder die Kündigung wirksam ist." : "Choose the month when the new price or cancellation takes effect."}</Text>
       {selected?.cancellationDeadline && <Text style={styles.deadline}>{de ? "Eingetragene Kündigungsfrist" : "Saved cancellation deadline"}: {selected.cancellationDeadline.split("-").reverse().join(".")}{selected.cancellationDeadline < today ? de ? " · vorbei – Vertrag prüfen" : " · passed – check contract" : ""}</Text>}
-      {preview && <Text style={styles.preview}>{de ? "Vorschau" : "Preview"}: {money(preview.totalDifference)} {de ? "weniger Zahlungen in 12 Monaten" : "less in payments over 12 months"}. {de ? "Monate unter Sparziel" : "Months below target"}: {preview.baselineTightMonths} → {preview.tightMonths}.{preview.firstBenefitMonth ? ` ${de ? "Erste Wirkung" : "First effect"}: ${monthLabel(preview.firstBenefitMonth)}.` : ""}</Text>}
-      <Pressable accessibilityRole="button" onPress={save} style={styles.save}><Text style={styles.saveText}>{de ? "Szenario merken" : "Save scenario"}</Text></Pressable>
+      {preview && selected && <View style={styles.previewCard}>
+        <Text style={styles.note}>{de ? "Bisher" : "Before"}: {money(selected.amount)} {cadence(selected.frequency)}</Text>
+        <Text style={styles.note}>{de ? "Danach" : "After"}: {money(target)} {cadence(selected.frequency)}</Text>
+        <Text style={styles.note}>{de ? "Weniger Ausgaben in den nächsten 12 Monaten" : "Lower spending over the next 12 months"}</Text>
+        <Text style={styles.previewAmount}>{money(preview.totalDifference)}</Text>
+        <Text style={styles.note}>{preview.firstBenefitMonth ? `${de ? "Erste niedrigere Zahlung" : "First lower payment"}: ${monthLabel(preview.firstBenefitMonth)}.` : de ? "Im angezeigten Zeitraum wird noch keine Zahlung günstiger." : "No payment changes within the period shown."}</Text>
+      </View>}
+      <Pressable accessibilityRole="button" onPress={save} style={styles.save}><Text style={styles.saveText}>{de ? "Änderung vormerken" : "Save this plan"}</Text></Pressable>
     </> : <Text style={styles.note}>{de ? "Erfasse zuerst eine regelmäßige Ausgabe." : "Add a recurring cost first."}</Text>}
     {actions.length > 0 && <View style={styles.saved}><Text style={styles.heading}>{de ? "Deine Vorhaben" : "Your plans"}</Text>{actions.map((action) => {
       const cost = input.costs.find((item) => item.id === action.costId);
@@ -96,7 +105,8 @@ const styles = StyleSheet.create({
   monthButtonText: { fontSize: 23, color: "#087a45" },
   monthText: { fontSize: 14, fontWeight: "800", color: "#17211f" },
   deadline: { fontSize: 12, fontWeight: "700", color: "#92400e" },
-  preview: { borderRadius: 13, padding: 12, backgroundColor: "#eefbf3", fontSize: 13, lineHeight: 20, fontWeight: "700", color: "#17211f" },
+  previewCard: { borderRadius: 13, padding: 14, backgroundColor: "#eefbf3", gap: 8 },
+  previewAmount: { fontSize: 26, fontWeight: "900", color: "#17211f" },
   save: { minHeight: 44, borderRadius: 22, justifyContent: "center", alignItems: "center", backgroundColor: "#087a45" },
   saveText: { color: "#ffffff", fontSize: 13, fontWeight: "900" },
   saved: { borderTopWidth: 1, borderColor: "#dfe5dd", paddingTop: 14, gap: 9 },
