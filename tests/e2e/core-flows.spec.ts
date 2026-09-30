@@ -193,7 +193,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
     const due = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-01`;
     const stamp = now.toISOString();
     localStorage.setItem("eavesence-home-profile-v1", JSON.stringify({ version: 1, name: "Test home", currency: "EUR", electricityPrice: .3,
-      incomeAmount: 2000, incomeFrequency: "monthly", variableMonthly: 500, bufferMonthly: 100, goalMonthly: 200,
+      incomeAmount: 2000, incomeFrequency: "monthly", variableMonthly: null, bufferMonthly: 100, goalMonthly: 200,
       savingsGoalPercent: 10, rooms: [], deviceRooms: {}, createdAt: stamp, updatedAt: stamp, onboardingCompletedAt: stamp }));
     localStorage.setItem("eavesence-home-costs-v1", JSON.stringify([{ id: "internet", name: "Internet", category: "subscriptions", amount: 40,
       frequency: "monthly", nextDueDate: due, updatedAt: stamp }]));
@@ -201,10 +201,18 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   });
   await page.reload();
   const panel = page.locator("#savings-plan");
-  await expect(panel.getByRole("heading", { name: "What would actually change?" })).toBeVisible();
-  await panel.getByLabel(/New amount per payment/).fill("25");
-  await expect(panel).toContainText("€180.00 less in payments over the next 12 months");
-  await panel.getByRole("button", { name: "Save scenario" }).click();
+  await expect(panel).toContainText("Left after fixed costs and reserve");
+  await expect(panel).toContainText("It is not a savings amount yet");
+  await expect(panel.getByLabel("Optional reserve / month")).toHaveValue("100");
+  await panel.getByLabel("Everyday spending / month (estimate)").fill("500");
+  await panel.getByRole("button", { name: "Save plan", exact: true }).click();
+  await expect(panel).toContainText("Estimated amount left");
+  await expect(panel).toContainText("€1,360.00");
+  await expect(panel.getByRole("heading", { name: "What if you paid less?" })).toBeVisible();
+  await panel.getByLabel("New amount per month").fill("25");
+  await expect(panel).toContainText("Lower spending over the next 12 months");
+  await expect(panel).toContainText("€180.00");
+  await panel.getByRole("button", { name: "Save this plan" }).click();
   await page.reload();
   await expect(panel).toContainText("planned, not yet done");
   await page.evaluate(() => {
@@ -482,9 +490,10 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
 
   const savingsPlan = page.locator("#savings-plan");
   await expect(savingsPlan.getByRole("heading", { name: "Your 12-month savings plan" })).toBeVisible();
-  await savingsPlan.getByLabel("Everyday spending / month").fill("500");
-  await savingsPlan.getByLabel("Buffer / month").fill("100");
-  await savingsPlan.getByLabel("Savings goal / month").fill("200");
+  await savingsPlan.getByLabel("Everyday spending / month (estimate)").fill("500");
+  await savingsPlan.getByText("More options: optional reserve", { exact: true }).click();
+  await savingsPlan.getByLabel("Optional reserve / month").fill("100");
+  await savingsPlan.getByLabel("Amount to save / month (optional)").fill("200");
   await savingsPlan.getByRole("button", { name: "Save plan" }).click();
   await expect(savingsPlan).toContainText("€1,400.00");
   await expect(
