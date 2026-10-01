@@ -5,7 +5,7 @@ import type { PlanningData } from "@eavesence/core/planning";
 import type { SavingsPlanInput } from "@eavesence/core/savingsPlan";
 import { createSavingsPlan } from "@eavesence/core/savingsPlan";
 const field =
-  "home-planning-field min-h-11 min-w-0 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[#17211f]";
+  "home-planning-field h-11 min-w-0 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[#17211f]";
 export default function PaydayPanel({
   input,
   data,
@@ -115,8 +115,8 @@ export default function PaydayPanel({
             }}
             className="grid gap-3 sm:grid-cols-2"
           >
-            <label className="grid gap-1 text-[12px]">
-              {t("Heute verfügbares Guthaben", "Balance available today")}
+            <label className="row-span-3 grid grid-rows-subgrid gap-1 text-[12px] leading-4">
+              <span>{t("Heute verfügbares Guthaben", "Balance available today")}</span>
               <input
                 className={field}
                 inputMode="decimal"
@@ -135,8 +135,8 @@ export default function PaydayPanel({
                 )}
               </span>
             </label>
-            <label className="grid gap-1 text-[12px]">
-              {t("Nächstes Gehalt am", "Next payday")}
+            <label className="row-span-3 grid grid-rows-subgrid gap-1 text-[12px] leading-4">
+              <span>{t("Nächstes Gehalt am", "Next payday")}</span>
               <input
                 className={field}
                 type="date"
@@ -144,9 +144,10 @@ export default function PaydayPanel({
                 min={p.today}
                 onChange={(e) => p.setPayday(e.target.value)}
               />
+              <span aria-hidden="true" />
             </label>
-            <label className="grid gap-1 text-[12px]">
-              {t("Davon unberührt lassen", "Keep untouched from this balance")}
+            <label className="row-span-3 grid grid-rows-subgrid gap-1 text-[12px] leading-4">
+              <span>{t("Davon unberührt lassen", "Keep untouched from this balance")}</span>
               <input
                 className={field}
                 inputMode="decimal"
@@ -165,11 +166,11 @@ export default function PaydayPanel({
                 )}
               </span>
             </label>
-            <label className="grid gap-1 text-[12px]">
-              {t(
+            <label className="row-span-3 grid grid-rows-subgrid gap-1 text-[12px] leading-4">
+              <span>{t(
                 "Alltag bis zum Gehalt (optional)",
                 "Everyday spending until payday (optional)",
-              )}
+              )}</span>
               <input
                 className={field}
                 inputMode="decimal"
@@ -180,6 +181,7 @@ export default function PaydayPanel({
                   "Blank = use monthly estimate",
                 )}
               />
+              <span aria-hidden="true" />
             </label>
             <button
               type="submit"

@@ -104,7 +104,12 @@ export default function CostImportPanel({
             "Import costs instead of typing",
           )}
         </span>
-        <span aria-hidden="true">{open ? "−" : "+"}</span>
+        <span
+          aria-hidden="true"
+          className={`flex h-7 w-7 shrink-0 origin-center items-center justify-center text-lg font-light leading-none text-[var(--brand-green)] transition-transform duration-[180ms] motion-reduce:transition-none ${open ? "-rotate-45" : "rotate-0"}`}
+        >
+          +
+        </span>
       </button>
       {open && (
         <div className="mt-3 space-y-3">
