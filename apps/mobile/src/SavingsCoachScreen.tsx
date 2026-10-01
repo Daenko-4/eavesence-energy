@@ -92,6 +92,14 @@ export function SavingsCoachScreen({
           "Review → plan a change → confirm it happened. Up to three next tasks.",
         )}
       </Text>
+      {p.outdated.length > 0 && (
+        <Text style={styles.error}>
+          {t(
+            "Kosten erneut geändert. Betroffene Änderungen sind bis zur Prüfung nicht im Ersparniswert enthalten.",
+            "Costs changed again. Affected changes are excluded from the savings total until reviewed.",
+          )}
+        </Text>
+      )}
       {actions.some((a) => a.status === "confirmed") && (
         <View style={styles.dark}>
           <Text style={styles.light}>
@@ -198,13 +206,31 @@ export function SavingsCoachScreen({
           <Text style={styles.note}>
             {money(a.originalAmount)} → {money(a.newAmount)} · {t("ab", "from")}{" "}
             {a.effectiveMonth} ·{" "}
-            {a.status === "confirmed"
-              ? t("Bestätigt, Kosten aktualisiert", "Confirmed, costs updated")
-              : t(
-                  "Vorgemerkt, noch keine Ersparnis",
-                  "Planned, no confirmed saving yet",
-                )}
+            {p.outdated.includes(a)
+              ? t(
+                  "Angaben geändert – bitte prüfen",
+                  "Entries changed — review needed",
+                )
+              : a.status === "confirmed"
+                ? t(
+                    "Bestätigt, Kosten aktualisiert",
+                    "Confirmed, costs updated",
+                  )
+                : t(
+                    "Vorgemerkt, noch keine Ersparnis",
+                    "Planned, no confirmed saving yet",
+                  )}
           </Text>
+          {p.outdated.includes(a) &&
+            button(t("Kosten prüfen", "Review cost"), () => {
+              const cost = input.costs.find((c) => c.id === a.costId);
+              if (cost) onReview(cost);
+            })}
+          {a.status === "planned" &&
+            button(
+              t("Vorhaben verwerfen", "Discard plan"),
+              () => void p.discard(a),
+            )}
           {a.status === "planned" &&
             a.effectiveMonth <= p.today.slice(0, 7) &&
             button(

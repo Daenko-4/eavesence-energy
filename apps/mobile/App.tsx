@@ -452,6 +452,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       setTab("home");
       scrollRef.current?.scrollTo({ y: energySectionY.current, animated: true });
     } else {
+      setCostReviewId(undefined);
       setCostStartAction("none");
       setSelectedCostTileId(tile.id);
       setTab("costs");
@@ -470,6 +471,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   }
 
   function startWith(action: "income" | "cost") {
+    setCostReviewId(undefined);
     setCostStartAction(action);
     setSelectedCostTileId("default-costs");
     setTab("costs");

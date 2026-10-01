@@ -68,6 +68,14 @@ export default function SavingsCoach({
           "Review → plan a change → confirm it happened. Up to three next tasks. You decide what makes sense.",
         )}
       </p>
+      {p.outdated.length > 0 && (
+        <p role="status" className="mt-3 text-[12px] text-amber-800">
+          {t(
+            "Kosten zu einer bestätigten Änderung wurden erneut geändert. Diese Änderung ist bis zur Prüfung nicht im Ersparniswert enthalten.",
+            "A cost linked to a confirmed change has changed again. That change is excluded from the savings total until reviewed.",
+          )}
+        </p>
+      )}
       {actions.some((a) => a.status === "confirmed") && (
         <div className="mt-3 rounded-xl bg-[#24272c] p-3 text-white">
           <p className="text-[12px] text-[#d1d7d4]">
@@ -222,16 +230,43 @@ export default function SavingsCoach({
               <p className="mt-1">
                 {money(a.originalAmount)} → {money(a.newAmount)} ·{" "}
                 {t("ab", "from")} {a.effectiveMonth} ·{" "}
-                {a.status === "confirmed"
+                {p.outdated.includes(a)
                   ? t(
-                      "Bestätigt, Kosten aktualisiert",
-                      "Confirmed, costs updated",
+                      "Angaben geändert – bitte prüfen",
+                      "Entries changed — review needed",
                     )
-                  : t(
-                      "Vorgemerkt, noch keine Ersparnis",
-                      "Planned, no confirmed saving yet",
-                    )}
+                  : a.status === "confirmed"
+                    ? t(
+                        "Bestätigt, Kosten aktualisiert",
+                        "Confirmed, costs updated",
+                      )
+                    : t(
+                        "Vorgemerkt, noch keine Ersparnis",
+                        "Planned, no confirmed saving yet",
+                      )}
               </p>
+              {p.outdated.includes(a) && (
+                <button
+                  type="button"
+                  className={`${button} mt-2`}
+                  onClick={() => {
+                    const cost = input.costs.find((c) => c.id === a.costId);
+                    if (cost) onReview(cost);
+                  }}
+                >
+                  {t("Kosten prüfen", "Review cost")}
+                </button>
+              )}
+              {a.status === "planned" && (
+                <button
+                  type="button"
+                  className={`${button} mt-2 mr-2`}
+                  disabled={p.busy}
+                  onClick={() => void p.discard(a)}
+                >
+                  {t("Vorhaben verwerfen", "Discard plan")}
+                </button>
+              )}
               {a.status === "planned" &&
                 a.effectiveMonth <= p.today.slice(0, 7) && (
                   <button

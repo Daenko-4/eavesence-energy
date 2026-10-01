@@ -1579,3 +1579,14 @@ test('PDF text extraction proposes the invoice without uploading it',async({page
  await expect(panel.getByLabel('Amount',{exact:true})).toHaveValue('39.90',{timeout:20000});
  await expect(panel.getByLabel('Frequency — confirm')).toHaveValue('monthly');
 });
+
+test('native document reader waits for app context and returns reviewed costs through its bridge',async({page})=>{
+ await page.addInitScript(()=>{
+  const bridgeWindow=window as unknown as Window&{ReactNativeWebView:{postMessage:(value:string)=>void};importResult?:unknown};
+  bridgeWindow.ReactNativeWebView={postMessage:(value:string)=>{const message=JSON.parse(value);if(message.type==='ready')window.dispatchEvent(new CustomEvent('eavesence-import-context',{detail:{costs:[],currency:'EUR',locale:'de'}}));if(message.type==='costs')bridgeWindow.importResult=message.costs;}};
+ });
+ await page.goto('/import');
+ await page.getByRole('button',{name:'Kosten übernehmen statt abtippen'}).click();await page.getByText('Text einfügen / CSV-Beispiel',{exact:true}).click();await page.getByLabel('Rechnungstext',{exact:true}).fill('Internet\nGesamtbetrag 39,90 EUR\nmonatlich');await page.getByRole('button',{name:'Vorschlag erstellen'}).click();await page.getByRole('button',{name:'Geprüfte Kosten übernehmen'}).click();
+ const result=await page.evaluate(()=>(window as Window&{importResult?:unknown}).importResult);expect(result).toEqual([expect.objectContaining({name:'Internet',amount:39.9,frequency:'monthly'})]);
+ expect(await page.evaluate(()=>localStorage.getItem('eavesence-home-costs-v1'))).toBeNull();
+});

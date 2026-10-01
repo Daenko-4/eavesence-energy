@@ -36,7 +36,21 @@ export function useSavingsCoach(
         ),
     )
     .slice(0, 3);
-  const totals = savingsToDate(actions, today);
+  const outdated = actions.filter(
+    (a) =>
+      a.status === "confirmed" &&
+      !input.costs.some(
+        (c) =>
+          c.id === a.costId &&
+          c.amount === a.newAmount &&
+          c.frequency === a.frequency,
+      ) &&
+      !(a.newAmount === 0 && !input.costs.some((c) => c.id === a.costId)),
+  );
+  const totals = savingsToDate(
+    actions.filter((a) => !outdated.includes(a)),
+    today,
+  );
   async function run(work: () => void | Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -96,6 +110,7 @@ export function useSavingsCoach(
   return {
     tasks,
     totals,
+    outdated,
     selected,
     choose,
     amount,
@@ -109,5 +124,7 @@ export function useSavingsCoach(
     today,
     cancel: () => setSelected(null),
     confirm: (a: SavingsAction) => run(() => onConfirm(a)),
+    discard: (a: SavingsAction) =>
+      run(() => onActions(actions.filter((item) => item.costId !== a.costId))),
   };
 }

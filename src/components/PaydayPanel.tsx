@@ -120,10 +120,15 @@ export default function PaydayPanel({
               <input
                 className={field}
                 inputMode="decimal"
+                aria-label={t(
+                  "Heute verfügbares Guthaben",
+                  "Balance available today",
+                )}
+                aria-describedby="payday-balance-help"
                 value={p.balance}
                 onChange={(e) => p.setBalance(e.target.value)}
               />
-              <span className="text-[#52605b]">
+              <span id="payday-balance-help" className="text-[#52605b]">
                 {t(
                   "Geld auf den Konten, aus denen du die nächsten Ausgaben bezahlst.",
                   "Money in the accounts used to pay your upcoming expenses.",
@@ -145,10 +150,15 @@ export default function PaydayPanel({
               <input
                 className={field}
                 inputMode="decimal"
+                aria-label={t(
+                  "Davon unberührt lassen",
+                  "Keep untouched from this balance",
+                )}
+                aria-describedby="payday-protected-help"
                 value={p.protectedAmount}
                 onChange={(e) => p.setProtected(e.target.value)}
               />
-              <span className="text-[#52605b]">
+              <span id="payday-protected-help" className="text-[#52605b]">
                 {t(
                   "Zum Beispiel Notgroschen oder Sparziele. Geld für unten aufgeführte Rechnungen hier nicht erneut eintragen.",
                   "For example emergency savings or goals. Do not include money for bills listed below again.",
