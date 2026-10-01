@@ -1757,7 +1757,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
           {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
 
-          <PaydayPanel key={profile.createdAt} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+          <PaydayPanel key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
           <CostImportPanel locale={locale} currency={profile.currency} costs={householdCosts} onSave={(next)=>{const tile=primaryCostTileId??activateTileKind('costs').id;persistHouseholdCosts(next.map(c=>({...c,tileId:c.tileId??tile})));}}/>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-label={text.financeTitle}>
             <h2 className={homeSectionTitleClass}>{text.financeTitle}</h2>
@@ -1976,7 +1976,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           />
           </details>
           <SavingsPlanPanel
-            key={profile.createdAt}
+            key={`savings-plan-${profile.createdAt}`}
             locale={locale}
             currency={profile.currency}
             incomeMonthly={monthlyIncome}

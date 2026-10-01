@@ -1556,7 +1556,7 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
  const panel=page.getByRole('region',{name:'Your available budget',exact:true});await panel.getByRole('button',{name:'Plan until next payday'}).click();
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
  await panel.getByLabel('Balance available today',{exact:true}).fill('1000');await panel.getByLabel('Next payday',{exact:true}).fill(day);await panel.getByLabel('Keep untouched from this balance',{exact:true}).fill('200');await panel.getByLabel('Everyday spending until payday (optional)',{exact:true}).fill('150');await panel.getByRole('button',{name:'Confirm balance & calculate'}).click();
- await expect(panel).toContainText('€650.00');await expect(panel).toContainText('UNTIL YOUR NEXT PAYDAY');
+ await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel).toContainText('UNTIL YOUR NEXT PAYDAY');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.reload();await expect(panel).toContainText('€650.00');
 });

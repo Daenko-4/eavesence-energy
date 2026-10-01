@@ -731,7 +731,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
               </View>
             </View>
           </View>}
-          <PaydayScreen key={profile.createdAt} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??'EUR'}/>
+          <PaydayScreen key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??'EUR'}/>
           {(!hasIncome||!hasCosts)&&<View style={styles.startSteps}>{!hasIncome&&<Pressable accessibilityRole="button" onPress={()=>startWith('income')} style={styles.startStep}><Text style={styles.startStepText}>{locale==='de'?'1 · Nettoeinkommen eintragen':'1 · Add net income'}</Text></Pressable>}{!hasCosts&&<Pressable accessibilityRole="button" onPress={()=>startWith('cost')} style={styles.startStep}><Text style={styles.startStepText}>{locale==='de'?'2 · Erste Kosten hinzufügen':'2 · Add first costs'}</Text></Pressable>}</View>}
           <CostImportScreen costs={costs} currency={profile.currency??'EUR'} locale={locale} onSave={importCosts}/>
 
