@@ -1633,3 +1633,48 @@ for (const width of [320, 1365]) test(`home actions reveal their editor and keep
   expect(style.border).toBe('1px');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+
+for (const width of [320, 1365]) test(`new tile creation dismisses only empty drafts and keeps cost areas separate at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 });
+  await page.goto('/home');
+  await page.getByRole('button', { name: 'Create my home' }).click();
+  const newTile = page.getByRole('button', { name: /New tile/ });
+  const form = page.locator('[data-home-tile-form]');
+  await newTile.click();
+  await expect(newTile).toHaveAttribute('aria-expanded', 'true');
+  await expect(form.getByLabel('Tile name')).toBeFocused();
+  expect(await newTile.evaluate(el => getComputedStyle(el).borderTopColor)).toBe('rgb(114, 220, 163)');
+  await page.keyboard.press('Escape');
+  await expect(form).toHaveCount(0);
+  await expect(newTile).toBeFocused();
+  await newTile.click();
+  await form.getByLabel('Tile name').fill('   ');
+  await page.getByRole('heading', { name: 'Sections in your home', exact: true }).click();
+  await expect(form).toHaveCount(0);
+  await newTile.click();
+  await form.getByLabel('Tile name').fill('Insurance');
+  await page.keyboard.press('Escape');
+  await expect(form.getByLabel('Tile name')).toHaveValue('Insurance');
+  await page.getByRole('heading', { name: 'Sections in your home', exact: true }).click();
+  await expect(form.getByLabel('Tile name')).toHaveValue('Insurance');
+  await newTile.click();
+  await expect(form.getByLabel('Tile name')).toHaveValue('Insurance');
+  await form.getByRole('button', { name: 'Create tile', exact: true }).click();
+  await expect(form).toHaveCount(0);
+  await expect(newTile).toHaveAttribute('aria-expanded', 'false');
+  const customTile = page.locator('[data-home-tiles] article').filter({ hasText: 'Insurance' });
+  await expect(customTile).not.toContainText('Household costs');
+  const costs = page.locator('#household-costs');
+  await costs.getByRole('button', { name: 'Rent or mortgage payment', exact: true }).click();
+  await costs.getByLabel('Name', { exact: true }).fill('Private insurance');
+  await costs.getByLabel('Amount', { exact: true }).fill('29');
+  await costs.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.locator('[data-home-tiles] article').filter({ hasText: 'Household costs' }).getByRole('button').first().click();
+  await expect(costs.getByRole('heading', { name: 'Household costs', exact: true })).toBeVisible();
+  await expect(costs).not.toContainText('Private insurance');
+  await page.reload();
+  await customTile.getByRole('button').first().click();
+  await expect(costs).toContainText('Private insurance');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
