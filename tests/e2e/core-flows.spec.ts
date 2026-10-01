@@ -1257,6 +1257,8 @@ test.describe("mobile", () => {
     await expect(
       page.getByRole("button", { name: "Reserve a beta place" }),
     ).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "All household devices" })).toBeHidden();
+    await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
     await expect(page.getByRole("heading", { name: "All household devices" })).toBeVisible();
     await expect(page.getByText("Calculate your first device above and save it here."))
       .toBeVisible();
