@@ -580,7 +580,7 @@ export default function DeviceDetailPage({
                 {text.yourValues}
               </p>
 
-              <h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] sm:text-3xl">
+              <h2 className="mt-2 site-section-title tracking-[-0.03em]">
                 {localizedDevice.name}{" "}
                 {
                   text.calculatorTitleAfter
@@ -610,7 +610,7 @@ export default function DeviceDetailPage({
                   <span className="block text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
                     {text.guide}
                   </span>
-                  <span className="mt-2 block max-w-3xl text-xl font-bold tracking-[-0.03em] text-[#17211f] sm:text-2xl">
+                  <span className="mt-2 block max-w-3xl site-section-title tracking-[-0.03em] text-[#17211f]">
                     {seoContent.introTitle}
                   </span>
                 </span>
@@ -635,7 +635,7 @@ export default function DeviceDetailPage({
               </div>
 
               <div className="mt-8">
-                <h3 className="text-2xl font-bold tracking-tight">
+                <h3 className="site-section-title tracking-tight">
                   {seoContent.scenariosTitle}
                 </h3>
 
@@ -694,7 +694,7 @@ export default function DeviceDetailPage({
 
               <div className="mt-8 grid gap-4 lg:grid-cols-2">
                 <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-5 sm:p-6">
-                  <h3 className="text-2xl font-bold tracking-tight">
+                  <h3 className="site-section-title tracking-tight">
                     {seoContent.valuesTitle}
                   </h3>
 
@@ -705,7 +705,7 @@ export default function DeviceDetailPage({
 
                 {seoContent.comparison && (
                   <div className="rounded-xl border border-[#cce8d7] bg-[#eaf8ef] p-5 sm:p-6">
-                    <h3 className="text-2xl font-bold tracking-tight text-[var(--brand-green-dark)]">
+                    <h3 className="site-section-title tracking-tight text-[var(--brand-green-dark)]">
                       {
                         seoContent.comparison
                           .title
@@ -736,7 +736,7 @@ export default function DeviceDetailPage({
               </div>
 
               <div className="mt-8">
-                <h3 className="text-2xl font-bold tracking-tight">
+                <h3 className="site-section-title tracking-tight">
                   {seoContent.faqTitle}
                 </h3>
 
@@ -800,7 +800,7 @@ export default function DeviceDetailPage({
                     {localizedCategory}
                   </p>
 
-                  <h2 className="mt-2 text-2xl font-bold tracking-[-0.025em]">
+                  <h2 className="mt-2 site-section-title tracking-[-0.025em]">
                     {
                       text.relatedDevices
                     }
@@ -844,7 +844,7 @@ export default function DeviceDetailPage({
                           )}
                         </p>
 
-                        <h3 className="mt-2 text-xl font-bold">
+                        <h3 className="mt-2 site-card-title">
                           {
                             localizedRelated.name
                           }

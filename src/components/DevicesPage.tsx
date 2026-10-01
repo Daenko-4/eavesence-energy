@@ -425,7 +425,7 @@ export default function DevicesPage({
                       </span>
 
                       <div>
-                        <h2 className="text-xl font-bold tracking-[-0.025em] text-[#17211f] sm:text-2xl">
+                        <h2 className="site-section-title tracking-[-0.025em] text-[#17211f]">
                           {getLocalizedCategory(
                             category,
                             locale
@@ -487,7 +487,7 @@ export default function DevicesPage({
                                 <CategoryIcon category={device.category} />
                               </div>
                               <div className="min-w-0">
-                                <h3 className="truncate text-[15px] font-bold text-[#17211f] transition group-hover:text-[var(--brand-green)]">{localizedDevice.name}</h3>
+                                <h3 className="truncate site-card-title text-[#17211f] transition group-hover:text-[var(--brand-green)]">{localizedDevice.name}</h3>
                                 <p className="mt-1 text-xs text-[#74807b]">{typicalValue}</p>
                               </div>
                             </Link>

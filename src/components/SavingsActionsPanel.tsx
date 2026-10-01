@@ -48,7 +48,7 @@ export default function SavingsActionsPanel({ locale, currency, input, actions, 
 
   return <div className={embedded ? "mt-4 border-t border-[#dfe5dd] pt-4" : "mt-5 rounded-xl border border-[#cddbd0] bg-white p-4"}>
     {!embedded && <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">{de ? "DEIN NÄCHSTER SCHRITT" : "YOUR NEXT STEP"}</p>}
-    <h3 className="mt-1 text-[15px] font-bold">{de ? "Was wäre, wenn du weniger zahlst?" : "What if you paid less?"}</h3>
+    <h3 className="mt-1 site-card-title">{de ? "Was wäre, wenn du weniger zahlst?" : "What if you paid less?"}</h3>
     <p className="mt-1 text-[12px] leading-5 text-[#52605b]">{de ? "Teste eine günstigere Ausgabe oder eine Kündigung. Wir zeigen dir die mögliche Ersparnis. Deine eingetragenen Kosten werden dabei nicht geändert." : "Try a lower cost or a cancellation to see the possible saving. Your recorded costs stay the same."}</p>
     {suggested && <p className="mt-3 text-[12px] text-[#52605b]">{de ? "Vorschlag zum Start" : "Suggested starting point"}: <strong>{suggested.name}</strong>.</p>}
     {input.costs.length > 0 ? <>
@@ -62,7 +62,7 @@ export default function SavingsActionsPanel({ locale, currency, input, actions, 
       {selected?.cancellationDeadline && <p className="mt-3 text-[12px] font-semibold text-amber-800">{de ? "Eingetragene Kündigungsfrist" : "Saved cancellation deadline"}: {selected.cancellationDeadline.split("-").reverse().join(".")}{selected.cancellationDeadline < today ? de ? " · bereits vergangen – Vertrag prüfen" : " · passed – check the contract" : ""}</p>}
       {preview && selected && <div className="mt-3 rounded-xl bg-[#eefbf3] p-4 text-[#17211f]">
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-[13px]"><p>{de ? "Bisher" : "Before"}: <strong>{money(selected.amount)}</strong> {cadence(selected.frequency)}</p><p>{de ? "Danach" : "After"}: <strong>{money(target)}</strong> {cadence(selected.frequency)}</p></div>
-        <p className="mt-3 text-[12px]">{de ? "Weniger Ausgaben in den nächsten 12 Monaten" : "Lower spending over the next 12 months"}</p><p className="mt-1 text-2xl font-extrabold">{money(preview.totalDifference)}</p>
+        <p className="mt-3 text-[12px]">{de ? "Weniger Ausgaben in den nächsten 12 Monaten" : "Lower spending over the next 12 months"}</p><p className="mt-1 text-xl font-extrabold">{money(preview.totalDifference)}</p>
         <p className="mt-2 text-[12px]">{preview.firstBenefitMonth ? `${de ? "Erste niedrigere Zahlung" : "First lower payment"}: ${month(preview.firstBenefitMonth)}.` : de ? "Im angezeigten Zeitraum wird noch keine Zahlung günstiger." : "No payment changes within the period shown."}</p>
       </div>}
       <button type="button" onClick={save} className="eavesence-pill-button home-primary-action mt-3">{de ? "Änderung vormerken" : "Save this plan"}</button>

@@ -598,7 +598,7 @@ export default function HomePage({
                       <div className="divide-y divide-slate-200">
                         {group.items.map((faq) => (
                           <details key={faq.question} className="group">
-                            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-semibold text-[#07111f] transition hover:text-[var(--brand-green)] [&::-webkit-details-marker]:hidden">
+                            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 site-card-title text-[#07111f] transition hover:text-[var(--brand-green)] [&::-webkit-details-marker]:hidden">
                               {faq.question}
                               <span aria-hidden="true" className="inline-block origin-center rotate-0 text-lg font-light text-slate-500 transition-[color,transform] duration-[180ms] group-open:-rotate-45 group-open:text-[var(--brand-green)]">+</span>
                             </summary>
