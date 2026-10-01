@@ -1523,7 +1523,13 @@ for (const width of [320, 390, 1365]) {
 test('invoice and bank import require review, persist costs and explicitly update duplicates',async({page})=>{
  await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
  const panel=page.getByRole('region',{name:'Import costs',exact:true});
- await panel.getByRole('button',{name:'Import costs instead of typing'}).click();
+ const toggle=panel.getByRole('button',{name:'Import costs instead of typing'}),icon=toggle.locator('[aria-hidden="true"]');
+ await expect(toggle).toHaveAttribute('aria-expanded','false');
+ await toggle.click();
+ await expect.poll(()=>icon.evaluate(el=>getComputedStyle(el).rotate)).toBe('-45deg');
+ await toggle.click();
+ await expect.poll(()=>icon.evaluate(el=>getComputedStyle(el).rotate)).toBe('0deg');
+ await toggle.click();
  await panel.getByText('Paste text / CSV example',{exact:true}).click();
  await panel.getByLabel('Invoice text',{exact:true}).fill('Internet Provider\nTotal due: 39.90 EUR\nMonthly\nPayment due: 2026-11-05');
  await panel.getByRole('button',{name:'Create suggestion'}).click();
@@ -1554,6 +1560,10 @@ test('photo recognition runs locally and proposes the labelled invoice total',as
 for(const width of [320,1365])test(`payday overview stays readable and recalculates at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
  const panel=page.getByRole('region',{name:'Your available budget',exact:true});await panel.getByRole('button',{name:'Plan until next payday'}).click();
+ const fields=await panel.locator('form input').evaluateAll(inputs=>inputs.map(input=>{const box=input.getBoundingClientRect();return {top:box.top,height:box.height,fontSize:getComputedStyle(input).fontSize};}));
+ expect(fields).toHaveLength(4);
+ for(const field of fields){expect(field.height).toBe(44);expect(field.fontSize).toBe(width<768?'16px':'13px');}
+ if(width>=640){expect(Math.abs(fields[0].top-fields[1].top)).toBeLessThan(1);expect(Math.abs(fields[2].top-fields[3].top)).toBeLessThan(1);}
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
  await panel.getByLabel('Balance available today',{exact:true}).fill('1000');await panel.getByLabel('Next payday',{exact:true}).fill(day);await panel.getByLabel('Keep untouched from this balance',{exact:true}).fill('200');await panel.getByLabel('Everyday spending until payday (optional)',{exact:true}).fill('150');await panel.getByRole('button',{name:'Confirm balance & calculate'}).click();
  await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel).toContainText('UNTIL YOUR NEXT PAYDAY');
