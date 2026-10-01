@@ -1644,7 +1644,7 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   await newTile.click();
   await expect(newTile).toHaveAttribute('aria-expanded', 'true');
   await expect(form.getByLabel('Tile name')).toBeFocused();
-  expect(await newTile.evaluate(el => getComputedStyle(el).borderTopColor)).toBe('rgb(114, 220, 163)');
+  await expect.poll(() => newTile.evaluate(el => getComputedStyle(el).borderTopColor)).toBe('rgb(114, 220, 163)');
   await page.keyboard.press('Escape');
   await expect(form).toHaveCount(0);
   await expect(newTile).toBeFocused();
