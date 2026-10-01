@@ -42,7 +42,7 @@ test('planning readers discard invalid and duplicate entries',()=>{
  assert.equal(readPlanningData({reserves:[{costId:'b',saved:Infinity}]}).reserves.length,0);
 });
 test('planning data survives web to mobile conversion and mobile backup restore',()=>{
- const planning=readPlanningData({goals:[{id:'g',name:'Holiday',target:1000,saved:50,targetMonth:'2027-01'}],reserves:[{costId:'bill',saved:200}]});
+ const planning=readPlanningData({cash:{balance:1000,asOf:'2026-10-01',payday:'2026-10-25',protected:200,everydayRemaining:150},reviews:[{costId:'bill',updatedAt:'2026-10-01T00:00:00Z',until:'2026-10-31'}],goals:[{id:'g',name:'Holiday',target:1000,saved:50,targetMonth:'2027-01'}],reserves:[{costId:'bill',saved:200}]});
  const converted=convertWebBackup(JSON.stringify({version:1,exportedAt:'2026-09-30T00:00:00Z',profile:{version:1,rooms:[],deviceRooms:{},updatedAt:'2026-09-30T00:00:00Z',onboardingCompletedAt:'2026-09-30T00:00:00Z',name:'Home',electricityPrice:.3,savingsGoalPercent:10,currency:'EUR',createdAt:'2026-09-30T00:00:00Z',planning},devices:[],history:[],costs:[],tiles:[]}));
  assert.ok(converted);assert.deepEqual(converted.profile.planning,planning);
  const backup=createMobileBackup({...converted});assert.deepEqual(readMobileBackup(JSON.stringify(backup)).profile.planning,planning);

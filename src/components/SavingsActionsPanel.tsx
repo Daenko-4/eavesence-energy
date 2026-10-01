@@ -5,13 +5,14 @@ import { compareSavingsActions, createSavingsAction, savingsReviewCandidates, ty
 import { monthlyCost, type HouseholdCostFrequency } from "@eavesence/core/householdCosts";
 import type { Locale } from "@/i18n/config";
 
-export default function SavingsActionsPanel({ locale, currency, input, actions, onChange, embedded = false }: {
+export default function SavingsActionsPanel({ locale, currency, input, actions, onChange, onConfirm, embedded = false }: {
   embedded?: boolean;
   locale: Locale;
   currency: string;
   input: SavingsPlanInput;
   actions: SavingsAction[];
   onChange: (actions: SavingsAction[]) => void;
+  onConfirm: (action: SavingsAction) => void;
 }) {
   const de = locale === "de";
   const now = new Date();
@@ -78,7 +79,7 @@ export default function SavingsActionsPanel({ locale, currency, input, actions, 
       return <div key={action.costId} className="rounded-xl bg-[#f4f6f2] p-3 text-[12px]">
         <p className="font-bold text-[#17211f]">{cost?.name ?? action.name} · {action.newAmount === 0 ? de ? "beenden" : "end" : `${money(action.originalAmount)} → ${money(action.newAmount)}`} · {month(action.effectiveMonth)}</p>
         <p className="mt-1 text-[#52605b]">{changed ? de ? "Ausgabe wurde geändert. Bitte Szenario prüfen oder entfernen." : "Cost changed. Review or remove this scenario." : `${applied ? de ? "Änderung bereits in deinen Kosten erfasst" : "Change already reflected in your costs" : `${de ? "Zusätzliche Wirkung in 12 Monaten" : "Additional impact over 12 months"}: ${money(impact?.totalDifference ?? 0)}`} · ${action.status === "confirmed" ? de ? "von dir als umgesetzt bestätigt" : "marked done by you" : action.effectiveMonth <= currentMonth ? de ? "Check-in: Hat sich der Betrag wirklich geändert?" : "Check-in: Did the amount actually change?" : de ? "geplant, noch nicht umgesetzt" : "planned, not yet done"}`}{soon ? ` · ${de ? "Frist bald" : "Deadline soon"}: ${due.split("-").reverse().join(".")}` : ""}</p>
-        <div className="mt-2 flex flex-wrap gap-3">{!changed && action.status === "planned" && action.effectiveMonth <= currentMonth && <button type="button" className="font-bold text-[#087a45]" onClick={() => onChange(actions.map((item) => item.costId === action.costId ? { ...item, status: "confirmed", confirmedAt: new Date().toISOString() } : item))}>{de ? "Als umgesetzt markieren" : "Mark as done"}</button>}{action.status === "confirmed" && <button type="button" className="font-bold text-[#087a45]" onClick={() => onChange(actions.map((item) => item.costId === action.costId ? { ...item, status: "planned", confirmedAt: undefined } : item))}>{de ? "Status korrigieren" : "Correct status"}</button>}<button type="button" className="font-semibold text-[#52605b]" onClick={() => onChange(actions.filter((item) => item.costId !== action.costId))}>{de ? "Entfernen" : "Remove"}</button></div>
+        <div className="mt-2 flex flex-wrap gap-3">{!changed && action.status === "planned" && action.effectiveMonth <= currentMonth && <button type="button" className="font-bold text-[#087a45]" onClick={() => { if(window.confirm(de ? "Umsetzung bestätigen und laufende Kosten aktualisieren?" : "Confirm this happened and update recurring costs?")) { try { onConfirm(action); } catch { setError(de ? "Kosten inzwischen geändert. Bitte Vorhaben prüfen." : "Cost changed. Review the plan."); } } }}>{de ? "Als umgesetzt markieren" : "Mark as done"}</button>}{action.status === "confirmed" && <button type="button" className="font-bold text-[#087a45]" onClick={() => onChange(actions.map((item) => item.costId === action.costId ? { ...item, status: "planned", confirmedAt: undefined } : item))}>{de ? "Status korrigieren" : "Correct status"}</button>}<button type="button" className="font-semibold text-[#52605b]" onClick={() => onChange(actions.filter((item) => item.costId !== action.costId))}>{de ? "Entfernen" : "Remove"}</button></div>
       </div>;
     })}</div><p className="mt-3 text-[12px] text-[#52605b]">{de ? `Mögliche Wirkung aller Vorhaben in 12 Monaten: ${money(combined?.totalDifference ?? 0)}. Von dir bestätigte Änderungen, aufs Jahr gerechnet: ${money(confirmedAnnual)}. Keine Prüfung anhand von Kontobelegen.` : `Possible impact of all plans over 12 months: ${money(combined?.totalDifference ?? 0)}. Changes you marked done, annualized: ${money(confirmedAnnual)}. No bank transaction verification.`}</p></div>}
   </div>;

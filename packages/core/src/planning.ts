@@ -1,16 +1,19 @@
+import { readCashWindow, type CashWindow } from './homeValue.ts';
 import { createSavingsPlan, savingsReviewCandidates, type SavingsPlanInput } from './savingsPlan.ts';
 import { paymentsForMonth } from './householdCosts.ts';
 
 export type NamedGoal = { id: string; name: string; target: number; saved: number; targetMonth: string };
 export type BillReserve = { costId: string; saved: number };
 export type MonthlyCheck = { month: string; checkedAt: string; incomeMonthly: number; variableMonthly: number; fixedMonthly: number; fingerprint: string };
-export type PlanningData = { goals: NamedGoal[]; reserves: BillReserve[]; checks: MonthlyCheck[] };
+export type PlanningData = { goals: NamedGoal[]; reserves: BillReserve[]; checks: MonthlyCheck[]; cash?: CashWindow; reviews?: Array<{costId:string;updatedAt:string;until:string}> };
 const monthOK = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(v);
 const nonnegative = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 export function readPlanningData(value: unknown): PlanningData {
   const data = value && typeof value === 'object' ? value as Partial<PlanningData> : {};
   const unique = <T>(rows: T[], key: (row: T) => string) => rows.filter((row, i) => rows.findIndex(r => key(r) === key(row)) === i);
   return {
+    ...(readCashWindow(data.cash) ? {cash:readCashWindow(data.cash)} : {}),
+    reviews:(Array.isArray(data.reviews)?data.reviews:[]).filter(r=>r&&typeof r.costId==='string'&&typeof r.updatedAt==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(r.until)),
     goals: unique((Array.isArray(data.goals) ? data.goals : []).filter((g): g is NamedGoal => !!g && typeof g.id === 'string' && !!g.id && typeof g.name === 'string' && !!g.name.trim() && nonnegative(g.target) && g.target > 0 && nonnegative(g.saved) && monthOK(g.targetMonth)), g => g.id),
     reserves: unique((Array.isArray(data.reserves) ? data.reserves : []).filter((r): r is BillReserve => !!r && typeof r.costId === 'string' && !!r.costId && nonnegative(r.saved)), r => r.costId),
     checks: unique((Array.isArray(data.checks) ? data.checks : []).filter((c): c is MonthlyCheck => !!c && monthOK(c.month) && typeof c.checkedAt === 'string' && !Number.isNaN(Date.parse(c.checkedAt)) && nonnegative(c.incomeMonthly) && nonnegative(c.variableMonthly) && nonnegative(c.fixedMonthly) && typeof c.fingerprint === 'string'), c => c.month).sort((a,b) => b.month.localeCompare(a.month)).slice(0,24),

@@ -15,6 +15,10 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import HouseholdCostsPanel from "@/components/HouseholdCostsPanel";
 import HouseholdInsightsPanel from "@/components/HouseholdInsightsPanel";
+import CostImportPanel from '@/components/CostImportPanel';
+import PaydayPanel from '@/components/PaydayPanel';
+import {confirmSavingsChange,localToday} from '@eavesence/core/homeValue';
+import type {SavingsAction} from '@eavesence/core/savingsPlan';
 import SavingsPlanPanel from "@/components/SavingsPlanPanel";
 import ConnectivityStatus from "@/components/ConnectivityStatus";
 import MyDevicesPanel, {
@@ -1611,6 +1615,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     ]);
   }
 
+  function confirmSaving(action: SavingsAction) {
+    const next=confirmSavingsChange(householdCosts,profile?.savingsActions??[],action,localToday());
+    if(!profile)return;
+    persistHouseholdCosts(next.costs);
+    persistProfile({...profile,savingsActions:next.actions,updatedAt:new Date().toISOString()});
+  }
+
   function openCostForm(cost?: HouseholdCost, template?: HouseholdCostCategory) {
     const tile = cost?.tileId
       ? homeTiles.find((item) => item.id === cost.tileId)
@@ -1651,7 +1662,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
             <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className="mt-4 flex flex-wrap items-center gap-3">
-              <button type="button" className={`${homePrimaryActionClass} !bg-[var(--brand-green)] !text-white hover:!bg-[var(--brand-green-dark)]`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
+              <button type="button" className={`${homePrimaryActionClass} !bg-[#24272c] !text-white hover:!bg-[#363b42]`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
               <button type="button" className={homeDashboardActionClass} onClick={() => { setIncomeOpen(true); document.getElementById("home-overview")?.scrollIntoView({ behavior: "smooth" }); }}>{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
               <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} className={homeDashboardActionClass}>{text.settings}</button>
             </div>
@@ -1746,6 +1757,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
           {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
 
+          <PaydayPanel key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+          <CostImportPanel locale={locale} currency={profile.currency} costs={householdCosts} onSave={(next)=>{const tile=primaryCostTileId??activateTileKind('costs').id;persistHouseholdCosts(next.map(c=>({...c,tileId:c.tileId??tile})));}}/>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-label={text.financeTitle}>
             <h2 className={homeSectionTitleClass}>{text.financeTitle}</h2>
             <div className="mt-4 grid items-start gap-3 md:grid-cols-3">
@@ -1963,7 +1976,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           />
           </details>
           <SavingsPlanPanel
-            key={profile.createdAt}
+            key={`savings-plan-${profile.createdAt}`}
             locale={locale}
             currency={profile.currency}
             incomeMonthly={monthlyIncome}
@@ -1977,6 +1990,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             onEditIncome={() => { setIncomeOpen(true); document.getElementById("home-overview")?.scrollIntoView({ behavior: "smooth" }); }}
             onEditCosts={() => { setCostRequest(null); activateTileKind("costs"); window.setTimeout(() => document.getElementById("household-costs")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
             onSave={(values) => persistProfile({ ...profile, ...values, updatedAt: new Date().toISOString() })}
+            onConfirmAction={confirmSaving}
+            onReviewCost={(cost)=>openCostForm(cost)}
             onSaveActions={(savingsActions) => persistProfile({ ...profile, savingsActions, updatedAt: new Date().toISOString() })}
           />
 

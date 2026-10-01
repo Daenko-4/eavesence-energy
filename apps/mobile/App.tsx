@@ -1,3 +1,7 @@
+import {PaydayScreen} from './src/PaydayScreen';
+import {CostImportScreen} from './src/CostImportScreen';
+import {SavingsCoachScreen} from './src/SavingsCoachScreen';
+import {confirmSavingsChange,localToday} from '@eavesence/core/homeValue';
 import { calculateEnergyCosts } from "@eavesence/core";
 import { createSavingsPlan, readSavingsActions, type SavingsAction } from "@eavesence/core/savingsPlan";
 import {
@@ -134,6 +138,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   const [costs, setCosts] = useState<HouseholdCost[]>([]);
   const [tiles, setTiles] = useState<MobileTile[]>(defaultTiles);
   const [selectedCostTileId, setSelectedCostTileId] = useState("default-costs");
+  const [costReviewId,setCostReviewId]=useState<string|undefined>(undefined);
   const [costStartAction, setCostStartAction] = useState<"none" | "income" | "cost">("none");
   const [customizeSetup, setCustomizeSetup] = useState(false);
   const [tileFormOpen, setTileFormOpen] = useState(false);
@@ -305,6 +310,19 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     await writeJson(PROFILE_KEY, next); setProfile(next);
   }
 
+  async function confirmSaving(action: SavingsAction) {
+    if(!profile)return;
+    const next=confirmSavingsChange(costs,profile.savingsActions??[],action,localToday());
+    const nextProfile={...profile,savingsActions:next.actions};
+    await writeAll([[PROFILE_KEY,nextProfile],[COSTS_KEY,next.costs]]);
+    setCosts(next.costs);setProfile(nextProfile);
+  }
+
+  async function importCosts(nextCosts: HouseholdCost[]) {
+    const next=nextCosts.map(c=>({...c,tileId:c.tileId??'default-costs'}));
+    await writeJson(COSTS_KEY,next);setCosts(next);
+  }
+
   async function saveSavingsActions(actions: SavingsAction[]) {
     if (!profile) return;
     const next = { ...profile, savingsActions: actions };
@@ -434,6 +452,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       setTab("home");
       scrollRef.current?.scrollTo({ y: energySectionY.current, animated: true });
     } else {
+      setCostReviewId(undefined);
       setCostStartAction("none");
       setSelectedCostTileId(tile.id);
       setTab("costs");
@@ -441,12 +460,18 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   }
 
   function openMainCosts() {
+    setCostReviewId(undefined);
     setCostStartAction("none");
     setSelectedCostTileId("default-costs");
     setTab("costs");
   }
 
+  function reviewCost(cost: HouseholdCost) {
+    setCostReviewId(cost.id);setSelectedCostTileId(cost.tileId??"default-costs");setCostStartAction("none");setTab("costs");
+  }
+
   function startWith(action: "income" | "cost") {
+    setCostReviewId(undefined);
     setCostStartAction(action);
     setSelectedCostTileId("default-costs");
     setTab("costs");
@@ -706,21 +731,10 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
               </View>
             </View>
           </View>}
-          <View style={styles.startCard}>
-            <Text style={styles.startEyebrow}>{hasIncome && hasCosts ? locale === "de" ? "DEIN ÜBERBLICK" : "YOUR OVERVIEW" : locale === "de" ? "IN ZWEI SCHRITTEN STARTEN" : "START IN TWO STEPS"}</Text>
-            <Text style={styles.startTitle}>{hasIncome && hasCosts ? forecastComplete ? locale === "de" ? `Was bleibt im ${nextMonthLabel}?` : `What is left in ${nextMonthLabel}?` : locale === "de" ? "Was bleibt dir im Monat?" : "What is left each month?" : locale === "de" ? "Was bleibt dir nächsten Monat?" : "What is left next month?"}</Text>
-            {hasIncome && hasCosts ? <>
-              <Text style={styles.startAmount}>{euro.format(monthlyIncome - (forecastComplete ? upcoming.total : costSummary.monthlyTotal))}</Text>
-              <Text style={styles.startBody}>{forecastComplete ? locale === "de" ? `Monatliches Nettoeinkommen minus die für ${nextMonthLabel} erfassten Zahlungen. Variable Ausgaben sind nicht enthalten.` : `Monthly net income less payments scheduled for ${nextMonthLabel}. Everyday spending is not included.` : locale === "de" ? `Richtwert: monatliches Nettoeinkommen minus Durchschnitt deiner festen Kosten. ${upcoming.undatedCount} ${upcoming.undatedCount === 1 ? "Posten hat" : "Posten haben"} noch keinen Zahlungstermin; deshalb ist dies keine genaue Vorschau für ${nextMonthLabel}.` : `Estimate: monthly net income less average fixed costs. ${upcoming.undatedCount} costs have no payment date, so this is not a precise forecast for ${nextMonthLabel}.`}</Text>
-              {!forecastComplete && <Pressable onPress={openMainCosts} style={styles.startLink}><Text style={styles.startLinkText}>Zahlungstermine ergänzen</Text></Pressable>}
-            </> : <>
-              <Text style={styles.startBody}>Trage erst dein Nettoeinkommen und mindestens eine regelmäßige Ausgabe ein. Das dauert nur einen Moment.</Text>
-              <View style={styles.startSteps}>
-                <Pressable accessibilityRole="button" onPress={() => startWith("income")} style={styles.startStep}><Text style={styles.startStepText}>{hasIncome ? locale === "de" ? "✓ Einkommen eingetragen" : "✓ Income added" : locale === "de" ? "1 · Nettoeinkommen eintragen" : "1 · Add net income"}</Text></Pressable>
-                <Pressable accessibilityRole="button" onPress={() => startWith("cost")} style={styles.startStep}><Text style={styles.startStepText}>{hasCosts ? locale === "de" ? "✓ Feste Kosten erfasst" : "✓ Fixed costs added" : locale === "de" ? "2 · Erste feste Ausgabe erfassen" : "2 · Add your first fixed cost"}</Text></Pressable>
-              </View>
-            </>}
-          </View>
+          <PaydayScreen key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??'EUR'}/>
+          {(!hasIncome||!hasCosts)&&<View style={styles.startSteps}>{!hasIncome&&<Pressable accessibilityRole="button" onPress={()=>startWith('income')} style={styles.startStep}><Text style={styles.startStepText}>{locale==='de'?'1 · Nettoeinkommen eintragen':'1 · Add net income'}</Text></Pressable>}{!hasCosts&&<Pressable accessibilityRole="button" onPress={()=>startWith('cost')} style={styles.startStep}><Text style={styles.startStepText}>{locale==='de'?'2 · Erste Kosten hinzufügen':'2 · Add first costs'}</Text></Pressable>}</View>}
+          <CostImportScreen costs={costs} currency={profile.currency??'EUR'} locale={locale} onSave={importCosts}/>
+
           <View style={styles.financeSection}>
             <Text style={styles.financeHeading}>Finanzen im Überblick</Text>
             <View style={styles.financeCard}>
@@ -782,7 +796,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           <PrimaryButton label="Gerät hinzufügen" onPress={startNewDevice} />
         </>}
 
-        {tab === "costs" && <CostsScreen key={`${selectedCostTileId}-${costStartAction}`} profile={profile} costs={costs} tiles={tiles} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} initialAction={costStartAction} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
+        {tab === "costs" && <CostsScreen key={`${selectedCostTileId}-${costStartAction}-${costReviewId??""}`} profile={profile} costs={costs} tiles={tiles} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} initialAction={costStartAction} initialCostId={costReviewId} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
 
         {tab === "add" && <>
           <Pressable style={styles.financePill} onPress={() => setTab("history")}><Text style={styles.financePillText}>Stromverlauf öffnen</Text></Pressable>
@@ -841,9 +855,10 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           {savingsPlan && <>
             <SavingsBudgetSummary input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} currency={profile.currency ?? "EUR"} />
 
+            <SavingsCoachScreen input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} actions={readSavingsActions(profile.savingsActions)} onActions={saveSavingsActions} onConfirm={confirmSaving} onReview={reviewCost} currency={profile.currency??'EUR'}/>
             <PlanningScreen input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} data={profile.planning} onSave={savePlanning} currency={profile.currency ?? "EUR"} onEditCosts={openMainCosts} onEditBudget={() => scrollRef.current?.scrollTo({ y: 0, animated: true })} />
             <Pressable accessibilityRole="button" accessibilityState={{ expanded: scenarioOpen }} style={styles.financePill} onPress={() => setScenarioOpen(!scenarioOpen)}><Text style={styles.financePillText}>{locale === "de" ? "Eine Kostenänderung durchspielen" : "Try a cost change"}</Text></Pressable>
-            {scenarioOpen && <SavingsActionsScreen input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} actions={readSavingsActions(profile.savingsActions)} currency={profile.currency ?? "EUR"} onChange={saveSavingsActions} />}
+            {scenarioOpen && <SavingsActionsScreen input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} actions={readSavingsActions(profile.savingsActions)} currency={profile.currency ?? "EUR"} onChange={saveSavingsActions} onConfirm={confirmSaving} />}
           </>}
           {isPro ? <Text style={styles.proActive}>Pro aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Text style={styles.financeNote}>Ein kostenpflichtiges Abo ist derzeit nicht verfügbar.</Text>}
           {packages.length > 0 && <Pressable onPress={() => void restorePro().then(setIsPro).catch(() => showLocalizedAlert(locale,"Wiederherstellung fehlgeschlagen", "Bitte versuche es erneut."))}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable>}
@@ -884,11 +899,6 @@ const styles = StyleSheet.create({
   setupToggle: { alignSelf: "center", paddingVertical: 8 },
   setupToggleText: { fontSize: 13, fontWeight: "800", color: "#087a45" },
   setupNote: { textAlign: "center", fontSize: 11, lineHeight: 16, color: "#65716d" },
-  startCard: { marginBottom: 16, padding: 19, borderRadius: 22, backgroundColor: "#17211f", gap: 9 },
-  startEyebrow: { fontSize: 11, fontWeight: "900", letterSpacing: 1, color: "#72dca3" },
-  startTitle: { fontSize: 23, lineHeight: 28, fontWeight: "900", letterSpacing: -0.5, color: "#ffffff" },
-  startAmount: { fontSize: 33, lineHeight: 39, fontWeight: "900", color: "#ffffff" },
-  startBody: { fontSize: 13, lineHeight: 20, color: "#d2ded6" },
   startSteps: { marginTop: 5, gap: 8 },
   startStep: { minHeight: 44, borderRadius: 14, backgroundColor: "#ddf8e9", paddingHorizontal: 14, justifyContent: "center" },
   startStepText: { fontSize: 13, fontWeight: "800", color: "#087a45" },
@@ -972,7 +982,7 @@ const styles = StyleSheet.create({
   heroSmall: { marginTop: 8, marginBottom: 18, fontSize: 29, lineHeight: 34, fontWeight: "900", letterSpacing: -1, color: "#17211f" },
   body: { fontSize: 15, lineHeight: 23, color: "#65716d", marginBottom: 6 },
   label: { fontSize: 12, fontWeight: "800", color: "#52605b" },
-  primaryButton: { minHeight: 50, marginTop: 14, borderRadius: 25, alignItems: "center", justifyContent: "center", backgroundColor: "#087a45", paddingHorizontal: 20 },
+  primaryButton: { minHeight: 50, marginTop: 14, borderRadius: 25, alignItems: "center", justifyContent: "center", backgroundColor: "#24272c", paddingHorizontal: 20 },
   primaryButtonText: { fontSize: 14, fontWeight: "800", color: "#ffffff" },
   privateText: { textAlign: "center", fontSize: 12, fontWeight: "600", color: "#65716d" },
   pulseCard: { marginBottom: 16, borderWidth: 1, borderRadius: 18, padding: 15 }, pulseCardOpen: { borderColor: "#f4cf73", backgroundColor: "#fff9e9" }, pulseCardComplete: { borderColor: "#b8efcc", backgroundColor: "#eefbf3" }, pulseLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 1 }, pulseLabelOpen: { color: "#a85d00" }, pulseLabelComplete: { color: "#087a45" }, pulseTitle: { marginTop: 5, fontSize: 15, fontWeight: "900", color: "#07111f" }, pulseBody: { marginTop: 4, fontSize: 13, lineHeight: 19, color: "#52605b" }, pulseAction: { alignSelf: "flex-start", minHeight: 30, marginTop: 12, borderRadius: 15, justifyContent: "center", backgroundColor: "#dcf8e8", paddingHorizontal: 12 }, pulseActionText: { fontSize: 12, fontWeight: "900", color: "#087a45" }, metricGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 }, metric: { width: "48%", minHeight: 94, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 14 }, metricLabel: { fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.7, color: "#64748b" }, metricValue: { marginTop: 12, fontSize: 19, fontWeight: "900", color: "#07111f" }, insightCard: { marginTop: 16, borderRadius: 16, backgroundColor: "#e7f7ed", padding: 15 }, insightLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 0.8, color: "#087a45" }, insightTitle: { marginTop: 5, fontSize: 15, fontWeight: "900", color: "#07111f" }, historyHint: { marginTop: -12, marginBottom: 18, fontSize: 13, lineHeight: 19, color: "#64748b" }, sectionTitle: { marginTop: 28, marginBottom: 10, fontSize: 20, fontWeight: "900", color: "#07111f" }, deviceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 9, padding: 14, borderWidth: 1, borderRadius: 14, borderColor: "#dfe5dd", backgroundColor: "#fbfcf8" }, deviceName: { fontSize: 15, fontWeight: "800", color: "#07111f" }, muted: { marginTop: 3, fontSize: 12, color: "#64748b" }, delete: { padding: 8, fontSize: 24, color: "#94a3b8" }, empty: { borderWidth: 1, borderStyle: "dashed", borderColor: "#cbd5e1", borderRadius: 16, padding: 20, backgroundColor: "#ffffff" }, secondaryButton: { minHeight: 48, marginTop: 10, borderWidth: 1, borderColor: "#b9d9c7", borderRadius: 24, alignItems: "center", justifyContent: "center" }, secondaryButtonText: { fontSize: 14, fontWeight: "800", color: "#087a45" }, proCard: { borderRadius: 26, backgroundColor: "#17211f", padding: 24 }, proTitle: { marginTop: 12, fontSize: 32, lineHeight: 35, fontWeight: "900", letterSpacing: -1.2, color: "#ffffff" }, proBody: { marginTop: 15, fontSize: 15, lineHeight: 23, color: "#cbd5d1" }, proButton: { minHeight: 52, marginTop: 24, borderRadius: 26, alignItems: "center", justifyContent: "center", backgroundColor: "#72dca3", paddingHorizontal: 16 }, proButtonDisabled: { backgroundColor: "#43514c" }, proButtonText: { fontSize: 14, fontWeight: "900", color: "#10231b" }, proActive: { marginTop: 24, fontSize: 17, fontWeight: "900", color: "#72dca3" }, restore: { marginTop: 18, textAlign: "center", fontSize: 13, fontWeight: "800", color: "#ffffff" }, proHint: { marginTop: 10, textAlign: "center", fontSize: 11, lineHeight: 17, color: "#94a3a0" }, tabBar: { flexDirection: "row", borderTopWidth: 1, borderColor: "#e2e8e4", backgroundColor: "#ffffff", paddingHorizontal: 12, paddingTop: 7, paddingBottom: 3 },

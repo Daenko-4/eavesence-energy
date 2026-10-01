@@ -94,28 +94,30 @@ function Choice<T extends string>({ options, value, onChange }: {
   return <View style={styles.choices}>{options.map(([key, label]) => <Pressable key={key} accessibilityRole="button" accessibilityState={{ selected: value === key }} onPress={() => onChange(key)} style={[styles.choice, value === key && styles.choiceActive]}><Text style={[styles.choiceText, value === key && styles.choiceTextActive]}>{label}</Text></Pressable>)}</View>;
 }
 
-export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, initialAction = "none", onSaveCost, onDeleteCost, onSaveIncome }: {
+export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, initialAction = "none", initialCostId, onSaveCost, onDeleteCost, onSaveIncome }: {
   profile: MobileProfile;
   costs: HouseholdCost[];
   tiles: MobileTile[];
   tileId: string;
   tileTitle: string;
+  initialCostId?: string;
   initialAction?: "none" | "income" | "cost";
   onSaveCost: (cost: HouseholdCost) => Promise<void>;
   onDeleteCost: (id: string) => Promise<void>;
   onSaveIncome: (amount: number, frequency: "monthly" | "yearly") => Promise<void>;
 }) {
   const locale = useMobileLocale();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const initialCost=costs.find(c=>c.id===initialCostId);
+  const [editingId, setEditingId] = useState<string | null>(initialCost?.id??null);
+  const [moreOpen, setMoreOpen] = useState(!!initialCost);
   const [feedback, setFeedback] = useState("");
-  const [formOpen, setFormOpen] = useState(initialAction === "cost");
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<HouseholdCostCategory>("housing");
-  const [frequency, setFrequency] = useState<HouseholdCostFrequency>("monthly");
-  const [dueDate, setDueDate] = useState("");
-  const [deadline, setDeadline] = useState("");
+  const [formOpen, setFormOpen] = useState(initialAction === "cost"||!!initialCost);
+  const [name, setName] = useState(initialCost?.name??"");
+  const [amount, setAmount] = useState(initialCost?String(initialCost.amount):"");
+  const [category, setCategory] = useState<HouseholdCostCategory>(initialCost?.category??"housing");
+  const [frequency, setFrequency] = useState<HouseholdCostFrequency>(initialCost?.frequency??"monthly");
+  const [dueDate, setDueDate] = useState(displayDate(initialCost?.nextDueDate??""));
+  const [deadline, setDeadline] = useState(displayDate(initialCost?.cancellationDeadline??""));
   const [income, setIncome] = useState(profile.incomeAmount ? String(profile.incomeAmount) : "");
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">(profile.incomeFrequency ?? "monthly");
   const money = new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", { style: "currency", currency: profile.currency ?? "EUR" });

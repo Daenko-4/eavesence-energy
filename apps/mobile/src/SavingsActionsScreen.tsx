@@ -5,11 +5,12 @@ import { Alert, Keyboard, Pressable, StyleSheet, View } from "react-native";
 import { FormInput } from "./FormInput";
 import { LocalizedText as Text, useMobileLocale } from "./i18n";
 
-export function SavingsActionsScreen({ input, actions, currency, onChange }: {
+export function SavingsActionsScreen({ input, actions, currency, onChange, onConfirm }: {
   input: SavingsPlanInput;
   actions: SavingsAction[];
   currency: string;
   onChange: (actions: SavingsAction[]) => Promise<void>;
+  onConfirm: (action: SavingsAction) => Promise<void>;
 }) {
   const locale = useMobileLocale();
   const de = locale === "de";
@@ -81,7 +82,7 @@ export function SavingsActionsScreen({ input, actions, currency, onChange }: {
         <Text style={styles.actionTitle}>{cost?.name ?? action.name} · {action.newAmount === 0 ? de ? "beenden" : "end" : `${money(action.originalAmount)} → ${money(action.newAmount)}`} · {monthLabel(action.effectiveMonth)}</Text>
         <Text style={styles.note}>{changed ? de ? "Ausgabe geändert: Szenario prüfen oder entfernen." : "Cost changed: review or remove this scenario." : `${applied ? de ? "Änderung bereits in deinen Kosten erfasst" : "Change already reflected in your costs" : `${de ? "Zusätzliche Wirkung in 12 Monaten" : "Additional impact over 12 months"}: ${money(impact?.totalDifference ?? 0)}`} · ${action.status === "confirmed" ? de ? "von dir als umgesetzt bestätigt" : "marked done by you" : action.effectiveMonth <= today.slice(0, 7) ? de ? "Check-in: Hat sich der Betrag wirklich geändert?" : "Check-in: Did the amount actually change?" : de ? "geplant, noch nicht umgesetzt" : "planned, not yet done"}`}{soon ? ` · ${de ? "Frist bald" : "Deadline soon"}: ${due.split("-").reverse().join(".")}` : ""}</Text>
         <View style={styles.options}>
-          {!changed && action.status === "planned" && action.effectiveMonth <= today.slice(0, 7) && <Pressable onPress={() => void change(actions.map((item) => item.costId === action.costId ? { ...item, status: "confirmed", confirmedAt: new Date().toISOString() } : item))} style={styles.link}><Text style={styles.linkText}>{de ? "Als umgesetzt markieren" : "Mark as done"}</Text></Pressable>}
+          {!changed && action.status === "planned" && action.effectiveMonth <= today.slice(0, 7) && <Pressable onPress={() => Alert.alert(de ? "Änderung umgesetzt?" : "Change completed?", de ? "Laufende Kosten werden aktualisiert." : "Recurring costs will be updated.", [{text:de?"Abbrechen":"Cancel",style:"cancel"},{text:de?"Bestätigen":"Confirm",onPress:()=>void onConfirm(action).catch(()=>Alert.alert(de?"Kosten prüfen":"Review cost",de?"Angaben inzwischen geändert.":"Entries have changed."))}])} style={styles.link}><Text style={styles.linkText}>{de ? "Als umgesetzt markieren" : "Mark as done"}</Text></Pressable>}
           {action.status === "confirmed" && <Pressable onPress={() => void change(actions.map((item) => item.costId === action.costId ? { ...item, status: "planned", confirmedAt: undefined } : item))} style={styles.link}><Text style={styles.linkText}>{de ? "Status korrigieren" : "Correct status"}</Text></Pressable>}
           <Pressable onPress={() => void change(actions.filter((item) => item.costId !== action.costId))} style={styles.link}><Text style={styles.linkText}>{de ? "Entfernen" : "Remove"}</Text></Pressable>
         </View>

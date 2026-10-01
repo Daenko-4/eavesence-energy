@@ -224,7 +224,9 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   await page.reload();
   await expect(panel).toContainText("Check-in: Did the amount actually change?");
   await panel.getByText("Try a cost change", { exact: true }).click();
+  page.once("dialog", dialog=>void dialog.accept());
   await panel.getByRole("button", { name: "Mark as done" }).click();
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("eavesence-home-costs-v1")!)[0].amount)).toBe(25);
   await expect(panel).toContainText("marked done by you");
   await expect(panel).toContainText("€180.00");
 });
@@ -1517,3 +1519,74 @@ for (const width of [320, 390, 1365]) {
     }
   });
 }
+
+test('invoice and bank import require review, persist costs and explicitly update duplicates',async({page})=>{
+ await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
+ const panel=page.getByRole('region',{name:'Import costs',exact:true});
+ await panel.getByRole('button',{name:'Import costs instead of typing'}).click();
+ await panel.getByText('Paste text / CSV example',{exact:true}).click();
+ await panel.getByLabel('Invoice text',{exact:true}).fill('Internet Provider\nTotal due: 39.90 EUR\nMonthly\nPayment due: 2026-11-05');
+ await panel.getByRole('button',{name:'Create suggestion'}).click();
+ await expect(panel.getByLabel('Amount',{exact:true})).toHaveValue('39.90');
+ await panel.getByRole('button',{name:'Import reviewed costs'}).click();
+ await expect(panel.getByRole('status')).toContainText('Costs imported');
+ await page.reload();
+ const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!));expect(stored[0].amount).toBe(39.9);
+ await panel.getByRole('button',{name:'Import costs instead of typing'}).click();
+ await panel.getByLabel('Choose files').setInputFiles({name:'bank.csv',mimeType:'text/csv',buffer:Buffer.from('name;amount;date;frequency;currency\nInternet Provider;-35;2026-10-05;monthly;EUR')});
+ await panel.getByRole('button',{name:'Import reviewed costs'}).click();await expect(panel.getByRole('alert')).toBeVisible();
+ await panel.getByLabel('Update existing cost instead of adding a duplicate').check();
+ await panel.getByRole('button',{name:'Import reviewed costs'}).click();
+ const updated=await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!));expect(updated).toHaveLength(1);expect(updated[0].amount).toBe(35);
+});
+
+test('photo recognition runs locally and proposes the labelled invoice total',async({page})=>{
+ test.setTimeout(120000);
+ await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
+ const panel=page.getByRole('region',{name:'Import costs',exact:true});await panel.getByRole('button',{name:'Import costs instead of typing'}).click();
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="500"><rect width="100%" height="100%" fill="white"/><g font-family="Arial" font-size="40" fill="black"><text x="50" y="80">Internet Provider</text><text x="50" y="160">Total due: 39.90 EUR</text><text x="50" y="240">Monthly</text><text x="50" y="320">Payment due: 05.11.2026</text></g></svg>';
+ await panel.getByLabel('Choose files').setInputFiles({name:'invoice.svg',mimeType:'image/svg+xml',buffer:Buffer.from(svg)});
+ await expect(panel.getByLabel('Amount',{exact:true})).toHaveValue('39.90',{timeout:90000});
+ await expect(panel.getByLabel('Frequency — confirm')).toHaveValue('monthly');
+ await expect(panel.getByLabel('Next payment (optional)')).toHaveValue('2026-11-05');
+});
+
+for(const width of [320,1365])test(`payday overview stays readable and recalculates at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:900});await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
+ const panel=page.getByRole('region',{name:'Your available budget',exact:true});await panel.getByRole('button',{name:'Plan until next payday'}).click();
+ const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
+ await panel.getByLabel('Balance available today',{exact:true}).fill('1000');await panel.getByLabel('Next payday',{exact:true}).fill(day);await panel.getByLabel('Keep untouched from this balance',{exact:true}).fill('200');await panel.getByLabel('Everyday spending until payday (optional)',{exact:true}).fill('150');await panel.getByRole('button',{name:'Confirm balance & calculate'}).click();
+ await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel).toContainText('UNTIL YOUR NEXT PAYDAY');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+ await page.reload();await expect(panel).toContainText('€650.00');
+});
+
+test('savings assistant plans a cancellation, confirms it and updates recurring costs',async({page})=>{
+ await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
+ await page.evaluate(()=>{const today=new Date(),day=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'streaming',name:'Streaming',amount:18,category:'subscriptions',frequency:'monthly',nextDueDate:day,updatedAt:today.toISOString()}]));});await page.reload();
+ const coach=page.getByRole('region',{name:'Your savings assistant',exact:true});await coach.getByRole('button',{name:'Plan change',exact:true}).click();await coach.getByLabel('New amount per payment (0 = ends)').fill('0');await coach.getByRole('button',{name:'Save this plan',exact:true}).click();await expect(coach).toContainText('Planned, no confirmed saving yet');
+ page.once('dialog',dialog=>void dialog.accept());await coach.getByRole('button',{name:'Done — update costs'}).click();await expect(coach).toContainText('€18.00');await expect(coach).toContainText('Confirmed, costs updated');
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!))).toHaveLength(0);await page.reload();await expect(coach).toContainText('Confirmed, costs updated');
+});
+
+test('PDF text extraction proposes the invoice without uploading it',async({page})=>{
+ await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
+ const panel=page.getByRole('region',{name:'Import costs',exact:true});await panel.getByRole('button',{name:'Import costs instead of typing'}).click();
+ const stream='BT /F1 16 Tf 50 750 Td (Internet Provider) Tj 0 -30 Td (Total due: 39.90 EUR) Tj 0 -30 Td (Monthly) Tj ET';
+ const objects=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`];
+ let pdf='%PDF-1.4\n';const offsets=[0];objects.forEach((o,i)=>{offsets.push(Buffer.byteLength(pdf));pdf+=`${i+1} 0 obj\n${o}\nendobj\n`;});const xref=Buffer.byteLength(pdf);pdf+=`xref\n0 6\n0000000000 65535 f \n${offsets.slice(1).map(n=>`${String(n).padStart(10,'0')} 00000 n \n`).join('')}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+ await panel.getByLabel('Choose files').setInputFiles({name:'invoice.pdf',mimeType:'application/pdf',buffer:Buffer.from(pdf)});
+ await expect(panel.getByLabel('Amount',{exact:true})).toHaveValue('39.90',{timeout:20000});
+ await expect(panel.getByLabel('Frequency — confirm')).toHaveValue('monthly');
+});
+
+test('native document reader waits for app context and returns reviewed costs through its bridge',async({page})=>{
+ await page.addInitScript(()=>{
+  const bridgeWindow=window as unknown as Window&{ReactNativeWebView:{postMessage:(value:string)=>void};importResult?:unknown};
+  bridgeWindow.ReactNativeWebView={postMessage:(value:string)=>{const message=JSON.parse(value);if(message.type==='ready')window.dispatchEvent(new CustomEvent('eavesence-import-context',{detail:{costs:[],currency:'EUR',locale:'de'}}));if(message.type==='costs')bridgeWindow.importResult=message.costs;}};
+ });
+ await page.goto('/import');
+ await page.getByRole('button',{name:'Kosten übernehmen statt abtippen'}).click();await page.getByText('Text einfügen / CSV-Beispiel',{exact:true}).click();await page.getByLabel('Rechnungstext',{exact:true}).fill('Internet\nGesamtbetrag 39,90 EUR\nmonatlich');await page.getByRole('button',{name:'Vorschlag erstellen'}).click();await page.getByRole('button',{name:'Geprüfte Kosten übernehmen'}).click();
+ const result=await page.evaluate(()=>(window as Window&{importResult?:unknown}).importResult);expect(result).toEqual([expect.objectContaining({name:'Internet',amount:39.9,frequency:'monthly'})]);
+ expect(await page.evaluate(()=>localStorage.getItem('eavesence-home-costs-v1'))).toBeNull();
+});
