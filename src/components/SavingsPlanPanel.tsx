@@ -1,5 +1,7 @@
 "use client";
 
+import PlanningWorkbench from "@/components/PlanningWorkbench";
+import type { PlanningData } from "@eavesence/core/planning";
 import { useState } from "react";
 import { createSavingsPlan, type SavingsAction } from "@eavesence/core/savingsPlan";
 import type { HouseholdCost } from "@/lib/householdCosts";
@@ -15,15 +17,20 @@ type Props = {
   bufferMonthly?: number;
   goalMonthly?: number;
   actions?: SavingsAction[];
+  planning?: PlanningData;
+  onSavePlanning: (data: PlanningData) => void;
+  onEditCosts: () => void;
+  onEditIncome: () => void;
   onSave: (values: { variableMonthly: number | null; bufferMonthly: number; goalMonthly: number }) => void;
   onSaveActions: (actions: SavingsAction[]) => void;
 };
 
-export default function SavingsPlanPanel({ locale, currency, incomeMonthly, costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], onSave, onSaveActions }: Props) {
+export default function SavingsPlanPanel({ locale, currency, incomeMonthly, costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions }: Props) {
   const [variable, setVariable] = useState(variableMonthly == null ? "" : String(variableMonthly));
   const [buffer, setBuffer] = useState(String(bufferMonthly ?? 0));
   const [goal, setGoal] = useState(String(goalMonthly ?? 0));
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const de = locale === "de";
   const money = (value: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(value);
   const date = new Date();
@@ -37,17 +44,18 @@ export default function SavingsPlanPanel({ locale, currency, incomeMonthly, cost
     if ([nextBuffer, nextGoal, ...(nextVariable === null ? [] : [nextVariable])].some((value) => !Number.isFinite(value) || value < 0)) {
       setError(de ? "Bitte nur Beträge ab 0 eingeben." : "Enter amounts of 0 or more."); return;
     }
-    setError(""); onSave({ variableMonthly: nextVariable, bufferMonthly: nextBuffer, goalMonthly: nextGoal });
+    setError(""); onSave({ variableMonthly: nextVariable, bufferMonthly: nextBuffer, goalMonthly: nextGoal }); setNotice(de ? "Sparplan gespeichert." : "Savings plan saved.");
   }
   return <section id="savings-plan" className="mt-7 rounded-[1.45rem] border border-[#b8efcc] bg-[#eefbf3] p-5 sm:p-6">
     <p className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--brand-green)]">{de ? "PRO-VORSCHAU · KOSTENLOS TESTEN" : "PRO PREVIEW · FREE TO TRY"}</p>
     <h2 className="mt-2 text-xl font-extrabold">{de ? "Dein Sparplan für die nächsten 12 Monate" : "Your 12-month savings plan"}</h2>
     <p className="mt-1 text-[13px] text-[#52605b]">{de ? "Einkommen und Fixkosten sind schon übernommen. Schätze noch deine übrigen Alltagsausgaben – daraus berechnen wir, was dir im Monat bleibt." : "Income and fixed costs are already included. Estimate your other everyday spending to see what is left each month."}</p>
     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-      {[[de ? "Alltagsausgaben pro Monat (geschätzt)" : "Everyday spending per month (estimate)", variable, setVariable], [de ? "Gewünschter Sparbetrag pro Monat (optional)" : "Desired savings per month (optional)", goal, setGoal]].map(([label, value, setter], index) => <label key={label as string} className="grid gap-1 text-[12px] font-semibold text-[#52605b]">{label as string}<input inputMode="decimal" value={value as string} onChange={(event) => (setter as (value: string) => void)(event.target.value)} className="min-h-11 rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder={index === 0 ? de ? "z. B. 500" : "e.g. 500" : "0"} /><span className="font-normal">{index === 0 ? de ? "Zum Beispiel Lebensmittel und Freizeit. Nur Ausgaben, die noch nicht in deinen Fixkosten stehen." : "For example groceries and leisure. Only spending not already in your fixed costs." : de ? "Geld, das du vom verbleibenden Budget zurücklegen möchtest – nachdem Fixkosten und Alltagsausgaben bezahlt sind." : "Money you want to set aside from what is left after fixed costs and everyday spending."}</span></label>)}
+      {[[de ? "Alltagsausgaben pro Monat (geschätzt)" : "Everyday spending per month (estimate)", variable, setVariable], [de ? "Gewünschter Sparbetrag pro Monat (optional)" : "Desired savings per month (optional)", goal, setGoal]].map(([label, value, setter], index) => <label key={label as string} className="grid gap-1 text-[12px] font-semibold text-[#52605b]">{label as string}<input id={index === 0 ? "savings-budget-input" : undefined} inputMode="decimal" value={value as string} onChange={(event) => (setter as (value: string) => void)(event.target.value)} className="min-h-11 rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder={index === 0 ? de ? "z. B. 500" : "e.g. 500" : "0"} /><span className="font-normal">{index === 0 ? de ? "Zum Beispiel Lebensmittel und Freizeit. Nur Ausgaben, die noch nicht in deinen Fixkosten stehen." : "For example groceries and leisure. Only spending not already in your fixed costs." : de ? "Geld, das du vom verbleibenden Budget zurücklegen möchtest – nachdem Fixkosten und Alltagsausgaben bezahlt sind." : "Money you want to set aside from what is left after fixed costs and everyday spending."}</span></label>)}
     </div>
     <details open={(bufferMonthly ?? 0) > 0} className="mt-3 text-[12px] text-[#52605b]"><summary className="cursor-pointer font-semibold">{de ? "Erweiterte Optionen: freiwillige Reserve" : "More options: optional reserve"}</summary><p className="mt-2">{de ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</p><label className="mt-2 grid max-w-xs gap-1 font-semibold">{de ? "Freiwillige Reserve pro Monat" : "Optional reserve per month"}<input inputMode="decimal" value={buffer} onChange={(event) => setBuffer(event.target.value)} className="min-h-11 rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder="0" /></label></details>
     <button type="button" onClick={save} className="eavesence-pill-button home-primary-action mt-4">{de ? "Plan speichern" : "Save plan"}</button>
+    {notice && <p role="status" className="mt-2 text-[12px] font-semibold text-[#087a45]">{notice}</p>}
     {error && <p role="alert" className="mt-2 text-[12px] text-red-700">{error}</p>}
     {result && <>
       <div className="mt-5 rounded-xl bg-white p-4">
@@ -67,7 +75,11 @@ export default function SavingsPlanPanel({ locale, currency, incomeMonthly, cost
         <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-4">{result.months.map((item) => <div key={item.month} className={`rounded-xl border p-3 ${item.afterGoal < 0 ? "border-amber-300 bg-amber-50" : "border-[#dfe5dd] bg-white"}`}><p className="text-[12px] font-bold">{new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${item.month}-01T00:00:00Z`))}</p><p className="mt-1 text-[15px] font-extrabold">{incomeMonthly > 0 ? money(item.remaining) : "—"}</p><p className="text-[11px] text-[#52605b]">{variableMonthly == null ? de ? "Alltagsausgaben fehlen noch" : "Everyday spending still missing" : de ? "Rest vor Sparziel" : "Left before savings goal"}</p></div>)}</div>
         <p className="mt-3">{de ? `${result.undatedCount} Kosten ohne Termin werden monatlich gemittelt. Die Monatswerte sind eine Vorschau mit deinen heutigen Angaben.` : `${result.undatedCount} undated costs use a monthly average. These monthly figures are a forecast based on your current entries.`}</p>
       </details>
+
+      <PlanningWorkbench input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} />
+      <details className="mt-4"><summary className="cursor-pointer text-[14px] font-bold">{de ? "Eine Kostenänderung durchspielen" : "Try a cost change"}</summary>
       <SavingsActionsPanel locale={locale} currency={currency} input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} />
+      </details>
     </>}
   </section>;
 }

@@ -1,3 +1,4 @@
+import { readPlanningData } from "@eavesence/core/planning";
 import { readHouseholdCosts, type HouseholdCost } from "@eavesence/core/householdCosts";
 import { readSavingsActions } from "@eavesence/core/savingsPlan";
 
@@ -57,6 +58,7 @@ export function readMobileBackup(json: string): MobileBackup | null {
         !positive(entry.kwh) || !positive(entry.cost) || typeof entry.updatedAt !== "string") ||
       new Set(history.map((entry) => entry.month)).size !== history.length) return null;
 
+    if (profile.planning !== undefined) profile.planning = readPlanningData(profile.planning);
     return { ...data, format: "eavesence-mobile-backup", version: 1, profile, devices, history, costs, tiles, betaInterested: data.betaInterested, exportedAt: data.exportedAt };
   } catch {
     return null;

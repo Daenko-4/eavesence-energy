@@ -46,6 +46,7 @@ export function convertWebBackup(json: string): MobileBackup | null {
       bufferMonthly: source.profile.bufferMonthly,
       goalMonthly: source.profile.goalMonthly,
       savingsActions: source.profile.savingsActions,
+      planning: source.profile.planning,
       createdAt: source.profile.createdAt,
     },
     devices,

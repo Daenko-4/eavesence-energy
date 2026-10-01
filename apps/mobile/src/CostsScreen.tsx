@@ -107,6 +107,8 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
 }) {
   const locale = useMobileLocale();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [feedback, setFeedback] = useState("");
   const [formOpen, setFormOpen] = useState(initialAction === "cost");
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
@@ -122,6 +124,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
 
   function openNew(suggestion?: [HouseholdCostCategory, string, HouseholdCostFrequency]) {
     setEditingId(null);
+    setMoreOpen(false);
     setName(suggestion?.[1] ?? "");
     setAmount("");
     setCategory(suggestion?.[0] ?? "housing");
@@ -133,6 +136,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
 
   function edit(cost: HouseholdCost) {
     setEditingId(cost.id);
+    setMoreOpen(true);
     setName(cost.name);
     setAmount(String(cost.amount));
     setCategory(cost.category);
@@ -145,31 +149,32 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   async function save() {
     const cost = createHouseholdCost({ id: editingId ?? undefined, name, amount: parseAmount(amount), category, frequency, tileId: destinationTileId(costs, editingId, tileId), nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
     if (!cost) {
-      Alert.alert("Angaben prüfen", "Gib eine Bezeichnung, einen Betrag über 0 und gültige Termine im Format TT.MM.JJJJ ein.");
+      Alert.alert((locale === "de" ? "Angaben prüfen" : "Check your entries"), (locale === "de" ? "Gib eine Bezeichnung, einen Betrag über 0 und gültige Termine im Format TT.MM.JJJJ ein." : "Enter a name, a positive amount and valid dates in DD.MM.YYYY format."));
       return;
     }
     await onSaveCost(cost);
+    setFeedback(locale === "de" ? "Kosten gespeichert." : "Cost saved.");
     Keyboard.dismiss();
     setFormOpen(false);
     setEditingId(null);
   }
 
   function confirmDelete(cost: HouseholdCost) {
-    Alert.alert("Kosten entfernen?", cost.name, [
-      { text: "Abbrechen", style: "cancel" },
-      { text: "Entfernen", style: "destructive", onPress: () => { void onDeleteCost(cost.id); } },
+    Alert.alert((locale === "de" ? "Kosten entfernen?" : "Remove cost?"), cost.name, [
+      { text: locale === "de" ? "Abbrechen" : "Cancel", style: "cancel" },
+      { text: locale === "de" ? "Entfernen" : "Remove", style: "destructive", onPress: () => { void onDeleteCost(cost.id); } },
     ]);
   }
 
   async function saveIncome() {
     const parsed = income.trim() === "" ? 0 : parseAmount(income);
     if (!Number.isFinite(parsed) || parsed < 0) {
-      Alert.alert("Betrag prüfen", "Gib einen Betrag ab 0 ein.");
+      Alert.alert((locale === "de" ? "Betrag prüfen" : "Check amount"), (locale === "de" ? "Gib einen Betrag ab 0 ein." : "Enter an amount of 0 or more."));
       return;
     }
     await onSaveIncome(parsed, incomeFrequency);
     Keyboard.dismiss();
-    Alert.alert("Gespeichert", "Dein Einkommen wurde aktualisiert.");
+    Alert.alert((locale === "de" ? "Gespeichert" : "Saved"), (locale === "de" ? "Dein Einkommen wurde aktualisiert." : "Your income was updated."));
   }
 
   return <>
@@ -197,13 +202,16 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
 
     {formOpen ? <View style={styles.panel}>
       <Text style={styles.panelTitle}>{editingId ? "Kosten bearbeiten" : "Neue Kosten"}</Text>
-      <FormInput label="Bezeichnung" value={name} onChangeText={setName} placeholder="z. B. Internet" />
+      <FormInput label="Bezeichnung" value={name} onChangeText={setName} onBlur={() => { if (!editingId && category === "housing") { const text = name.toLowerCase(); if (/internet|abo|stream|telefon/.test(text)) setCategory("subscriptions"); else if (/strom|heiz|electric|gas/.test(text)) setCategory("energy"); else if (/versicherung|insurance/.test(text)) setCategory("insurance"); } }} placeholder="z. B. Internet" />
       <FormInput label="Betrag" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="0,00" />
-      <Text style={styles.label}>KATEGORIE</Text><Choice options={categories} value={category} onChange={setCategory} />
       <Text style={styles.label}>WIE OFT?</Text><Choice options={frequencies} value={frequency} onChange={setFrequency} />
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: moreOpen }} onPress={() => setMoreOpen(!moreOpen)} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Weitere Angaben: Kategorie und Termine" : "More details: category and dates"}</Text></Pressable>
+      {moreOpen && <>
+      <Text style={styles.label}>KATEGORIE</Text><Choice options={categories} value={category} onChange={setCategory} />
       <DateField label="Nächste Zahlung (optional)" value={dueDate} onChangeText={setDueDate} />
       <DateField label="Kündigungsfrist (optional)" value={deadline} onChangeText={setDeadline} />
       <Text style={styles.help}>Mit Zahlungstermin können wir den nächsten Monat genau berechnen. Ohne Termin fließt der Posten nur in den Monatsdurchschnitt ein.</Text>
+      </>}
       <Pressable onPress={() => { void save(); }} style={styles.primary}><Text style={styles.primaryText}>{editingId ? "Aktualisieren" : "Speichern"}</Text></Pressable>
       <Pressable onPress={() => setFormOpen(false)} style={styles.secondary}><Text style={styles.secondaryText}>Abbrechen</Text></Pressable>
     </View> : <Pressable onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
@@ -216,6 +224,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
         <Text style={styles.costDetail}>{item.entryCount} {locale === "de" ? item.entryCount === 1 ? "Eintrag" : "Einträge" : item.entryCount === 1 ? "entry" : "entries"}</Text>
       </View>)}</View>
     </>}
+    {!!feedback && <Text accessibilityRole="alert" style={styles.help}>{feedback}</Text>}
     <Text style={styles.sectionTitle}>Angelegte Kosten</Text>
     {visibleCosts.length === 0 ? <Text style={styles.help}>Noch keine Kosten angelegt.</Text> : visibleCosts.map((cost) => <View key={cost.id} style={styles.costRow}>
       <Text style={styles.costName}>{cost.name}</Text>

@@ -8,6 +8,8 @@
   "exports": {
     ".": "./src/energyCalculations.ts",
     "./householdCosts": "./src/householdCosts.ts",
-    "./savingsPlan": "./src/savingsPlan.ts"
+    "./savingsPlan": "./src/savingsPlan.ts",
+    "./planning": "./src/planning.ts",
+    "./usePlanning": "./src/usePlanning.ts"
   }
 }

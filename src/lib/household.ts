@@ -1,3 +1,4 @@
+import { readPlanningData, type PlanningData } from "@eavesence/core/planning";
 import type { SavedDevice, SavedDeviceCurrency } from "./savedDevices";
 import type { HouseholdCost } from "./householdCosts";
 import type { CostEvent } from "./householdInsights";
@@ -30,6 +31,7 @@ export type HouseholdProfile = {
   bufferMonthly?: number;
   goalMonthly?: number;
   savingsActions?: SavingsAction[];
+  planning?: PlanningData;
   electricityCostMigrated?: boolean;
   savingsGoalPercent: number;
   rooms: HouseholdRoom[];
@@ -287,6 +289,7 @@ export function readHouseholdProfile(value: string | null) {
     }
     if (candidate.variableMonthly !== undefined && candidate.variableMonthly !== null &&
       (typeof candidate.variableMonthly !== "number" || !Number.isFinite(candidate.variableMonthly) || candidate.variableMonthly < 0)) return null;
+    if (candidate.planning !== undefined) candidate.planning = readPlanningData(candidate.planning);
     if (candidate.savingsActions !== undefined) {
       candidate.savingsActions = readSavingsActions(candidate.savingsActions);
     }

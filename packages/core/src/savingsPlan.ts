@@ -42,8 +42,8 @@ export function readSavingsActions(value: unknown): SavingsAction[] {
 
 /** Favor an upcoming contract deadline, then the largest recurring review opportunity. */
 export function savingsReviewCandidates(costs: HouseholdCost[], today: string) {
-  const reviewable = costs.filter((cost) => cost.category === "subscriptions" || cost.category === "insurance" || cost.cancellationDeadline);
-  return [...(reviewable.length ? reviewable : costs)].sort((a, b) => {
+  const reviewable = costs.filter((cost) => cost.category === "subscriptions" || cost.category === "insurance" || cost.category === "energy" || cost.cancellationDeadline);
+  return [...reviewable].sort((a, b) => {
     const aUpcoming = Boolean(a.cancellationDeadline && a.cancellationDeadline >= today);
     const bUpcoming = Boolean(b.cancellationDeadline && b.cancellationDeadline >= today);
     if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1;

@@ -208,6 +208,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   await panel.getByRole("button", { name: "Save plan", exact: true }).click();
   await expect(panel).toContainText("Estimated amount left");
   await expect(panel).toContainText("€1,360.00");
+  await panel.getByText("Try a cost change", { exact: true }).click();
   await expect(panel.getByRole("heading", { name: "What if you paid less?" })).toBeVisible();
   await panel.getByLabel("New amount per month").fill("25");
   await expect(panel).toContainText("Lower spending over the next 12 months");
@@ -222,6 +223,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   });
   await page.reload();
   await expect(panel).toContainText("Check-in: Did the amount actually change?");
+  await panel.getByText("Try a cost change", { exact: true }).click();
   await panel.getByRole("button", { name: "Mark as done" }).click();
   await expect(panel).toContainText("marked done by you");
   await expect(panel).toContainText("€180.00");
@@ -230,6 +232,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
 test("EAVESENCE Home onboarding builds a household and records a monthly check-in", async ({
   page,
 }) => {
+  await page.clock.setFixedTime(new Date("2026-09-15T12:00:00Z"));
   await disableHeaderIntro(page);
   await page.goto("/home");
 
@@ -311,6 +314,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     .getByRole("button", { name: "Rent or mortgage payment" })
     .click();
   await householdCosts.getByLabel("Amount").fill("900");
+  if (!await householdCosts.getByLabel("Next payment (optional)").isVisible()) await householdCosts.getByText("More details: category and dates", { exact: true }).click();
   await householdCosts.getByLabel("Next payment (optional)").fill("2026-10-01");
   await householdCosts.getByLabel("Amount").press("Enter");
   await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
@@ -599,6 +603,7 @@ test("My home explains upcoming costs and records a contract review", async ({ p
   await page.getByLabel("Electricity price per kWh").fill("0.35");
   await page.getByLabel("Electricity price per kWh").press("Enter");
 
+  await page.getByText("View payment forecast and insights", { exact: true }).click();
   const insights = page.locator("[data-household-insights]");
   await expect(insights.getByText("0 of 3 recurring costs added.", { exact: false })).toBeVisible();
   await insights.getByRole("button", { name: "Add contract" }).click();
@@ -606,6 +611,7 @@ test("My home explains upcoming costs and records a contract review", async ({ p
   await expect(costs.getByLabel("Name")).toHaveValue("Internet or subscription");
   await costs.getByLabel("Amount").fill("600");
   await costs.getByLabel("How often?").selectOption("yearly");
+  if (!await costs.getByLabel("Next payment (optional)").isVisible()) await costs.getByText("More details: category and dates", { exact: true }).click();
   await costs.getByLabel("Next payment (optional)").fill("2026-10-15");
   await costs.getByLabel("Cancellation deadline (optional, enter yourself)").fill("2026-09-28");
   await costs.getByRole("button", { name: "Save", exact: true }).click();
@@ -1226,23 +1232,12 @@ test.describe("mobile", () => {
     await expect(
       appNavigation.getByRole("link", { name: "Costs" }),
     ).toHaveAttribute("href", "#household-costs");
-    await expect(
-      appNavigation.getByRole("link", { name: "Add" }),
-    ).toHaveAttribute("href", "/#rechner");
-    const energyDestination = appNavigation.getByRole("link", {
-      name: "Energy",
-    });
-    await expect(energyDestination).toHaveAttribute("href", "#energy-overview");
-    await energyDestination.click();
-    await expect(energyDestination).toHaveAttribute("aria-current", "location");
-    await expect(
-      appNavigation.getByRole("button", { name: "Settings" }),
-    ).toHaveCSS("font-size", "11px");
-    await appNavigation.getByRole("button", { name: "Settings" }).click();
+    const planDestination = appNavigation.getByRole("link", { name: "Plan" });
+    await expect(planDestination).toHaveAttribute("href", "#savings-plan");
+    await planDestination.click();
+    await expect(planDestination).toHaveAttribute("aria-current", "location");
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
     await expect(page.getByLabel("Home name")).toBeFocused();
-    await expect(
-      appNavigation.getByRole("button", { name: "Settings" }),
-    ).toHaveAttribute("aria-current", "location");
 
     await context.setOffline(true);
     await expect(
@@ -1263,6 +1258,8 @@ test.describe("mobile", () => {
     await expect(
       page.getByRole("button", { name: "Reserve a beta place" }),
     ).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "All household devices" })).toBeHidden();
+    await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
     await expect(page.getByRole("heading", { name: "All household devices" })).toBeVisible();
     await expect(page.getByText("Calculate your first device above and save it here."))
       .toBeVisible();
@@ -1438,4 +1435,49 @@ test.describe("responsive calculator layout", () => {
       expect(layout.panelsOverlap).toBe(false);
     });
   }
+});
+
+test("planning tools retain goals, reserves and monthly checks and preview a purchase", async ({ page }) => {
+  await disableHeaderIntro(page);
+  await page.goto("/home");
+  await page.getByRole("button", { name: "Create my home" }).click();
+  await page.evaluate(() => {
+    const profile=JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!);
+    const now=new Date();const next=new Date(Date.UTC(now.getFullYear(),now.getMonth()+1,1));const due=new Date(Date.UTC(next.getUTCFullYear(),next.getUTCMonth()+3,15));
+    const start=next.toISOString().slice(0,7);
+    Object.assign(profile,{incomeAmount:2000,incomeFrequency:"monthly",variableMonthly:500,goalMonthly:200,bufferMonthly:0});
+    localStorage.setItem("eavesence-home-profile-v1",JSON.stringify(profile));
+    localStorage.setItem("eavesence-home-costs-v1",JSON.stringify([{id:"rent",name:"Rent",amount:900,category:"housing",frequency:"monthly",nextDueDate:`${start}-01`,updatedAt:now.toISOString()},{id:"insurance",name:"Insurance",amount:600,category:"insurance",frequency:"yearly",nextDueDate:due.toISOString().slice(0,10),updatedAt:now.toISOString()}]));
+    sessionStorage.setItem("goal-target-month",due.toISOString().slice(0,7));
+  });
+  await page.reload();
+  const tools=page.getByRole("region",{name:"Plan ahead"});
+  await tools.getByRole("checkbox").nth(0).check();
+  await tools.getByRole("checkbox").nth(1).check();
+  await tools.getByRole("checkbox").nth(2).check();
+  await tools.getByRole("button",{name:"Complete monthly check"}).click();
+  await expect(tools).toContainText("Reviewed this month");
+  await tools.getByText("Savings goals with a purpose and date",{exact:true}).click();
+  await tools.getByLabel("Goal name",{exact:true}).fill("Holiday");
+  await tools.getByLabel("Target amount",{exact:true}).fill("1200");
+  await tools.getByLabel("Already set aside for this goal",{exact:true}).fill("400");
+  await tools.getByLabel("Target month",{exact:true}).fill(await page.evaluate(()=>sessionStorage.getItem("goal-target-month")!));
+  await tools.getByRole("button",{name:"Save savings goal"}).click();
+  await expect(tools).toContainText("Holiday");
+  await expect(tools).toContainText("Still needed: €200.00 per month");
+  await tools.getByText("Prepare for larger bills",{exact:true}).click();
+  await tools.getByLabel("Already set aside for this bill",{exact:true}).fill("200");
+  await tools.getByRole("button",{name:"Save set-aside amount"}).click();
+  await expect(tools).toContainText("Set aside until then: €100.00 per month");
+  await tools.getByText("Try a one-off purchase",{exact:true}).click();
+  await tools.getByLabel("One-off amount",{exact:true}).fill("800");
+  await tools.getByLabel("Funds available for this purchase (optional)").fill("1200");
+  await expect(tools).toContainText("After purchase in the monthly plan: -€400.00");
+  await expect(tools).toContainText("Your entered available funds would become: €400.00");
+  await page.reload();
+  await expect(tools).toContainText("Reviewed this month");
+  await tools.getByText("Savings goals with a purpose and date",{exact:true}).click();
+  await expect(tools).toContainText("Holiday");
+  await tools.getByText("Prepare for larger bills",{exact:true}).click();
+  await expect(tools.getByLabel("Already set aside for this bill",{exact:true})).toHaveValue("200");
 });
