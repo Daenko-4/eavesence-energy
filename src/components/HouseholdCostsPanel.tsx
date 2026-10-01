@@ -32,7 +32,7 @@ const copy = {
     intro:
       "Lege regelmäßige Kosten einmal an. Jährliche, halbjährliche und quartalsweise Zahlungen rechnen wir automatisch auf einen echten Monatswert um.",
     add: "Kosten hinzufügen",
-    close: "Formular schließen",
+    close: "Einklappen",
     monthly: "Pro Monat",
     yearly: "Pro Jahr",
     suggestions: "Schnell anlegen",
@@ -94,7 +94,7 @@ const copy = {
     intro:
       "Add recurring costs once. We automatically turn yearly, half-yearly and quarterly payments into a true monthly amount.",
     add: "Add cost",
-    close: "Close form",
+    close: "Collapse",
     monthly: "Per month",
     yearly: "Per year",
     suggestions: "Quick setup",
@@ -325,7 +325,9 @@ export default function HouseholdCostsPanel({
           type="button"
           onClick={() => (formOpen ? setFormOpen(false) : openNewCost())}
           className={formOpen ? pillClass : addCostClass}
+          aria-expanded={formOpen}
         >
+          {formOpen && <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m4 10 4-4 4 4" /></svg>}
           {formOpen ? text.close : text.add}
         </button>
       </div>
