@@ -1504,7 +1504,8 @@ for (const width of [320, 390, 1365]) {
     await purchase.getByText("Try a one-off purchase", { exact: true }).click();
     await expect(purchase.getByLabel("Purchase", { exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    const controls = changes.locator("input, select");
+    await page.getByText("Savings goals with a purpose and date", { exact: true }).click();
+    const controls = page.locator("#savings-plan input:not([type=checkbox]), #savings-plan select");
     const bounds = await controls.evaluateAll(elements => elements.map(element => {
       const r = element.getBoundingClientRect();
       return { left: r.left, right: r.right, fontSize: Number.parseFloat(getComputedStyle(element).fontSize) };
@@ -1512,7 +1513,7 @@ for (const width of [320, 390, 1365]) {
     for (const control of bounds) {
       expect(control.left).toBeGreaterThanOrEqual(0);
       expect(control.right).toBeLessThanOrEqual(width);
-      expect(control.fontSize).toBeGreaterThanOrEqual(16);
+      expect(control.fontSize).toBe(width < 768 ? 16 : 13);
     }
   });
 }

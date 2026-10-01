@@ -17,6 +17,10 @@
 
   --text-primary: #0f172a;
   --text-secondary: #64748b;
+
+  --type-field: 0.8125rem;
+  --type-card-title: 0.875rem;
+  --type-section-title: 1.25rem;
 }
 
 html {
@@ -223,7 +227,7 @@ button,
 input,
 select,
 textarea {
-  font: inherit;
+  font-family: inherit;
 }
 
 .home-scenario-option {
@@ -245,8 +249,9 @@ textarea {
   line-height: 1rem;
 }
 
-.home-field {
-  font-size: 0.8125rem;
+.home-field,
+.home-planning-field {
+  font-size: var(--type-field);
   font-weight: 500;
   line-height: 1.25rem;
 }
@@ -346,4 +351,25 @@ a {
   color: #14532d;
 }
 
-.home-planning-field { font-size: 16px; line-height: 24px; }
+/* Shared hierarchy for compact cards and page sections. */
+.site-card-title {
+  font-size: var(--type-card-title);
+  font-weight: 700;
+  line-height: 1.25rem;
+}
+
+.site-section-title {
+  font-size: var(--type-section-title);
+  font-weight: 700;
+  line-height: 1.75rem;
+}
+
+/* Keep touch inputs readable without triggering focus zoom on phones. */
+@media (max-width: 767px), (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]),
+  select,
+  textarea {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
