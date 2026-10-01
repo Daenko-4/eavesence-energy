@@ -1413,10 +1413,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   function openAppSettings() {
     setSettingsOpen(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    window.requestAnimationFrame(() => {
-      document.querySelector<HTMLInputElement>("[data-home-settings] input")?.focus();
-    });
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const section = document.getElementById("home-settings");
+      section?.querySelector("input")?.focus({ preventScroll: true });
+      section?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+    }));
     track("Home App Navigation Used", { locale, destination: "settings" });
   }
 
@@ -1705,14 +1706,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
             <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className="mt-4 flex flex-wrap items-center gap-3">
-              <button type="button" className={`${homePrimaryActionClass} home-outlined-action`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
-              <button type="button" className={homeDashboardActionClass} onClick={openIncomeForm}>{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
-              <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} className={homeDashboardActionClass}>{text.settings}</button>
+              <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
+              <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={openIncomeForm} aria-expanded={incomeOpen} aria-controls="home-income-form">{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
+              <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} aria-controls="home-settings" className={`${homeDashboardActionClass} home-outlined-action`}>{text.settings}</button>
             </div>
           </div>
 
           {settingsOpen && (
-            <section data-home-settings className={`mt-6 p-5 ${homeSurfaceClass}`}>
+            <section id="home-settings" data-home-settings className={`mt-6 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
               <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }} className="grid gap-4 sm:grid-cols-4">
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
@@ -2007,7 +2008,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </div>
           )}
 
-          <details className="mt-5 rounded-xl border border-[#dfe5dd] p-4"><summary className="cursor-pointer text-[14px] font-bold">{locale === "de" ? "Zahlungsvorschau und Auswertungen ansehen" : "View payment forecast and insights"}</summary>
+          <details className="home-disclosure mt-5 rounded-xl border border-[#dfe5dd] p-4"><summary className="cursor-pointer text-[14px] font-bold">{locale === "de" ? "Zahlungsvorschau und Auswertungen ansehen" : "View payment forecast and insights"}</summary>
           <HouseholdInsightsPanel
             locale={locale}
             currency={profile.currency}

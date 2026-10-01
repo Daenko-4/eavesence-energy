@@ -322,7 +322,7 @@ export default function DevicesPage({
       lang={locale}
       className="min-h-screen bg-[var(--brand-off-white)] text-[#17211f]"
     >
-      <Header locale={locale} />
+      <Header locale={locale} languageHrefOverride={locale === "de" ? "/en/devices" : "/geraete"} />
 
       <main>
         {/* Hero */}

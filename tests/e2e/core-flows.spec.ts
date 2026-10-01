@@ -518,11 +518,11 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
   const compactActions = [
-    { action: page.getByRole("button", { name: "Settings", exact: true }), fontSize: "11px" },
-    { action: page.getByRole("button", { name: "Save settings" }), fontSize: "11px" },
-    { action: page.locator("[data-manage-data-import]"), fontSize: "11px" },
+    { action: page.getByRole("button", { name: "Settings", exact: true }), fontSize: "11px", background: "rgba(0, 0, 0, 0)" },
+    { action: page.getByRole("button", { name: "Save settings" }), fontSize: "11px", background: "rgb(221, 248, 233)" },
+    { action: page.locator("[data-manage-data-import]"), fontSize: "11px", background: "rgb(221, 248, 233)" },
   ];
-  for (const { action, fontSize } of compactActions) {
+  for (const { action, fontSize, background } of compactActions) {
     const style = await action.evaluate((element) => {
       const computed = getComputedStyle(element);
       return {
@@ -531,7 +531,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
         fontSize: computed.fontSize,
       };
     });
-    expect(style.backgroundColor).toBe("rgb(221, 248, 233)");
+    expect(style.backgroundColor).toBe(background);
     expect(style.borderRadius).toBeGreaterThan(10);
     expect(style.fontSize).toBe(fontSize);
   }
