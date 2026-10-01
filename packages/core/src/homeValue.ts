@@ -303,7 +303,7 @@ export function importCosts(
           amount: parseMoney(d.amount),
           category: d.category,
           frequency: d.frequency,
-          nextDueDate: d.nextDueDate,
+          nextDueDate: d.nextDueDate || old?.nextDueDate || "",
           tileId: old?.tileId,
           cancellationDeadline: old?.cancellationDeadline,
         })

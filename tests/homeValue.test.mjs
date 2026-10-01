@@ -94,7 +94,7 @@ test("bank CSV ignores income, groups repeated expenses and leaves unknown recur
 });
 test("import requires explicit duplicate update and preserves tile/deadline, rejects currency and invalid rows atomically", () => {
   const old = {
-    ...cost("Internet", 40, "monthly", ""),
+    ...cost("Internet", 40, "monthly", "2026-11-05"),
     tileId: "custom",
     cancellationDeadline: "2026-12-01",
   };
@@ -111,6 +111,7 @@ test("import requires explicit duplicate update and preserves tile/deadline, rej
   const next = importCosts([{ ...draft, matchId: old.id }], [old], "EUR");
   assert.equal(next[0].amount, 35);
   assert.equal(next[0].tileId, "custom");
+  assert.equal(next[0].nextDueDate, "2026-11-05");
   assert.equal(next[0].cancellationDeadline, "2026-12-01");
   assert.throws(() =>
     importCosts([{ ...draft, name: "New", currency: "CHF" }], [old], "EUR"),

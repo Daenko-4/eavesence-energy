@@ -321,6 +321,14 @@ export default function CostImportPanel({
                         )}
                       </label>
                     )}
+                    {match && (
+                      <p className="mt-1 text-[11px] text-[#52605b]">
+                        {t(
+                          "Ohne neuen Zahlungstermin bleibt der bisherige Termin erhalten.",
+                          "Without a new payment date, the existing date is kept.",
+                        )}
+                      </p>
+                    )}
                     <button
                       type="button"
                       disabled={busy}
