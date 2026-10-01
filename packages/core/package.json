@@ -10,6 +10,9 @@
     "./householdCosts": "./src/householdCosts.ts",
     "./savingsPlan": "./src/savingsPlan.ts",
     "./planning": "./src/planning.ts",
-    "./usePlanning": "./src/usePlanning.ts"
+    "./usePlanning": "./src/usePlanning.ts",
+    "./homeValue": "./src/homeValue.ts",
+    "./useCashWindow": "./src/useCashWindow.ts",
+    "./useSavingsCoach": "./src/useSavingsCoach.ts"
   }
 }

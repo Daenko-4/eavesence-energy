@@ -18,13 +18,14 @@ export type SavingsAction = {
   effectiveMonth: string;
   status: "planned" | "confirmed";
   confirmedAt?: string;
+  nextDueDate?: string;
 };
 
 const validMonth = (value: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
 
 export function createSavingsAction(cost: HouseholdCost, newAmount: number, effectiveMonth: string): SavingsAction | null {
   if (!validMonth(effectiveMonth) || !Number.isFinite(newAmount) || newAmount < 0 || newAmount >= cost.amount) return null;
-  return { costId: cost.id, name: cost.name, frequency: cost.frequency, originalAmount: cost.amount, newAmount, effectiveMonth, status: "planned" };
+  return { costId: cost.id, name: cost.name, frequency: cost.frequency, originalAmount: cost.amount, newAmount, effectiveMonth, nextDueDate: cost.nextDueDate, status: "planned" };
 }
 
 export function readSavingsActions(value: unknown): SavingsAction[] {
@@ -37,6 +38,7 @@ export function readSavingsActions(value: unknown): SavingsAction[] {
     typeof item.newAmount === "number" && Number.isFinite(item.newAmount) && item.newAmount >= 0 && item.newAmount < item.originalAmount &&
     typeof item.effectiveMonth === "string" && validMonth(item.effectiveMonth) &&
     (item.status === "planned" || item.status === "confirmed") &&
+    (item.nextDueDate === undefined || item.nextDueDate === "" || /^\d{4}-\d{2}-\d{2}$/.test(item.nextDueDate)) &&
     (item.confirmedAt === undefined || (typeof item.confirmedAt === "string" && !Number.isNaN(Date.parse(item.confirmedAt)))));
 }
 

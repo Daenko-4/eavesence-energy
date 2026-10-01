@@ -36,3 +36,14 @@ export async function enableMonthlyReminder(locale: "de" | "en" = "de") {
   });
   return true;
 }
+
+export async function scheduleCostReview(cost: {id:string;name:string;cancellationDeadline?:string},de:boolean) {
+ if(!cost.cancellationDeadline)return false;
+ const date=new Date(`${cost.cancellationDeadline}T09:00:00`);date.setDate(date.getDate()-3);
+ if(date<=new Date())date.setTime(Date.now()+60000);
+ const permission=await Notifications.requestPermissionsAsync();if(!permission.granted)return false;
+ const identifier=`eavesence-review-${cost.id}`;
+ await Notifications.cancelScheduledNotificationAsync(identifier);
+ await Notifications.scheduleNotificationAsync({identifier,content:{title:de?'EAVESENCE · Kosten prüfen':'EAVESENCE · Review cost',body:`${cost.name} · ${de?'Frist':'Deadline'}: ${cost.cancellationDeadline}`},trigger:{type:Notifications.SchedulableTriggerInputTypes.DATE,date}});
+ return true;
+}
