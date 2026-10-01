@@ -232,6 +232,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
 test("EAVESENCE Home onboarding builds a household and records a monthly check-in", async ({
   page,
 }) => {
+  await page.clock.setFixedTime(new Date("2026-09-15T12:00:00Z"));
   await disableHeaderIntro(page);
   await page.goto("/home");
 
