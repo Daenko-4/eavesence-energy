@@ -21,7 +21,7 @@ const fieldClass =
 const pillClass =
   "eavesence-pill-button home-dashboard-action active:scale-[0.98]";
 const addCostClass =
-  "eavesence-pill-button home-dashboard-action !bg-[var(--brand-green)] !px-3.5 !py-1.5 !text-white shadow-[0_8px_18px_-12px_rgba(8,122,69,0.9)] transition hover:!bg-[var(--brand-green-dark)] active:scale-[0.98]";
+  "eavesence-pill-button home-dashboard-action home-outlined-action active:scale-[0.98]";
 const dangerClass =
   "home-danger-action inline-flex min-h-6 items-center justify-center gap-1 rounded-full border-0 bg-red-50 px-3 py-1 text-red-600 transition hover:bg-red-100 hover:text-red-700";
 
@@ -32,7 +32,7 @@ const copy = {
     intro:
       "Lege regelmäßige Kosten einmal an. Jährliche, halbjährliche und quartalsweise Zahlungen rechnen wir automatisch auf einen echten Monatswert um.",
     add: "Kosten hinzufügen",
-    close: "Einklappen",
+    close: "Formular einklappen",
     monthly: "Pro Monat",
     yearly: "Pro Jahr",
     suggestions: "Schnell anlegen",
@@ -94,7 +94,7 @@ const copy = {
     intro:
       "Add recurring costs once. We automatically turn yearly, half-yearly and quarterly payments into a true monthly amount.",
     add: "Add cost",
-    close: "Collapse",
+    close: "Hide form",
     monthly: "Per month",
     yearly: "Per year",
     suggestions: "Quick setup",
@@ -210,6 +210,7 @@ export default function HouseholdCostsPanel({
   currency,
   costs,
   embedded = false,
+  tileTitle,
   request,
   onChange,
 }: {
@@ -217,6 +218,7 @@ export default function HouseholdCostsPanel({
   currency: SavedDeviceCurrency;
   costs: HouseholdCost[];
   embedded?: boolean;
+  tileTitle?: string;
   request?: { costId?: string; template?: HouseholdCostCategory; nonce: number };
   onChange: (costs: HouseholdCost[]) => void;
 }) {
@@ -312,10 +314,10 @@ export default function HouseholdCostsPanel({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
-            {text.eyebrow}
+            {tileTitle ? (locale === "de" ? "Gewählter Kostenbereich" : "Selected cost area") : text.eyebrow}
           </p>
           <h2 className="mt-1 text-xl font-extrabold tracking-[-0.03em]">
-            {text.title}
+            {tileTitle ?? text.title}
           </h2>
           <p className="mt-2 text-[13px] leading-6 text-[#65716d]">
             {text.intro}
@@ -326,6 +328,7 @@ export default function HouseholdCostsPanel({
           onClick={() => (formOpen ? setFormOpen(false) : openNewCost())}
           className={formOpen ? pillClass : addCostClass}
           aria-expanded={formOpen}
+          aria-controls="household-cost-form"
         >
           {formOpen && <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m4 10 4-4 4 4" /></svg>}
           {formOpen ? text.close : text.add}
@@ -362,7 +365,7 @@ export default function HouseholdCostsPanel({
       )}
 
       {formOpen && (
-        <form onSubmit={(event) => { event.preventDefault(); saveCost(); }} className="mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
+        <form id="household-cost-form" onSubmit={(event) => { event.preventDefault(); saveCost(); }} className="mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
           <h3 className="text-[14px] font-bold">
             {editingId ? text.formEdit : text.formNew}
           </h3>

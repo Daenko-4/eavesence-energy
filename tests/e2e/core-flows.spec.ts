@@ -298,7 +298,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await insuranceTile.getByRole("button", { name: "Rename" }).click();
   await page.getByLabel("Tile name").fill("Insurance & contracts");
   await page.getByRole("button", { name: "Save name" }).click();
-  await expect(page.getByText("Insurance & contracts", { exact: true })).toBeVisible();
+  await expect(insuranceTile.getByText("Insurance & contracts", { exact: true })).toBeVisible();
   const installCard = page.getByRole("region", {
     name: "Install EAVESENCE as an app",
   });
@@ -310,7 +310,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(installCard).toHaveCount(0);
   const householdCosts = page.locator("#household-costs");
   await expect(
-    householdCosts.getByRole("heading", { name: "What does your home really cost?" }),
+    householdCosts.getByRole("heading", { name: "Insurance & contracts", exact: true }),
   ).toBeVisible();
   await householdCosts
     .getByRole("button", { name: "Rent or mortgage payment" })
@@ -1599,4 +1599,37 @@ test('native document reader waits for app context and returns reviewed costs th
  await page.getByRole('button',{name:'Kosten übernehmen statt abtippen'}).click();await page.getByText('Text einfügen / CSV-Beispiel',{exact:true}).click();await page.getByLabel('Rechnungstext',{exact:true}).fill('Internet\nGesamtbetrag 39,90 EUR\nmonatlich');await page.getByRole('button',{name:'Vorschlag erstellen'}).click();await page.getByRole('button',{name:'Geprüfte Kosten übernehmen'}).click();
  const result=await page.evaluate(()=>(window as Window&{importResult?:unknown}).importResult);expect(result).toEqual([expect.objectContaining({name:'Internet',amount:39.9,frequency:'monthly'})]);
  expect(await page.evaluate(()=>localStorage.getItem('eavesence-home-costs-v1'))).toBeNull();
+});
+
+
+for (const width of [320, 1365]) test(`home actions reveal their editor and keep saved costs visible at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 });
+  await page.goto('/home');
+  await page.getByRole('button', { name: 'Create my home' }).click();
+  const actions = page.getByRole('group', { name: 'Home actions', exact: true });
+  await actions.getByRole('button', { name: 'Add income', exact: true }).click();
+  const income = page.locator('#home-income-form');
+  await expect(income.getByLabel('Net income', { exact: true })).toBeFocused();
+  await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().top)).toBeGreaterThanOrEqual(80);
+  await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(300);
+  await income.getByLabel('Net income', { exact: true }).fill('2500');
+  await income.getByRole('button', { name: 'Save', exact: true }).click();
+  await actions.getByRole('button', { name: 'Edit income', exact: true }).click();
+  await expect(income.getByLabel('Net income', { exact: true })).toBeFocused();
+  await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(300);
+  await actions.getByRole('button', { name: 'Add cost', exact: true }).click();
+  const costs = page.locator('#household-costs');
+  await expect(costs.getByRole('heading', { name: 'Household costs', exact: true })).toBeVisible();
+  await costs.getByLabel('Name', { exact: true }).fill('Test internet');
+  await costs.getByLabel('Amount', { exact: true }).fill('39');
+  await costs.getByRole('button', { name: 'Save', exact: true }).click();
+  await costs.getByRole('button', { name: 'Add cost', exact: true }).click();
+  await costs.getByRole('button', { name: 'Hide form', exact: true }).click();
+  await expect(page.locator('#household-cost-form')).toHaveCount(0);
+  await expect(costs).toContainText('Test internet');
+  await expect(page.locator('[data-home-tiles] button[aria-expanded="true"]').first()).toContainText('Household costs');
+  const style = await actions.getByRole('button', { name: 'Add cost', exact: true }).evaluate(el => ({ background: getComputedStyle(el).backgroundColor, border: getComputedStyle(el).borderTopWidth }));
+  expect(style.background).toBe('rgba(0, 0, 0, 0)');
+  expect(style.border).toBe('1px');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
