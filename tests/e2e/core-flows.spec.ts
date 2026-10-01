@@ -1623,7 +1623,7 @@ for (const width of [320, 1365]) test(`home actions reveal their editor and keep
   await costs.getByLabel('Name', { exact: true }).fill('Test internet');
   await costs.getByLabel('Amount', { exact: true }).fill('39');
   await costs.getByRole('button', { name: 'Save', exact: true }).click();
-  await costs.getByRole('button', { name: 'Add cost', exact: true }).click();
+  await costs.locator('button[aria-controls="household-cost-form"]').click();
   await costs.getByRole('button', { name: 'Hide form', exact: true }).click();
   await expect(page.locator('#household-cost-form')).toHaveCount(0);
   await expect(costs).toContainText('Test internet');
