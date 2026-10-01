@@ -1644,13 +1644,17 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       <Header locale={locale} languageHrefOverride={languageHref} />
       <main id="home-overview" className="scroll-mt-20 px-5 pb-20 pt-10 sm:px-6 sm:pt-14">
         <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
             <div>
               <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">EAVESENCE Home</p>
               <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
-            <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} className={`${homeDashboardActionClass} w-fit`}>{text.settings}</button>
+            <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className="mt-4 flex flex-wrap items-center gap-3">
+              <button type="button" className={homePrimaryActionClass} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
+              <button type="button" className={homeDashboardActionClass} onClick={() => { setIncomeOpen(true); document.getElementById("home-overview")?.scrollIntoView({ behavior: "smooth" }); }}>{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
+              <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} className={homeDashboardActionClass}>{text.settings}</button>
+            </div>
           </div>
 
           {settingsOpen && (
@@ -1792,7 +1796,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
 
 
-          <div className="mt-5 flex flex-wrap gap-3"><button type="button" className={homePrimaryActionClass} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button><button type="button" className={homeDashboardActionClass} onClick={() => { setIncomeOpen(true); document.getElementById("home-overview")?.scrollIntoView({ behavior: "smooth" }); }}>{locale === "de" ? "Einkommen eintragen / ändern" : "Add / update income"}</button></div>
+
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
               <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
