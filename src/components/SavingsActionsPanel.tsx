@@ -5,7 +5,8 @@ import { compareSavingsActions, createSavingsAction, savingsReviewCandidates, ty
 import { monthlyCost, type HouseholdCostFrequency } from "@eavesence/core/householdCosts";
 import type { Locale } from "@/i18n/config";
 
-export default function SavingsActionsPanel({ locale, currency, input, actions, onChange }: {
+export default function SavingsActionsPanel({ locale, currency, input, actions, onChange, embedded = false }: {
+  embedded?: boolean;
   locale: Locale;
   currency: string;
   input: SavingsPlanInput;
@@ -45,18 +46,18 @@ export default function SavingsActionsPanel({ locale, currency, input, actions, 
     setError(""); setAmount("");
   }
 
-  return <div className="mt-5 rounded-xl border border-[#cddbd0] bg-white p-4">
-    <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">{de ? "DEIN NÄCHSTER SCHRITT" : "YOUR NEXT STEP"}</p>
-    <h3 className="mt-1 text-[17px] font-extrabold">{de ? "Was wäre, wenn du weniger zahlst?" : "What if you paid less?"}</h3>
+  return <div className={embedded ? "mt-4 border-t border-[#dfe5dd] pt-4" : "mt-5 rounded-xl border border-[#cddbd0] bg-white p-4"}>
+    {!embedded && <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand-green)]">{de ? "DEIN NÄCHSTER SCHRITT" : "YOUR NEXT STEP"}</p>}
+    <h3 className="mt-1 text-[15px] font-bold">{de ? "Was wäre, wenn du weniger zahlst?" : "What if you paid less?"}</h3>
     <p className="mt-1 text-[12px] leading-5 text-[#52605b]">{de ? "Teste eine günstigere Ausgabe oder eine Kündigung. Wir zeigen dir die mögliche Ersparnis. Deine eingetragenen Kosten werden dabei nicht geändert." : "Try a lower cost or a cancellation to see the possible saving. Your recorded costs stay the same."}</p>
     {suggested && <p className="mt-3 text-[12px] text-[#52605b]">{de ? "Vorschlag zum Start" : "Suggested starting point"}: <strong>{suggested.name}</strong>.</p>}
     {input.costs.length > 0 ? <>
-      <label className="mt-4 grid gap-1 text-[12px] font-semibold text-[#52605b]">{de ? "1. Welche Ausgabe?" : "1. Which cost?"}<select value={selected?.id ?? ""} onChange={(event) => { setCostId(event.target.value); setAmount(""); }} className="min-h-11 rounded-xl border border-[#cddbd0] bg-white px-3 text-[15px] text-[#17211f]">{input.costs.map((cost) => <option key={cost.id} value={cost.id}>{cost.name} · {money(cost.amount)} {cadence(cost.frequency)}</option>)}</select></label>
+      <label className="mt-4 grid gap-1 text-[12px] font-semibold text-[#52605b]">{de ? "1. Welche Ausgabe?" : "1. Which cost?"}<select value={selected?.id ?? ""} onChange={(event) => { setCostId(event.target.value); setAmount(""); }} className="home-planning-field min-h-11 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[15px] text-[#17211f]">{input.costs.map((cost) => <option key={cost.id} value={cost.id}>{cost.name} · {money(cost.amount)} {cadence(cost.frequency)}</option>)}</select></label>
       <p className="mt-3 text-[12px] font-semibold text-[#52605b]">{de ? "2. Wie möchtest du sparen?" : "2. How would you save?"}</p>
       <div className="mt-2 flex flex-wrap gap-2">{(["reduce", "stop"] as const).map((value) => <button type="button" key={value} onClick={() => setMode(value)} aria-pressed={mode === value} className={`home-scenario-option rounded-full ${mode === value ? "bg-[#087a45] text-white" : "bg-[#eefbf3] text-[#087a45]"}`}>{value === "reduce" ? de ? "Betrag reduzieren" : "Reduce amount" : de ? "Ausgabe streichen" : "Remove expense"}</button>)}</div>
       <p className="mt-2 text-[12px] text-[#52605b]">{mode === "reduce" ? de ? "Die Ausgabe bleibt bestehen, aber du planst einen niedrigeren Betrag ein." : "Keep this expense, but plan a lower payment." : de ? "Diese Ausgabe fällt künftig weg, zum Beispiel nach einer Kündigung. Wir rechnen ab dem gewählten Monat mit 0." : "This expense will end, for example after cancellation. We use 0 from the selected month."}</p>
-      {mode === "reduce" && <label className="mt-3 grid max-w-sm gap-1 text-[12px] font-semibold text-[#52605b]">{de ? `Neuer Betrag ${selected ? cadence(selected.frequency) : ""}` : `New amount ${selected ? cadence(selected.frequency) : ""}`}<input inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder={de ? "z. B. 25" : "e.g. 25"} className="min-h-11 rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" /></label>}
-      <label className="mt-3 grid max-w-sm gap-1 text-[12px] font-semibold text-[#52605b]">{de ? "3. Ab welchem Monat zahlst du weniger?" : "3. From which month will you pay less?"}<select value={effectiveMonth} onChange={(event) => setEffectiveMonth(event.target.value)} className="min-h-11 rounded-xl border border-[#cddbd0] bg-white px-3 text-[15px] text-[#17211f]">{months.map((value) => <option key={value} value={value}>{month(value)}</option>)}</select></label>
+      {mode === "reduce" && <label className="mt-3 grid max-w-sm gap-1 text-[12px] font-semibold text-[#52605b]">{de ? `Neuer Betrag ${selected ? cadence(selected.frequency) : ""}` : `New amount ${selected ? cadence(selected.frequency) : ""}`}<input inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder={de ? "z. B. 25" : "e.g. 25"} className="home-planning-field min-h-11 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" /></label>}
+      <label className="mt-3 grid max-w-sm gap-1 text-[12px] font-semibold text-[#52605b]">{de ? "3. Ab welchem Monat zahlst du weniger?" : "3. From which month will you pay less?"}<select value={effectiveMonth} onChange={(event) => setEffectiveMonth(event.target.value)} className="home-planning-field min-h-11 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[15px] text-[#17211f]">{months.map((value) => <option key={value} value={value}>{month(value)}</option>)}</select></label>
       <p className="mt-2 text-[11px] text-[#52605b]">{de ? "Wähle den Monat, ab dem der neue Preis gilt oder die Kündigung wirksam ist." : "Choose the month when the new price or cancellation takes effect."}</p>
       {selected?.cancellationDeadline && <p className="mt-3 text-[12px] font-semibold text-amber-800">{de ? "Eingetragene Kündigungsfrist" : "Saved cancellation deadline"}: {selected.cancellationDeadline.split("-").reverse().join(".")}{selected.cancellationDeadline < today ? de ? " · bereits vergangen – Vertrag prüfen" : " · passed – check the contract" : ""}</p>}
       {preview && selected && <div className="mt-3 rounded-xl bg-[#eefbf3] p-4 text-[#17211f]">
