@@ -1651,7 +1651,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
             <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className="mt-4 flex flex-wrap items-center gap-3">
-              <button type="button" className={homePrimaryActionClass} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
+              <button type="button" className={`${homePrimaryActionClass} !bg-[var(--brand-green)] !text-white hover:!bg-[var(--brand-green-dark)]`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
               <button type="button" className={homeDashboardActionClass} onClick={() => { setIncomeOpen(true); document.getElementById("home-overview")?.scrollIntoView({ behavior: "smooth" }); }}>{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
               <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} className={homeDashboardActionClass}>{text.settings}</button>
             </div>
