@@ -1622,6 +1622,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     persistProfile({...profile,savingsActions:next.actions,updatedAt:new Date().toISOString()});
   }
 
+  function openIncomeForm() {
+    setIncomeOpen(true);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const form = document.getElementById("home-income-form");
+      form?.querySelector("input")?.focus({ preventScroll: true });
+      form?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+    }));
+  }
+
   function openCostForm(cost?: HouseholdCost, template?: HouseholdCostCategory) {
     const tile = cost?.tileId
       ? homeTiles.find((item) => item.id === cost.tileId)
@@ -1662,8 +1671,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
             <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className="mt-4 flex flex-wrap items-center gap-3">
-              <button type="button" className={`${homePrimaryActionClass} !bg-[#24272c] !text-white hover:!bg-[#363b42]`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
-              <button type="button" className={homeDashboardActionClass} onClick={() => { setIncomeOpen(true); document.getElementById("home-overview")?.scrollIntoView({ behavior: "smooth" }); }}>{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
+              <button type="button" className={`${homePrimaryActionClass} home-outlined-action`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
+              <button type="button" className={homeDashboardActionClass} onClick={openIncomeForm}>{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
               <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} className={homeDashboardActionClass}>{text.settings}</button>
             </div>
           </div>
@@ -1790,7 +1799,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <button type="button" onClick={() => setIncomeOpen((open) => !open)} aria-expanded={incomeOpen} className="eavesence-pill-link mt-auto self-start">{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
                 </div>
                 {incomeOpen && (
-                  <form onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-3 grid gap-2">
+                  <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-3 grid scroll-mt-24 gap-2">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financeIncomeAmount}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<select value={incomeFrequency} onChange={(event) => setIncomeFrequency(event.target.value as "monthly" | "yearly")} className={homeFieldClass}><option value="monthly">{text.financeMonthly}</option><option value="yearly">{text.financeYearly}</option></select></label>
                     {incomeError && <p role="alert" className="text-[11px] text-red-700">{incomeError}</p>}
@@ -1817,7 +1826,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <p className="mt-1 text-[13px] leading-6 text-[#65716d]">{text.workspaceText}</p>
             </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-home-tiles>
+              <div className="mt-4 grid gap-3 rounded-2xl bg-[#24272c] p-3 sm:grid-cols-2 lg:grid-cols-4" data-home-tiles>
                 {homeTiles.map((tile) => {
                   const active = activeTileId === tile.id;
                   const title = tile.title ?? text.tileTitles[tile.kind];
@@ -1841,16 +1850,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                         setDraggedTileId(null);
                       }}
                       onDragEnd={() => setDraggedTileId(null)}
-                      className={`group relative cursor-grab rounded-xl border transition active:cursor-grabbing ${draggedTileId === tile.id ? "opacity-50" : ""} ${active ? "border-[var(--brand-green)] bg-[#dcfce8] shadow-[0_12px_28px_-24px_rgba(20,122,75,0.78)]" : "border-[#dfe5dd] bg-[#fbfcf8] hover:border-[#b8efcc] hover:bg-[#f5fbf7]"}`}
+                      className={`group relative cursor-grab rounded-xl border transition active:cursor-grabbing ${draggedTileId === tile.id ? "opacity-50" : ""} ${active ? "border-[var(--brand-green)] bg-[#dcfce8] shadow-[0_12px_28px_-24px_rgba(20,122,75,0.78)]" : "border-[#464c53] bg-[#30343a] hover:border-[#72dca3] hover:bg-[#383e45]"}`}
                     >
                       <span title={text.reorderTile} aria-label={text.reorderTile} className="pointer-events-none absolute right-3 top-3 text-[#94a09b]">
                         <svg viewBox="0 0 10 16" className="h-4 w-2.5" fill="currentColor" aria-hidden="true"><circle cx="2" cy="3" r="1" /><circle cx="8" cy="3" r="1" /><circle cx="2" cy="8" r="1" /><circle cx="8" cy="8" r="1" /><circle cx="2" cy="13" r="1" /><circle cx="8" cy="13" r="1" /></svg>
                       </span>
                       <button type="button" onClick={() => { setCostRequest(null); setActiveTileId(active ? null : tile.id); }} aria-expanded={active} className="block w-full px-4 pb-3 pt-4 pr-10 text-left">
-                        {tile.title && <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">{text.tileTitles[tile.kind]}</span>}
-                        <span className={`${tile.title ? "mt-1.5 " : ""}block text-[14px] font-extrabold ${active ? "text-[var(--brand-green)]" : "text-[#17211f]"}`}>{title}</span>
-                        <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{text.tileHints[tile.kind]}</span>
-                        <span className="mt-3 block text-[12px] font-bold text-[var(--brand-green)]">{homeTileSummary(tile)}</span>
+                        {tile.title && <span className={`block text-[11px] font-semibold uppercase tracking-[0.08em] ${active ? "text-[#52605b]" : "text-[#c3cbc7]"}`}>{text.tileTitles[tile.kind]}</span>}
+                        <span className={`${tile.title ? "mt-1.5 " : ""}block text-[14px] font-extrabold ${active ? "text-[var(--brand-green)]" : "text-white"}`}>{title}</span>
+                        <span className={`mt-1 block text-[11px] leading-4 ${active ? "text-[#52605b]" : "text-[#c3cbc7]"}`}>{text.tileHints[tile.kind]}</span>
+                        <span className={`mt-3 block text-[12px] font-bold ${active ? "text-[var(--brand-green)]" : "text-[#72dca3]"}`}>{homeTileSummary(tile)}</span>
                       </button>
                       {active && tile.kind !== "energy" && (
                         <div className="flex items-center gap-1 border-t border-[#b8efcc] px-3 py-1.5">
@@ -1861,11 +1870,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     </article>
                   );
                 })}
-                <button type="button" onClick={openNewTileForm} className="group flex min-h-[132px] items-center justify-center rounded-xl border border-dashed border-[#aebbb2] bg-transparent px-4 py-3 text-center transition hover:border-[var(--brand-green)] hover:bg-[#f3fbf6]">
+                <button type="button" onClick={openNewTileForm} className="group flex min-h-[132px] items-center justify-center rounded-xl border border-dashed border-[#65716d] bg-transparent px-4 py-3 text-center transition hover:border-[var(--brand-green)] hover:bg-[#383e45]">
                   <span>
                     <span aria-hidden="true" className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-[#dcfce8] text-[16px] text-[var(--brand-green)] transition group-hover:bg-[var(--brand-green)] group-hover:text-white">+</span>
-                    <span className="mt-2 block text-[13px] font-bold text-[#52605b]">{text.addTile}</span>
-                    <span className="mt-1 block text-[11px] text-[#7a8782]">{text.addTileHint}</span>
+                    <span className="mt-2 block text-[13px] font-bold text-white">{text.addTile}</span>
+                    <span className="mt-1 block text-[11px] text-[#c3cbc7]">{text.addTileHint}</span>
                   </span>
                 </button>
               </div>
@@ -1958,6 +1967,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             currency={profile.currency}
             costs={costsForTile(activeTile.id)}
             embedded
+            tileTitle={activeTile.title ?? text.tileTitles[activeTile.kind]}
             request={costRequest ?? undefined}
             onChange={(nextCosts) => persistCostsForTile(activeTile.id, nextCosts)}
           />
@@ -1987,7 +1997,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             actions={profile.savingsActions}
             planning={profile.planning}
             onSavePlanning={(planning) => persistProfile({ ...profile, planning, updatedAt: new Date().toISOString() })}
-            onEditIncome={() => { setIncomeOpen(true); document.getElementById("home-overview")?.scrollIntoView({ behavior: "smooth" }); }}
+            onEditIncome={openIncomeForm}
             onEditCosts={() => { setCostRequest(null); activateTileKind("costs"); window.setTimeout(() => document.getElementById("household-costs")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
             onSave={(values) => persistProfile({ ...profile, ...values, updatedAt: new Date().toISOString() })}
             onConfirmAction={confirmSaving}

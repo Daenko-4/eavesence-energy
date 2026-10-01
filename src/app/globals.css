@@ -375,3 +375,15 @@ a {
     line-height: 1.5rem;
   }
 }
+
+/* Quiet entry actions retain the shared pill sizing. */
+.eavesence-pill-button.home-outlined-action {
+  border: 1px solid #aebbb2;
+  background: transparent;
+  color: #24272c;
+  box-shadow: none;
+}
+.eavesence-pill-button.home-outlined-action:hover {
+  border-color: var(--brand-green);
+  background: #eefbf3;
+}
