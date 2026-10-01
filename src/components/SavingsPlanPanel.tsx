@@ -76,10 +76,7 @@ export default function SavingsPlanPanel({ locale, currency, incomeMonthly, cost
         <p className="mt-3">{de ? `${result.undatedCount} Kosten ohne Termin werden monatlich gemittelt. Die Monatswerte sind eine Vorschau mit deinen heutigen Angaben.` : `${result.undatedCount} undated costs use a monthly average. These monthly figures are a forecast based on your current entries.`}</p>
       </details>
 
-      <PlanningWorkbench input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} />
-      <details className="mt-4"><summary className="cursor-pointer text-[14px] font-bold">{de ? "Eine Kostenänderung durchspielen" : "Try a cost change"}</summary>
-      <SavingsActionsPanel locale={locale} currency={currency} input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} />
-      </details>
+      <PlanningWorkbench input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} costChange={<SavingsActionsPanel embedded locale={locale} currency={currency} input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} />} />
     </>}
   </section>;
 }

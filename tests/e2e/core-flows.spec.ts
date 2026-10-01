@@ -1481,3 +1481,38 @@ test("planning tools retain goals, reserves and monthly checks and preview a pur
   await tools.getByText("Prepare for larger bills",{exact:true}).click();
   await expect(tools.getByLabel("Already set aside for this bill",{exact:true})).toHaveValue("200");
 });
+
+for (const width of [320, 390, 1365]) {
+  test(`planning cards remain connected and independent at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await disableHeaderIntro(page);
+    await page.goto("/home");
+    await page.getByRole("button", { name: "Create my home" }).click();
+    const changes = page.getByRole("region", { name: "Try changes", exact: true });
+    const cards = changes.locator("details");
+    await expect(cards).toHaveCount(2);
+    const purchase = cards.nth(0);
+    const costChange = cards.nth(1);
+    const before = await purchase.boundingBox();
+    await costChange.getByText("Try a cost change", { exact: true }).click();
+    await expect(costChange.getByRole("heading", { name: "What if you paid less?" })).toBeVisible();
+    const after = await purchase.boundingBox();
+    expect(after?.height).toBe(before?.height);
+    const costBounds = await costChange.boundingBox();
+    if (width >= 1024) expect(costBounds?.y).toBe(after?.y);
+    else expect(costBounds!.y).toBeGreaterThan(after!.y + after!.height);
+    await purchase.getByText("Try a one-off purchase", { exact: true }).click();
+    await expect(purchase.getByLabel("Purchase", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    const controls = changes.locator("input, select");
+    const bounds = await controls.evaluateAll(elements => elements.map(element => {
+      const r = element.getBoundingClientRect();
+      return { left: r.left, right: r.right, fontSize: Number.parseFloat(getComputedStyle(element).fontSize) };
+    }));
+    for (const control of bounds) {
+      expect(control.left).toBeGreaterThanOrEqual(0);
+      expect(control.right).toBeLessThanOrEqual(width);
+      expect(control.fontSize).toBeGreaterThanOrEqual(16);
+    }
+  });
+}
