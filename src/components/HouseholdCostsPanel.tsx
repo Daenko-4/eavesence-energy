@@ -387,7 +387,7 @@ export default function HouseholdCostsPanel({
             </label>
 
           </div>
-          <details open={Boolean(editingId)} className="mt-3 text-[12px]"><summary className="cursor-pointer font-semibold">{locale === "de" ? "Weitere Angaben: Kategorie und Termine" : "More details: category and dates"}</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <details open={Boolean(editingId)} className="home-disclosure mt-3 text-[12px]"><summary className="cursor-pointer font-semibold">{locale === "de" ? "Weitere Angaben: Kategorie und Termine" : "More details: category and dates"}</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">
               {text.category}
               <select value={category} onChange={(event) => setCategory(event.target.value as HouseholdCostCategory)} className={fieldClass}>

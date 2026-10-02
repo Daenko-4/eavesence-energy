@@ -25,7 +25,7 @@ export default function DatenschutzPage() {
       className="min-h-screen bg-[var(--brand-off-white)] text-[#17211f]"
     >
       <ScrollToTopOnMount />
-      <Header />
+      <Header languageHrefOverride="/en/privacy" />
 
       <main className="mx-auto max-w-3xl px-5 py-10 sm:px-6 sm:py-12">
         <div className="mt-8">

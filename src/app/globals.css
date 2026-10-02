@@ -379,6 +379,7 @@ a {
 /* Quiet entry actions retain the shared pill sizing. */
 .eavesence-pill-button.home-outlined-action {
   border: 1px solid #aebbb2;
+  padding-block: calc(0.25rem - 1px);
   background: transparent;
   color: #24272c;
   box-shadow: none;
@@ -386,4 +387,37 @@ a {
 .eavesence-pill-button.home-outlined-action:hover {
   border-color: var(--brand-green);
   background: #eefbf3;
+}
+
+/* Planning disclosures share the site's plus-to-cross interaction. */
+.home-disclosure > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.75rem;
+  align-items: center;
+  list-style: none;
+  cursor: pointer;
+}
+.home-disclosure > summary::-webkit-details-marker { display: none; }
+.home-disclosure > summary > span { grid-column: 1; }
+.home-disclosure > summary::after {
+  content: "+";
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--brand-green);
+  font-size: 1.125rem;
+  font-weight: 300;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform 180ms ease;
+}
+.home-disclosure[open] > summary::after { transform: rotate(-45deg); }
+.home-disclosure > summary:focus-visible {
+  outline: 2px solid var(--brand-green-mint);
+  outline-offset: 4px;
+  border-radius: 0.25rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-disclosure > summary::after { transition: none; }
 }
