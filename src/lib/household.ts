@@ -100,7 +100,7 @@ export type HouseholdVisitState = {
 const backupTileKinds: HomeTileKind[] = ["energy", "costs"];
 
 function defaultBackupTiles(): HomeTile[] {
-  return backupTileKinds.map((kind) => ({
+  return (["costs"] as HomeTileKind[]).map((kind) => ({
     id: `default-${kind}`,
     kind,
     title: null,
@@ -128,9 +128,7 @@ function readBackupTiles(value: unknown): HomeTile[] | null {
       tile.kind !== "energy" ||
       index === tiles.findIndex((item) => item.kind === "energy"),
   );
-  return uniqueTiles.some((tile) => tile.kind === "energy")
-    ? uniqueTiles
-    : [defaultBackupTiles()[0], ...uniqueTiles];
+  return uniqueTiles;
 }
 
 export const DEFAULT_ROOM_NAMES = {

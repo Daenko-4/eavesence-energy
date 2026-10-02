@@ -4,6 +4,14 @@ async function disableHeaderIntro(page: Page) {
   await page.emulateMedia({ reducedMotion: "reduce" });
 }
 
+async function openEnergyTile(page: Page) {
+  const tile = page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first();
+  if (await tile.count()) {
+    if (await tile.getAttribute("aria-expanded") === "false") await tile.click();
+  } else await page.evaluate(() => { window.location.hash = "home-devices"; });
+  await expect(page.locator("#home-devices")).toBeVisible();
+}
+
 async function openDesktopNavigation(page: Page) {
   const logo = page.locator('a[aria-expanded]').first();
   await expect(logo).toHaveAttribute("aria-expanded", "true", {
@@ -243,7 +251,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeVisible();
   await page.getByLabel("Home name").fill("Test home");
   await page.getByLabel("Home name").press("Enter");
-  await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
+  await openEnergyTile(page);
   await page.getByRole("button", { name: /Electricity Calculator/ }).click();
   await page.getByLabel("Electricity price per kWh").fill("0.35");
   await page.getByLabel("Electricity price per kWh").press("Enter");
@@ -345,7 +353,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
       JSON.parse(window.localStorage.getItem("eavesence-home-costs-v1") ?? "[]"),
     ),
   ).toHaveLength(0);
-  await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
+  await openEnergyTile(page);
   await page.getByRole("button", { name: /Monthly values & history/ }).click();
   const nextStep = page.getByRole("region", { name: "Next step" });
   await expect(nextStep).toContainText("September 2026 still open");
@@ -371,6 +379,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(
     page.getByText("The monthly calendar reminder was downloaded."),
   ).toBeVisible();
+  await openEnergyTile(page);
   const devicesTile = page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first();
   if (await devicesTile.getByRole("button").first().getAttribute("aria-expanded") === "false") {
     await devicesTile.getByRole("button").first().click();
@@ -407,7 +416,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   });
   await page.reload();
 
-  await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
+  await openEnergyTile(page);
   const householdDevices = page.locator("#home-devices");
   await expect(householdDevices).toContainText("3 saved devices");
   await expect(householdDevices.getByText("Coffee machine", { exact: true })).toBeVisible();
@@ -564,6 +573,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeLessThanOrEqual(1);
   expect(manageDataTextTops.exportAction).toBe(manageDataTextTops.action);
   expect(manageDataTextTops.resetAction).toBe(manageDataTextTops.action);
+  await openEnergyTile(page);
   const electricityTileButton = page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first();
   if (await electricityTileButton.getAttribute("aria-expanded") === "false") await electricityTileButton.click();
   const electricityCalculator = page.getByRole("button", { name: /Electricity Calculator/ });
@@ -600,7 +610,7 @@ test("My home explains upcoming costs and records a contract review", async ({ p
   await page.goto("/home");
   await page.getByLabel("Home name").fill("Review home");
   await page.getByLabel("Home name").press("Enter");
-  await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
+  await openEnergyTile(page);
   await page.getByRole("button", { name: /Electricity Calculator/ }).click();
   await page.getByLabel("Electricity price per kWh").fill("0.35");
   await page.getByLabel("Electricity price per kWh").press("Enter");
@@ -730,7 +740,7 @@ test("calculator updates live and a saved calculation can be deleted", async ({
     savedDevices.getByText("1 saved device", { exact: true }),
   ).toBeVisible();
   await expect(
-    savedDevices.getByRole("link", { name: "View in My home" }),
+    savedDevices.getByRole("link", { name: "Add an energy tile to My Home" }),
   ).toHaveAttribute("href", "/home#home-devices");
   await expect(savedDevices.getByText("Coffee machine", { exact: true }))
     .toHaveCount(0);
@@ -765,7 +775,7 @@ test("calculator updates live and a saved calculation can be deleted", async ({
       }),
     );
   });
-  await savedDevices.getByRole("link", { name: "View in My home" }).click();
+  await savedDevices.getByRole("link", { name: "Add an energy tile to My Home" }).click();
   await expect(page).toHaveURL(/\/home#home-devices$/);
   const householdDevices = page.locator("#home-devices");
   await expect(householdDevices.getByText("Coffee machine", { exact: true }))
@@ -1261,7 +1271,7 @@ test.describe("mobile", () => {
       page.getByRole("button", { name: "Reserve a beta place" }),
     ).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "All household devices" })).toBeHidden();
-    await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
+    await openEnergyTile(page);
     await expect(page.getByRole("heading", { name: "All household devices" })).toBeVisible();
     await expect(page.getByText("Calculate your first device above and save it here."))
       .toBeVisible();
@@ -1328,7 +1338,7 @@ test.describe("mobile", () => {
     await page.goto("/home");
 
   await expect(page.getByRole("heading", { name: "Mobile home" })).toBeVisible();
-  await page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first().click();
+  await openEnergyTile(page);
   await expect(page.locator("#home-devices").getByText("Refrigerator", { exact: true }))
     .toBeVisible();
   await expect(page.getByRole("heading", { name: "Kitchen" })).toHaveCount(0);
@@ -1677,4 +1687,18 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   await customTile.getByRole('button').first().click();
   await expect(costs).toContainText('Private insurance');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+ test("new homes start with costs only and add energy when explicitly requested", async ({ page }) => {
+  await page.goto("/home");
+  await page.getByLabel("Home name").fill("Simple home");
+  await page.getByLabel("Home name").press("Enter");
+  const tiles = page.locator("[data-home-tiles] article");
+  await expect(tiles).toHaveCount(1);
+  await expect(tiles.first()).toContainText("Household costs");
+  await expect(page.getByRole("link", { name: "Open energy calculator", exact: true })).toBeVisible();
+  await openEnergyTile(page);
+  await expect(tiles).toHaveCount(2);
+  await page.reload();
+  await expect(tiles).toHaveCount(2);
 });

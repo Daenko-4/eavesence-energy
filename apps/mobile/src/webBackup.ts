@@ -15,7 +15,6 @@ export function convertWebBackup(json: string): MobileBackup | null {
     title: tile.title ?? (tile.kind === "energy" ? "Strom & Geräte" : "Haushaltskosten"),
   }));
   if (!tiles.some((tile) => tile.id === "default-costs")) tiles.push({ id: "default-costs", kind: "costs", title: "Haushaltskosten" });
-  if (!tiles.some((tile) => tile.id === "default-energy")) tiles.unshift({ id: "default-energy", kind: "energy", title: "Strom & Geräte" });
   const knownIds = new Set(tiles.filter((tile) => tile.kind === "costs").map((tile) => tile.id));
   const devices = source.devices.map((device) => ({
     id: device.id,

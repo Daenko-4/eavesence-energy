@@ -6,6 +6,34 @@ export const LocaleContext = createContext<MobileLocale>("de");
 export const useMobileLocale = () => useContext(LocaleContext);
 
 const en: Record<string, string> = {
+  "Mein Zuhause": "My home",
+  "Haushaltskosten": "Household costs",
+  "Stromrechner": "Energy",
+  "STROMRECHNER": "ENERGY CALCULATOR",
+  "Was kostet dein Gerät?": "What does your device cost?",
+  "GERÄT BEARBEITEN": "EDIT DEVICE",
+  "NEUES GERÄT": "NEW DEVICE",
+  "Gerät aktualisieren": "Update device",
+  "Sprache, Währung und deine Daten an einem Ort.": "Language, currency and your data in one place.",
+  "Tastatur schließen": "Hide keyboard",
+  "Stromkachel in My Home öffnen": "Open energy tile in My Home",
+  "Stromkachel zu My Home hinzufügen": "Add energy tile to My Home",
+  "Gerät berechnen": "Calculate a device",
+  "Ein freiwilliges Extra: Geräte berechnen und bei Bedarf als eigene Kachel in My Home übernehmen. Die Schätzung wird nicht zusätzlich zu deinen Fixkosten abgezogen.": "An optional extra: calculate device costs and add a dedicated tile to My Home if useful. Estimates are not deducted again from your fixed costs.",
+  "pro Jahr": "per year",
+  "pro Jahr · ": "per year · ",
+  " % der erfassten Gerätekosten": " % of recorded device costs",
+  "MONATSÜBERBLICK": "MONTHLY OVERVIEW",
+  "NÄCHSTER SCHRITT": "NEXT STEP",
+  "Deine erste Monatsbasis steht": "Your first monthly baseline is saved",
+  "Verbrauch nahezu unverändert": "Usage is almost unchanged",
+  "Aktiv · jeden 1. um 9:00 Uhr": "Active · on the 1st at 09:00",
+  "Optional · jeden 1. um 9:00 Uhr": "Optional · on the 1st at 09:00",
+  "App-Navigation": "App navigation",
+  "Vorheriger Monat": "Previous month",
+  "Nächster Monat": "Next month",
+  "Kauf nicht möglich": "Purchase unavailable",
+
   "Angaben prüfen": "Check your entries",
   "Gib einen Namen, einen Strompreis über 0 und ein Sparziel zwischen 1 und 50 % ein.": "Enter a name, a positive electricity price and an energy savings target between 1 and 50%.",
   "Start fehlgeschlagen": "Could not start",
@@ -131,9 +159,14 @@ const en: Record<string, string> = {
   "Rest nach festen Kosten, Alltag und Puffer; das Sparziel ist darin noch enthalten. Monate unter deinem Sparziel: ": "Remaining after fixed costs, everyday spending and buffer; the savings goal is not yet deducted. Months below your goal: ",
 };
 
+const normalizedEnglish = new Map(Object.entries(en).map(([key, value]) => [key.trim(), value.trim()]));
+
 export function localize(locale: MobileLocale, value: string): string {
   if (locale === "de") return value;
-  return en[value] ?? value;
+  if (en[value]) return en[value];
+  const trimmed = value.trim();
+  const translation = normalizedEnglish.get(trimmed);
+  return translation ? value.replace(trimmed, translation) : value;
 }
 
 export function LocalizedText({ children, ...props }: ComponentProps<typeof NativeText>) {

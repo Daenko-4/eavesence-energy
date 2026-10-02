@@ -6,6 +6,7 @@ import {
   createSavingsPlan,
   type SavingsPlanInput,
 } from "@eavesence/core/savingsPlan";
+import { FormSection } from "./FormSection";
 import { FormInput } from "./FormInput";
 import { LocalizedText as Text, useMobileLocale } from "./i18n";
 export function PaydayScreen({
@@ -119,7 +120,7 @@ export function PaydayScreen({
         </Pressable>
       </View>
       {open && (
-        <View style={styles.form}>
+        <FormSection style={styles.form} onSave={p.save} saveLabel={t("Guthaben bestätigen & berechnen", "Confirm balance & calculate")}>
           <Text style={styles.note}>
             {t(
               "Guthaben nach bereits bezahlten Rechnungen eintragen. Zahlungen für heute zählen als offen; passe deren nächste Fälligkeit an, falls bezahlt. Das nächste Gehalt wird noch nicht dazugezählt.",
@@ -256,7 +257,7 @@ export function PaydayScreen({
               )}
             </View>
           )}
-        </View>
+        </FormSection>
       )}
     </View>
   );

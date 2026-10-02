@@ -94,7 +94,7 @@ const copy = {
     householdTitle: "Alle Verbraucher im Haushalt",
     householdDescription:
       "Hier findest du alle gespeicherten Geräte – berechnet mit dem Strompreis deines Haushalts.",
-    viewHome: "In Mein Zuhause ansehen",
+    viewHome: "Als Stromkachel zu My Home hinzufügen",
     addDevice: "Gerät hinzufügen",
   },
   en: {
@@ -146,7 +146,7 @@ const copy = {
     householdTitle: "All household devices",
     householdDescription:
       "All saved devices are collected here using your household electricity price.",
-    viewHome: "View in My home",
+    viewHome: "Add an energy tile to My Home",
     addDevice: "Add device",
   },
 } as const;
@@ -523,6 +523,7 @@ function MyDevicesPanel(
             {text.viewHome}
           </a>
         </div>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">{locale === "de" ? "Optional: Deine gespeicherten Geräte erscheinen gesammelt in einer eigenen Stromkachel. Geräteschätzungen werden nicht zusätzlich von deinem Monatsbudget abgezogen." : "Optional: your saved devices appear together in a dedicated energy tile. Device estimates are not deducted again from your monthly budget."}</p>
       </section>
     );
   }
