@@ -806,6 +806,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const tileFormRef = useRef<HTMLDivElement>(null);
   const newTileButtonRef = useRef<HTMLButtonElement>(null);
   const tileNameInputRef = useRef<HTMLInputElement>(null);
+  const lastRequestedHash = useRef<string | null>(null);
 
   useEffect(() => {
     if (tileFormOpen) tileNameInputRef.current?.focus();
@@ -953,8 +954,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }, [locale, ready, savedDevices.length]);
 
   useEffect(() => {
+    if (!ready || !profile) return;
     function openRequestedDetail() {
       const hash = window.location.hash;
+      if (!hash) { lastRequestedHash.current = null; return; }
+      if (lastRequestedHash.current === hash) return;
+      lastRequestedHash.current = hash;
       const requestedKind: HomeTileKind | null =
         hash === "#household-costs"
           ? "costs"
@@ -988,7 +993,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         window.requestAnimationFrame(() => {
           window.requestAnimationFrame(() => {
             document.getElementById(hash.slice(1))?.scrollIntoView({
-              behavior: "smooth",
+              behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
               block: "start",
             });
           });
@@ -999,7 +1004,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     openRequestedDetail();
     window.addEventListener("hashchange", openRequestedDetail);
     return () => window.removeEventListener("hashchange", openRequestedDetail);
-  }, [homeTiles, text.tileTitles]);
+  }, [homeTiles, text.tileTitles, ready, profile]);
 
   const summary = useMemo(
     () => (profile ? calculateHouseholdSummary(savedDevices, profile) : null),

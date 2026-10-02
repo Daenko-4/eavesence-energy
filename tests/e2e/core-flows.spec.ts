@@ -277,9 +277,12 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     cards.map((card) => card.getBoundingClientRect().height),
   );
   expect(new Set(collapsedHeights).size).toBe(1);
-  const paymentPill = await householdOverview.getByRole("button", { name: "Scheduled payments" }).boundingBox();
-  const incomePill = await householdOverview.getByRole("button", { name: "Edit income" }).boundingBox();
-  expect(Math.abs((paymentPill?.y ?? 0) - (incomePill?.y ?? 0))).toBeLessThan(1);
+  const actionTops = await householdOverview.evaluate(section => {
+    const buttons = Array.from(section.querySelectorAll("button"));
+    return ["Scheduled payments", "Edit income"].map(label => buttons.find(button => button.textContent?.trim() === label)?.getBoundingClientRect().top);
+  });
+  expect(actionTops.every(top => top !== undefined)).toBe(true);
+  expect(Math.abs(actionTops[0]! - actionTops[1]!)).toBeLessThan(1);
   await householdOverview.getByRole("button", { name: "Scheduled payments" }).click();
   await expect(householdOverview).toContainText("Add due dates to your costs");
   const expandedHeights = await financeCards.evaluateAll((cards) =>
@@ -1699,6 +1702,19 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   await expect(page.getByRole("link", { name: "Open energy calculator", exact: true })).toBeVisible();
   await openEnergyTile(page);
   await expect(tiles).toHaveCount(2);
+  const costsTile = tiles.filter({ hasText: "Household costs" }).first().getByRole("button").first();
+  await costsTile.click();
+  await page.getByRole("button", { name: "Add income", exact: true }).first().click();
+  await page.getByLabel("Net income", { exact: true }).first().fill("2500");
+  await page.getByLabel("Net income", { exact: true }).first().press("Enter");
+  await expect(costsTile).toHaveAttribute("aria-expanded", "true");
   await page.reload();
   await expect(tiles).toHaveCount(2);
+  await page.getByRole("button", { name: /New tile/ }).click();
+  await page.getByLabel("Tile name", { exact: true }).fill("Insurance");
+  await page.locator("#home-tile-form").getByRole("button", { name: "Create tile", exact: true }).click();
+  await expect(tiles).toHaveCount(3);
+  await page.reload();
+  await expect(tiles).toHaveCount(3);
+  await expect(tiles.filter({ hasText: "Insurance" })).toHaveCount(1);
 });
