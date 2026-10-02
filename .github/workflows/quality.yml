@@ -35,10 +35,14 @@ jobs:
       - name: Run lint, unit tests, TypeScript and build
         run: npm run check
 
-      - name: Check free beta configuration and iOS bundle
-        run: |
-          npm run mobile:beta:check
-          npx expo export ./apps/mobile --platform ios --output-dir /tmp/eavesence-ios-beta
+      - name: Check free beta configuration
+        run: npm run mobile:beta:check
+
+      - name: Bundle standalone iOS beta
+        working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_PURCHASES_ENABLED: "false"
+        run: npx expo export --platform ios --output-dir /tmp/eavesence-ios-beta
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium

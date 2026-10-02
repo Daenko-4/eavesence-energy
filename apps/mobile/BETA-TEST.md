@@ -12,10 +12,9 @@ From the repository root:
 npm ci
 npm run check
 npm run mobile:beta:check
-
-npx expo export .\apps\mobile --platform ios --output-dir .\ios-beta-export
 Set-Location .\apps\mobile
 npx expo install --check
+npx expo export --platform ios --output-dir ..\..\ios-beta-export
 npx eas-cli login
 npx eas-cli init
 node ..\..\scripts\mobile-beta-preflight.mjs --require-linked

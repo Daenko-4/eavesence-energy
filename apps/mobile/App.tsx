@@ -715,7 +715,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             <Text style={styles.eyebrow}>EAVESENCE HOME</Text>
             <Text style={styles.hero}>Was bleibt dir nächsten Monat?</Text>
             <Text style={styles.body}>Erfasse dein Nettoeinkommen und deine festen Kosten. EAVESENCE zeigt dir, welche Zahlungen anstehen und was übrig bleibt.</Text>
-            <PrimaryButton label={localize(locale, "Jetzt starten")} onPress={() => void createHome()} />
+            <PrimaryButton label={localize(locale, "Jetzt starten")} onPress={createHome} />
             <View style={styles.languageRow}>{(["de", "en"] as const).map(item => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: locale === item }} onPress={() => void changeLanguage(item)} style={[styles.financePill, locale === item && styles.choiceSelected]}><Text style={styles.financePillText}>{item === "de" ? "Deutsch" : "English"}</Text></Pressable>)}</View>
             <Text style={styles.privateText}>Ohne Konto · lokal gespeichert · jederzeit löschbar</Text>
           </ScrollView>
@@ -899,7 +899,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             <Pressable accessibilityRole="button" accessibilityState={{expanded:toolsOpen}} onPress={() => setToolsOpen(!toolsOpen)} style={styles.financePill}><Text style={styles.financePillText}>{locale === "de" ? "Weitere Planung: Ziele, Rücklagen & Monatscheck" : "More planning: goals, reserves & monthly check"}</Text></Pressable>
             {toolsOpen && <>            <PlanningScreen input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} data={profile.planning} onSave={savePlanning} currency={profile.currency ?? "EUR"} onEditCosts={openMainCosts} onEditBudget={() => { setBudgetOpen(true); scrollRef.current?.scrollTo({ y: 0, animated: true }); }} /></>}
           </>}
-          {isPro ? <Text style={styles.proActive}>Pro aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Text style={styles.financeNote}>Ein kostenpflichtiges Abo ist derzeit nicht verfügbar.</Text>}
+          {isPro ? <Text style={styles.proActive}>Pro aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Text style={styles.financeNote}>{locale === "de" ? "Pro-Vorschau: Alle Planungsfunktionen sind in dieser Beta kostenlos. Es wird kein Abo abgeschlossen." : "Pro preview: all planning tools are free in this beta. No subscription is started."}</Text>}
           {packages.length > 0 && <Pressable onPress={() => void restorePro().then(setIsPro).catch(() => showLocalizedAlert(locale,"Wiederherstellung fehlgeschlagen", "Bitte versuche es erneut."))}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable>}
         </View></>}
       </ScrollView></KeyboardScrollContext.Provider>
