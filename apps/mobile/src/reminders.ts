@@ -10,8 +10,11 @@ async function scheduledReminders() {
 export async function monthlyReminderIsActive() {
   const requests = await scheduledReminders();
   return requests.some((request) => {
-    const trigger = request.trigger;
-    return request.content.data?.eavesenceMonthlyCheck === true && trigger !== null && "type" in trigger && trigger.type === "monthly";
+    // iOS serializes MONTHLY as a repeating calendar trigger; Android keeps monthly.
+    const trigger = request.trigger as unknown as { type?: string; repeats?: boolean; dateComponents?: { day?: number; hour?: number; minute?: number; month?: number; year?: number } } | null;
+    const monthly = trigger?.type === "monthly";
+    const calendar = trigger?.type === "calendar" && trigger.repeats === true && trigger.dateComponents?.day === 1 && trigger.dateComponents.hour === 9 && trigger.dateComponents.minute === 0 && trigger.dateComponents.month == null && trigger.dateComponents.year == null;
+    return request.content.data?.eavesenceMonthlyCheck === true && (monthly || calendar);
   });
 }
 

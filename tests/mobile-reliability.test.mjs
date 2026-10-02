@@ -75,3 +75,14 @@ test('Reminder detection is language independent and reset removes owned reminde
   await r.disableAllReminders();
   assert.deepEqual(scheduled.map(n => n.identifier), ['other']);
 });
+
+test('iPhone monthly reminder remains active after native calendar serialization', async () => {
+  const request = { identifier: 'monthly', content: { title: 'EAVESENCE monthly check', data: { eavesenceMonthlyCheck: true } }, trigger: { type: 'calendar', repeats: true, dateComponents: { day: 1, hour: 9, minute: 0 } } };
+  const r = productionModule('reminders', { 'expo-notifications': { getAllScheduledNotificationsAsync: async () => [request] } });
+  assert.equal(await r.monthlyReminderIsActive(), true);
+  request.trigger.repeats = false;
+  assert.equal(await r.monthlyReminderIsActive(), false);
+  request.trigger.repeats = true;
+  request.trigger.dateComponents.year = 2026;
+  assert.equal(await r.monthlyReminderIsActive(), false);
+});
