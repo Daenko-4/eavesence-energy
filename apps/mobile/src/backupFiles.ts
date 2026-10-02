@@ -4,12 +4,12 @@ import * as Sharing from "expo-sharing";
 
 import type { MobileBackup } from "./backup";
 
-export async function shareBackup(backup: MobileBackup) {
+export async function shareBackup(backup: MobileBackup, locale: "de" | "en" = "de") {
   if (!(await Sharing.isAvailableAsync())) throw new Error("Sharing unavailable");
   const file = new File(Paths.cache, `eavesence-home-${backup.exportedAt.slice(0, 10)}.json`);
   file.create({ overwrite: true });
   file.write(JSON.stringify(backup, null, 2));
-  await Sharing.shareAsync(file.uri, { mimeType: "application/json", dialogTitle: "EAVESENCE-Sicherung speichern" });
+  await Sharing.shareAsync(file.uri, { mimeType: "application/json", dialogTitle: locale === "de" ? "EAVESENCE-Sicherung speichern" : "Save EAVESENCE backup" });
 }
 
 export async function pickBackup(): Promise<string | null> {

@@ -6,6 +6,7 @@ import Purchases, {
 let configured = false;
 
 export function configureSubscriptions() {
+  if (process.env.EXPO_PUBLIC_PURCHASES_ENABLED === "false") return false;
   const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;
   if (!apiKey || configured) return false;
 

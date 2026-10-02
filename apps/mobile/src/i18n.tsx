@@ -102,7 +102,7 @@ const en: Record<string, string> = {
   "Jetzt starten": "Get started", "Angaben schließen": "Close options", "Name und Strompreis anpassen": "Change name and electricity price",
   "BLICK AUF DEN NÄCHSTEN MONAT": "LOOKING AHEAD", "Bearbeiten": "Edit", "EAVESENCE HOME": "EAVESENCE HOME", "SPRACHE / LANGUAGE": "LANGUAGE",
   "Name deines Zuhauses": "Name your home", "Strompreis pro kWh (€)": "Electricity price per kWh", "Sparziel (%)": "Savings target (%)",
-  "Einstellungen": "Settings", "Schließen": "Close", "Einstellungen speichern": "Save settings", "Name": "Name",
+  "Einstellungen": "Settings", "Öffnen fehlgeschlagen": "Could not open", "Schließen": "Close", "Einstellungen speichern": "Save settings", "Name": "Name",
   "Alltagsausgaben pro Monat (optional)": "Everyday spending per month (optional)", "Sicherheitspuffer pro Monat": "Monthly buffer", "Gewünschter Sparbetrag pro Monat": "Monthly savings goal",
   "Gerät suchen": "Search devices", "Gerätename": "Device name", "Leistung in Watt": "Power in watts", "Minuten pro Nutzung": "Minutes per use", "Nutzungen pro Woche": "Uses per week",
   "kWh je Nutzung (Energielabel: kWh/Jahr)": "kWh per use (energy label: kWh/year)", "Gemessene kWh je Nutzung": "Measured kWh per use", "Verbrauch in kWh": "Usage in kWh",

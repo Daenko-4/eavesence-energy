@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useCashWindow } from "@eavesence/core/useCashWindow";
 import type { PlanningData } from "@eavesence/core/planning";
 import type { SavingsPlanInput } from "@eavesence/core/savingsPlan";
-import { createSavingsPlan } from "@eavesence/core/savingsPlan";
 const field =
   "home-planning-field h-11 min-w-0 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[#17211f]";
 export default function PaydayPanel({
@@ -34,8 +33,7 @@ export default function PaydayPanel({
       month: "short",
       timeZone: "UTC",
     }).format(new Date(`${s}T00:00:00Z`));
-  const monthly = createSavingsPlan(input),
-    complete =
+  const complete =
       !!p.forecast &&
       p.forecast.missingDates === 0 &&
       p.forecast.remaining !== null;
@@ -47,8 +45,8 @@ export default function PaydayPanel({
       <div className="bg-[#24272c] p-5 text-white sm:p-6">
         <p className="text-[11px] font-bold uppercase tracking-widest text-[#72dca3]">
           {complete
-            ? t("BIS ZUM NÄCHSTEN GEHALT", "UNTIL YOUR NEXT PAYDAY")
-            : t("DEIN MONATSPLAN", "YOUR MONTHLY PLAN")}
+            ? t("01 · BIS ZUM NÄCHSTEN GEHALT", "01 · UNTIL YOUR NEXT PAYDAY")
+            : t("01 · BIS ZUM NÄCHSTEN GEHALT", "01 · UNTIL YOUR NEXT PAYDAY")}
         </p>
         <h2 className="mt-2 site-section-title">
           {complete
@@ -56,14 +54,12 @@ export default function PaydayPanel({
                 `Was bleibt bis ${day(p.cash!.payday)}?`,
                 `What is left until ${day(p.cash!.payday)}?`,
               )
-            : t("Was bleibt dir im Monat?", "What is left each month?")}
+            : t("Was kann ich bis zum nächsten Gehalt ausgeben?", "What can I spend until my next payday?")}
         </h2>
         <p className="mt-2 text-[28px] font-extrabold tracking-tight">
           {complete
             ? money(p.forecast!.remaining!)
-            : input.incomeMonthly > 0 && input.variableMonthly !== null
-              ? money(monthly?.averageRoom ?? 0)
-              : "—"}
+            : "—"}
         </p>
         <p className="mt-2 max-w-2xl text-[12px] leading-5 text-[#d1d7d4]">
           {complete
@@ -72,8 +68,8 @@ export default function PaydayPanel({
                 "Estimated after upcoming payments, everyday spending and money you want to keep untouched.",
               )
             : t(
-                "Einkommen minus durchschnittliche Fixkosten, Alltagsschätzung und freiwillige Reserve. Für die Gehaltsvorschau ergänze dein heutiges Guthaben und den nächsten Gehaltstermin.",
-                "Income minus average fixed costs, everyday estimate and optional reserve. Add today’s balance and your next payday for a forecast until then.",
+                "Für diese Vorschau brauchen wir dein heutiges Guthaben und den nächsten Gehaltstermin. Dein Monatsdurchschnitt steht unten in der Planungsbasis.",
+                "This forecast needs today’s balance and your next payday. Your monthly average is shown below in the planning basics.",
               )}
         </p>
         {p.stale && (

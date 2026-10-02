@@ -23,6 +23,7 @@ export function SavingsCoachScreen({
   onConfirm,
   onReview,
   currency,
+  mode = "all",
 }: {
   input: SavingsPlanInput;
   actions: SavingsAction[];
@@ -32,6 +33,7 @@ export function SavingsCoachScreen({
   onConfirm: (a: SavingsAction) => Promise<void>;
   onReview: (c: HouseholdCost) => void;
   currency: string;
+  mode?: "all" | "opportunities" | "progress";
 }) {
   const de = useMobileLocale() === "de",
     t = (a: string, b: string) => (de ? a : b),
@@ -82,17 +84,19 @@ export function SavingsCoachScreen({
       );
     }
   }
+  const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
     <View style={styles.card}>
       <Text style={styles.title}>
-        {t("Dein Sparassistent", "Your savings assistant")}
+        {mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
       </Text>
       <Text style={styles.note}>
-        {t(
+        {mode === "progress" ? t("Nur umgesetzte und bestätigte Änderungen zählen. Der Betrag ist aus deinen Angaben berechnet, nicht über ein Bankkonto nachgewiesen.", "Only completed, confirmed changes count. The amount is calculated from your entries, not verified against a bank account.") : t(
           "Prüfen → Änderung vormerken → Umsetzung bestätigen. Höchstens drei nächste Aufgaben.",
           "Review → plan a change → confirm it happened. Up to three next tasks.",
         )}
       </Text>
+      {mode === "progress" && !shownActions.length && <Text style={styles.note}>{t("Noch keine bestätigte Ersparnis. Plane eine konkrete Kostenänderung und bestätige sie erst nach der Umsetzung.", "No confirmed savings yet. Plan a specific cost change and confirm it after it happens.")}</Text>}
       {p.outdated.length > 0 && (
         <Text style={styles.error}>
           {t(
@@ -101,7 +105,7 @@ export function SavingsCoachScreen({
           )}
         </Text>
       )}
-      {actions.some((a) => a.status === "confirmed") && (
+      {mode !== "opportunities" && actions.some((a) => a.status === "confirmed") && (
         <View style={styles.dark}>
           <Text style={styles.light}>
             {t(
@@ -118,7 +122,7 @@ export function SavingsCoachScreen({
           </Text>
         </View>
       )}
-      {!p.tasks.length && !actions.length && (
+      {mode !== "progress" && !p.tasks.length && !actions.length && (
         <Text style={styles.note}>
           {t(
             "Ergänze Abos, Energie- oder Versicherungskosten, damit passende Aufgaben entstehen.",
@@ -126,7 +130,7 @@ export function SavingsCoachScreen({
           )}
         </Text>
       )}
-      {p.tasks.map((c) => (
+      {(mode === "progress" ? [] : p.tasks).map((c) => (
         <View key={c.id} style={styles.box}>
           <Text style={styles.title}>{c.name}</Text>
           <Text style={styles.note}>
@@ -160,7 +164,7 @@ export function SavingsCoachScreen({
           </View>
         </View>
       ))}
-      {p.selected && (
+      {mode !== "progress" && p.selected && (
         <FormSection style={styles.box} onSave={p.plan} saveLabel={t("Änderung vormerken", "Save this plan")}>
           <Text style={styles.title}>
             {p.selected.name} · {t("Bisher", "Current")}:{" "}
@@ -201,7 +205,7 @@ export function SavingsCoachScreen({
           </View>
         </FormSection>
       )}
-      {actions.map((a) => (
+      {shownActions.map((a) => (
         <View key={a.costId} style={styles.box}>
           <Text style={styles.title}>{a.name}</Text>
           <Text style={styles.note}>
@@ -279,11 +283,11 @@ const styles = StyleSheet.create({
   note: { fontSize: 12, lineHeight: 18, color: "#52605b" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   button: {
-    minHeight: 38,
+    minHeight: 44,
     padding: 10,
     borderRadius: 20,
     alignSelf: "flex-start",
-    backgroundColor: "#dff7e9",
+    backgroundColor: "#fff", borderWidth: 1, borderColor: "#dfe5dd",
   },
   buttonText: { fontSize: 12, fontWeight: "700", color: "#087a45" },
   box: { padding: 12, gap: 8, borderRadius: 12, backgroundColor: "#f4f6f2" },

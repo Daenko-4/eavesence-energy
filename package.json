@@ -20,7 +20,8 @@
     "mobile:ios": "npm --workspace @eavesence/mobile run ios",
     "typecheck:mobile": "npm --workspace @eavesence/mobile run typecheck",
     "prebuild": "node scripts/prepare-import.mjs",
-    "predev": "node scripts/prepare-import.mjs"
+    "predev": "node scripts/prepare-import.mjs",
+    "mobile:beta:check": "node scripts/mobile-beta-preflight.mjs"
   },
   "dependencies": {
     "@eavesence/core": "*",

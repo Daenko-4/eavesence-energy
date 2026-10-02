@@ -507,7 +507,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(septemberEntry).toHaveCount(0);
 
   const savingsPlan = page.locator("#savings-plan");
-  await expect(savingsPlan.getByRole("heading", { name: "Your 12-month savings plan" })).toBeVisible();
+  await expect(savingsPlan.getByRole("heading", { name: "Your monthly planning basics" })).toBeVisible();
   await savingsPlan.getByLabel("Everyday spending per month (estimate)").fill("500");
   await savingsPlan.getByText("More options: optional reserve", { exact: true }).click();
   await savingsPlan.getByLabel("Optional reserve per month").fill("100");
@@ -1268,7 +1268,7 @@ test.describe("mobile", () => {
     expect((navigationBounds?.x ?? 0) + (navigationBounds?.width ?? 0)).toBeLessThanOrEqual(390);
 
     await expect(
-      page.getByRole("heading", { name: "Your 12-month savings plan" }),
+      page.getByRole("heading", { name: "Your monthly planning basics" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Reserve a beta place" }),
@@ -1587,9 +1587,9 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
 test('savings assistant plans a cancellation, confirms it and updates recurring costs',async({page})=>{
  await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
  await page.evaluate(()=>{const today=new Date(),day=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'streaming',name:'Streaming',amount:18,category:'subscriptions',frequency:'monthly',nextDueDate:day,updatedAt:today.toISOString()}]));});await page.reload();
- const coach=page.getByRole('region',{name:'Your savings assistant',exact:true});await coach.getByRole('button',{name:'Plan change',exact:true}).click();await coach.getByLabel('New amount per payment (0 = ends)').fill('0');await coach.getByRole('button',{name:'Save this plan',exact:true}).click();await expect(coach).toContainText('Planned, no confirmed saving yet');
- page.once('dialog',dialog=>void dialog.accept());await coach.getByRole('button',{name:'Done — update costs'}).click();await expect(coach).toContainText('€18.00');await expect(coach).toContainText('Confirmed, costs updated');
- expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!))).toHaveLength(0);await page.reload();await expect(coach).toContainText('Confirmed, costs updated');
+ const coach=page.getByRole('region',{name:'02 · Where can I realistically save?',exact:true});const progress=page.getByRole('region',{name:'03 · What have I actually saved?',exact:true});await coach.getByRole('button',{name:'Plan change',exact:true}).click();await coach.getByLabel('New amount per payment (0 = ends)').fill('0');await coach.getByRole('button',{name:'Save this plan',exact:true}).click();await expect(coach).toContainText('Planned, no confirmed saving yet');
+ page.once('dialog',dialog=>void dialog.accept());await coach.getByRole('button',{name:'Done — update costs'}).click();await expect(progress).toContainText('€18.00');await expect(progress).toContainText('Confirmed, costs updated');await expect(coach).not.toContainText('Confirmed, costs updated');
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!))).toHaveLength(0);await page.reload();await expect(progress).toContainText('Confirmed, costs updated');
 });
 
 test('PDF text extraction proposes the invoice without uploading it',async({page})=>{
@@ -1718,3 +1718,29 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   await expect(tiles).toHaveCount(3);
   await expect(tiles.filter({ hasText: "Insurance" })).toHaveCount(1);
 });
+
+for (const locale of ['de', 'en'] as const) {
+  test(`monthly plan stays readable on a narrow phone in ${locale}`, async ({page}, info) => {
+    await page.setViewportSize({width:375,height:812});
+    await disableHeaderIntro(page);
+    await page.goto(locale === 'de' ? '/de/zuhause' : '/home');
+    await page.evaluate(() => {
+      const stamp = new Date().toISOString();
+      localStorage.setItem('eavesence-home-profile-v1',JSON.stringify({version:1,name:'Beta home',currency:'EUR',electricityPrice:.3,incomeAmount:2400,incomeFrequency:'monthly',variableMonthly:500,bufferMonthly:0,goalMonthly:0,savingsGoalPercent:10,rooms:[],deviceRooms:{},createdAt:stamp,updatedAt:stamp,onboardingCompletedAt:stamp}));
+      localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'internet',name:'Internet',amount:35,category:'subscriptions',frequency:'monthly',nextDueDate:'',updatedAt:stamp}]));
+    });
+    await page.reload();
+    const question = page.getByRole('heading',{name:locale==='de'?'Was kann ich bis zum nächsten Gehalt ausgeben?':'What can I spend until my next payday?',exact:true});
+    await expect(question).toBeVisible();
+    await question.scrollIntoViewIfNeeded();
+    await page.screenshot({path:info.outputPath(`cash-window-${locale}.png`)});
+    const plan = page.locator('#savings-plan');
+    await expect(plan.getByRole('heading',{name:locale==='de'?'02 · Wo kann ich realistisch sparen?':'02 · Where can I realistically save?',exact:true})).toBeVisible();
+    const progress = plan.getByRole('heading',{name:locale==='de'?'03 · Was habe ich tatsächlich eingespart?':'03 · What have I actually saved?',exact:true});
+    await expect(progress).toBeVisible();
+    await expect(plan).toContainText(locale==='de'?'Noch keine bestätigte Ersparnis':'No confirmed savings yet');
+    await progress.scrollIntoViewIfNeeded();
+    await page.screenshot({path:info.outputPath(`confirmed-savings-${locale}.png`)});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+  });
+}
