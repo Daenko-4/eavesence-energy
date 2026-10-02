@@ -12,6 +12,7 @@ import type {
 } from "@eavesence/core/savingsPlan";
 import { shiftPlanningMonth } from "@eavesence/core/planning";
 import { LocalizedText as Text, useMobileLocale } from "./i18n";
+import { FormSection } from "./FormSection";
 import { FormInput } from "./FormInput";
 export function SavingsCoachScreen({
   input,
@@ -160,7 +161,7 @@ export function SavingsCoachScreen({
         </View>
       ))}
       {p.selected && (
-        <View style={styles.box}>
+        <FormSection style={styles.box} onSave={p.plan} saveLabel={t("Änderung vormerken", "Save this plan")}>
           <Text style={styles.title}>
             {p.selected.name} · {t("Bisher", "Current")}:{" "}
             {money(p.selected.amount)}
@@ -198,7 +199,7 @@ export function SavingsCoachScreen({
             )}
             {button(t("Abbrechen", "Cancel"), p.cancel)}
           </View>
-        </View>
+        </FormSection>
       )}
       {actions.map((a) => (
         <View key={a.costId} style={styles.box}>

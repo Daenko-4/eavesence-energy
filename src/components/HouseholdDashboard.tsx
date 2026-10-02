@@ -806,6 +806,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const tileFormRef = useRef<HTMLDivElement>(null);
   const newTileButtonRef = useRef<HTMLButtonElement>(null);
   const tileNameInputRef = useRef<HTMLInputElement>(null);
+  const lastRequestedHash = useRef<string | null>(null);
 
   useEffect(() => {
     if (tileFormOpen) tileNameInputRef.current?.focus();
@@ -953,8 +954,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }, [locale, ready, savedDevices.length]);
 
   useEffect(() => {
+    if (!ready || !profile) return;
     function openRequestedDetail() {
       const hash = window.location.hash;
+      if (!hash) { lastRequestedHash.current = null; return; }
+      if (lastRequestedHash.current === hash) return;
+      lastRequestedHash.current = hash;
       const requestedKind: HomeTileKind | null =
         hash === "#household-costs"
           ? "costs"
@@ -988,7 +993,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         window.requestAnimationFrame(() => {
           window.requestAnimationFrame(() => {
             document.getElementById(hash.slice(1))?.scrollIntoView({
-              behavior: "smooth",
+              behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
               block: "start",
             });
           });
@@ -999,7 +1004,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     openRequestedDetail();
     window.addEventListener("hashchange", openRequestedDetail);
     return () => window.removeEventListener("hashchange", openRequestedDetail);
-  }, [homeTiles, text.tileTitles]);
+  }, [homeTiles, text.tileTitles, ready, profile]);
 
   const summary = useMemo(
     () => (profile ? calculateHouseholdSummary(savedDevices, profile) : null),
@@ -1926,6 +1931,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 {tileFeedback && <p role="alert" className="mt-2 text-[11px] font-bold text-red-700">{tileFeedback}</p>}
               </div>
             )}
+            {!homeTiles.some(tile => tile.kind === "energy") && <p className="mt-4 text-[11px] leading-relaxed text-[#65716d]">{locale === "de" ? "Stromkosten genauer ansehen?" : "Want to explore device electricity costs?"}{" "}<a href={locale === "de" ? "/de#rechner" : "/#rechner"} className="eavesence-pill-link">{locale === "de" ? "Zum Stromrechner" : "Open energy calculator"}</a>{" "}{locale === "de" ? "Dort kannst du Geräte speichern und freiwillig als eigene Kachel übernehmen." : "Save devices there and optionally add them as a dedicated tile."}</p>}
           </section>
 
           {activeTile?.kind === "energy" && <section className="mt-8 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4" aria-labelledby="monthly-overview-title">

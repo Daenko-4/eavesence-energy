@@ -11,7 +11,7 @@ export type HomeTile = {
 const tileKinds: HomeTileKind[] = ["energy", "costs"];
 
 export function defaultHomeTiles(): HomeTile[] {
-  return tileKinds.map((kind) => ({
+  return (["costs"] as HomeTileKind[]).map((kind) => ({
     id: `default-${kind}`,
     kind,
     title: null,
@@ -49,9 +49,7 @@ export function readHomeTiles(value: string | null): HomeTile[] {
         tile.kind !== "energy" ||
         index === tiles.findIndex((item) => item.kind === "energy"),
     );
-    return uniqueTiles.some((tile) => tile.kind === "energy")
-      ? uniqueTiles
-      : [defaultHomeTiles()[0], ...uniqueTiles];
+    return uniqueTiles;
   } catch {
     return defaultHomeTiles();
   }

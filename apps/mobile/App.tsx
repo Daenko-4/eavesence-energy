@@ -32,7 +32,9 @@ import { devices as libraryDevices, getDeviceCalculationDefaults } from "../../s
 import CostsScreen from "./src/CostsScreen";
 import { createMobileBackup, readMobileBackup, type MobileBackup } from "./src/backup";
 import { pickBackup, shareBackup } from "./src/backupFiles";
-import { FormInput } from "./src/FormInput";
+import { FormSection } from "./src/FormSection";
+import { getLocalizedDevice } from "../../src/i18n/devices";
+import { KeyboardScrollContext, FormInput } from "./src/FormInput";
 import { SavingsActionsScreen } from "./src/SavingsActionsScreen";
 import { PlanningScreen } from "./src/PlanningScreen";
 import type { PlanningData } from "@eavesence/core/planning";
@@ -64,7 +66,7 @@ import {
   restorePro,
 } from "./src/subscriptions";
 
-type Tab = "home" | "costs" | "add" | "history" | "pro";
+type Tab = "home" | "costs" | "energy" | "add" | "history" | "pro" | "settings";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -86,10 +88,14 @@ const tabCostsIcon = require("./assets/tab-costs.png");
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const tabProIcon = require("./assets/tab-pro.png");
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const tabEnergyIcon = require("./assets/tab-history.png");
+
 const navigationTabs: Array<{ key: Tab; label: string; icon: number }> = [
   { key: "home", label: "Übersicht", icon: tabHomeIcon },
   { key: "costs", label: "Kosten", icon: tabCostsIcon },
   { key: "pro", label: "Plan", icon: tabProIcon },
+  { key: "energy", label: "Stromrechner", icon: tabEnergyIcon },
 ];
 
 function parseLocalNumber(value: string) {
@@ -130,7 +136,6 @@ export default function App() {
 
 function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (value: MobileLocale) => void }) {
   const scrollRef = useRef<ScrollView>(null);
-  const energySectionY = useRef(0);
   const [ready, setReady] = useState(false);
   const [profile, setProfile] = useState<MobileProfile | null>(null);
   const [devices, setDevices] = useState<MobileDevice[]>([]);
@@ -140,14 +145,12 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   const [selectedCostTileId, setSelectedCostTileId] = useState("default-costs");
   const [costReviewId,setCostReviewId]=useState<string|undefined>(undefined);
   const [costStartAction, setCostStartAction] = useState<"none" | "income" | "cost">("none");
-  const [customizeSetup, setCustomizeSetup] = useState(false);
   const [tileFormOpen, setTileFormOpen] = useState(false);
   const [tileName, setTileName] = useState("");
   const [editingTileId, setEditingTileId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("home");
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [upcomingOpen, setUpcomingOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [homeName, setHomeName] = useState(() => locale === "de" ? "Mein Zuhause" : "My home");
   const [electricityPrice, setElectricityPrice] = useState("0.30");
   const [goal, setGoal] = useState("10");
@@ -241,8 +244,6 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   const hasIncome = Boolean(profile?.incomeAmount && profile.incomeAmount > 0);
   const hasCosts = costs.length > 0;
   const forecastComplete = forecast.complete;
-  const forecastDifference = forecast.difference;
-  const forecastDriver = forecast.drivers[0];
   const nextMonthLabel = new Intl.DateTimeFormat(locale === "de" ? "de-AT" : "en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${upcoming.month}-01T00:00:00Z`));
   const savingsPlan = createSavingsPlan({
     incomeMonthly: monthlyIncome,
@@ -287,7 +288,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     await writeJson(PROFILE_KEY, nextProfile);
     setProfile(nextProfile);
     Keyboard.dismiss();
-    setSettingsOpen(false);
+    setTab("home");
   }
 
   async function saveBudget() {
@@ -360,7 +361,6 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       setTiles(backup.tiles);
       setBetaInterested(backup.betaInterested);
       setSelectedCostTileId("default-costs");
-      setSettingsOpen(false);
       setTab("home");
       showLocalizedAlert(locale,"Sicherung importiert", "Deine App-Daten wurden ersetzt.");
     } catch {
@@ -396,10 +396,10 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           try { await disableMonthlyReminder(); } catch { reminderRemovalFailed = true; }
           setProfile(null);
           setDevices([]); setHistory([]); setCosts([]); setTiles(defaultTiles());
-          setBetaInterested(false); setHomeName("Mein Zuhause"); setElectricityPrice("0.30"); setGoal("10");
-          setCurrency("EUR"); setLocale("de"); setVariableBudget(""); setBufferBudget("0"); setSavingsGoal("0");
+          setBetaInterested(false); setHomeName(locale === "de" ? "Mein Zuhause" : "My home"); setElectricityPrice("0.30"); setGoal("10");
+          setCurrency("EUR"); setVariableBudget(""); setBufferBudget("0"); setSavingsGoal("0");
           if (!reminderRemovalFailed) setReminderActive(false);
-          setSettingsOpen(false); setSelectedCostTileId("default-costs"); setTab("home");
+          setSelectedCostTileId("default-costs"); setTab("home");
           if (reminderRemovalFailed) showLocalizedAlert(locale,"Daten gelöscht", "Die Erinnerung konnte nicht ausgeschaltet werden. Deaktiviere sie später in der App.");
         } catch { showLocalizedAlert(locale,"Zurücksetzen fehlgeschlagen", "Bitte versuche es erneut."); }
       })(); } },
@@ -449,8 +449,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
   function openTile(tile: MobileTile) {
     if (tile.kind === "energy") {
-      setTab("home");
-      scrollRef.current?.scrollTo({ y: energySectionY.current, animated: true });
+      setTab("energy");
     } else {
       setCostReviewId(undefined);
       setCostStartAction("none");
@@ -481,21 +480,35 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     Keyboard.dismiss();
     if (key === "add" && tab !== "add") startNewDevice();
     else {
-      if (key === "costs") { setSelectedCostTileId("default-costs"); setCostStartAction("none"); }
+      if (key === "costs") { setSelectedCostTileId("default-costs"); setCostStartAction("none"); setCostReviewId(undefined); }
       setTab(key);
     }
   }
 
-  function toggleSettings() {
-    if (settingsOpen && profile) {
-      setHomeName(profile.name);
-      setElectricityPrice(String(profile.electricityPrice));
-      setGoal(String(profile.savingsGoalPercent));
-      setCurrency(profile.currency ?? "EUR");
-      setLocale(profile.locale ?? "de");
-      Keyboard.dismiss();
-    }
-    setSettingsOpen(!settingsOpen);
+  function openSettings() {
+    if (!profile) return;
+    setHomeName(profile.name === "Mein Zuhause" || profile.name === "My home" ? localize(locale, "Mein Zuhause") : profile.name);
+    setElectricityPrice(String(profile.electricityPrice));
+    setGoal(String(profile.savingsGoalPercent));
+    setCurrency(profile.currency ?? "EUR");
+    Keyboard.dismiss();
+    setTab("settings");
+  }
+
+  async function changeLanguage(nextLocale: MobileLocale) {
+    if (profile) {
+      const name = profile.name === "Mein Zuhause" || profile.name === "My home" ? (nextLocale === "de" ? "Mein Zuhause" : "My home") : profile.name;
+      const next = { ...profile, name, locale: nextLocale };
+      try { await writeJson(PROFILE_KEY, next); setProfile(next); if (homeName === "Mein Zuhause" || homeName === "My home") setHomeName(name); }
+      catch { showLocalizedAlert(locale, "Speichern fehlgeschlagen", "Bitte versuche es erneut."); return; }
+    } else setHomeName(nextLocale === "de" ? "Mein Zuhause" : "My home");
+    setLocale(nextLocale);
+  }
+
+  async function addEnergyTile() {
+    const next = tiles.some(tile => tile.kind === "energy") ? tiles : [...tiles, { id: "default-energy", kind: "energy" as const, title: "Strom & Geräte" }];
+    try { await writeJson(TILES_KEY, next); setTiles(next); setTab("home"); }
+    catch { showLocalizedAlert(locale, "Speichern fehlgeschlagen", "Bitte versuche es erneut."); }
   }
 
   function editDevice(device: MobileDevice) {
@@ -554,7 +567,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     setDevices(nextDevices);
     setForm(initialForm);
     setEditingDeviceId(null);
-    setTab("home");
+    setTab("energy");
   }
 
   async function removeDevice(id: string) {
@@ -685,15 +698,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             <Text style={styles.hero}>Was bleibt dir nächsten Monat?</Text>
             <Text style={styles.body}>Erfasse dein Nettoeinkommen und deine festen Kosten. EAVESENCE zeigt dir, welche Zahlungen anstehen und was übrig bleibt.</Text>
             <PrimaryButton label={localize(locale, "Jetzt starten")} onPress={() => void createHome()} />
-            <Pressable accessibilityRole="button" accessibilityState={{ expanded: customizeSetup }} onPress={() => setCustomizeSetup(!customizeSetup)} style={styles.setupToggle}><Text style={styles.setupToggleText}>{customizeSetup ? "Angaben schließen" : "Name und Strompreis anpassen"}</Text></Pressable>
-            {customizeSetup && <View style={styles.formSurface}>
-              <Field label="Name deines Zuhauses" value={homeName} onChangeText={setHomeName} />
-              <Field label="Strompreis pro kWh (€)" value={electricityPrice} onChangeText={setElectricityPrice} keyboardType="decimal-pad" />
-                <Text style={styles.financeLabel}>WÄHRUNG</Text><View style={styles.presetRow}>{(["EUR", "CHF"] as const).map((item) => <Pressable key={item} accessibilityState={{ selected: currency === item }} onPress={() => setCurrency(item)} style={styles.financePill}><Text style={styles.financePillText}>{currency === item ? "✓ " : ""}{item}</Text></Pressable>)}</View>
-              <Text style={styles.financeLabel}>SPRACHE / LANGUAGE</Text><View style={styles.presetRow}>{(["de", "en"] as const).map((item) => <Pressable key={item} onPress={() => setLocale(item)} style={styles.financePill}><Text style={styles.financePillText}>{locale === item ? "✓ " : ""}{item === "de" ? "Deutsch" : "English"}</Text></Pressable>)}</View>
-            </View>}
+            <View style={styles.languageRow}>{(["de", "en"] as const).map(item => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: locale === item }} onPress={() => void changeLanguage(item)} style={[styles.financePill, locale === item && styles.choiceSelected]}><Text style={styles.financePillText}>{item === "de" ? "Deutsch" : "English"}</Text></Pressable>)}</View>
             <Text style={styles.privateText}>Ohne Konto · lokal gespeichert · jederzeit löschbar</Text>
-            <Text style={styles.setupNote}>Für Geräte starten wir mit 0,30 €/kWh. Du kannst den Strompreis später in den Einstellungen ändern.</Text>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -706,34 +712,16 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       <View style={styles.appHeader}>
         <Image source={brandIcon} alt="EAVESENCE" style={styles.headerMark} />
         <View style={styles.headerCopy}><Text style={styles.headerBrand}>EAVESENCE</Text><Text style={styles.headerSubline}>HOME</Text></View>
+        <Pressable accessibilityRole="button" accessibilityLabel={localize(locale, "Einstellungen")} onPress={openSettings} style={styles.headerSettings}><Text style={styles.financePillText}>⚙ {localize(locale, "Einstellungen")}</Text></Pressable>
       </View>
-      <ScrollView ref={scrollRef} style={styles.scrollSurface} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <KeyboardScrollContext.Provider value={(input) => scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input, 72, true)}><ScrollView ref={scrollRef} style={styles.scrollSurface} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         {tab === "home" && <>
           <Text style={styles.eyebrow}>EAVESENCE HOME</Text>
-          <View style={styles.homeHeadingRow}><Text style={[styles.homeTitle, styles.homeHeadingText]}>{profile.name}</Text><Pressable accessibilityRole="button" accessibilityState={{ expanded: settingsOpen }} onPress={toggleSettings} style={[styles.financePill, styles.headingSettingsButton]}><Text style={styles.financePillText}>{settingsOpen ? "Schließen" : "Einstellungen"}</Text></Pressable></View>
+          <Text style={styles.homeTitle}>{profile.name === "Mein Zuhause" || profile.name === "My home" ? localize(locale, "Mein Zuhause") : profile.name}</Text>
           <Text style={styles.homeSubtitle}>Dein Überblick über Einkommen, feste Kosten und nächste Zahlungen.</Text>
           <View style={styles.presetRow}><Pressable style={styles.financePill} onPress={openMainCosts}><Text style={styles.financePillText}>{locale === "de" ? "Kosten hinzufügen / ändern" : "Add / update costs"}</Text></Pressable><Pressable style={styles.financePill} onPress={() => setTab("pro")}><Text style={styles.financePillText}>{locale === "de" ? "Monatscheck & Plan" : "Monthly check & plan"}</Text></Pressable></View>
-          {settingsOpen && <View style={styles.formSurface}>
-            <Text style={styles.financeHeading}>Dein Zuhause</Text>
-            <Field label="Name" value={homeName} onChangeText={setHomeName} />
-            <Field label="Strompreis pro kWh (€)" value={electricityPrice} onChangeText={setElectricityPrice} keyboardType="decimal-pad" />
-            <Field label="Sparziel (%)" value={goal} onChangeText={setGoal} keyboardType="number-pad" />
-            <Text style={styles.financeLabel}>WÄHRUNG</Text><View style={styles.presetRow}>{(["EUR", "CHF"] as const).map((item) => <Pressable key={item} accessibilityState={{ selected: currency === item }} onPress={() => setCurrency(item)} style={styles.financePill}><Text style={styles.financePillText}>{currency === item ? "✓ " : ""}{item}</Text></Pressable>)}</View>
-            <Text style={styles.financeLabel}>SPRACHE / LANGUAGE</Text><View style={styles.presetRow}>{(["de", "en"] as const).map((item) => <Pressable key={item} onPress={() => setLocale(item)} style={styles.financePill}><Text style={styles.financePillText}>{locale === item ? "✓ " : ""}{item === "de" ? "Deutsch" : "English"}</Text></Pressable>)}</View>
-            <PrimaryButton label="Einstellungen speichern" onPress={() => void saveSettings()} />
-            <View style={styles.dataSection}>
-              <Text style={styles.dataTitle}>Deine Daten</Text>
-              <Text style={styles.financeNote}>Sicherungen enthalten Einstellungen, Kacheln, Kosten, Geräte und Monatswerte. Du kannst auch eine Website-Sicherung importieren; vorhandene App-Daten werden erst nach deiner Bestätigung ersetzt.</Text>
-              <View style={styles.dataActions}>
-                <Pressable onPress={() => void exportData()} style={styles.financePill}><Text style={styles.financePillText}>Sicherung exportieren</Text></Pressable>
-                <Pressable onPress={() => void importData()} style={styles.financePill}><Text style={styles.financePillText}>Sicherung importieren</Text></Pressable>
-                <Pressable onPress={confirmReset} style={styles.dangerPill}><Text style={styles.dangerText}>My Home zurücksetzen</Text></Pressable>
-              </View>
-            </View>
-          </View>}
-          <PaydayScreen key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??'EUR'}/>
           {(!hasIncome||!hasCosts)&&<View style={styles.startSteps}>{!hasIncome&&<Pressable accessibilityRole="button" onPress={()=>startWith('income')} style={styles.startStep}><Text style={styles.startStepText}>{locale==='de'?'1 · Nettoeinkommen eintragen':'1 · Add net income'}</Text></Pressable>}{!hasCosts&&<Pressable accessibilityRole="button" onPress={()=>startWith('cost')} style={styles.startStep}><Text style={styles.startStepText}>{locale==='de'?'2 · Erste Kosten hinzufügen':'2 · Add first costs'}</Text></Pressable>}</View>}
-          <CostImportScreen costs={costs} currency={profile.currency??'EUR'} locale={locale} onSave={importCosts}/>
+
 
           <View style={styles.financeSection}>
             <Text style={styles.financeHeading}>Finanzen im Überblick</Text>
@@ -751,7 +739,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
               <View style={[styles.financeCard, styles.financeCardCompact]}>
                 <Text style={styles.financeLabel}>NETTO / MONAT</Text>
                 {monthlyIncome > 0 && <Text adjustsFontSizeToFit numberOfLines={1} style={[styles.financeValue, styles.financeValueCompact]}>{euro.format(monthlyIncome)}</Text>}
-                <Pressable onPress={openMainCosts} style={[styles.financePill, styles.financeCompactAction]}><Text style={styles.financePillText}>{monthlyIncome > 0 ? "Ändern" : "Hinzufügen"}</Text></Pressable>
+                <Pressable onPress={() => startWith("income")} style={[styles.financePill, styles.financeCompactAction]}><Text style={styles.financePillText}>{monthlyIncome > 0 ? "Ändern" : "Hinzufügen"}</Text></Pressable>
               </View>
               <View style={[styles.financeCard, styles.financeCardCompact, styles.financeCardAccent]}>
                 <Text style={styles.financeLabel}>KOSTEN / MONAT</Text>
@@ -760,49 +748,73 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
               </View>
             </View>
           </View>
-          {savingsPlan && hasIncome && <Pressable accessibilityRole="button" onPress={() => setTab("pro")} style={styles.insightCard}><Text style={styles.insightLabel}>SPARPLAN · VORSCHAU</Text><Text style={styles.insightTitle}>{savingsPlan.complete ? `${euro.format(savingsPlan.averageRoom)} ${locale === "de" ? "rechnerischer Spielraum / Monat" : "estimated room / month"}` : "Deinen Spielraum vervollständigen"}</Text><Text style={styles.muted}>{savingsPlan.complete ? locale === "de" ? `${savingsPlan.tightMonths.length} von 12 Monaten liegen nach dem Sparziel unter 0.` : `${savingsPlan.tightMonths.length} of 12 months fall below your savings goal.` : locale === "de" ? "Alltagsausgaben und Zahlungstermine ergänzen. Deine festen Kosten sind schon übernommen." : "Add everyday spending and payment dates. Fixed costs are already included."}</Text></Pressable>}
           <View style={styles.tilesSection}>
             <Text style={styles.financeHeading}>Deine Kacheln</Text>
             <Text style={styles.financeNote}>Öffne einen Bereich oder ändere seine Reihenfolge mit den Pfeilen.</Text>
             <View style={styles.tilesGrid}>{tiles.map((tile, index) => {
               const tileCosts = costs.filter((cost) => tile.kind === "costs" && (tile.id === "default-costs" ? !cost.tileId || cost.tileId === tile.id : cost.tileId === tile.id));
-              return <View key={tile.id} style={styles.tileCard}>
+              return <View key={tile.id} style={[styles.tileCard, tiles.length === 1 && { width: "100%" }]}>
                 <Pressable accessibilityRole="button" onPress={() => openTile(tile)} style={styles.tileMain}>
-                  <Text style={styles.tileName}>{tile.title}</Text>
+                  <Text style={styles.tileName}>{tile.id.startsWith("default-") ? localize(locale, tile.title) : tile.title}</Text>
                   <Text style={styles.tileDetail}>{tile.kind === "energy" ? `${devices.length} ${locale === "de" ? "Geräte" : "devices"}` : `${tileCosts.length} ${locale === "de" ? "Kosten" : "costs"} · ${euro.format(tileCosts.reduce((sum, cost) => sum + monthlyCost(cost.amount, cost.frequency), 0))}/${locale === "de" ? "Monat" : "month"}`}</Text>
                 </Pressable>
                 <View style={styles.tileControls}>
                   <Pressable accessibilityRole="button" accessibilityLabel={`${tile.title} nach vorne verschieben`} disabled={index === 0} onPress={() => void shiftTile(tile.id, -1)} style={styles.tileMove}><Text style={[styles.tileMoveText, index === 0 && styles.tileMoveDisabled]}>‹</Text></Pressable>
                   <Pressable accessibilityRole="button" accessibilityLabel={`${tile.title} nach hinten verschieben`} disabled={index === tiles.length - 1} onPress={() => void shiftTile(tile.id, 1)} style={styles.tileMove}><Text style={[styles.tileMoveText, index === tiles.length - 1 && styles.tileMoveDisabled]}>›</Text></Pressable>
                   {!tile.id.startsWith("default-") && <><Pressable onPress={() => { setTileName(tile.title); setEditingTileId(tile.id); setTileFormOpen(true); }} style={styles.tileEdit}><Text style={styles.financePillText}>Ändern</Text></Pressable><Pressable accessibilityLabel={`${tile.title} entfernen`} onPress={() => confirmRemoveTile(tile)} style={styles.tileEdit}><Text style={styles.dangerText}>×</Text></Pressable></>}
+                {tile.kind === "energy" && tile.id.startsWith("default-") && <Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? "Stromkachel entfernen" : "Remove energy tile"} onPress={() => confirmRemoveTile(tile)} style={styles.tileEdit}><Text style={styles.dangerText}>×</Text></Pressable>}
                 </View>
               </View>;
             })}</View>
-            {tileFormOpen ? <View style={styles.tileForm}><Field label="Kachelname" value={tileName} onChangeText={setTileName} placeholder="z. B. Versicherungen" /><PrimaryButton label={editingTileId ? "Kachel umbenennen" : "Kachel erstellen"} onPress={() => void saveTile()} /><Pressable onPress={() => { setTileFormOpen(false); setEditingTileId(null); setTileName(""); }} style={styles.financePill}><Text style={styles.financePillText}>Abbrechen</Text></Pressable></View>
+            {tileFormOpen ? <FormSection style={styles.tileForm} onSave={saveTile} saveLabel={editingTileId ? "Kachel umbenennen" : "Kachel erstellen"}><Field label="Kachelname" value={tileName} onChangeText={setTileName} placeholder="z. B. Versicherungen" /><PrimaryButton label={editingTileId ? "Kachel umbenennen" : "Kachel erstellen"} onPress={() => void saveTile()} /><Pressable onPress={() => { setTileFormOpen(false); setEditingTileId(null); setTileName(""); }} style={styles.financePill}><Text style={styles.financePillText}>Abbrechen</Text></Pressable></FormSection>
               : <Pressable onPress={() => { setTileName(""); setEditingTileId(null); setTileFormOpen(true); }} style={styles.addTile}><Text style={styles.addTileText}>+ Eigene Kachel</Text></Pressable>}
           </View>
-          {costs.length > 0 && forecastComplete && Math.abs(forecastDifference) > 0.01 && <View style={styles.insightCard}><Text style={styles.insightLabel}>BLICK AUF DEN NÄCHSTEN MONAT</Text><Text style={styles.muted}>{euro.format(Math.abs(forecastDifference))} {forecastDifference > 0 ? "mehr" : "weniger"} als dein monatlicher Kostendurchschnitt{forecastDifference > 0.01 && forecastDriver ? ` · ${forecastDriver.cost.name} ist ein wichtiger Posten.` : "."}</Text></View>}
+
+        </>}
+
+          {tab === "settings" && <FormSection style={styles.formSurface} onSave={saveSettings} saveLabel="Einstellungen speichern">
+            <Text style={styles.heroSmall}>Einstellungen</Text>
+            <Text style={styles.financeNote}>Sprache, Währung und deine Daten an einem Ort.</Text>
+            <Field label="Name" value={homeName} onChangeText={setHomeName} />
+            <Text style={styles.financeLabel}>WÄHRUNG</Text><View style={styles.presetRow}>{(["EUR", "CHF"] as const).map((item) => <Pressable key={item} accessibilityState={{ selected: currency === item }} onPress={() => setCurrency(item)} style={styles.financePill}><Text style={styles.financePillText}>{currency === item ? "✓ " : ""}{item}</Text></Pressable>)}</View>
+            <Text style={styles.financeLabel}>SPRACHE / LANGUAGE</Text><View style={styles.presetRow}>{(["de", "en"] as const).map((item) => <Pressable key={item} onPress={() => void changeLanguage(item)} style={styles.financePill}><Text style={styles.financePillText}>{locale === item ? "✓ " : ""}{item === "de" ? "Deutsch" : "English"}</Text></Pressable>)}</View>
+            <View style={styles.dataSection}><Text style={styles.dataTitle}>Stromrechner</Text><Field label="Strompreis pro kWh (€)" value={electricityPrice} onChangeText={setElectricityPrice} keyboardType="decimal-pad" /><Field label="Sparziel (%)" value={goal} onChangeText={setGoal} keyboardType="number-pad" /></View>
+            <Pressable style={styles.financePill} onPress={() => void toggleReminder()}><Text style={styles.financePillText}>{reminderActive ? "Monatliche Erinnerung ausschalten" : "Monatliche Erinnerung aktivieren"}</Text></Pressable>
+            <PrimaryButton label="Einstellungen speichern" onPress={() => void saveSettings()} />
+            <View style={styles.dataSection}>
+              <Text style={styles.dataTitle}>Deine Daten</Text>
+              <Text style={styles.financeNote}>Sicherungen enthalten Einstellungen, Kacheln, Kosten, Geräte und Monatswerte. Du kannst auch eine Website-Sicherung importieren; vorhandene App-Daten werden erst nach deiner Bestätigung ersetzt.</Text>
+              <View style={styles.dataActions}>
+                <Pressable onPress={() => void exportData()} style={styles.financePill}><Text style={styles.financePillText}>Sicherung exportieren</Text></Pressable>
+                <Pressable onPress={() => void importData()} style={styles.financePill}><Text style={styles.financePillText}>Sicherung importieren</Text></Pressable>
+                <Pressable onPress={confirmReset} style={styles.dangerPill}><Text style={styles.dangerText}>My Home zurücksetzen</Text></Pressable>
+              </View>
+            </View>
+          </FormSection>}
+        {tab === "energy" && <>
+          <Text style={styles.eyebrow}>STROMRECHNER</Text><Text style={styles.heroSmall}>Was kostet dein Gerät?</Text>
+          <Text style={styles.financeNote}>Ein freiwilliges Extra: Geräte berechnen und bei Bedarf als eigene Kachel in My Home übernehmen. Die Schätzung wird nicht zusätzlich zu deinen Fixkosten abgezogen.</Text>
+          <View style={styles.presetRow}><Pressable style={styles.financePill} onPress={startNewDevice}><Text style={styles.financePillText}>Gerät berechnen</Text></Pressable><Pressable style={styles.financePill} onPress={() => void addEnergyTile()}><Text style={styles.financePillText}>{tiles.some(tile => tile.kind === "energy") ? "Stromkachel in My Home öffnen" : "Stromkachel zu My Home hinzufügen"}</Text></Pressable></View>
           <View style={[styles.pulseCard, currentMonthEntry ? styles.pulseCardComplete : styles.pulseCardOpen]}>
             <Text style={[styles.pulseLabel, currentMonthEntry ? styles.pulseLabelComplete : styles.pulseLabelOpen]}>{currentMonthEntry ? "MONATSÜBERBLICK" : "NÄCHSTER SCHRITT"}</Text>
-            <Text style={styles.pulseTitle}>{currentMonthEntry ? monthlyChange === null ? "Deine erste Monatsbasis steht" : Math.abs(monthlyChange) < 1 ? "Verbrauch nahezu unverändert" : monthlyChange < 0 ? `${Math.abs(monthlyChange).toFixed(0)} % weniger als im Vormonat` : `${monthlyChange.toFixed(0)} % mehr als im Vormonat` : "Aktueller Monatswert noch offen"}</Text>
+            <Text style={styles.pulseTitle}>{currentMonthEntry ? monthlyChange === null ? localize(locale, "Deine erste Monatsbasis steht") : Math.abs(monthlyChange) < 1 ? localize(locale, "Verbrauch nahezu unverändert") : `${Math.abs(monthlyChange).toFixed(0)} % ${locale === "de" ? monthlyChange < 0 ? "weniger als im Vormonat" : "mehr als im Vormonat" : monthlyChange < 0 ? "less than last month" : "more than last month"}` : localize(locale, "Aktueller Monatswert noch offen")}</Text>
             <Text style={styles.pulseBody}>{currentMonthEntry ? `${Math.round(currentMonthEntry.kwh * 10) / 10} kWh · ${euro.format(currentMonthEntry.cost)}` : "Erfasse einmal im Monat Verbrauch oder Rechnungsbetrag. Den zweiten Wert berechnen wir automatisch."}</Text>
             {!currentMonthEntry && <Pressable style={styles.pulseAction} onPress={() => setTab("history")}><Text style={styles.pulseActionText}>Monatswert eintragen</Text></Pressable>}
           </View>
-          <Text onLayout={(event) => { energySectionY.current = event.nativeEvent.layout.y; }} style={styles.sectionTitle}>Strom & Geräte</Text>
+          <Text style={styles.sectionTitle}>Strom & Geräte</Text>
           <View style={styles.metricGrid}><Metric label="Gerätekosten/Jahr" value={euro.format(totals.yearlyCost)} /><Metric label="Verbrauch" value={`${Math.round(totals.yearlyKwh)} kWh`} /><Metric label="Ziel pro Monat" value={euro.format((totals.yearlyCost / 12) * (1 - profile.savingsGoalPercent / 100))} /><Metric label="Geräte" value={`${devices.length}`} /></View>
           {topDevice && <View style={styles.insightCard}><Text style={styles.insightLabel}>GRÖSSTER HEBEL</Text><Text style={styles.insightTitle}>{topDevice.name}</Text><Text style={styles.muted}>{euro.format(topDevice.yearlyCost)} pro Jahr · {totals.yearlyCost > 0 ? Math.round(topDevice.yearlyCost / totals.yearlyCost * 100) : 0} % der erfassten Gerätekosten</Text></View>}
           <Text style={styles.sectionTitle}>Alle Verbraucher im Haushalt</Text>
           {devices.length === 0 ? <Empty text="Noch keine Geräte. Füge dein erstes Gerät hinzu." /> : devices.map((device) => <View key={device.id} style={styles.deviceRow}><View style={styles.flex}><Text style={styles.deviceName}>{device.name}</Text><Text style={styles.muted}>{euro.format(device.yearlyCost)} pro Jahr</Text></View><View style={styles.rowActions}><Pressable accessibilityRole="button" accessibilityLabel={`${device.name} bearbeiten`} onPress={() => editDevice(device)} style={styles.financePill}><Text style={styles.financePillText}>Ändern</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`${device.name} entfernen`} onPress={() => confirmRemoveDevice(device)}><Text style={styles.delete}>×</Text></Pressable></View></View>)}
           <PrimaryButton label="Gerät hinzufügen" onPress={startNewDevice} />
         </>}
-
-        {tab === "costs" && <CostsScreen key={`${selectedCostTileId}-${costStartAction}-${costReviewId??""}`} profile={profile} costs={costs} tiles={tiles} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} initialAction={costStartAction} initialCostId={costReviewId} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />}
+        {tab === "costs" && <><CostImportScreen costs={costs} currency={profile.currency??"EUR"} locale={locale} onSave={importCosts}/><CostsScreen key={`${selectedCostTileId}-${costStartAction}-${costReviewId??""}`} profile={profile} costs={costs} tiles={tiles} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} initialAction={costStartAction} initialCostId={costReviewId} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} /></>}
 
         {tab === "add" && <>
           <Pressable style={styles.financePill} onPress={() => setTab("history")}><Text style={styles.financePillText}>Stromverlauf öffnen</Text></Pressable>
           <Text style={styles.eyebrow}>{editingDeviceId ? "GERÄT BEARBEITEN" : "NEUES GERÄT"}</Text><Text style={styles.heroSmall}>{editingDeviceId ? "Gerät aktualisieren" : "Was kostet dein Gerät?"}</Text>
-          <View style={styles.formSurface}>
-            {!editingDeviceId && <><Text style={styles.dataTitle}>Gerät aus der Bibliothek</Text><Field label="Gerät suchen" value={deviceSearch} onChangeText={setDeviceSearch} placeholder="z. B. Kühlschrank" /><Text style={styles.financeNote}>Richtwerte der Website. Passe den Verbrauch an dein Modell an.</Text><View style={styles.presetRow}>{libraryDevices.filter((device) => device.name.toLocaleLowerCase("de").includes(deviceSearch.trim().toLocaleLowerCase("de"))).slice(0, deviceSearch ? 12 : 8).map((device) => <Pressable key={device.slug} onPress={() => { const defaults = getDeviceCalculationDefaults(device); setForm({ name: device.name, watts: String(defaults.watts), minutes: String(defaults.minutesPerUse), uses: String(defaults.usesPerWeek), kwh: device.calculationType === "consumption" ? String(defaults.estimatedKwhPerUse) : "", type: device.calculationType, mode: "estimate", slug: device.slug }); Keyboard.dismiss(); }} style={styles.financePill}><Text style={styles.financePillText}>{device.name}</Text></Pressable>)}</View></>}
+          <FormSection style={styles.formSurface} onSave={saveDevice} saveLabel={editingDeviceId ? "Änderungen speichern" : "Berechnen und speichern"}>
+            {!editingDeviceId && <><Text style={styles.dataTitle}>Gerät aus der Bibliothek</Text><Field label="Gerät suchen" value={deviceSearch} onChangeText={setDeviceSearch} placeholder="z. B. Kühlschrank" /><Text style={styles.financeNote}>Richtwerte der Website. Passe den Verbrauch an dein Modell an.</Text><View style={styles.presetRow}>{libraryDevices.filter((device) => getLocalizedDevice(device, locale).name.toLocaleLowerCase().includes(deviceSearch.trim().toLocaleLowerCase())).slice(0, deviceSearch ? 12 : 8).map((device) => <Pressable key={device.slug} onPress={() => { const defaults = getDeviceCalculationDefaults(device); setForm({ name: getLocalizedDevice(device, locale).name, watts: String(defaults.watts), minutes: String(defaults.minutesPerUse), uses: String(defaults.usesPerWeek), kwh: device.calculationType === "consumption" ? String(defaults.estimatedKwhPerUse) : "", type: device.calculationType, mode: "estimate", slug: device.slug }); Keyboard.dismiss(); }} style={styles.financePill}><Text style={styles.financePillText}>{getLocalizedDevice(device, locale).name}</Text></Pressable>)}</View></>}
             <Field label="Gerätename" value={form.name} onChangeText={(value) => setForm({ ...form, name: value })} />
             <View style={styles.presetRow}><Pressable onPress={() => setForm({ ...form, mode: "estimate" })} style={styles.financePill}><Text style={styles.financePillText}>{form.mode === "estimate" ? "✓ " : ""}Schätzen</Text></Pressable><Pressable onPress={() => setForm({ ...form, mode: "exact" })} style={styles.financePill}><Text style={styles.financePillText}>{form.mode === "exact" ? "✓ " : ""}Gemessen</Text></Pressable></View>
             {form.mode === "estimate" && <View style={styles.presetRow}><Pressable onPress={() => setForm({ ...form, type: "power" })} style={styles.financePill}><Text style={styles.financePillText}>{form.type === "power" ? "✓ " : ""}Watt & Dauer</Text></Pressable><Pressable onPress={() => setForm({ ...form, type: "consumption" })} style={styles.financePill}><Text style={styles.financePillText}>{form.type === "consumption" ? "✓ " : ""}kWh je Nutzung</Text></Pressable></View>}
@@ -810,15 +822,15 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             <Field label="Nutzungen pro Woche" value={form.uses} onChangeText={(value) => setForm({ ...form, uses: value })} keyboardType="decimal-pad" />
             {form.type === "consumption" && form.uses === String(1 / 52) && <Text style={styles.financeNote}>Beim Jahresverbrauch des Energielabels ist die Nutzung auf ein Jahr eingestellt.</Text>}
             <PrimaryButton label={editingDeviceId ? "Änderungen speichern" : "Berechnen und speichern"} onPress={() => void saveDevice()} />
-            {editingDeviceId && <Pressable onPress={() => { setEditingDeviceId(null); setForm(initialForm); setTab("home"); }} style={styles.financePill}><Text style={styles.financePillText}>Abbrechen</Text></Pressable>}
-          </View>
+            {editingDeviceId && <Pressable onPress={() => { setEditingDeviceId(null); setForm(initialForm); setTab("energy"); }} style={styles.financePill}><Text style={styles.financePillText}>Abbrechen</Text></Pressable>}
+          </FormSection>
         </>}
 
         {tab === "history" && <>
           <Pressable style={styles.financePill} onPress={() => setTab("add")}><Text style={styles.financePillText}>Geräte verwalten</Text></Pressable>
           <Text style={styles.eyebrow}>MONATS-CHECK</Text><Text style={styles.heroSmall}>Aus Schätzungen wird ein Verlauf.</Text>
           <Text style={styles.historyHint}>Gib Verbrauch oder Rechnungsbetrag ein. Den zweiten Wert berechnen wir automatisch mit deinem Strompreis.</Text>
-          <View style={styles.formSurface}>
+          <FormSection style={styles.formSurface} onSave={saveMonth} saveLabel={editingMonth ? "Monat aktualisieren" : "Monat speichern"}>
           <View style={styles.modeSwitch}><Pressable style={[styles.modeButton, monthMode === "consumption" && styles.modeButtonActive]} onPress={() => setMonthMode("consumption")}><Text style={[styles.modeButtonText, monthMode === "consumption" && styles.modeButtonTextActive]}>Verbrauch</Text></Pressable><Pressable style={[styles.modeButton, monthMode === "cost" && styles.modeButtonActive]} onPress={() => setMonthMode("cost")}><Text style={[styles.modeButtonText, monthMode === "cost" && styles.modeButtonTextActive]}>Rechnung</Text></Pressable></View>
           <Text style={styles.label}>Monat</Text>
           <View style={styles.monthPicker}>
@@ -827,11 +839,11 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             <Pressable accessibilityRole="button" accessibilityLabel="Nächster Monat" onPress={() => { setMonth(shiftMonth(month, 1)); Keyboard.dismiss(); }} style={styles.monthButton}><Text style={styles.monthArrow}>›</Text></Pressable>
           </View>
           {month !== currentMonth && <Pressable onPress={() => setMonth(currentMonth)} style={styles.monthToday}><Text style={styles.monthTodayText}>Aktueller Monat</Text></Pressable>}
-          {monthMode === "consumption" ? <Field label="Verbrauch in kWh" value={monthKwh} onChangeText={setMonthKwh} keyboardType="decimal-pad" /> : <Field label={`Rechnungsbetrag in ${profile.currency ?? "EUR"}`} value={monthCost} onChangeText={setMonthCost} keyboardType="decimal-pad" />}
+          {monthMode === "consumption" ? <Field label="Verbrauch in kWh" value={monthKwh} onChangeText={setMonthKwh} keyboardType="decimal-pad" /> : <Field label={`${locale === "de" ? "Rechnungsbetrag in" : "Bill amount in"} ${profile.currency ?? "EUR"}`} value={monthCost} onChangeText={setMonthCost} keyboardType="decimal-pad" />}
           <PrimaryButton label={editingMonth ? "Monat aktualisieren" : "Monat speichern"} onPress={() => void saveMonth()} />
           <Pressable style={styles.secondaryButton} onPress={() => void toggleReminder()}><Text style={styles.secondaryButtonText}>{reminderActive ? "Monatliche Erinnerung ausschalten" : "Monatliche Erinnerung aktivieren"}</Text></Pressable>
           <Text style={styles.financeNote}>{reminderActive ? "Aktiv · jeden 1. um 9:00 Uhr" : "Optional · jeden 1. um 9:00 Uhr"}</Text>
-          </View>
+          </FormSection>
           <Text style={styles.sectionTitle}>Verlauf</Text>
           {history.length > 1 && <View style={styles.formSurface}>
             <Text style={styles.financeHeading}>{locale === "de" ? "Verbrauch im Vergleich" : "Usage over time"}</Text>
@@ -841,17 +853,16 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           {history.length === 0 ? <Empty text="Noch kein Monatswert vorhanden." /> : history.map((entry) => <View key={entry.month} style={styles.historyRow}><View style={styles.historyValues}><Text style={styles.deviceName}>{monthLabel(entry.month, locale)}</Text><Text style={styles.muted}>{Math.round(entry.kwh * 10) / 10} kWh · {euro.format(entry.cost)}</Text></View><View style={styles.rowActions}><Pressable accessibilityRole="button" accessibilityLabel={`${monthLabel(entry.month, locale)} bearbeiten`} onPress={() => editMonth(entry)} style={styles.financePill}><Text style={styles.financePillText}>Ändern</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`${monthLabel(entry.month, locale)} entfernen`} onPress={() => confirmRemoveMonth(entry)}><Text style={styles.delete}>×</Text></Pressable></View></View>)}
         </>}
 
-        {tab === "pro" && <View style={styles.formSurface}>
+        {tab === "pro" && <><PaydayScreen key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??"EUR"}/><View style={styles.formSurface}>
           <Text style={styles.eyebrow}>SPARPLAN · PRO-VORSCHAU</Text><Text style={styles.heroSmall}>Was kannst du einplanen?</Text>
-          <Pressable style={styles.financePill} onPress={() => void toggleReminder()}><Text style={styles.financePillText}>{locale === "de" ? reminderActive ? "Monatscheck-Erinnerung ausschalten" : "An den Monatscheck erinnern" : reminderActive ? "Turn off monthly check reminder" : "Remind me of the monthly check"}</Text></Pressable>
           <Text style={styles.financeNote}>{locale === "de" ? "Einkommen und Fixkosten sind schon übernommen. Schätze noch deine übrigen Alltagsausgaben – daraus berechnen wir, was dir im Monat bleibt." : "Income and fixed costs are already included. Estimate your other everyday spending to see what is left each month."}</Text>
-          <Field label={locale === "de" ? "Alltagsausgaben pro Monat (geschätzt)" : "Everyday spending per month (estimate)"} value={variableBudget} onChangeText={setVariableBudget} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 500" : "e.g. 500"} />
+          <FormSection onSave={saveBudget} saveLabel="Plan speichern" style={{ gap: 12 }}><Field label={locale === "de" ? "Alltagsausgaben pro Monat (geschätzt)" : "Everyday spending per month (estimate)"} value={variableBudget} onChangeText={setVariableBudget} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 500" : "e.g. 500"} />
           <Text style={styles.financeNote}>{locale === "de" ? "Zum Beispiel Lebensmittel und Freizeit. Nur Ausgaben, die noch nicht in deinen Fixkosten stehen. Du kannst die Schätzung später ändern." : "For example groceries and leisure. Only spending not already in your fixed costs. You can change the estimate later."}</Text>
           <Field label={locale === "de" ? "Gewünschter Sparbetrag pro Monat (optional)" : "Desired savings per month (optional)"} value={savingsGoal} onChangeText={setSavingsGoal} keyboardType="decimal-pad" />
           <Text style={styles.financeNote}>{locale === "de" ? "Geld, das du vom verbleibenden Budget zurücklegen möchtest – nachdem Fixkosten und Alltagsausgaben bezahlt sind." : "Money you want to set aside from what is left after fixed costs and everyday spending."}</Text>
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: reserveOptionsOpen }} onPress={() => setReserveOptionsOpen(!reserveOptionsOpen)} style={styles.financePill}><Text style={styles.financePillText}>{locale === "de" ? "Erweiterte Optionen: freiwillige Reserve" : "More options: optional reserve"}</Text></Pressable>
           {reserveOptionsOpen && <><Text style={styles.financeNote}>{locale === "de" ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</Text><Field label={locale === "de" ? "Freiwillige Reserve pro Monat" : "Optional reserve per month"} value={bufferBudget} onChangeText={setBufferBudget} keyboardType="decimal-pad" /></>}
-          <PrimaryButton label="Plan speichern" onPress={() => void saveBudget()} />
+          <PrimaryButton label="Plan speichern" onPress={() => void saveBudget()} /></FormSection>
           {savingsPlan && <>
             <SavingsBudgetSummary input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} currency={profile.currency ?? "EUR"} />
 
@@ -862,10 +873,10 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           </>}
           {isPro ? <Text style={styles.proActive}>Pro aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Text style={styles.financeNote}>Ein kostenpflichtiges Abo ist derzeit nicht verfügbar.</Text>}
           {packages.length > 0 && <Pressable onPress={() => void restorePro().then(setIsPro).catch(() => showLocalizedAlert(locale,"Wiederherstellung fehlgeschlagen", "Bitte versuche es erneut."))}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable>}
-        </View>}
-      </ScrollView>
+        </View></>}
+      </ScrollView></KeyboardScrollContext.Provider>
       {!keyboardVisible && <View style={styles.tabBar} accessibilityRole="tablist" accessibilityLabel={localize(locale, "App-Navigation")}>{navigationTabs.map(({ key, label, icon }) => {
-        const active = tab === key;
+        const active = tab === key || (key === "energy" && (tab === "add" || tab === "history"));
         const primary = key === "add";
         return <Pressable key={key} accessibilityRole="tab" accessibilityLabel={localize(locale, label)} accessibilityState={{ selected: active }} onPress={() => selectTab(key)} style={styles.tab}>
           <View style={[styles.tabIconSurface, active && styles.tabIconActive, primary && styles.tabIconPrimary]}><Image source={icon} alt="" style={[styles.tabIcon, { tintColor: primary ? "#ffffff" : active ? "#087a45" : "#65716d" }]} /></View>
@@ -891,6 +902,9 @@ function Empty({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
+  headerSettings: { minHeight: 44, justifyContent: "center", paddingHorizontal: 10, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22 },
+  languageRow: { flexDirection: "row", justifyContent: "center", gap: 10, marginTop: 12 },
+  choiceSelected: { borderWidth: 1, borderColor: "#087a45" },
   chartRow: { flexDirection: "row", gap: 8, alignItems: "center" },
   chartMonth: { width: 24, fontSize: 11, color: "#52605b" },
   chartTrack: { flex: 1, height: 12, borderRadius: 8, backgroundColor: "#e3e8e4", overflow: "hidden" },
@@ -911,7 +925,7 @@ const styles = StyleSheet.create({
   dangerText: { fontSize: 12, fontWeight: "800", color: "#b42318" },
   tilesSection: { marginTop: 18, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 23, backgroundColor: "#f4f6f2", padding: 15, gap: 10 },
   tilesGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
-  tileCard: { width: "48%", minHeight: 132, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 12, justifyContent: "space-between" },
+  tileCard: { width: "48%", minHeight: 112, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 12, justifyContent: "space-between" },
   tileMain: { minHeight: 60 },
   tileName: { fontSize: 14, fontWeight: "900", color: "#17211f" },
   tileDetail: { marginTop: 5, fontSize: 11, lineHeight: 16, color: "#65716d" },
@@ -936,11 +950,11 @@ const styles = StyleSheet.create({
   headerCopy: { flex: 1, marginLeft: 9 },
   headerBrand: { fontSize: 15, fontWeight: "900", letterSpacing: -0.4, color: "#10283a" },
   headerSubline: { marginTop: 1, fontSize: 9, fontWeight: "800", letterSpacing: 1.7, color: "#087a45" },
-  homeTitle: { marginTop: 9, fontSize: 32, lineHeight: 36, fontWeight: "900", letterSpacing: -1.3, color: "#17211f" },
+  homeTitle: { marginTop: 9, fontSize: 27, lineHeight: 32, fontWeight: "800", letterSpacing: -0.8, color: "#17211f" },
   homeSubtitle: { marginTop: 8, marginBottom: 20, fontSize: 14, lineHeight: 21, color: "#65716d" },
   financeSection: { borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 23, backgroundColor: "#f4f6f2", padding: 15, gap: 11 },
   financePair: { flexDirection: "row", gap: 9 },
-  financeHeading: { marginBottom: 3, fontSize: 20, fontWeight: "900", letterSpacing: -0.5, color: "#17211f" },
+  financeHeading: { marginBottom: 3, fontSize: 17, fontWeight: "900", letterSpacing: -0.5, color: "#17211f" },
   financeCard: { borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 16, alignItems: "flex-start" },
   financeCardCompact: { flex: 1, minWidth: 0, minHeight: 131, padding: 13 },
   financeCardAccent: { borderColor: "#b8efcc", backgroundColor: "#eefbf3" },

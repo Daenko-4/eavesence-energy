@@ -8,10 +8,10 @@ import {
   reorderHomeTiles,
 } from "../src/lib/homeTiles.ts";
 
-test("provides a simple electricity and household-cost structure", () => {
+test("provides a household costs by default with energy optional", () => {
   assert.deepEqual(
     defaultHomeTiles().map((tile) => tile.kind),
-    ["energy", "costs"],
+    ["costs"],
   );
 });
 
@@ -22,10 +22,9 @@ test("reads valid custom tiles and rejects broken storage", () => {
   ]);
 
   assert.deepEqual(readHomeTiles(stored), [
-    { id: "default-energy", kind: "energy", title: null },
     { id: "insurance", kind: "costs", title: "Insurance" },
   ]);
-  assert.equal(readHomeTiles("not-json").length, 2);
+  assert.equal(readHomeTiles("not-json").length, 1);
   assert.deepEqual(readHomeTiles("[]"), defaultHomeTiles());
 });
 

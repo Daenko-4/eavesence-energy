@@ -2,19 +2,17 @@ export type MobileTile = { id: string; kind: "energy" | "costs"; title: string }
 
 export function defaultTiles(): MobileTile[] {
   return [
-    { id: "default-energy", kind: "energy", title: "Strom & Geräte" },
     { id: "default-costs", kind: "costs", title: "Haushaltskosten" },
   ];
 }
 
 export function parseTiles(value: unknown): MobileTile[] | null {
-  if (!Array.isArray(value) || value.length < 2 || value.length > 30) return null;
+  if (!Array.isArray(value) || value.length < 1 || value.length > 30) return null;
   const tiles = value as MobileTile[];
   if (tiles.some((tile) => !tile || typeof tile !== "object" || typeof tile.id !== "string" || !tile.id ||
     (tile.kind !== "energy" && tile.kind !== "costs") || typeof tile.title !== "string" || !tile.title.trim())) return null;
   if (new Set(tiles.map((tile) => tile.id)).size !== tiles.length) return null;
-  if (tiles.filter((tile) => tile.kind === "energy").length !== 1 ||
-    !tiles.some((tile) => tile.id === "default-energy" && tile.kind === "energy") ||
+  if (tiles.filter((tile) => tile.kind === "energy").length > 1 ||
     !tiles.some((tile) => tile.id === "default-costs" && tile.kind === "costs")) return null;
   return tiles;
 }

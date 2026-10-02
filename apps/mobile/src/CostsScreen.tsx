@@ -13,6 +13,7 @@ import { Alert, Keyboard, Pressable, StyleSheet, View } from "react-native";
 import { costsForTile, destinationTileId } from "./costTiles";
 import type { MobileProfile } from "./storage";
 import type { MobileTile } from "./tiles";
+import { FormSection } from "./FormSection";
 import { FormInput } from "./FormInput";
 import { shareDeadline } from "./deadlineFile";
 import { LocalizedText as Text, localize, useMobileLocale } from "./i18n";
@@ -110,6 +111,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   const initialCost=costs.find(c=>c.id===initialCostId);
   const [editingId, setEditingId] = useState<string | null>(initialCost?.id??null);
   const [moreOpen, setMoreOpen] = useState(!!initialCost);
+  const [incomeOpen, setIncomeOpen] = useState(initialAction === "income");
   const [feedback, setFeedback] = useState("");
   const [formOpen, setFormOpen] = useState(initialAction === "cost"||!!initialCost);
   const [name, setName] = useState(initialCost?.name??"");
@@ -127,7 +129,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   function openNew(suggestion?: [HouseholdCostCategory, string, HouseholdCostFrequency]) {
     setEditingId(null);
     setMoreOpen(false);
-    setName(suggestion?.[1] ?? "");
+    setName(suggestion ? localize(locale, suggestion[1]) : "");
     setAmount("");
     setCategory(suggestion?.[0] ?? "housing");
     setFrequency(suggestion?.[2] ?? "monthly");
@@ -176,6 +178,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
     }
     await onSaveIncome(parsed, incomeFrequency);
     Keyboard.dismiss();
+    setIncomeOpen(false);
     Alert.alert((locale === "de" ? "Gespeichert" : "Saved"), (locale === "de" ? "Dein Einkommen wurde aktualisiert." : "Your income was updated."));
   }
 
@@ -188,13 +191,13 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <View style={styles.metric}><Text style={styles.label}>PRO JAHR</Text><Text style={styles.value}>{money.format(summary.annualTotal)}</Text></View>
     </View>
 
-    {tileId === "default-costs" && !formOpen && <View style={styles.panel}>
+    {tileId === "default-costs" && !formOpen && <><Pressable accessibilityRole="button" accessibilityState={{expanded:incomeOpen}} onPress={() => setIncomeOpen(!incomeOpen)} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Einkommen ändern" : "Edit income"}</Text></Pressable>{incomeOpen && <FormSection style={styles.panel} onSave={saveIncome} saveLabel="Einkommen speichern">
       <Text style={styles.panelTitle}>Nettoeinkommen</Text>
       <Text style={styles.help}>Das Budget zieht nur deine erfassten regelmäßigen Kosten ab; variable Ausgaben bleiben außen vor.</Text>
       <FormInput label="Nettoeinkommen" value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder="0,00" />
       <Choice options={[["monthly", "Monatlich"], ["yearly", "Jährlich"]]} value={incomeFrequency} onChange={setIncomeFrequency} />
       <Pressable onPress={() => { void saveIncome(); }} style={styles.secondary}><Text style={styles.secondaryText}>Einkommen speichern</Text></Pressable>
-    </View>}
+    </FormSection>}</>}
 
     {visibleCosts.length < 3 && !formOpen && <View style={styles.panel}>
       <Text style={styles.panelTitle}>{locale === "de" ? `Schnell starten · ${visibleCosts.length} von 3` : `Quick start · ${visibleCosts.length} of 3`}</Text>
@@ -202,7 +205,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <View style={styles.choices}>{suggestions.map((suggestion) => <Pressable key={suggestion[0]} onPress={() => openNew(suggestion)} style={styles.choice}><Text style={styles.choiceText}>{suggestion[1]}</Text></Pressable>)}</View>
     </View>}
 
-    {formOpen ? <View style={styles.panel}>
+    {formOpen ? <FormSection style={styles.panel} onSave={save} saveLabel={editingId ? "Aktualisieren" : "Speichern"}>
       <Text style={styles.panelTitle}>{editingId ? "Kosten bearbeiten" : "Neue Kosten"}</Text>
       <FormInput label="Bezeichnung" value={name} onChangeText={setName} onBlur={() => { if (!editingId && category === "housing") { const text = name.toLowerCase(); if (/internet|abo|stream|telefon/.test(text)) setCategory("subscriptions"); else if (/strom|heiz|electric|gas/.test(text)) setCategory("energy"); else if (/versicherung|insurance/.test(text)) setCategory("insurance"); } }} placeholder="z. B. Internet" />
       <FormInput label="Betrag" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="0,00" />
@@ -216,7 +219,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       </>}
       <Pressable onPress={() => { void save(); }} style={styles.primary}><Text style={styles.primaryText}>{editingId ? "Aktualisieren" : "Speichern"}</Text></Pressable>
       <Pressable onPress={() => setFormOpen(false)} style={styles.secondary}><Text style={styles.secondaryText}>Abbrechen</Text></Pressable>
-    </View> : <Pressable onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
+    </FormSection> : <Pressable onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
 
     {visibleCosts.length > 0 && !formOpen && <>
       <Text style={styles.sectionTitle}>Kosten nach Kategorie</Text>

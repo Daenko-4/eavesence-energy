@@ -21,6 +21,12 @@ Expo Go can exercise the household flows but native subscriptions and some
 notification behavior require a development or TestFlight build. Native
 purchases need store products and a separate sandbox test.
 
+Settings are available from the top-right header on every screen. Language changes
+are saved immediately. New homes start with household costs only; the Energy tab
+contains the optional device calculator and history. Users can add its device
+breakdown to My Home as an energy tile without counting estimates twice in the budget.
+On iOS, forms with a save action show that action directly above the keyboard.
+
 The app offers German and English, EUR and CHF, a searchable device list,
 recurring cost entry with date shortcuts, monthly history and an experimental
 12-month savings plan. Settings can import a complete EAVESENCE website backup

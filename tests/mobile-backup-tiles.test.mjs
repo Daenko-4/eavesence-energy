@@ -26,8 +26,14 @@ test("mobile backup restores the complete household and rejects partial imports"
 
 test("mobile tiles preserve order, defaults and safe boundaries", () => {
   const tiles = [...defaultTiles(), { id: "insurance", kind: "costs", title: "Versicherung" }];
-  assert.deepEqual(moveTile(tiles, "insurance", -1).map((tile) => tile.id), ["default-energy", "insurance", "default-costs"]);
-  assert.equal(moveTile(tiles, "default-energy", -1), tiles);
+  assert.deepEqual(moveTile(tiles, "insurance", -1).map((tile) => tile.id), ["insurance", "default-costs"]);
+  assert.equal(moveTile(tiles, "default-costs", -1), tiles);
   assert.deepEqual(readTiles(tiles), tiles);
   assert.deepEqual(readTiles([{ id: "bad", kind: "costs", title: "X" }]), defaultTiles());
+});
+
+ test("mobile tiles accept an optional energy tile in legacy backups without adding it to new homes", () => {
+  assert.equal(defaultTiles().some(tile => tile.kind === "energy"), false);
+  const legacy = [{ id: "default-energy", kind: "energy", title: "Strom & Geräte" }, ...defaultTiles()];
+  assert.deepEqual(readTiles(legacy), legacy);
 });

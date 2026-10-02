@@ -1,5 +1,5 @@
-import type { Device } from "@/data/devices";
-import type { Locale } from "@/i18n/config";
+import type { Device } from "../data/devices";
+import type { Locale } from "./config";
 
 type DeviceTranslation = {
   name: string;

@@ -2,6 +2,7 @@ import { monthlyCost, type HouseholdCostFrequency } from "@eavesence/core/househ
 import { compareSavingsActions, createSavingsAction, savingsReviewCandidates, type SavingsAction, type SavingsPlanInput } from "@eavesence/core/savingsPlan";
 import { useState } from "react";
 import { Alert, Keyboard, Pressable, StyleSheet, View } from "react-native";
+import { FormSection } from "./FormSection";
 import { FormInput } from "./FormInput";
 import { LocalizedText as Text, useMobileLocale } from "./i18n";
 
@@ -46,7 +47,7 @@ export function SavingsActionsScreen({ input, actions, currency, onChange, onCon
     setAmount("");
   }
 
-  return <View style={styles.container}>
+  return <FormSection onSave={save} saveLabel={de ? "Änderung vormerken" : "Save this plan"} style={styles.container}>
     <Text style={styles.eyebrow}>{de ? "DEIN NÄCHSTER SCHRITT" : "YOUR NEXT STEP"}</Text>
     <Text style={styles.heading}>{de ? "Was wäre, wenn du weniger zahlst?" : "What if you paid less?"}</Text>
     <Text style={styles.note}>{de ? "Teste eine günstigere Ausgabe oder eine Kündigung. Wir zeigen dir die mögliche Ersparnis. Deine eingetragenen Kosten werden dabei nicht geändert." : "Try a lower cost or a cancellation to see the possible saving. Your recorded costs stay the same."}</Text>
@@ -88,7 +89,7 @@ export function SavingsActionsScreen({ input, actions, currency, onChange, onCon
         </View>
       </View>;
     })}<Text style={styles.note}>{de ? `Mögliche Wirkung aller Vorhaben in 12 Monaten: ${money(combined?.totalDifference ?? 0)}. Von dir bestätigte Änderungen, aufs Jahr gerechnet: ${money(confirmedAnnual)}. Keine Prüfung anhand von Kontobelegen.` : `Possible impact of all plans over 12 months: ${money(combined?.totalDifference ?? 0)}. Changes you marked done, annualized: ${money(confirmedAnnual)}. No bank transaction verification.`}</Text></View>}
-  </View>;
+  </FormSection>;
 }
 
 const styles = StyleSheet.create({
