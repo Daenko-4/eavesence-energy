@@ -22,6 +22,7 @@ export default function SavingsCoach({
   onConfirm,
   onReview,
   currency,
+  mode = "all",
   locale,
 }: {
   input: SavingsPlanInput;
@@ -32,6 +33,7 @@ export default function SavingsCoach({
   onConfirm: (a: SavingsAction) => void | Promise<void>;
   onReview: (c: HouseholdCost) => void;
   currency: string;
+  mode?: "all" | "opportunities" | "progress";
   locale: "de" | "en";
 }) {
   const de = locale === "de",
@@ -54,20 +56,22 @@ export default function SavingsCoach({
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+  const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
     <section
       className="mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"
-      aria-label={t("Dein Sparassistent", "Your savings assistant")}
+      aria-label={mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
     >
       <h3 className="site-card-title">
-        {t("Dein Sparassistent", "Your savings assistant")}
+        {mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
       </h3>
       <p className="mt-1 text-[12px] text-[#52605b]">
-        {t(
+        {mode === "progress" ? t("Nur umgesetzte und bestätigte Änderungen zählen. Der Betrag ist aus deinen Angaben berechnet, nicht über ein Bankkonto nachgewiesen.", "Only completed, confirmed changes count. The amount is calculated from your entries, not verified against a bank account.") : t(
           "Prüfen → Änderung vormerken → Umsetzung bestätigen. Höchstens drei nächste Aufgaben. Du entscheidest, was sinnvoll ist.",
           "Review → plan a change → confirm it happened. Up to three next tasks. You decide what makes sense.",
         )}
       </p>
+      {mode === "progress" && !shownActions.length && <p className="mt-3 text-[12px] text-[#52605b]">{t("Noch keine bestätigte Ersparnis. Plane eine konkrete Kostenänderung und bestätige sie erst nach der Umsetzung.", "No confirmed savings yet. Plan a specific cost change and confirm it after it happens.")}</p>}
       {p.outdated.length > 0 && (
         <p role="status" className="mt-3 text-[12px] text-amber-800">
           {t(
@@ -76,7 +80,7 @@ export default function SavingsCoach({
           )}
         </p>
       )}
-      {actions.some((a) => a.status === "confirmed") && (
+      {mode !== "opportunities" && actions.some((a) => a.status === "confirmed") && (
         <div className="mt-3 rounded-xl bg-[#24272c] p-3 text-white">
           <p className="text-[12px] text-[#d1d7d4]">
             {t(
@@ -93,7 +97,7 @@ export default function SavingsCoach({
           </p>
         </div>
       )}
-      {!p.tasks.length && !actions.length && (
+      {mode !== "progress" && !p.tasks.length && !actions.length && (
         <p className="mt-3 text-[12px]">
           {t(
             "Noch keine passende Aufgabe. Ergänze Abos, Energie- oder Versicherungskosten; wir zeigen keine erfundenen Einsparungen.",
@@ -102,7 +106,7 @@ export default function SavingsCoach({
         </p>
       )}
       <div className="mt-3 grid items-start gap-3 md:grid-cols-3">
-        {p.tasks.map((c) => (
+        {(mode === "progress" ? [] : p.tasks).map((c) => (
           <article
             key={c.id}
             className="min-w-0 rounded-xl bg-[#f4f6f2] p-3 text-[12px]"
@@ -160,7 +164,7 @@ export default function SavingsCoach({
           </article>
         ))}
       </div>
-      {p.selected && (
+      {mode !== "progress" && p.selected && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -209,19 +213,19 @@ export default function SavingsCoach({
           </div>
         </form>
       )}
-      {actions.length > 0 && (
+      {shownActions.length > 0 && (
         <details
           className="mt-3"
-          open={actions.some(
+          open={mode === "progress" || actions.some(
             (a) =>
               a.status === "planned" && a.effectiveMonth <= p.today.slice(0, 7),
           )}
         >
           <summary className="cursor-pointer text-[13px] font-bold">
-            {t("Vorhaben & bestätigte Änderungen", "Plans & confirmed changes")}{" "}
-            · {actions.length}
+            {mode === "progress" ? t("Bestätigte Änderungen ansehen", "View confirmed changes") : t("Vorgemerkte Änderungen", "Planned changes")}{" "}
+            · {shownActions.length}
           </summary>
-          {actions.map((a) => (
+          {shownActions.map((a) => (
             <article
               key={a.costId}
               className="mt-3 rounded-xl border border-[#dfe5dd] p-3 text-[12px]"

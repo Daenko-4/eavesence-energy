@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useCashWindow } from "@eavesence/core/useCashWindow";
 import type { PlanningData } from "@eavesence/core/planning";
 import {
-  createSavingsPlan,
   type SavingsPlanInput,
 } from "@eavesence/core/savingsPlan";
 import { FormSection } from "./FormSection";
@@ -32,8 +31,7 @@ export function PaydayScreen({
     complete =
       !!p.forecast &&
       p.forecast.remaining !== null &&
-      p.forecast.missingDates === 0,
-    monthly = createSavingsPlan(input);
+      p.forecast.missingDates === 0;
   const day = (s: string) =>
     new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", {
       month: "short",
@@ -64,8 +62,8 @@ export function PaydayScreen({
       <View style={styles.dark}>
         <Text style={styles.eyebrow}>
           {complete
-            ? t("BIS ZUM NÄCHSTEN GEHALT", "UNTIL YOUR NEXT PAYDAY")
-            : t("DEIN MONATSPLAN", "YOUR MONTHLY PLAN")}
+            ? t("01 · BIS ZUM NÄCHSTEN GEHALT", "01 · UNTIL YOUR NEXT PAYDAY")
+            : t("01 · BIS ZUM NÄCHSTEN GEHALT", "01 · UNTIL YOUR NEXT PAYDAY")}
         </Text>
         <Text style={styles.title}>
           {complete
@@ -73,14 +71,12 @@ export function PaydayScreen({
                 `Was bleibt bis ${day(p.cash!.payday)}?`,
                 `What is left until ${day(p.cash!.payday)}?`,
               )
-            : t("Was bleibt dir im Monat?", "What is left each month?")}
+            : t("Was kann ich bis zum nächsten Gehalt ausgeben?", "What can I spend until my next payday?")}
         </Text>
         <Text style={styles.amount}>
           {complete
             ? money(p.forecast!.remaining!)
-            : input.incomeMonthly > 0 && input.variableMonthly !== null
-              ? money(monthly?.averageRoom ?? 0)
-              : "—"}
+            : "—"}
         </Text>
         <Text style={styles.light}>
           {complete
@@ -89,8 +85,8 @@ export function PaydayScreen({
                 "After upcoming payments, everyday spending and money to keep untouched.",
               )
             : t(
-                "Einkommen minus durchschnittliche Fixkosten, Alltagsschätzung und freiwillige Reserve. Für die Gehaltsvorschau ergänze Guthaben und Gehaltstermin.",
-                "Income minus average fixed costs, everyday estimate and optional reserve. Add balance and payday for a forecast until then.",
+                "Für diese Vorschau brauchen wir dein heutiges Guthaben und den nächsten Gehaltstermin. Dein Monatsdurchschnitt steht unten in der Planungsbasis.",
+                "This forecast needs today’s balance and your next payday. Your monthly average is shown below in the planning basics.",
               )}
         </Text>
         {p.stale && (
@@ -292,11 +288,11 @@ const styles = StyleSheet.create({
   note: { fontSize: 12, lineHeight: 18, color: "#52605b" },
   subTitle: { fontSize: 14, fontWeight: "800", color: "#24272c" },
   button: {
-    minHeight: 38,
+    minHeight: 44,
     borderRadius: 20,
     padding: 10,
     alignSelf: "flex-start",
-    backgroundColor: "#dff7e9",
+    backgroundColor: "#fff", borderWidth: 1, borderColor: "#dfe5dd",
   },
   buttonText: { fontSize: 12, fontWeight: "700", color: "#087a45" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

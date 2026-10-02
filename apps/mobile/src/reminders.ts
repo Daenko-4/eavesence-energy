@@ -4,14 +4,17 @@ const reminderTitle = "EAVESENCE Monats-Check";
 
 async function scheduledReminders() {
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  return scheduled.filter((request) => request.content.title === reminderTitle);
+  return scheduled.filter((request) => request.content.data?.eavesenceMonthlyCheck === true || request.content.title === reminderTitle);
 }
 
 export async function monthlyReminderIsActive() {
   const requests = await scheduledReminders();
   return requests.some((request) => {
-    const trigger = request.trigger;
-    return request.content.data?.eavesenceMonthlyCheck === true && trigger !== null && "type" in trigger && trigger.type === "monthly";
+    // iOS serializes MONTHLY as a repeating calendar trigger; Android keeps monthly.
+    const trigger = request.trigger as unknown as { type?: string; repeats?: boolean; dateComponents?: { day?: number; hour?: number; minute?: number; month?: number; year?: number } } | null;
+    const monthly = trigger?.type === "monthly";
+    const calendar = trigger?.type === "calendar" && trigger.repeats === true && trigger.dateComponents?.day === 1 && trigger.dateComponents.hour === 9 && trigger.dateComponents.minute === 0 && trigger.dateComponents.month == null && trigger.dateComponents.year == null;
+    return request.content.data?.eavesenceMonthlyCheck === true && (monthly || calendar);
   });
 }
 
@@ -28,7 +31,7 @@ export async function enableMonthlyReminder(locale: "de" | "en" = "de") {
   await disableMonthlyReminder();
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: reminderTitle,
+      title: locale === "de" ? reminderTitle : "EAVESENCE monthly check",
       body: locale === "de" ? "Prüfe Einkommen, Fixkosten und Alltagsschätzung. Dein Monatscheck ist bereit." : "Review income, fixed costs and your everyday estimate. Your monthly check is ready.",
       data: { eavesenceMonthlyCheck: true },
     },
@@ -44,6 +47,22 @@ export async function scheduleCostReview(cost: {id:string;name:string;cancellati
  const permission=await Notifications.requestPermissionsAsync();if(!permission.granted)return false;
  const identifier=`eavesence-review-${cost.id}`;
  await Notifications.cancelScheduledNotificationAsync(identifier);
- await Notifications.scheduleNotificationAsync({identifier,content:{title:de?'EAVESENCE · Kosten prüfen':'EAVESENCE · Review cost',body:`${cost.name} · ${de?'Frist':'Deadline'}: ${cost.cancellationDeadline}`},trigger:{type:Notifications.SchedulableTriggerInputTypes.DATE,date}});
+ await Notifications.scheduleNotificationAsync({identifier,content:{data:{eavesenceCostReview:true},title:de?'EAVESENCE · Kosten prüfen':'EAVESENCE · Review cost',body:`${cost.name} · ${de?'Frist':'Deadline'}: ${cost.cancellationDeadline}`},trigger:{type:Notifications.SchedulableTriggerInputTypes.DATE,date}});
  return true;
+}
+
+export async function cancelCostReview(id: string) {
+  await Notifications.cancelScheduledNotificationAsync(`eavesence-review-${id}`);
+}
+
+/** Remove only this app's scheduled reminders, including legacy review IDs. */
+export async function disableAllReminders() {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  const owned = scheduled.filter(request => request.content.data?.eavesenceMonthlyCheck === true || request.content.data?.eavesenceCostReview === true || request.content.title === reminderTitle || request.identifier.startsWith("eavesence-review-"));
+  await Promise.all(owned.map(request => Notifications.cancelScheduledNotificationAsync(request.identifier)));
+}
+
+export async function disableCostReminders() {
+  const requests = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(requests.filter(request => request.content.data?.eavesenceCostReview === true || request.identifier.startsWith("eavesence-review-")).map(request => Notifications.cancelScheduledNotificationAsync(request.identifier)));
 }

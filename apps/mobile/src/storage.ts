@@ -53,21 +53,55 @@ export type MobileHistoryEntry = {
 export async function readJson<T>(key: string, fallback: T): Promise<T> {
   const value = await AsyncStorage.getItem(key);
   if (!value) return fallback;
+  // A damaged backup must not become an empty home that silently overwrites data.
+  return JSON.parse(value) as T;
+}
+
+const dataKeys = [PROFILE_KEY, DEVICES_KEY, HISTORY_KEY, COSTS_KEY, BETA_KEY, TILES_KEY];
+const JOURNAL_KEY = "eavesence-mobile-transaction-v1";
+type StoredEntry = [string, string | null];
+let queue: Promise<unknown> = Promise.resolve();
+function serialized<T>(work: () => Promise<T>): Promise<T> {
+  const result = queue.then(work);
+  queue = result.catch(() => undefined);
+  return result;
+}
+async function restore(entries: StoredEntry[]) {
+  const values = entries.filter((entry): entry is [string, string] => entry[1] !== null);
+  const absent = entries.filter(([, value]) => value === null).map(([key]) => key);
+  if (values.length) await AsyncStorage.multiSet(values);
+  if (absent.length) await AsyncStorage.multiRemove(absent);
+}
+async function recover() {
+  const raw = await AsyncStorage.getItem(JOURNAL_KEY);
+  if (!raw) return;
+  const entries: unknown = JSON.parse(raw);
+  if (!Array.isArray(entries) || !entries.every(entry => Array.isArray(entry) && entry.length === 2 && dataKeys.includes(entry[0]) && (entry[1] === null || typeof entry[1] === "string"))) throw new Error("Invalid storage transaction");
+  await restore(entries as StoredEntry[]);
+  await AsyncStorage.multiRemove([JOURNAL_KEY]);
+}
+/** Finish rollback after an interrupted import/reset before showing any data. */
+export function recoverStorage() { return serialized(recover); }
+
+export function writeJson(key: string, value: unknown) {
+  return serialized(async () => { await recover(); await AsyncStorage.setItem(key, JSON.stringify(value)); });
+}
+async function transaction(keys: string[], work: () => Promise<void>) {
+  await recover();
+  const previous = await Promise.all(keys.map(async key => [key, await AsyncStorage.getItem(key)] as StoredEntry));
+  await AsyncStorage.setItem(JOURNAL_KEY, JSON.stringify(previous));
   try {
-    return JSON.parse(value) as T;
-  } catch {
-    return fallback;
+    await work();
+    await AsyncStorage.multiRemove([JOURNAL_KEY]);
+  } catch (error) {
+    // Keep the journal if rollback fails; the next launch retries it.
+    try { await restore(previous); await AsyncStorage.multiRemove([JOURNAL_KEY]); } catch { /* recovery remains pending */ }
+    throw error;
   }
 }
-
-export async function writeJson(key: string, value: unknown) {
-  await AsyncStorage.setItem(key, JSON.stringify(value));
+export function writeAll(entries: Array<[string, unknown]>) {
+  return serialized(() => transaction(entries.map(([key]) => key), () => AsyncStorage.multiSet(entries.map(([key, value]) => [key, JSON.stringify(value)]))));
 }
-
-export async function writeAll(entries: Array<[string, unknown]>) {
-  await AsyncStorage.multiSet(entries.map(([key, value]) => [key, JSON.stringify(value)]));
-}
-
-export async function clearAll() {
-  await AsyncStorage.multiRemove([PROFILE_KEY, DEVICES_KEY, HISTORY_KEY, COSTS_KEY, BETA_KEY, TILES_KEY]);
+export function clearAll() {
+  return serialized(() => transaction(dataKeys, () => AsyncStorage.multiRemove(dataKeys)));
 }

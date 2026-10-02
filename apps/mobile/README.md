@@ -36,6 +36,13 @@ The savings plan needs an everyday spending estimate for a fuller projection;
 undated recurring costs are averaged and marked as incomplete. Its Pro preview
 is free to try while the subscription offering is being prepared.
 
+## Free iPhone beta
+
+Version 0.2 groups planning around spending until payday, realistic changes and
+confirmed savings. TestFlight purchases are explicitly disabled. Run
+`npm run mobile:beta:check` from the repository root. The account/signing handoff,
+iPhone test protocol and external beta release gates are in [BETA-TEST.md](BETA-TEST.md).
+
 ## Test on an iPhone with TestFlight
 
 A paid Apple Developer Program membership, access to App Store Connect, and a

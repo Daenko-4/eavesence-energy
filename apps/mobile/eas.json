@@ -13,10 +13,17 @@
     },
     "testflight": {
       "distribution": "store",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "environment": "preview",
+      "env": {
+        "EXPO_PUBLIC_PURCHASES_ENABLED": "false"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_PURCHASES_ENABLED": "false"
+      }
     }
   },
   "submit": {

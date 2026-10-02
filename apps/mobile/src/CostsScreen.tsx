@@ -13,7 +13,7 @@ import { Alert, Keyboard, Pressable, StyleSheet, View } from "react-native";
 import { costsForTile, destinationTileId } from "./costTiles";
 import type { MobileProfile } from "./storage";
 import type { MobileTile } from "./tiles";
-import { FormSection } from "./FormSection";
+import { FormSection, FormSubmitButton } from "./FormSection";
 import { FormInput } from "./FormInput";
 import { shareDeadline } from "./deadlineFile";
 import { LocalizedText as Text, localize, useMobileLocale } from "./i18n";
@@ -166,7 +166,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   function confirmDelete(cost: HouseholdCost) {
     Alert.alert((locale === "de" ? "Kosten entfernen?" : "Remove cost?"), cost.name, [
       { text: locale === "de" ? "Abbrechen" : "Cancel", style: "cancel" },
-      { text: locale === "de" ? "Entfernen" : "Remove", style: "destructive", onPress: () => { void onDeleteCost(cost.id); } },
+      { text: locale === "de" ? "Entfernen" : "Remove", style: "destructive", onPress: () => { void onDeleteCost(cost.id).catch(() => Alert.alert(locale === "de" ? "Speichern fehlgeschlagen" : "Could not save", locale === "de" ? "Bitte versuche es erneut." : "Please try again.")); } },
     ]);
   }
 
@@ -196,7 +196,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <Text style={styles.help}>Das Budget zieht nur deine erfassten regelmäßigen Kosten ab; variable Ausgaben bleiben außen vor.</Text>
       <FormInput label="Nettoeinkommen" value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder="0,00" />
       <Choice options={[["monthly", "Monatlich"], ["yearly", "Jährlich"]]} value={incomeFrequency} onChange={setIncomeFrequency} />
-      <Pressable onPress={() => { void saveIncome(); }} style={styles.secondary}><Text style={styles.secondaryText}>Einkommen speichern</Text></Pressable>
+      <FormSubmitButton label="Einkommen speichern" style={styles.secondary} textStyle={styles.secondaryText} />
     </FormSection>}</>}
 
     {visibleCosts.length < 3 && !formOpen && <View style={styles.panel}>
@@ -217,7 +217,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <DateField label="Kündigungsfrist (optional)" value={deadline} onChangeText={setDeadline} />
       <Text style={styles.help}>Mit Zahlungstermin können wir den nächsten Monat genau berechnen. Ohne Termin fließt der Posten nur in den Monatsdurchschnitt ein.</Text>
       </>}
-      <Pressable onPress={() => { void save(); }} style={styles.primary}><Text style={styles.primaryText}>{editingId ? "Aktualisieren" : "Speichern"}</Text></Pressable>
+      <FormSubmitButton label={editingId ? "Aktualisieren" : "Speichern"} style={styles.primary} textStyle={styles.primaryText} />
       <Pressable onPress={() => setFormOpen(false)} style={styles.secondary}><Text style={styles.secondaryText}>Abbrechen</Text></Pressable>
     </FormSection> : <Pressable onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
 
@@ -238,7 +238,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <Text style={styles.costDetail}>{money.format(cost.amount)} {locale === "de" ? "je Zahlung" : "per payment"} · {money.format(monthlyCost(cost.amount, cost.frequency))} / {locale === "de" ? "Monat" : "month"} · {money.format(annualCost(cost.amount, cost.frequency))} / {locale === "de" ? "Jahr" : "year"}</Text>
       <Text style={styles.costDetail}>{cost.nextDueDate ? `${locale === "de" ? "Nächste Zahlung" : "Next payment"}: ${displayDate(cost.nextDueDate)}` : "Ohne Zahlungstermin"}</Text>
       {cost.cancellationDeadline && <Text style={styles.costDetail}>{locale === "de" ? "Kündigungsfrist" : "Cancellation deadline"}: {displayDate(cost.cancellationDeadline)}</Text>}
-      <View style={styles.actions}><Pressable onPress={() => edit(cost)} style={styles.choice}><Text style={styles.choiceText}>Bearbeiten</Text></Pressable>{cost.cancellationDeadline && <Pressable onPress={() => void shareDeadline(cost.name, cost.cancellationDeadline!).catch(() => Alert.alert(locale === "de" ? "Kalender nicht verfügbar" : "Calendar unavailable", locale === "de" ? "Die Frist konnte nicht geteilt werden." : "Could not share this deadline."))} style={styles.choice}><Text style={styles.choiceText}>{locale === "de" ? "Frist vormerken" : "Add to calendar"}</Text></Pressable>}<Pressable onPress={() => confirmDelete(cost)} style={styles.choice}><Text style={styles.deleteText}>Entfernen</Text></Pressable></View>
+      <View style={styles.actions}><Pressable onPress={() => edit(cost)} style={styles.choice}><Text style={styles.choiceText}>Bearbeiten</Text></Pressable>{cost.cancellationDeadline && <Pressable onPress={() => void shareDeadline(cost.name, cost.cancellationDeadline!, locale).catch(() => Alert.alert(locale === "de" ? "Kalender nicht verfügbar" : "Calendar unavailable", locale === "de" ? "Die Frist konnte nicht geteilt werden." : "Could not share this deadline."))} style={styles.choice}><Text style={styles.choiceText}>{locale === "de" ? "Frist vormerken" : "Add to calendar"}</Text></Pressable>}<Pressable onPress={() => confirmDelete(cost)} style={styles.choice}><Text style={styles.deleteText}>Entfernen</Text></Pressable></View>
     </View>)}
   </>;
 }
@@ -258,13 +258,13 @@ const styles = StyleSheet.create({
   dateSuggestion: { borderRadius: 16, backgroundColor: "#eef1ed", paddingHorizontal: 11, paddingVertical: 7 },
   dateSuggestionText: { fontSize: 12, fontWeight: "700", color: "#087a45" },
   choices: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 5 },
-  choice: { borderRadius: 20, backgroundColor: "#ddf8e9", paddingHorizontal: 12, paddingVertical: 8 },
+  choice: { minHeight: 44, justifyContent: "center", borderRadius: 22, borderWidth: 1, borderColor: "#dfe5dd", backgroundColor: "#ffffff", paddingHorizontal: 12, paddingVertical: 8 },
   choiceActive: { backgroundColor: "#087a45" },
   choiceText: { fontSize: 12, fontWeight: "800", color: "#087a45" },
   choiceTextActive: { color: "#ffffff" },
   primary: { minHeight: 48, marginTop: 12, borderRadius: 24, backgroundColor: "#087a45", alignItems: "center", justifyContent: "center", paddingHorizontal: 18 },
   primaryText: { fontSize: 14, fontWeight: "900", color: "#ffffff" },
-  secondary: { minHeight: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  secondary: { minHeight: 44, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   secondaryText: { fontSize: 12, fontWeight: "800", color: "#087a45" },
   sectionTitle: { marginTop: 28, fontSize: 20, fontWeight: "900", color: "#07111f" },
   categoryGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
@@ -275,6 +275,6 @@ const styles = StyleSheet.create({
   costName: { fontSize: 14, fontWeight: "900", color: "#17211f" },
   costArea: { marginTop: 5, fontSize: 11, fontWeight: "800", color: "#087a45" },
   costDetail: { marginTop: 5, fontSize: 12, lineHeight: 18, color: "#65716d" },
-  actions: { flexDirection: "row", gap: 8, marginTop: 10 },
+  actions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
   deleteText: { fontSize: 12, fontWeight: "800", color: "#b42318" },
 });
