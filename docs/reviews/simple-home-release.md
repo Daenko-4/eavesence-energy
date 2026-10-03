@@ -6,7 +6,7 @@ A fresh fictional household was created on the public website, income and a recu
 The initial dashboard exposed several planning systems simultaneously. Monthly averages, scheduled payments and savings estimates competed for attention. A cost list required opening a tile again after reload. The setup also incorrectly claimed electricity was already configured.
 
 ## Product boundary
-The free core is income, recurring costs, monthly remainder, editing and local backup/import. The remainder is explicitly before everyday spending, not a bank balance or a savings figure. Missing due dates affect the dated payment preview, not the monthly average.
+The free core is income, recurring costs, monthly remainder, editing and local backup/import. The cost list avoids repeated totals and repeated local add buttons. The remainder is explicitly before everyday spending, not a bank balance or a savings figure. Missing due dates affect the dated payment preview, not the monthly average.
 
 Planning has a separate opt-in workspace with three questions: spend until payday, realistic savings, and confirmed savings. It is labelled a free Pro preview; this change does not implement billing or secure subscription entitlements.
 
