@@ -276,7 +276,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByRole("heading", { name: "Sections in your home" }))
     .toBeVisible();
   const householdOverview = page.getByRole("region", { name: "Your household at a glance" });
-  await householdOverview.getByRole("button", { name: "Add income" }).click();
+  await householdOverview.getByRole("button", { name: "Add income", exact: true }).click();
   await householdOverview.getByLabel(/Regular monthly net income|Total annual net income/).fill("24000");
   await householdOverview.getByLabel("Period").selectOption("yearly");
   await householdOverview.getByLabel(/Regular monthly net income|Total annual net income/).press("Enter");
