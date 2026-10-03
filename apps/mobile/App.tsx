@@ -218,7 +218,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
-  }, [tab]);
+  }, [tab, profile?.setupStep]);
 
   useEffect(() => {
     const shown = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
@@ -274,6 +274,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       currency,
       electricityPrice: price,
       savingsGoalPercent: target,
+      setupStep: "income",
       createdAt: new Date().toISOString(),
     };
     try {
@@ -599,7 +600,10 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
   async function saveCost(cost: HouseholdCost) {
     const next = upsertHouseholdCost(costs, cost);
-    await writeJson(COSTS_KEY, next);
+    if (profile?.setupStep === "cost") {
+      const nextProfile = {...profile, setupStep:"review" as const};
+      await writeAll([[COSTS_KEY,next],[PROFILE_KEY,nextProfile]]); setProfile(nextProfile);
+    } else await writeJson(COSTS_KEY, next);
     setCosts(next);
   }
 
@@ -612,9 +616,15 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
   async function saveIncome(amount: number, frequency: "monthly" | "yearly") {
     if (!profile) return;
-    const next = { ...profile, incomeAmount: amount, incomeFrequency: frequency };
+    const next = { ...profile, incomeAmount: amount, incomeFrequency: frequency, ...(profile.setupStep === "income" ? {setupStep:"cost" as const} : {}) };
     await writeJson(PROFILE_KEY, next);
     setProfile(next);
+  }
+
+  async function setSetupStep(setupStep: "income" | "cost" | "review" | "complete") {
+    if (!profile) return;
+    const next = {...profile,setupStep};
+    await writeJson(PROFILE_KEY,next); setProfile(next); Keyboard.dismiss(); setTab("home");
   }
 
   async function saveMonth() {
@@ -712,8 +722,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
           <ScrollView contentContainerStyle={styles.onboarding} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
             <Image source={brandIcon} alt="EAVESENCE" style={styles.onboardingMark} />
-            <Text style={styles.eyebrow}>EAVESENCE HOME</Text>
-            <Text style={styles.hero}>Was bleibt dir nächsten Monat?</Text>
+            <Text style={styles.eyebrow}>EAVESENCE</Text>
+            <Text style={styles.hero}>{locale === "de" ? "Damit aus Überblick ein Plan wird." : "Turn clarity into a plan."}</Text>
             <Text style={styles.body}>Erfasse dein Nettoeinkommen und deine festen Kosten. EAVESENCE zeigt dir, welche Zahlungen anstehen und was übrig bleibt.</Text>
             <PrimaryButton label={localize(locale, "Jetzt starten")} onPress={createHome} />
             <View style={styles.languageRow}>{(["de", "en"] as const).map(item => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: locale === item }} onPress={() => void changeLanguage(item)} style={[styles.financePill, locale === item && styles.choiceSelected]}><Text style={styles.financePillText}>{item === "de" ? "Deutsch" : "English"}</Text></Pressable>)}</View>
@@ -724,17 +734,28 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     );
   }
 
+  if (profile.setupStep && profile.setupStep !== "complete") {
+    const step = profile.setupStep;
+    return <SafeAreaView style={styles.safe}><StatusBar style="dark" />
+      <View style={styles.appHeader}><Image source={brandIcon} alt="EAVESENCE" style={styles.headerMark} /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
+      <KeyboardScrollContext.Provider value={input => scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input,72,true)}><ScrollView ref={scrollRef} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
+        <Text style={styles.eyebrow}>{locale === "de" ? `SCHRITT ${step === "income" ? 1 : step === "cost" ? 2 : 3} VON 3` : `STEP ${step === "income" ? 1 : step === "cost" ? 2 : 3} OF 3`}</Text>
+        {step === "review" ? <><Text style={styles.heroSmall}>{locale === "de" ? "Dein erster Überblick ist bereit." : "Your first overview is ready."}</Text><Text style={styles.financeNote}>{locale === "de" ? "Deine Angaben sind gespeichert. Weitere Kosten, Einstellungen und den Stromrechner findest du anschließend in deiner Übersicht." : "Your entries are saved. Find more costs, settings and the electricity calculator in your overview."}</Text><View style={styles.formSurface}><Metric full label={locale === "de" ? "Nettoeinkommen pro Monat" : "Net income per month"} value={hasIncome ? euro.format(monthlyIncome) : locale === "de" ? "Später ergänzen" : "Add later"} /><Metric full label={locale === "de" ? "Feste Kosten pro Monat" : "Fixed costs per month"} value={euro.format(costSummary.monthlyTotal)} /><Metric full label={locale === "de" ? "Rest nach Fixkosten" : "Left after fixed costs"} value={hasIncome ? euro.format(monthlyIncome-costSummary.monthlyTotal) : "—"} /><Text style={styles.financeNote}>{locale === "de" ? "Monatsdurchschnitte. Alltagsausgaben gehen davon noch ab; fehlende Zahlungstermine kannst du später ergänzen." : "Monthly averages. Everyday spending still comes out of this amount; add missing payment dates later."}</Text></View><PrimaryButton label={locale === "de" ? "Meine Übersicht öffnen" : "Open my overview"} onPress={() => setSetupStep("complete")} /></> : <CostsScreen key={`setup-${step}`} setup={step} profile={profile} costs={costs} tiles={tiles} tileId="default-costs" tileTitle="Haushaltskosten" onSaveIncome={saveIncome} onSaveCost={saveCost} onDeleteCost={deleteCost} onBack={step === "cost" ? () => setSetupStep("income") : undefined} onSkip={() => step === "income" ? saveIncome(0,"monthly") : setSetupStep("review")} />}
+      </ScrollView></KeyboardScrollContext.Provider>
+    </SafeAreaView>;
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar style="dark" />
       <View style={styles.appHeader}>
         <Image source={brandIcon} alt="EAVESENCE" style={styles.headerMark} />
-        <View style={styles.headerCopy}><Text style={styles.headerBrand}>EAVESENCE</Text><Text style={styles.headerSubline}>HOME</Text></View>
+        <View style={styles.headerCopy}><Text style={styles.headerBrand}>EAVESENCE</Text></View>
         <Pressable accessibilityRole="button" accessibilityLabel={localize(locale, "Einstellungen")} onPress={openSettings} style={styles.headerSettings}><Text style={styles.financePillText}>⚙ {localize(locale, "Einstellungen")}</Text></Pressable>
       </View>
       <KeyboardScrollContext.Provider value={(input) => scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input, 72, true)}><ScrollView ref={scrollRef} style={styles.scrollSurface} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         {tab === "home" && <>
-          <Text style={styles.eyebrow}>EAVESENCE HOME</Text>
+          <Text style={styles.eyebrow}>EAVESENCE</Text>
           <Text style={styles.homeTitle}>{profile.name === "Mein Zuhause" || profile.name === "My home" ? localize(locale, "Mein Zuhause") : profile.name}</Text>
           <Text style={styles.homeSubtitle}>Dein Überblick über Einkommen, feste Kosten und nächste Zahlungen.</Text>
           <View style={styles.presetRow}><Pressable style={styles.financePill} onPress={openMainCosts}><Text style={styles.financePillText}>{locale === "de" ? "Kosten hinzufügen / ändern" : "Add / update costs"}</Text></Pressable><Pressable style={styles.financePill} onPress={() => setTab("pro")}><Text style={styles.financePillText}>{locale === "de" ? "Monatscheck & Plan" : "Monthly check & plan"}</Text></Pressable></View>
@@ -813,7 +834,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
                 <Pressable onPress={confirmReset} style={styles.dangerPill}><Text style={styles.dangerText}>My Home zurücksetzen</Text></Pressable>
               </View>
             </View>
-            <View style={styles.dataSection}><Text style={styles.dataTitle}>{locale === "de" ? "Hilfe & Informationen" : "Help & information"}</Text><Text style={styles.financeNote}>{locale === "de" ? "Deine Angaben bleiben auf diesem Gerät. Sichere sie vor einem Gerätewechsel oder einer Neuinstallation." : "Your entries stay on this device. Back them up before changing devices or reinstalling."}</Text><View style={styles.dataActions}>{[[locale === "de" ? "Hilfe / FAQ" : "Help / FAQ", locale === "de" ? "https://eavesence.com/de#faq" : "https://eavesence.com/#faq"], [locale === "de" ? "Datenschutz" : "Privacy", locale === "de" ? "https://eavesence.com/datenschutz" : "https://eavesence.com/en/privacy"]].map(([label, url]) => <Pressable key={url} style={styles.financePill} onPress={() => void Linking.openURL(url).catch(() => showLocalizedAlert(locale, "Öffnen fehlgeschlagen", "Bitte versuche es erneut."))}><Text style={styles.financePillText}>{label}</Text></Pressable>)}</View><Text style={styles.financeNote}>EAVESENCE Home · {appConfig.expo.version} Beta</Text></View>
+            <View style={styles.dataSection}><Text style={styles.dataTitle}>{locale === "de" ? "Hilfe & Informationen" : "Help & information"}</Text><Text style={styles.financeNote}>{locale === "de" ? "Deine Angaben bleiben auf diesem Gerät. Sichere sie vor einem Gerätewechsel oder einer Neuinstallation." : "Your entries stay on this device. Back them up before changing devices or reinstalling."}</Text><View style={styles.dataActions}>{[[locale === "de" ? "Hilfe / FAQ" : "Help / FAQ", locale === "de" ? "https://eavesence.com/de/rechner#faq" : "https://eavesence.com/calculator#faq"], [locale === "de" ? "Datenschutz" : "Privacy", locale === "de" ? "https://eavesence.com/datenschutz" : "https://eavesence.com/en/privacy"]].map(([label, url]) => <Pressable key={url} style={styles.financePill} onPress={() => void Linking.openURL(url).catch(() => showLocalizedAlert(locale, "Öffnen fehlgeschlagen", "Bitte versuche es erneut."))}><Text style={styles.financePillText}>{label}</Text></Pressable>)}</View><Text style={styles.financeNote}>EAVESENCE Home · {appConfig.expo.version} Beta</Text></View>
           </FormSection>}
         {tab === "energy" && <>
           <Text style={styles.eyebrow}>STROMRECHNER</Text><Text style={styles.heroSmall}>Was kostet dein Gerät?</Text>
@@ -931,8 +952,8 @@ function PrimaryButton({ label, onPress }: { label: string; onPress: () => unkno
   return <Pressable accessibilityRole="button" disabled={form?.busy || busy} style={styles.primaryButton} onPress={() => void submit()}><Text style={styles.primaryButtonText}>{label}</Text></Pressable>;
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return <View style={styles.metric}><Text style={styles.metricLabel}>{label}</Text><Text style={styles.metricValue}>{value}</Text></View>;
+function Metric({ label, value, full = false }: { label: string; value: string; full?: boolean }) {
+  return <View style={[styles.metric, full && { width: "100%" }]}><Text style={styles.metricLabel}>{label}</Text><Text style={styles.metricValue}>{value}</Text></View>;
 }
 
 function Empty({ text }: { text: string }) {

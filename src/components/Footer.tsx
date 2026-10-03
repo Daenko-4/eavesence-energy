@@ -11,6 +11,7 @@ import {
   getDevicesHref,
   getFaqHref,
   getHomeHref,
+  getHouseholdHref,
   type Locale,
 } from "@/i18n/config";
 
@@ -21,7 +22,7 @@ type FooterProps = {
 const footerText = {
   de: {
     description:
-      "Ein klarer Blick darauf, was dein Zuhause kostet.",
+      "Damit aus Überblick ein Plan wird.",
     privateProject: "Derzeit ein privates, nicht kommerzielles Projekt.",
     calculator: "Stromkosten-Rechner",
     devices: "Geräteübersicht",
@@ -35,7 +36,7 @@ const footerText = {
 
   en: {
     description:
-      "A clearer view of what your home costs.",
+      "Turn clarity into a plan.",
     privateProject: "Currently a private, non-commercial project.",
     calculator: "Electricity cost calculator",
     devices: "Device overview",
@@ -96,7 +97,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
   const calculatorHref = getCalculatorHref(locale);
   const devicesHref = getDevicesHref(locale);
   const faqHref = getFaqHref(locale);
-  const howItWorksHref = `${getHomeHref(locale)}#so-funktionierts`;
+  const howItWorksHref = `${getCalculatorHref(locale)}#so-funktionierts`;
   const imprintHref = getImprintHref(locale);
   const privacyHref = getPrivacyHref(locale);
 
@@ -130,6 +131,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
               {text.explore}
             </p>
             <div className="grid gap-1.5 text-[12px] font-medium leading-5 text-slate-500">
+              <Link href={getHouseholdHref(locale)} className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900">{locale === "de" ? "Mein Zuhause" : "My home"}</Link>
               <Link
                 href={calculatorHref}
                 onClick={(event) =>

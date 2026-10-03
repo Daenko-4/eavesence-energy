@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
-import HomePage from "@/components/HomePage";
+import WelcomePage from "@/components/WelcomePage";
 import WebApplicationStructuredData from "@/components/WebApplicationStructuredData";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "EAVESENCE – Ein klarer Blick auf deine Haushaltskosten",
+    absolute: "EAVESENCE – Damit aus Überblick ein Plan wird.",
   },
   description:
     "Behalte Einkommen, laufende Haushaltskosten und anstehende Zahlungen im Blick. Mit kostenlosem Stromkosten-Rechner für deine Geräte.",
@@ -23,7 +23,7 @@ export default function GermanPage() {
   return (
     <>
       <WebApplicationStructuredData locale="de" />
-      <HomePage locale="de" />
+      <WelcomePage locale="de" />
     </>
   );
 }

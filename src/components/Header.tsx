@@ -85,10 +85,10 @@ export default function Header({
 }: HeaderProps) {
   const pathname = usePathname();
   const homeHref = getHomeHref(locale);
-  const isHomePage = pathname === homeHref;
+  const isCalculatorPage = pathname === getCalculatorHref(locale);
   const [menuOpen, setMenuOpen] = useState(false);
   const [desktopNavigationOpen, setDesktopNavigationOpen] = useState(
-    !isHomePage,
+    !isCalculatorPage,
   );
   const [previewNavigation, setPreviewNavigation] =
     useState<NavigationKey | null>(null);
@@ -114,7 +114,7 @@ export default function Header({
   const isHouseholdPage = pathname === householdHref;
   const activeNavigation: NavigationKey | null = isHouseholdPage
       ? "household"
-      : isHomePage
+      : isCalculatorPage
         ? activeHomeSection
         : null;
   const indicatedNavigation = previewNavigation ?? activeNavigation;
@@ -122,7 +122,7 @@ export default function Header({
   const otherLocale: Locale = locale === "de" ? "en" : "de";
   const languageHref =
     languageHrefOverride ??
-    getHomeHref(otherLocale);
+    (isCalculatorPage ? getCalculatorHref(otherLocale) : getHomeHref(otherLocale));
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -146,7 +146,7 @@ export default function Header({
   }, []);
 
   useEffect(() => {
-    if (!isHomePage) return;
+    if (!isCalculatorPage) return;
 
     const desktopQuery = window.matchMedia("(min-width: 1024px)");
     const reducedMotionQuery = window.matchMedia(
@@ -199,10 +199,10 @@ export default function Header({
         introCloseTimeoutRef.current = null;
       }
     };
-  }, [isHomePage]);
+  }, [isCalculatorPage]);
 
   useEffect(() => {
-    if (!isHomePage) return;
+    if (!isCalculatorPage) return;
 
     let animationFrame = 0;
     let resizeObserver: ResizeObserver | null = null;
@@ -262,7 +262,7 @@ export default function Header({
       window.removeEventListener("hashchange", scheduleUpdate);
       window.removeEventListener("pageshow", scheduleUpdate);
     };
-  }, [isHomePage]);
+  }, [isCalculatorPage]);
 
   useEffect(() => {
     function positionActiveIndicator() {
@@ -337,7 +337,7 @@ export default function Header({
   }
 
   function handleFaqActivate(event: MouseEvent<HTMLAnchorElement>) {
-    if (!isHomePage) return;
+    if (!isCalculatorPage) return;
 
     event.preventDefault();
     const faqElement = document.getElementById("faq");
@@ -428,7 +428,7 @@ export default function Header({
             aria-label={text.homeLabel}
           >
             <BrandLogo
-              markClassName={`${isHomePage ? "eavesence-logo-load-animation " : ""}h-8 w-8`}
+              markClassName={`${isCalculatorPage ? "eavesence-logo-load-animation " : ""}h-8 w-8`}
               wordmarkClassName="text-[1.05rem]"
               className="inline-flex items-center gap-2"
             />
@@ -470,7 +470,7 @@ export default function Header({
               aria-label={text.homeLabel}
             >
               <BrandMark
-                className={`${isHomePage ? "eavesence-logo-load-animation " : ""}h-8 w-8 shrink-0`}
+                className={`${isCalculatorPage ? "eavesence-logo-load-animation " : ""}h-8 w-8 shrink-0`}
               />
               <span
                 className={`shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${

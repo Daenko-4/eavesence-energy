@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import HouseholdDashboard from "@/components/HouseholdDashboard";
 
 export const metadata: Metadata = {
-  title: "EAVESENCE Home – Your household energy overview",
+  title: "My Home – Your costs and monthly overview",
   description:
-    "Bring your saved devices, monthly energy costs and savings goals together in one private household dashboard.",
+    "Keep your income, recurring costs and next payments in view. Plan realistic changes with EAVESENCE.",
   alternates: {
     canonical: "/home",
     languages: { de: "/de/zuhause", en: "/home", "x-default": "/home" },

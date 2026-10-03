@@ -23,7 +23,7 @@ const siteUrl = "https://eavesence.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
-  applicationName: "EAVESENCE Energy",
+  applicationName: "EAVESENCE",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 
   title: {
     default: "EAVESENCE – Mein Zuhause und meine Kosten im Blick",
-    template: "%s | EAVESENCE Energy",
+    template: "%s | EAVESENCE",
   },
 
   description:
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "de_AT",
     url: siteUrl,
-    siteName: "EAVESENCE Energy",
+    siteName: "EAVESENCE",
 
     title: "EAVESENCE – Mein Zuhause und meine Kosten im Blick",
 

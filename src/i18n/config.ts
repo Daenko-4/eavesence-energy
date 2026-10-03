@@ -21,13 +21,13 @@ export function getHouseholdHref(locale: Locale) {
 }
 
 export function getCalculatorHref(locale: Locale) {
-  return getHomeHref(locale);
+  return locale === "de" ? "/de/rechner" : "/calculator";
 }
 
 export function getHowItWorksHref(locale: Locale) {
-  return `${getHomeHref(locale)}#so-funktionierts`;
+  return `${getCalculatorHref(locale)}#so-funktionierts`;
 }
 
 export function getFaqHref(locale: Locale) {
-  return `${getHomeHref(locale)}#faq`;
+  return `${getCalculatorHref(locale)}#faq`;
 }

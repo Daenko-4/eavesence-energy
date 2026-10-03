@@ -14,7 +14,7 @@ test('all published sitemap routes respond and missing routes stay 404', async (
   expect((await request.get('/not-a-real-eavesence-page')).status()).toBe(404);
 });
 
-const routes = ['/', '/de', '/en/devices', '/geraete', '/en/devices/kettle', '/geraete/wasserkocher', '/en/privacy', '/datenschutz', '/en/imprint', '/impressum', '/offline'];
+const routes = ['/', '/de', '/calculator', '/de/rechner', '/en/devices', '/geraete', '/en/devices/kettle', '/geraete/wasserkocher', '/en/privacy', '/datenschutz', '/en/imprint', '/impressum', '/offline'];
 for (const width of [390, 1365]) {
   test(`public page layouts, navigation and console at ${width}px`, async ({ page }, testInfo) => {
     const errors: string[] = [];

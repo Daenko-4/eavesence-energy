@@ -111,7 +111,7 @@ const copy = {
   de: {
     pageTitle: "Mein Zuhause",
     pageSubtitle: "Alle laufenden Haushaltskosten, Geräte und Sparziele an einem Ort.",
-    onboardingEyebrow: "EAVESENCE Home",
+    onboardingEyebrow: "EAVESENCE",
     onboardingTitle: "Richte dein Zuhause ein",
     onboardingText:
       "Starte mit deinem Einkommen und deinen regelmäßigen Haushaltskosten. Danach siehst du, was dir im Monat bleibt. Alles bleibt in diesem Browser.",
@@ -368,7 +368,7 @@ const copy = {
   en: {
     pageTitle: "My home",
     pageSubtitle: "All recurring household costs, devices and savings goals in one place.",
-    onboardingEyebrow: "EAVESENCE Home",
+    onboardingEyebrow: "EAVESENCE",
     onboardingTitle: "Set up your home",
     onboardingText:
       "Start with your income and recurring household costs. Then see what is left each month. Everything stays in this browser.",
@@ -751,7 +751,7 @@ function readVisitState(value: string | null): HouseholdVisitState | null {
 
 export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const text = copy[locale];
-  const calculatorHref = locale === "de" ? "/de#rechner" : "/#rechner";
+  const calculatorHref = locale === "de" ? "/de/rechner#rechner" : "/calculator#rechner";
   const savedDevicesHref = locale === "de" ? "/de/zuhause#home-devices" : "/home#home-devices";
   const languageHref = locale === "de" ? "/home" : "/de/zuhause";
   const [ready, setReady] = useState(false);
@@ -1706,7 +1706,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         <div className="mx-auto max-w-7xl">
           <div>
             <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">EAVESENCE Home</p>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">EAVESENCE</p>
               <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
               <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
@@ -1931,7 +1931,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 {tileFeedback && <p role="alert" className="mt-2 text-[11px] font-bold text-red-700">{tileFeedback}</p>}
               </div>
             )}
-            {!homeTiles.some(tile => tile.kind === "energy") && <p className="mt-4 text-[11px] leading-relaxed text-[#65716d]">{locale === "de" ? "Stromkosten genauer ansehen?" : "Want to explore device electricity costs?"}{" "}<a href={locale === "de" ? "/de#rechner" : "/#rechner"} className="eavesence-pill-link">{locale === "de" ? "Zum Stromrechner" : "Open energy calculator"}</a>{" "}{locale === "de" ? "Dort kannst du Geräte speichern und freiwillig als eigene Kachel übernehmen." : "Save devices there and optionally add them as a dedicated tile."}</p>}
+            {!homeTiles.some(tile => tile.kind === "energy") && <p className="mt-4 text-[11px] leading-relaxed text-[#65716d]">{locale === "de" ? "Stromkosten genauer ansehen?" : "Want to explore device electricity costs?"}{" "}<a href={locale === "de" ? "/de/rechner#rechner" : "/calculator#rechner"} className="eavesence-pill-link">{locale === "de" ? "Zum Stromrechner" : "Open energy calculator"}</a>{" "}{locale === "de" ? "Dort kannst du Geräte speichern und freiwillig als eigene Kachel übernehmen." : "Save devices there and optionally add them as a dedicated tile."}</p>}
           </section>
 
           {activeTile?.kind === "energy" && <section className="mt-8 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4" aria-labelledby="monthly-overview-title">

@@ -39,6 +39,7 @@ export function readMobileBackup(json: string): MobileBackup | null {
       !positive(profile.electricityPrice) || profile.electricityPrice === 0 ||
       !positive(profile.savingsGoalPercent) || profile.savingsGoalPercent < 1 || profile.savingsGoalPercent > 50 ||
       typeof profile.createdAt !== "string" ||
+      (profile.setupStep !== undefined && !["income", "cost", "review", "complete"].includes(profile.setupStep)) ||
       (profile.incomeAmount !== undefined && !positive(profile.incomeAmount)) ||
       (profile.incomeFrequency !== undefined && profile.incomeFrequency !== "monthly" && profile.incomeFrequency !== "yearly") ||
       (profile.savingsActions !== undefined && (!Array.isArray(profile.savingsActions) || readSavingsActions(profile.savingsActions).length !== profile.savingsActions.length)) ||

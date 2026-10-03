@@ -45,6 +45,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
 
   return [
+    ...["/calculator", "/de/rechner"].map(path => ({ url: `${siteUrl}${path}`, changeFrequency: "monthly" as const, priority: 0.8, alternates: { languages: { de: `${siteUrl}/de/rechner`, en: `${siteUrl}/calculator` } } })),
     {
       url: siteUrl,
       lastModified: new Date(),

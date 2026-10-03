@@ -13,7 +13,7 @@ import { Alert, Keyboard, Pressable, StyleSheet, View } from "react-native";
 import { costsForTile, destinationTileId } from "./costTiles";
 import type { MobileProfile } from "./storage";
 import type { MobileTile } from "./tiles";
-import { FormSection, FormSubmitButton } from "./FormSection";
+import { FormSection, FormSubmitButton, FormActionButton } from "./FormSection";
 import { FormInput } from "./FormInput";
 import { shareDeadline } from "./deadlineFile";
 import { LocalizedText as Text, localize, useMobileLocale } from "./i18n";
@@ -65,6 +65,14 @@ function suggestedDate(daysFromNow: number) {
   return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`;
 }
 
+function inferSetupCategory(name: string): HouseholdCostCategory {
+  if (/internet|abo|stream|telefon|phone|subscription/i.test(name)) return "subscriptions";
+  if (/strom|heiz|electric|gas|energy/i.test(name)) return "energy";
+  if (/versicherung|insurance/i.test(name)) return "insurance";
+  if (/miet|rent|wohn|mortgage/i.test(name)) return "housing";
+  return "other";
+}
+
 function nextMonthDate(day: number | "last") {
   const now = new Date();
   const year = now.getFullYear();
@@ -95,7 +103,10 @@ function Choice<T extends string>({ options, value, onChange }: {
   return <View style={styles.choices}>{options.map(([key, label]) => <Pressable key={key} accessibilityRole="button" accessibilityState={{ selected: value === key }} onPress={() => onChange(key)} style={[styles.choice, value === key && styles.choiceActive]}><Text style={[styles.choiceText, value === key && styles.choiceTextActive]}>{label}</Text></Pressable>)}</View>;
 }
 
-export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, initialAction = "none", initialCostId, onSaveCost, onDeleteCost, onSaveIncome }: {
+export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, initialAction = "none", initialCostId, setup, onSkip, onBack, onSaveCost, onDeleteCost, onSaveIncome }: {
+  setup?: "income" | "cost";
+  onSkip?: () => Promise<void>;
+  onBack?: () => Promise<void>;
   profile: MobileProfile;
   costs: HouseholdCost[];
   tiles: MobileTile[];
@@ -151,12 +162,13 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   }
 
   async function save() {
-    const cost = createHouseholdCost({ id: editingId ?? undefined, name, amount: parseAmount(amount), category, frequency, tileId: destinationTileId(costs, editingId, tileId), nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
+    const cost = createHouseholdCost({ id: editingId ?? undefined, name, amount: parseAmount(amount), category: setup ? inferSetupCategory(name) : category, frequency, tileId: destinationTileId(costs, editingId, tileId), nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
     if (!cost) {
       Alert.alert((locale === "de" ? "Angaben prüfen" : "Check your entries"), (locale === "de" ? "Gib eine Bezeichnung, einen Betrag über 0 und gültige Termine im Format TT.MM.JJJJ ein." : "Enter a name, a positive amount and valid dates in DD.MM.YYYY format."));
       return;
     }
     await onSaveCost(cost);
+    if (setup) { Keyboard.dismiss(); return; }
     setFeedback(locale === "de" ? "Kosten gespeichert." : "Cost saved.");
     Keyboard.dismiss();
     setFormOpen(false);
@@ -177,10 +189,32 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       return;
     }
     await onSaveIncome(parsed, incomeFrequency);
+    if (setup) { Keyboard.dismiss(); return; }
     Keyboard.dismiss();
     setIncomeOpen(false);
     Alert.alert((locale === "de" ? "Gespeichert" : "Saved"), (locale === "de" ? "Dein Einkommen wurde aktualisiert." : "Your income was updated."));
   }
+
+  if (setup === "income") return <FormSection style={styles.panel} onSave={saveIncome} saveLabel={locale === "de" ? "Einkommen speichern & weiter" : "Save income & continue"}>
+    <Text style={styles.title}>{locale === "de" ? "Dein Einkommen" : "Your income"}</Text>
+    <Text style={styles.help}>{locale === "de" ? "Wie viel kommt nach Steuern auf dein Konto? Ein Betrag reicht für den Start. Du kannst ihn später ändern." : "How much reaches your account after tax? One amount is enough to start. You can change it later."}</Text>
+    <FormInput label="Nettoeinkommen" value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 2400" : "e.g. 2400"} />
+    <Choice options={[["monthly", "Monatlich"], ["yearly", "Jährlich"]]} value={incomeFrequency} onChange={setIncomeFrequency} />
+    <FormSubmitButton label={locale === "de" ? "Einkommen speichern & weiter" : "Save income & continue"} style={styles.primary} textStyle={styles.primaryText} />
+    {onSkip && <FormActionButton label={locale === "de" ? "Einkommen später ergänzen" : "Add income later"} onPress={onSkip} style={styles.secondary} textStyle={styles.secondaryText} />}
+  </FormSection>;
+  if (setup === "cost") return <FormSection style={styles.panel} onSave={save} saveLabel={locale === "de" ? "Kosten speichern & weiter" : "Save cost & continue"}>
+    <Text style={styles.title}>{locale === "de" ? "Deine ersten Kosten" : "Your first cost"}</Text>
+    <Text style={styles.help}>{locale === "de" ? "Beginne mit einer regelmäßigen Ausgabe, etwa Miete oder Internet. Weitere Kosten ergänzt du danach in deiner Übersicht." : "Start with one recurring expense, such as rent or internet. Add more later in your overview."}</Text>
+    <FormInput label="Bezeichnung" value={name} onChangeText={setName} placeholder={locale === "de" ? "z. B. Miete" : "e.g. Rent"} />
+    <FormInput label="Betrag" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="0,00" />
+    <Text style={styles.label}>WIE OFT?</Text><Choice options={moreOpen ? frequencies : [["monthly", "Monatlich"], ["yearly", "Jährlich"]]} value={frequency} onChange={setFrequency} />
+    <Pressable accessibilityRole="button" accessibilityState={{expanded:moreOpen}} style={styles.secondary} onPress={() => setMoreOpen(!moreOpen)}><Text style={styles.secondaryText}>{locale === "de" ? "Optional: Zahlungstermin & weitere Intervalle" : "Optional: payment date & more intervals"}</Text></Pressable>
+    {moreOpen && <><DateField label="Nächste Zahlung (optional)" value={dueDate} onChangeText={setDueDate} /><Text style={styles.help}>Mit Zahlungstermin können wir den nächsten Monat genau berechnen. Ohne Termin fließt der Posten nur in den Monatsdurchschnitt ein.</Text></>}
+    <FormSubmitButton label={locale === "de" ? "Kosten speichern & weiter" : "Save cost & continue"} style={styles.primary} textStyle={styles.primaryText} />
+    {onBack && <FormActionButton label={locale === "de" ? "Zurück zum Einkommen" : "Back to income"} onPress={onBack} style={styles.secondary} textStyle={styles.secondaryText} />}
+    {onSkip && <FormActionButton label={locale === "de" ? "Kosten später ergänzen" : "Add costs later"} onPress={onSkip} style={styles.secondary} textStyle={styles.secondaryText} />}
+  </FormSection>;
 
   return <>
     <Text style={styles.eyebrow}>HAUSHALTSKOSTEN</Text>
