@@ -16,6 +16,8 @@ test('missing dates identify the cost and open its existing edit form', async ({
   const payday=page.getByRole('region',{name:'Your available budget',exact:true});
   await expect(payday).toContainText('Your balance is recorded');
   await expect(payday).not.toContainText('planning basics');
+  await expect(payday).toContainText('Still missing: payment dates.');
+  await expect(payday).not.toContainText('everyday-spending estimate');
   await payday.getByRole('button',{name:'Insurance · Add date',exact:true}).click();
   await expect(page.locator('[data-home-overview-content]')).toBeVisible();
   await expect(page.locator('#household-cost-name')).toHaveValue('Insurance');

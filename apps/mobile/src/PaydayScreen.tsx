@@ -87,8 +87,8 @@ export function PaydayScreen({
                 "After upcoming payments, everyday spending and money to keep untouched.",
               )
             : t(
-                p.forecast ? "Dein Guthaben ist erfasst. Ergänze fehlende Zahlungstermine und eine Alltagsschätzung, bevor wir einen vollständigen Spielraum anzeigen." : "Trage dein heutiges Guthaben, den nächsten Gehaltstermin und deine erwarteten Alltagsausgaben ein. Bestehende Angaben kannst du aktualisieren.",
-                p.forecast ? "Your balance is recorded. Add missing payment dates and an everyday-spending estimate before we show a complete available budget." : "Enter today’s balance, your next payday and expected everyday spending. You can update existing entries.",
+                p.forecast ? `Dein Guthaben ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben für einen vollständigen Spielraum.` : "Trage dein heutiges Guthaben, den nächsten Gehaltstermin und deine erwarteten Alltagsausgaben ein. Bestehende Angaben kannst du aktualisieren.",
+                p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter today’s balance, your next payday and expected everyday spending. You can update existing entries.",
               )}
         </Text>
         {p.forecast && input.costs.filter(c => !c.nextDueDate).map(c => <Pressable key={c.id} accessibilityRole="button" style={styles.mintButton} onPress={() => onReviewCost?.(c)}><Text style={styles.mintText}>{c.name} · {t("Termin ergänzen", "Add date")}</Text></Pressable>)}

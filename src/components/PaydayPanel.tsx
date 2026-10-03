@@ -70,8 +70,8 @@ export default function PaydayPanel({
                 "Estimated after upcoming payments, everyday spending and money you want to keep untouched.",
               )
             : t(
-                p.forecast ? "Dein Guthaben ist erfasst. Ergänze fehlende Zahlungstermine und eine Alltagsschätzung, bevor wir einen vollständigen Spielraum anzeigen." : "Trage dein heutiges Guthaben, den nächsten Gehaltstermin und deine erwarteten Alltagsausgaben ein. Bestehende Angaben kannst du aktualisieren.",
-                p.forecast ? "Your balance is recorded. Add missing payment dates and an everyday-spending estimate before we show a complete available budget." : "Enter today’s balance, your next payday and expected everyday spending. You can update existing entries.",
+                p.forecast ? `Dein Guthaben ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben für einen vollständigen Spielraum.` : "Trage dein heutiges Guthaben, den nächsten Gehaltstermin und deine erwarteten Alltagsausgaben ein. Bestehende Angaben kannst du aktualisieren.",
+                p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter today’s balance, your next payday and expected everyday spending. You can update existing entries.",
               )}
         </p>
         {p.forecast && <div className="mt-3 flex flex-wrap gap-2">{input.costs.filter(c => !c.nextDueDate).map(c => <button key={c.id} type="button" className="min-h-11 rounded-full border border-[#72dca3] px-3 text-[12px] font-semibold" onClick={() => onReviewCost?.(c)}>{c.name} · {t("Termin ergänzen", "Add date")}</button>)}</div>}
