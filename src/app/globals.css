@@ -430,6 +430,7 @@ a {
   color: #52605b;
 }
 .eavesence-pill-button.home-workspace-pill.home-pro-pill {
+  align-items: baseline;
   border-color: #b8c4d6;
   background: #edf2f8;
   color: #314866;
