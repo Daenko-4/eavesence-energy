@@ -171,6 +171,7 @@ const content = {
         {
           title: "Mein Zuhause (My Home)",
           items: [
+            { question: "Wie erfasse ich 13./14. Gehalt und Boni?", answer: "Trage dein reguläres Monatsnetto ohne Extras ein. Unter Sonderzahlungen kannst du zusätzliche Nettobeträge und Auszahlungsmonate ergänzen. 13./14. Gehalt sind standardmäßig jährlich, ein Bonus einmalig mit Jahr. Der Jahresdurchschnitt wird separat angezeigt. Geplante Extras sind kein heute verfügbares Geld." },
             { question: "Was kann ich in My Home erfassen?", answer: "Du kannst regelmäßige Haushaltskosten, Einkommen, gespeicherte Geräte und monatliche Stromwerte an einem Ort verwalten. Starte mit wenigen Kostenposten; die Übersicht wächst mit deinen Angaben." },
             { question: "Wie entstehen Monatsdurchschnitt und Zahlungsvorschau?", answer: "Jährliche, halbjährliche und andere regelmäßige Kosten werden auf einen Monatsdurchschnitt umgerechnet. Die Vorschau zeigt nur Zahlungen, die im nächsten Monat laut eingetragenem Zahlungstermin fällig sind. Kosten ohne Termin fehlen dort und werden ausdrücklich gezählt." },
             { question: "Was bedeutet das Budget nach laufenden Kosten?", answer: "Es ist dein eingetragenes monatliches Nettoeinkommen minus der Durchschnitt deiner erfassten regelmäßigen Kosten. Variable Ausgaben wie Einkäufe und nicht erfasste Kosten sind darin nicht berücksichtigt." },
@@ -333,6 +334,7 @@ const content = {
         {
           title: "My Home",
           items: [
+            { question: "How do I record extra salaries and bonuses?", answer: "Enter regular monthly net income without extras. Under extra income, add each additional net amount and payment month. Extra salary payments default to yearly; a bonus defaults to one year only. The annual average is shown separately. Planned extras are not money available today." },
             { question: "What can I track in My Home?", answer: "You can manage recurring household costs, income, saved devices and monthly electricity values in one place. Start with a few costs and add details when you need them." },
             { question: "How are the monthly average and payment forecast calculated?", answer: "Yearly, half-yearly and other recurring costs are converted to a monthly average. The forecast shows payments due next month according to the payment dates you enter. Costs without dates are excluded and counted separately." },
             { question: "What does the budget after recurring costs mean?", answer: "It is your recorded monthly net income minus the average of your recorded recurring costs. Variable spending such as groceries and costs you have not added are not included." },

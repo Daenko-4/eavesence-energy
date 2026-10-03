@@ -50,30 +50,39 @@ Export real data first. Use invented amounts for destructive tests.
 2. Income 2,400/month; rent 800, internet 40, insurance 240/year. Fixed costs:
    860/month. Remainder: 1,540 before everyday spending. Missing payment dates
    must produce an explicitly incomplete payment forecast.
-3. Open Edit income from Overview, save a changed amount: return to Overview,
+3. Extra income: edit income, expand the optional section. Add 13th salary
+   2,400 in June, 14th salary 2,000 in November, one-off bonus 600 in December
+   this year. Save and relaunch: regular income stays 2,400; annual overview
+   includes extras. Next year's average excludes the one-off bonus. Hide the
+   section and change regular salary: extras remain. Remove/edit an extra,
+   save and restore a backup. Invalid amount/month/year retains the draft.
+   Annual-net entries remain clearly labelled averages; switching to monthly
+   requires the actual monthly amount and never guesses it from annual net.
+   Test DE/EN, month picker with the keyboard open, and keyboard save.
+4. Open Edit income from Overview, save a changed amount: return to Overview,
    with the remainder updated. Change internet to 35: costs 855, remainder 1,545. Expand Organize cost areas. Create, move and rename a
    custom Insurance tile; entries must not duplicate or disappear.
-4. Keyboard: name, decimal amount, date and last field on a small iPhone. The
+5. Keyboard: name, decimal amount, date and last field on a small iPhone. The
    focused field and save action remain visible. Test keyboard save and form
    save, invalid entries and repeated taps. Invalid inputs retain the draft.
-5. Force-close, airplane mode, reopen: values persist. Calculate a router in
+6. Force-close, airplane mode, reopen: values persist. Calculate a router in
    Energy, optionally add its tile. Estimates must not raise fixed costs.
-6. Export to Files, change a cost, import the backup. Cancel first, then confirm.
+7. Export to Files, change a cost, import the backup. Cancel first, then confirm.
    Check income, costs, tiles, devices. Invalid JSON or cancelled picker changes
    nothing. Before reinstalling or changing devices, export a backup.
-7. Open Plan: only the selected question is shown. Switch between To payday,
+8. Open Plan: only the selected question is shown. Switch between To payday,
    Save and Saved, preserving entries. Under Save, expand the optional monthly
    budget. Estimate everyday spending 500: monthly room 1,045. Keep that average separate
    from today's balance until payday. Enter balance, future payday, remaining
    spending and protected money. Next salary is excluded; missing dates and
    stale balances are labelled. Test across a month boundary.
-8. Plan internet at 30; it stays 35 until implementation is confirmed. Afterwards
+9. Plan internet at 30; it stays 35 until implementation is confirmed. Afterwards
    costs update and question 03 contains only confirmed changes. The savings
    total is calculated from entries, not verified through bank transactions.
-9. Notifications: allow/deny, activate/deactivate monthly reminder, reopen. Add
+10. Notifications: allow/deny, activate/deactivate monthly reminder, reopen. Add
    a cost-review reminder and delete its cost. Reset removes EAVESENCE reminders
    and returns to simple onboarding.
-10. Visual: small + large iPhone, large system text, both languages. Check bottom
+11. Visual: small + large iPhone, large system text, both languages. Check bottom
     navigation, long tile names, currencies, safe areas, keyboard opening/closing
     and expanded forms. No clipped or unreachable controls.
 

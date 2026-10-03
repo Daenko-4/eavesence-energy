@@ -13,6 +13,7 @@
     "./usePlanning": "./src/usePlanning.ts",
     "./homeValue": "./src/homeValue.ts",
     "./useCashWindow": "./src/useCashWindow.ts",
-    "./useSavingsCoach": "./src/useSavingsCoach.ts"
+    "./useSavingsCoach": "./src/useSavingsCoach.ts",
+    "./income": "./src/income.ts"
   }
 }

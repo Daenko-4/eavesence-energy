@@ -19,14 +19,14 @@ const compiled = ts.transpileModule(readFileSync(new URL("../apps/mobile/src/Hom
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
 }).outputText;
 const overviewModule = { exports: {} };
-runInNewContext(compiled, { module: overviewModule, exports: overviewModule.exports, require: name => name === "react-native" ? native : require(name) });
+runInNewContext(compiled, { module: overviewModule, exports: overviewModule.exports, require: name => name === "react-native" ? native : name === "./BrandMotion" ? { DisclosureIcon: () => React.createElement("span", null, "+") } : require(name) });
 const { HomeCoreOverview } = overviewModule.exports;
 const cost = (overrides = {}) => ({ id: "insurance", name: "Insurance", category: "insurance", amount: 600, frequency: "yearly", nextDueDate: "2026-11-15", updatedAt: "2026-10-03T00:00:00Z", ...overrides });
 const money = (amount, locale = "en") => new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", { style: "currency", currency: "EUR" }).format(amount);
-function render({ costs = [cost()], income = 2500, locale = "en", upcomingOpen = false } = {}) {
+function render({ costs = [cost()], income = 2500, locale = "en", upcomingOpen = false, incomeIsAverage = false } = {}) {
   const noop = () => {};
   return renderToStaticMarkup(React.createElement(HomeCoreOverview, {
-    costs, income, locale, currency: "EUR", upcomingOpen,
+    costs, income, incomeIsAverage, locale, currency: "EUR", upcomingOpen,
     forecast: forecastHouseholdCosts(costs, new Date("2026-10-03T00:00:00Z")),
     onUpcoming: noop, onIncome: noop, onCost: noop, onCosts: noop, onReview: noop,
   }));
@@ -62,4 +62,10 @@ test("fixed costs exceeding income trigger an accessible warning before everyday
   assert.ok(html.includes('role="alert"'));
   assert.ok(html.includes(money(-10)));
   assert.ok(html.includes("before everyday spending"));
+});
+
+test("native legacy annual income labels income and remainder as averages", () => {
+  const html = render({ incomeIsAverage: true });
+  assert.ok(html.includes("Net income · monthly average"));
+  assert.ok(html.includes("Left after fixed costs · average"));
 });

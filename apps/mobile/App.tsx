@@ -1,3 +1,6 @@
+import { BrandMotion, DisclosureIcon } from "./src/BrandMotion";
+import { readIncomeExtras, summarizeIncome, type IncomeExtra } from "@eavesence/core/income";
+import { IncomeExtrasSummary } from "./src/IncomeExtrasSummary";
 import appConfig from "./app.json";
 import { HomeCoreOverview } from "./src/HomeCoreOverview";
 import { homeRelease } from "../../src/lib/homeRelease";
@@ -99,7 +102,7 @@ const tabEnergyIcon = require("./assets/tab-history.png");
 const navigationTabs: Array<{ key: Tab; label: string; icon: number }> = [
   { key: "home", label: "Übersicht", icon: tabHomeIcon },
   { key: "costs", label: "Kosten", icon: tabCostsIcon },
-  { key: "pro", label: "Plan", icon: tabProIcon },
+  { key: "pro", label: "Plan · Pro", icon: tabProIcon },
   { key: "energy", label: "Stromrechner", icon: tabEnergyIcon },
 ];
 
@@ -194,6 +197,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       readJson<boolean>(BETA_KEY, false),
       readJson<unknown>(TILES_KEY, null),
     ])).then(([storedProfile, storedDevices, storedHistory, storedCosts, storedBeta, storedTiles]) => {
+      if (storedProfile && readIncomeExtras(storedProfile.incomeExtras) === null) throw new Error("Invalid stored income extras");
       setProfile(storedProfile);
       if (storedProfile) {
         setHomeName(storedProfile.name);
@@ -251,11 +255,12 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   const forecast = forecastHouseholdCosts(costs);
   const costSummary = forecast.summary;
   const upcoming = forecast.next;
-  const monthlyIncome = (profile?.incomeAmount ?? 0) / (profile?.incomeFrequency === "yearly" ? 12 : 1);
+  const incomeSummary = summarizeIncome(profile ?? {});
+  const monthlyIncome = incomeSummary.monthly;
   const hasIncome = Boolean(profile?.incomeAmount && profile.incomeAmount > 0);
   const hasCosts = costs.length > 0;
   const savingsPlan = createSavingsPlan({
-    incomeMonthly: monthlyIncome,
+    incomeMonthly: monthlyIncome, incomeExtras: incomeSummary.extras,
     variableMonthly: profile?.variableMonthly ?? null,
     bufferMonthly: profile?.bufferMonthly ?? 0,
     goalMonthly: profile?.goalMonthly ?? 0,
@@ -617,9 +622,9 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     try { await cancelCostReview(id); } catch { showLocalizedAlert(locale, "Erinnerung fehlgeschlagen", "Bitte versuche es erneut."); }
   }
 
-  async function saveIncome(amount: number, frequency: "monthly" | "yearly") {
+  async function saveIncome(amount: number, frequency: "monthly" | "yearly", extras: IncomeExtra[] = profile?.incomeExtras ?? []) {
     if (!profile) return;
-    const next = { ...profile, incomeAmount: amount, incomeFrequency: frequency, ...(profile.setupStep === "income" ? {setupStep:"cost" as const} : {}) };
+    const next = { ...profile, incomeAmount: amount, incomeFrequency: frequency, incomeExtras: extras, ...(profile.setupStep === "income" ? {setupStep:"cost" as const} : {}) };
     await writeJson(PROFILE_KEY, next);
     setProfile(next);
     Keyboard.dismiss();
@@ -742,10 +747,10 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   if (profile.setupStep && profile.setupStep !== "complete") {
     const step = profile.setupStep;
     return <SafeAreaView style={styles.safe}><StatusBar style="dark" />
-      <View style={styles.appHeader}><Image source={brandIcon} alt="EAVESENCE" style={styles.headerMark} /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
+      <View style={styles.appHeader}><BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
       <KeyboardScrollContext.Provider value={input => scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input,72,true)}><ScrollView ref={scrollRef} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         <Text style={styles.eyebrow}>{locale === "de" ? `SCHRITT ${step === "income" ? 1 : step === "cost" ? 2 : 3} VON 3` : `STEP ${step === "income" ? 1 : step === "cost" ? 2 : 3} OF 3`}</Text>
-        {step === "review" ? <><Text style={styles.heroSmall}>{locale === "de" ? "Dein erster Überblick ist bereit." : "Your first overview is ready."}</Text><Text style={styles.financeNote}>{locale === "de" ? "Deine Angaben sind gespeichert. Weitere Kosten, Einstellungen und den Stromrechner findest du anschließend in deiner Übersicht." : "Your entries are saved. Find more costs, settings and the electricity calculator in your overview."}</Text><View style={styles.formSurface}><Metric full label={locale === "de" ? "Nettoeinkommen pro Monat" : "Net income per month"} value={hasIncome ? euro.format(monthlyIncome) : locale === "de" ? "Später ergänzen" : "Add later"} /><Metric full label={locale === "de" ? "Fixkosten pro Monat" : "Recurring costs per month"} value={euro.format(costSummary.monthlyTotal)} /><Metric full label={locale === "de" ? "Rest nach Fixkosten" : "Left after fixed costs"} value={hasIncome && hasCosts ? euro.format(monthlyIncome-costSummary.monthlyTotal) : "—"} /><Text style={styles.financeNote}>{locale === "de" ? "Monatsdurchschnitte. Alltagsausgaben gehen davon noch ab; fehlende Zahlungstermine kannst du später ergänzen." : "Monthly averages. Everyday spending still comes out of this amount; add missing payment dates later."}</Text></View><PrimaryButton label={locale === "de" ? "Meine Übersicht öffnen" : "Open my overview"} onPress={() => setSetupStep("complete")} /></> : <CostsScreen key={`setup-${step}`} setup={step} profile={profile} costs={costs} tiles={tiles} tileId="default-costs" tileTitle="Haushaltskosten" onSaveIncome={saveIncome} onSaveCost={saveCost} onDeleteCost={deleteCost} onBack={step === "cost" ? () => setSetupStep("income") : undefined} onSkip={() => step === "income" ? saveIncome(0,"monthly") : setSetupStep("review")} />}
+        {step === "review" ? <><Text style={styles.heroSmall}>{locale === "de" ? "Dein erster Überblick ist bereit." : "Your first overview is ready."}</Text><Text style={styles.financeNote}>{locale === "de" ? "Deine Angaben sind gespeichert. Weitere Kosten, Einstellungen und den Stromrechner findest du anschließend in deiner Übersicht." : "Your entries are saved. Find more costs, settings and the electricity calculator in your overview."}</Text><View style={styles.formSurface}><Metric full label={incomeSummary.annualAverage ? locale === "de" ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : locale === "de" ? "Nettoeinkommen pro Monat" : "Net income per month"} value={hasIncome ? euro.format(monthlyIncome) : locale === "de" ? "Später ergänzen" : "Add later"} /><Metric full label={locale === "de" ? "Fixkosten pro Monat" : "Recurring costs per month"} value={euro.format(costSummary.monthlyTotal)} /><Metric full label={locale === "de" ? "Rest nach Fixkosten" : "Left after fixed costs"} value={hasIncome && hasCosts ? euro.format(monthlyIncome-costSummary.monthlyTotal) : "—"} /><Text style={styles.financeNote}>{locale === "de" ? "Monatsdurchschnitte. Alltagsausgaben gehen davon noch ab; fehlende Zahlungstermine kannst du später ergänzen." : "Monthly averages. Everyday spending still comes out of this amount; add missing payment dates later."}</Text></View><PrimaryButton label={locale === "de" ? "Meine Übersicht öffnen" : "Open my overview"} onPress={() => setSetupStep("complete")} /></> : <CostsScreen key={`setup-${step}`} setup={step} profile={profile} costs={costs} tiles={tiles} tileId="default-costs" tileTitle="Haushaltskosten" onSaveIncome={saveIncome} onSaveCost={saveCost} onDeleteCost={deleteCost} onBack={step === "cost" ? () => setSetupStep("income") : undefined} onSkip={() => step === "income" ? saveIncome(0,"monthly") : setSetupStep("review")} />}
       </ScrollView></KeyboardScrollContext.Provider>
     </SafeAreaView>;
   }
@@ -754,7 +759,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     <SafeAreaView style={styles.safe}>
       <StatusBar style="dark" />
       <View style={styles.appHeader}>
-        <Image source={brandIcon} alt="EAVESENCE" style={styles.headerMark} />
+        <BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} />
         <View style={styles.headerCopy}><Text style={styles.headerBrand}>EAVESENCE</Text></View>
         <Pressable accessibilityRole="button" accessibilityLabel={localize(locale, "Einstellungen")} onPress={openSettings} style={[styles.headerSettings, styles.outlinedAction]}><Text style={styles.outlinedText}>⚙ {localize(locale, "Einstellungen")}</Text></Pressable>
       </View>
@@ -767,8 +772,9 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             <Pressable accessibilityRole="button" style={[styles.financePill, styles.outlinedAction]} onPress={() => startWith("cost")}><Text style={styles.outlinedText}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</Text></Pressable>
             <Pressable accessibilityRole="button" style={[styles.financePill, styles.outlinedAction]} onPress={() => startWith("income")}><Text style={styles.outlinedText}>{hasIncome ? locale === "de" ? "Einkommen ändern" : "Edit income" : locale === "de" ? "Einkommen eintragen" : "Add income"}</Text></Pressable>
           </View>
-          <HomeCoreOverview locale={locale} currency={profile.currency ?? "EUR"} income={monthlyIncome} costs={costs} forecast={forecast} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} onIncome={() => startWith("income")} onCost={() => startWith("cost")} onCosts={openMainCosts} onReview={reviewCost} />
-          <Pressable accessibilityRole="button" accessibilityState={{ expanded: areasOpen }} onPress={() => setAreasOpen(!areasOpen)} style={styles.areaDisclosure}><Text style={styles.financeHeading}>{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</Text><Text style={styles.disclosureIcon}>{areasOpen ? "×" : "+"}</Text></Pressable>
+          <HomeCoreOverview incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency ?? "EUR"} income={monthlyIncome} costs={costs} forecast={forecast} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} onIncome={() => startWith("income")} onCost={() => startWith("cost")} onCosts={openMainCosts} onReview={reviewCost} />
+          <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency ?? "EUR"} />
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: areasOpen }} onPress={() => setAreasOpen(!areasOpen)} style={styles.areaDisclosure}><Text style={styles.areaDisclosureText}>{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</Text><DisclosureIcon open={areasOpen} /></Pressable>
           {areasOpen && <>
           <View style={styles.tilesSection}>
             <Text style={styles.financeHeading}>{locale === "de" ? "Bereiche in deinem Zuhause" : "Sections in your home"}</Text>
@@ -878,13 +884,14 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
         </>}
 
         {tab === "pro" && <>
+          {incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency ?? "EUR"} />}
           <Text style={styles.eyebrow}>{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</Text>
           <Text style={styles.homeTitle}>{locale === "de" ? "Dein Plan" : "Your plan"}</Text>
           <Text style={styles.financeNote}>{locale === "de" ? "Wähle eine Frage. Deine Angaben aus My Home sind übernommen." : "Choose a question. Your My Home entries are already included."}</Text>
           <View accessibilityRole="tablist" accessibilityLabel={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} style={styles.planTabs}>
             {(["payday", "savings", "progress"] as const).map((question, index) => <Pressable key={question} accessibilityRole="tab" accessibilityState={{ selected: planQuestion === question }} accessibilityLabel={question === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : question === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"} onPress={() => { Keyboard.dismiss(); setPlanQuestion(question); }} style={[styles.planTab, planQuestion === question && styles.planTabSelected]}><Text style={styles.planTabText}>{index + 1} · {question === "payday" ? locale === "de" ? "Bis zum Gehalt" : "To payday" : question === "savings" ? locale === "de" ? "Sparen" : "Save" : locale === "de" ? "Erspart" : "Saved"}</Text></Pressable>)}
           </View>
-          {planQuestion === "payday" && <PaydayScreen key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??"EUR"}/> }
+          {planQuestion === "payday" && <PaydayScreen key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??"EUR"}/> }
           {planQuestion === "savings" && <View style={styles.formSurface}>
           <Pressable accessibilityRole="button" accessibilityState={{expanded:budgetOpen}} style={styles.financePill} onPress={() => setBudgetOpen(!budgetOpen)}><Text style={styles.financePillText}>{locale === "de" ? "Monatsbudget ergänzen (optional)" : "Add a monthly budget (optional)"}</Text></Pressable>
           {budgetOpen && <><Text style={styles.dataTitle}>{locale === "de" ? "Deine monatliche Planungsbasis" : "Your monthly planning basics"}</Text>
@@ -897,17 +904,17 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           {reserveOptionsOpen && <><Text style={styles.financeNote}>{locale === "de" ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</Text><Field label={locale === "de" ? "Freiwillige Reserve pro Monat" : "Optional reserve per month"} value={bufferBudget} onChangeText={setBufferBudget} keyboardType="decimal-pad" /></>}
           <PrimaryButton label="Plan speichern" onPress={saveBudget} /></FormSection></>}
           {savingsPlan && <>
-            {budgetOpen && <SavingsBudgetSummary input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} currency={profile.currency ?? "EUR"} />}
+            {budgetOpen && <SavingsBudgetSummary input={{ incomeMonthly: monthlyIncome, incomeExtras: incomeSummary.extras, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} currency={profile.currency ?? "EUR"} />}
 
-            <SavingsCoachScreen mode="opportunities" input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} actions={readSavingsActions(profile.savingsActions)} onActions={saveSavingsActions} onConfirm={confirmSaving} onReview={reviewCost} currency={profile.currency??'EUR'}/>
+            <SavingsCoachScreen mode="opportunities" input={{incomeMonthly:monthlyIncome,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} actions={readSavingsActions(profile.savingsActions)} onActions={saveSavingsActions} onConfirm={confirmSaving} onReview={reviewCost} currency={profile.currency??'EUR'}/>
 
             <Pressable accessibilityRole="button" accessibilityState={{ expanded: scenarioOpen }} style={styles.financePill} onPress={() => setScenarioOpen(!scenarioOpen)}><Text style={styles.financePillText}>{locale === "de" ? "Eine Kostenänderung durchspielen" : "Try a cost change"}</Text></Pressable>
-            {scenarioOpen && <SavingsActionsScreen input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} actions={readSavingsActions(profile.savingsActions)} currency={profile.currency ?? "EUR"} onChange={saveSavingsActions} onConfirm={confirmSaving} />}
+            {scenarioOpen && <SavingsActionsScreen input={{ incomeMonthly: monthlyIncome, incomeExtras: incomeSummary.extras, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} actions={readSavingsActions(profile.savingsActions)} currency={profile.currency ?? "EUR"} onChange={saveSavingsActions} onConfirm={confirmSaving} />}
             {homeRelease.advancedPlanning && <><Pressable accessibilityRole="button" accessibilityState={{expanded:toolsOpen}} onPress={() => setToolsOpen(!toolsOpen)} style={styles.financePill}><Text style={styles.financePillText}>{locale === "de" ? "Weitere Planung: Ziele, Rücklagen & Monatscheck" : "More planning: goals, reserves & monthly check"}</Text></Pressable>
-            {toolsOpen && <>            <PlanningScreen input={{ incomeMonthly: monthlyIncome, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} data={profile.planning} onSave={savePlanning} currency={profile.currency ?? "EUR"} onEditCosts={openMainCosts} onEditBudget={() => { setBudgetOpen(true); scrollRef.current?.scrollTo({ y: 0, animated: true }); }} /></>}</>}
+            {toolsOpen && <>            <PlanningScreen input={{ incomeMonthly: monthlyIncome, incomeExtras: incomeSummary.extras, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} data={profile.planning} onSave={savePlanning} currency={profile.currency ?? "EUR"} onEditCosts={openMainCosts} onEditBudget={() => { setBudgetOpen(true); scrollRef.current?.scrollTo({ y: 0, animated: true }); }} /></>}</>}
           </>}
         </View>}
-          {planQuestion === "progress" && <SavingsCoachScreen mode="progress" input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} actions={readSavingsActions(profile.savingsActions)} onActions={saveSavingsActions} onConfirm={confirmSaving} onReview={reviewCost} currency={profile.currency??"EUR"}/>}
+          {planQuestion === "progress" && <SavingsCoachScreen mode="progress" input={{incomeMonthly:monthlyIncome,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} actions={readSavingsActions(profile.savingsActions)} onActions={saveSavingsActions} onConfirm={confirmSaving} onReview={reviewCost} currency={profile.currency??"EUR"}/>}
           {isPro ? <Text style={styles.proActive}>Pro aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Text style={styles.financeNote}>{locale === "de" ? "Pro-Vorschau: Diese Planungsfunktionen sind in der Beta kostenlos. Es wird kein Abo abgeschlossen." : "Pro preview: these planning tools are free in this beta. No subscription is started."}</Text>}
           {packages.length > 0 && <Pressable onPress={() => void restorePro().then(setIsPro).catch(() => showLocalizedAlert(locale,"Wiederherstellung fehlgeschlagen", "Bitte versuche es erneut."))}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable>}
         </>}
@@ -916,7 +923,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
         const active = tab === key || (key === "energy" && (tab === "add" || tab === "history"));
         const primary = key === "add";
         return <Pressable key={key} accessibilityRole="tab" accessibilityLabel={localize(locale, label)} accessibilityState={{ selected: active }} onPress={() => selectTab(key)} style={styles.tab}>
-          <View style={[styles.tabIconSurface, active && styles.tabIconActive, primary && styles.tabIconPrimary]}><Image source={icon} alt="" style={[styles.tabIcon, { tintColor: primary ? "#ffffff" : active ? "#087a45" : "#65716d" }]} /></View>
+          <View style={[styles.tabIconSurface, active && styles.tabIconActive, key === "pro" && !active && styles.tabProPreview, primary && styles.tabIconPrimary]}><Image source={icon} alt="" style={[styles.tabIcon, { tintColor: primary ? "#ffffff" : active ? "#087a45" : "#65716d" }]} /></View>
           <Text numberOfLines={1} style={[styles.tabText, active && styles.tabTextActive]}>{localize(locale, label)}</Text>
         </Pressable>;
       })}</View>}
@@ -949,9 +956,11 @@ function Empty({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
+  tabProPreview: { backgroundColor: "#edf2f8", borderColor: "#b8c4d6", borderWidth: 1 },
   outlinedAction: { backgroundColor: "transparent", borderColor: "#aebbb2" },
   outlinedText: { fontSize: 12, fontWeight: "700", color: "#24272c" },
-  areaDisclosure: { minHeight: 48, marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  areaDisclosure: { borderWidth: 1, borderColor: "transparent", paddingHorizontal: 16, minHeight: 48, marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  areaDisclosureText: { flex: 1, fontSize: 13, fontWeight: "700", color: "#17211f" },
   disclosureIcon: { fontSize: 22, color: "#087a45" },
   planTabs: { flexDirection: "row", gap: 8, marginVertical: 16 },
   planTab: { flex: 1, minHeight: 52, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 12, backgroundColor: "#ffffff", padding: 10, justifyContent: "center" },

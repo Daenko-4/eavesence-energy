@@ -1,3 +1,5 @@
+import { incomeExtraDrafts, incomeExtrasFromDraft, parseIncomeAmount, type IncomeExtra } from "@eavesence/core/income";
+import { IncomeExtrasEditor } from "./IncomeExtrasEditor";
 import {
   createHouseholdCost,
   monthlyCost,
@@ -116,7 +118,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   initialAction?: "none" | "income" | "cost";
   onSaveCost: (cost: HouseholdCost) => Promise<void>;
   onDeleteCost: (id: string) => Promise<void>;
-  onSaveIncome: (amount: number, frequency: "monthly" | "yearly") => Promise<void>;
+  onSaveIncome: (amount: number, frequency: "monthly" | "yearly", extras: IncomeExtra[]) => Promise<void>;
 }) {
   const locale = useMobileLocale();
   const initialCost=costs.find(c=>c.id===initialCostId);
@@ -132,6 +134,8 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   const [dueDate, setDueDate] = useState(displayDate(initialCost?.nextDueDate??""));
   const [deadline, setDeadline] = useState(displayDate(initialCost?.cancellationDeadline??""));
   const [income, setIncome] = useState(profile.incomeAmount ? String(profile.incomeAmount) : "");
+  const [incomeExtras, setIncomeExtras] = useState(() => incomeExtraDrafts(profile.incomeExtras));
+  const [incomeExtrasOpen, setIncomeExtrasOpen] = useState(false);
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">(profile.incomeFrequency ?? "monthly");
   const money = new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", { style: "currency", currency: profile.currency ?? "EUR" });
   const visibleCosts = costsForTile(costs, tileId);
@@ -183,12 +187,22 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   }
 
   async function saveIncome() {
-    const parsed = income.trim() === "" ? 0 : parseAmount(income);
+    if (profile.incomeFrequency === "yearly" && incomeFrequency === "monthly" && !income.trim()) {
+      Alert.alert(locale === "de" ? "Monatsnetto ergänzen" : "Add monthly net income", locale === "de" ? "Trage den tatsächlichen Monatsbetrag ein. Wir leiten ihn nicht aus dem Jahresnetto ab." : "Enter your actual monthly amount. We do not infer it from annual income.");
+      return;
+    }
+    const parsed = income.trim() === "" ? 0 : parseIncomeAmount(income, locale);
     if (!Number.isFinite(parsed) || parsed < 0) {
       Alert.alert((locale === "de" ? "Betrag prüfen" : "Check amount"), (locale === "de" ? "Gib einen Betrag ab 0 ein." : "Enter an amount of 0 or more."));
       return;
     }
-    await onSaveIncome(parsed, incomeFrequency);
+    const extras = incomeFrequency === "yearly" ? profile.incomeExtras ?? [] : incomeExtrasFromDraft(incomeExtras, locale);
+    if (!extras) {
+      setIncomeExtrasOpen(true);
+      Alert.alert(locale === "de" ? "Sonderzahlungen prüfen" : "Check extra payments", locale === "de" ? "Prüfe Nettobetrag, Monat und gegebenenfalls Jahr." : "Check the net amount, month and year (if applicable).");
+      return;
+    }
+    await onSaveIncome(parsed, incomeFrequency, extras);
     if (setup) { Keyboard.dismiss(); return; }
     Keyboard.dismiss();
     setIncomeOpen(false);
@@ -198,8 +212,9 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   if (setup === "income") return <FormSection style={styles.panel} onSave={saveIncome} saveLabel={locale === "de" ? "Einkommen speichern & weiter" : "Save income & continue"}>
     <Text style={styles.title}>{locale === "de" ? "Dein Einkommen" : "Your income"}</Text>
     <Text style={styles.help}>{locale === "de" ? "Wie viel kommt nach Steuern auf dein Konto? Ein Betrag reicht für den Start. Du kannst ihn später ändern." : "How much reaches your account after tax? One amount is enough to start. You can change it later."}</Text>
-    <FormInput label="Nettoeinkommen" value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 2400" : "e.g. 2400"} />
-    <Choice options={[["monthly", "Monatlich"], ["yearly", "Jährlich"]]} value={incomeFrequency} onChange={setIncomeFrequency} />
+    <FormInput label={incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Extras)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"} value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 2400" : "e.g. 2400"} />
+    <Choice options={[["monthly", locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net"], ["yearly", locale === "de" ? "Jahresnetto · Durchschnitt" : "Annual net · average"]]} value={incomeFrequency} onChange={next => { if (incomeFrequency === "yearly" && next === "monthly") setIncome(""); setIncomeFrequency(next); }} />
+    <IncomeExtrasEditor frequency={incomeFrequency} drafts={incomeExtras} onChange={setIncomeExtras} open={incomeExtrasOpen} onToggle={() => setIncomeExtrasOpen(!incomeExtrasOpen)} />
     <FormSubmitButton label={locale === "de" ? "Einkommen speichern & weiter" : "Save income & continue"} style={styles.primary} textStyle={styles.primaryText} />
     {onSkip && <FormActionButton label={locale === "de" ? "Einkommen später ergänzen" : "Add income later"} onPress={onSkip} style={styles.secondary} textStyle={styles.secondaryText} />}
   </FormSection>;
@@ -218,9 +233,10 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
 
   if (incomeOpen && !formOpen) return <FormSection style={styles.panel} onSave={saveIncome} saveLabel="Einkommen speichern">
     <Text style={styles.title}>{locale === "de" ? "Dein Einkommen" : "Your income"}</Text>
-    <Text style={styles.help}>{locale === "de" ? "Ein Betrag reicht. Jährliches Einkommen rechnen wir auf einen Monatsdurchschnitt um." : "One amount is enough. Annual income is converted to a monthly average."}</Text>
-    <FormInput label="Nettoeinkommen" value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 2400" : "e.g. 2400"} />
-    <Choice options={[["monthly", "Monatlich"], ["yearly", "Jährlich"]]} value={incomeFrequency} onChange={setIncomeFrequency} />
+    <Text style={styles.help}>{locale === "de" ? "Trage dein reguläres Monatsnetto ohne Extras ein. Sonderzahlungen kannst du optional ergänzen. Jahresnetto zeigt nur einen Durchschnitt." : "Enter regular monthly net income without extras. Add extra payments optionally. Annual net income shows an average only."}</Text>
+    <FormInput label={incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Extras)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"} value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 2400" : "e.g. 2400"} />
+    <Choice options={[["monthly", locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net"], ["yearly", locale === "de" ? "Jahresnetto · Durchschnitt" : "Annual net · average"]]} value={incomeFrequency} onChange={next => { if (incomeFrequency === "yearly" && next === "monthly") setIncome(""); setIncomeFrequency(next); }} />
+    <IncomeExtrasEditor frequency={incomeFrequency} drafts={incomeExtras} onChange={setIncomeExtras} open={incomeExtrasOpen} onToggle={() => setIncomeExtrasOpen(!incomeExtrasOpen)} />
     <FormSubmitButton label="Einkommen speichern" style={styles.primary} textStyle={styles.primaryText} />
     <Pressable accessibilityRole="button" onPress={() => setIncomeOpen(false)} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Zur Kostenliste" : "Back to costs"}</Text></Pressable>
   </FormSection>;
