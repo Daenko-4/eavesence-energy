@@ -961,11 +961,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     if (!ready || !profile) return;
     function openRequestedDetail() {
       const hash = window.location.hash;
-      if (["#savings-plan", "#home-plan", "#payday-plan"].includes(hash)) { setView("plan"); setPlanQuestion(hash === "#savings-plan" ? "savings" : "payday"); }
-      else if (hash.startsWith("#home-") || hash === "#household-costs") setView("overview");
       if (!hash) { lastRequestedHash.current = null; return; }
       if (lastRequestedHash.current === hash) return;
       lastRequestedHash.current = hash;
+      if (["#savings-plan", "#home-plan", "#payday-plan"].includes(hash)) { setView("plan"); setPlanQuestion(hash === "#savings-plan" ? "savings" : "payday"); }
+      else if (hash.startsWith("#home-") || hash === "#household-costs") setView("overview");
       const requestedKind: HomeTileKind | null =
         hash === "#household-costs"
           ? "costs"
@@ -2239,10 +2239,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </div>
           <div id="home-plan" hidden={view !== "plan"} data-home-plan-content className="scroll-mt-24">
             <p className="mt-5 text-[11px] font-bold uppercase tracking-[.1em] text-[var(--brand-green)]">{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</p>
-            <h2 className="mt-2 site-section-title">{locale === "de" ? "Aus deinem Überblick wird ein Plan" : "Turn your overview into a plan"}</h2>
-            <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{locale === "de" ? "Deine Angaben aus My Home sind übernommen. Wähle die Frage, die du beantworten möchtest. Ein Abo ist noch nicht erhältlich." : "Your My Home entries are already included. Choose the question you want to answer. Subscriptions are not available yet."}</p>
-            <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="mt-4 grid gap-2 sm:grid-cols-3">
-              {(["payday", "savings", "progress"] as const).map((item, index) => <button type="button" key={item} aria-pressed={planQuestion === item} onClick={() => setPlanQuestion(item)} className={`min-h-12 rounded-xl border px-3 py-3 text-left text-[12px] font-semibold ${planQuestion === item ? "border-[#087a45] bg-[#ddf8e9] text-[#087a45]" : "border-[#dfe5dd] bg-white text-[#52605b]"}`}>{index+1} · {item === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}</button>)}
+            <h2 className="mt-2 site-section-title">{locale === "de" ? "Dein Plan" : "Your plan"}</h2>
+            <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{locale === "de" ? "Wähle eine Frage. Deine Angaben aus My Home sind übernommen." : "Choose a question. Your My Home entries are already included."}</p>
+            <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="mt-4 grid grid-cols-3 gap-2">
+              {(["payday", "savings", "progress"] as const).map((item, index) => <button type="button" key={item} aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"} aria-pressed={planQuestion === item} onClick={() => setPlanQuestion(item)} className={`min-h-12 rounded-xl border px-3 py-3 text-left text-[12px] font-semibold ${planQuestion === item ? "border-[#087a45] bg-[#ddf8e9] text-[#087a45]" : "border-[#dfe5dd] bg-white text-[#52605b]"}`}>{index+1} · {item === "payday" ? locale === "de" ? "Bis Gehalt" : "To payday" : item === "savings" ? locale === "de" ? "Sparen" : "Save" : locale === "de" ? "Erspart" : "Saved"}</button>)}
             </div>
             <div hidden={planQuestion !== "payday"}>
           <PaydayPanel key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>

@@ -30,3 +30,16 @@ for (const locale of ['de', 'en'] as const) {
     await page.screenshot({ fullPage: true, path: info.outputPath(`simple-home-${locale}.png`) });
   });
 }
+
+test('editing income from a bookmarked plan stays in overview after saving', async ({ page }) => {
+  await page.goto('/home');
+  await page.getByRole('button', { name: 'Create my home', exact: true }).click();
+  await page.goto('/home#home-plan');
+  await expect(page.locator('[data-home-plan-content]')).toBeVisible();
+  await page.getByRole('group', { name: 'Home actions' }).getByRole('button', { name: 'Add income', exact: true }).click();
+  await page.locator('#home-income-form input').fill('2000');
+  await page.locator('#home-income-form button[type="submit"]').click();
+  await expect(page.locator('[data-home-overview-content]')).toBeVisible();
+  await expect(page.locator('[data-home-plan-content]')).toBeHidden();
+  await expect(page.getByRole('region', { name: 'Your household at a glance' })).toContainText('€2,000.00');
+});

@@ -15,7 +15,7 @@ export default function HomeCoreOverview({ locale, currency, income, fixed, coun
   const deficit = income > 0 && fixed > income;
   const cards = [
     { label: de ? "Nettoeinkommen pro Monat" : "Net income / month", value: income > 0 ? money(income) : "—" },
-    { label: de ? "Feste Kosten pro Monat" : "Recurring costs / month", value: money(fixed) },
+    { label: de ? "Fixkosten pro Monat" : "Recurring costs / month", value: money(fixed) },
     { label: de ? "Rest nach Fixkosten" : "Left after fixed costs", value: income > 0 && count > 0 ? money(income - fixed) : "—", emphasis: true },
   ];
   return <section className="mt-6" aria-label={de ? "Finanzen im Überblick" : "Your household at a glance"}>
