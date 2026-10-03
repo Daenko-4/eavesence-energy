@@ -50,7 +50,8 @@ Export real data first. Use invented amounts for destructive tests.
 2. Income 2,400/month; rent 800, internet 40, insurance 240/year. Fixed costs:
    860/month. Remainder: 1,540 before everyday spending. Missing payment dates
    must produce an explicitly incomplete payment forecast.
-3. Change internet to 35: costs 855, remainder 1,545. Create, move and rename a
+3. Open Edit income from Overview, save a changed amount: return to Overview,
+   with the remainder updated. Change internet to 35: costs 855, remainder 1,545. Expand Organize cost areas. Create, move and rename a
    custom Insurance tile; entries must not duplicate or disappear.
 4. Keyboard: name, decimal amount, date and last field on a small iPhone. The
    focused field and save action remain visible. Test keyboard save and form
@@ -60,7 +61,9 @@ Export real data first. Use invented amounts for destructive tests.
 6. Export to Files, change a cost, import the backup. Cancel first, then confirm.
    Check income, costs, tiles, devices. Invalid JSON or cancelled picker changes
    nothing. Before reinstalling or changing devices, export a backup.
-7. Estimate everyday spending 500: monthly room 1,045. Keep that average separate
+7. Open Plan: only the selected question is shown. Switch between To payday,
+   Save and Saved, preserving entries. Under Save, expand the optional monthly
+   budget. Estimate everyday spending 500: monthly room 1,045. Keep that average separate
    from today's balance until payday. Enter balance, future payday, remaining
    spending and protected money. Next salary is excluded; missing dates and
    stale balances are labelled. Test across a month boundary.
