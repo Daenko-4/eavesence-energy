@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "EAVESENCE Energy",
+    name: "EAVESENCE",
     short_name: "EAVESENCE",
     description:
       "A clearer view of what your home costs.",
@@ -46,7 +46,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Energy calculator",
         short_name: "Calculator",
         description: "Calculate the electricity costs of a device.",
-        url: "/#rechner",
+        url: "/calculator#rechner",
         icons: [
           {
             src: "/brand/eavesence-icon-approved-final-192.png",

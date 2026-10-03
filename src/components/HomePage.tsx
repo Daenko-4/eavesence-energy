@@ -365,14 +365,14 @@ export default function HomePage({
           calculate: "Planen.",
           understand: "Verstehen.",
           save: "Sparen.",
-          subtitle: "My Home zeigt Einkommen, laufende Kosten und anstehende Zahlungen auf einen Blick.",
+          subtitle: "Berechne kostenlos die Stromkosten deiner Geräte.",
           allDevices: "Alle Geräte ansehen",
         }
       : {
           calculate: "Plan.",
           understand: "Understand.",
           save: "Save.",
-          subtitle: "My Home brings income, recurring costs and upcoming payments into one clear view.",
+          subtitle: "Calculate the electricity costs of your devices for free.",
           allDevices: "See all devices",
         };
 
@@ -503,8 +503,8 @@ export default function HomePage({
                   <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 7-6 7 6v8H3V9Z"/><path d="M8 17v-5h4v5"/></svg>
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-[10px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">EAVESENCE Home</span>
-                  <span className="mt-0.5 block text-[14px] font-extrabold text-[#17211f]">{locale === "de" ? "Neu: Mein Zuhause als Haushaltsbuch" : "New: My Home as your household book"}</span>
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">EAVESENCE</span>
+                  <span className="mt-0.5 block text-[14px] font-extrabold text-[#17211f]">{locale === "de" ? "Deine Kostenübersicht in My Home" : "Your cost overview in My Home"}</span>
                   <span className="mt-0.5 block text-[11px] leading-4 text-[#65716d]">{locale === "de" ? "Geräte und laufende Kosten organisieren. Jetzt kostenlos; Vollversion in Vorbereitung." : "Organize devices and recurring costs. Free now; full version in development."}</span>
                 </span>
                 <span className="rounded-full bg-[var(--brand-green)] px-3 py-1.5 text-[11px] font-bold text-white transition group-hover:bg-[var(--brand-green-dark)]">{locale === "de" ? "Öffnen" : "Open"}</span>

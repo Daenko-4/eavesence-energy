@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "EAVESENCE Home",
+    "name": "EAVESENCE",
     "slug": "eavesence-home",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "icon": "./assets/brand-icon-safe.png",
     "orientation": "portrait",
     "userInterfaceStyle": "light",

@@ -37,3 +37,10 @@ test("mobile tiles preserve order, defaults and safe boundaries", () => {
   const legacy = [{ id: "default-energy", kind: "energy", title: "Strom & Geräte" }, ...defaultTiles()];
   assert.deepEqual(readTiles(legacy), legacy);
 });
+
+
+test("mobile backups preserve unfinished setup and reject unknown steps", () => {
+  const backup = createMobileBackup({ profile: { ...profile, setupStep: "cost" }, devices: [], history: [], costs: [], tiles: defaultTiles(), betaInterested: false });
+  assert.equal(readMobileBackup(JSON.stringify(backup))?.profile.setupStep, "cost");
+  assert.equal(readMobileBackup(JSON.stringify({ ...backup, profile: { ...backup.profile, setupStep: "unknown" } })), null);
+});

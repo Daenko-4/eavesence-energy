@@ -7,7 +7,7 @@ export default function BrandStructuredData() {
       {
         "@type": "Organization",
         "@id": `${siteUrl}/#organization`,
-        name: "EAVESENCE Energy",
+        name: "EAVESENCE",
         url: siteUrl,
         logo: {
           "@type": "ImageObject",
@@ -16,7 +16,7 @@ export default function BrandStructuredData() {
           contentUrl: `${siteUrl}/icon.png`,
           width: 512,
           height: 512,
-          caption: "EAVESENCE Energy",
+          caption: "EAVESENCE",
         },
         image: {
           "@id": `${siteUrl}/#logo`,
@@ -26,7 +26,7 @@ export default function BrandStructuredData() {
         "@type": "WebSite",
         "@id": `${siteUrl}/#website`,
         url: siteUrl,
-        name: "EAVESENCE Energy",
+        name: "EAVESENCE",
         alternateName: "EAVESENCE",
         publisher: {
           "@id": `${siteUrl}/#organization`,

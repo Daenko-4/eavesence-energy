@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
-import HomePage from "@/components/HomePage";
+import WelcomePage from "@/components/WelcomePage";
 import WebApplicationStructuredData from "@/components/WebApplicationStructuredData";
 
 export const metadata: Metadata = {
   title: {
     absolute:
-      "EAVESENCE – A clearer view of what your home costs",
+      "EAVESENCE – Turn clarity into a plan.",
   },
 
   description:
@@ -25,9 +25,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_GB",
     url: "/",
-    siteName: "EAVESENCE Energy",
+    siteName: "EAVESENCE",
     title:
-      "EAVESENCE – A clearer view of what your home costs",
+      "EAVESENCE – Turn clarity into a plan.",
     description:
       "See your income, recurring household costs and upcoming payments in one place. Calculate electricity costs for your devices.",
     images: [
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
         url: "/brand/eavesence-og-approved-final.png",
         width: 1200,
         height: 630,
-        alt: "EAVESENCE Energy",
+        alt: "EAVESENCE",
       },
     ],
   },
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title:
-      "EAVESENCE – A clearer view of what your home costs",
+      "EAVESENCE – Turn clarity into a plan.",
     description:
       "See what your home costs and calculate electricity costs for your devices.",
     images: ["/brand/eavesence-og-approved-final.png"],
@@ -54,7 +54,7 @@ export default function Page() {
   return (
     <>
       <WebApplicationStructuredData locale="en" />
-      <HomePage locale="en" />
+      <WelcomePage locale="en" />
     </>
   );
 }

@@ -130,8 +130,8 @@ test("groups every dated payment in the next calendar month and excludes undated
 
 test("keeps the last day of month for monthly payments without drifting", () => {
   const endOfMonth = createHouseholdCost({ id: "rent", name: "Rent", category: "housing", amount: 100, frequency: "monthly", nextDueDate: "2026-01-31" });
-  assert.deepEqual(paymentsNextMonth([endOfMonth], new Date("2026-01-01T00:00:00Z")).payments.map(({ date }) => date), ["2026-02-28"]);
-  assert.deepEqual(paymentsNextMonth([endOfMonth], new Date("2026-02-01T00:00:00Z")).payments.map(({ date }) => date), ["2026-03-31"]);
+  assert.deepEqual(paymentsNextMonth([endOfMonth], new Date(2026, 0, 1, 12)).payments.map(({ date }) => date), ["2026-02-28"]);
+  assert.deepEqual(paymentsNextMonth([endOfMonth], new Date(2026, 1, 1, 12)).payments.map(({ date }) => date), ["2026-03-31"]);
 });
 
 test("forecasts a chosen month and finds the next recurrence without treating an undated cost as paid", () => {

@@ -2,7 +2,7 @@ import { createContext, useContext, useId, useRef, useState, type ComponentProps
 import { InputAccessoryView, Keyboard, Platform, Pressable, StyleSheet, View } from "react-native";
 import { LocalizedText as Text, showLocalizedAlert, useMobileLocale } from "./i18n";
 
-const FormActionContext = createContext<{ id: string; busy: boolean; submit: () => void } | null>(null);
+const FormActionContext = createContext<{ id: string; busy: boolean; submit: () => void; run: (work: () => unknown | Promise<unknown>) => void } | null>(null);
 export const useFormAction = () => useContext(FormActionContext);
 
 /** The keyboard action uses exactly the same validation and persistence as the form button. */
@@ -11,14 +11,14 @@ export function FormSection({ onSave, saveLabel = "Speichern", children, ...prop
   const locale = useMobileLocale();
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
-  async function save() {
+  async function save(work = onSave) {
     if (saving.current) return;
     saving.current = true; setBusy(true);
-    try { await onSave(); }
+    try { await work(); }
     catch { showLocalizedAlert(locale, "Speichern fehlgeschlagen", "Bitte versuche es erneut."); }
     finally { saving.current = false; setBusy(false); }
   }
-  return <FormActionContext.Provider value={{ id, busy, submit: () => void save() }}>
+  return <FormActionContext.Provider value={{ id, busy, submit: () => void save(), run: work => void save(work) }}>
     <View {...props}>{children}</View>
     {Platform.OS === "ios" && <InputAccessoryView nativeID={id} backgroundColor="#ffffff">
       <View style={styles.bar}>
@@ -41,4 +41,9 @@ const styles = StyleSheet.create({
 export function FormSubmitButton({ label, style, textStyle }: { label: string; style?: ComponentProps<typeof Pressable>["style"]; textStyle?: ComponentProps<typeof Text>["style"] }) {
   const form = useFormAction();
   return <Pressable accessibilityRole="button" disabled={form?.busy} onPress={form?.submit} style={style}><Text style={textStyle}>{label}</Text></Pressable>;
+}
+
+export function FormActionButton({ label, onPress, style, textStyle }: { label: string; onPress: () => unknown | Promise<unknown>; style?: ComponentProps<typeof Pressable>["style"]; textStyle?: ComponentProps<typeof Text>["style"] }) {
+  const form = useFormAction();
+  return <Pressable accessibilityRole="button" disabled={form?.busy} onPress={() => form?.run(onPress)} style={style}><Text style={textStyle}>{label}</Text></Pressable>;
 }

@@ -24,7 +24,7 @@ async function openDesktopNavigation(page: Page) {
 
 test("calculator shows a relevant tip and keeps further guidance optional", async ({ page }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
 
   const tip = page.getByText("Energy-saving tip", { exact: true });
   const instructions = page.locator("#so-funktionierts");
@@ -51,7 +51,7 @@ test("calculator shows a relevant tip and keeps further guidance optional", asyn
 
 test("footer How it works link reveals the steps on the homepage", async ({ page }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
 
   const instructions = page.locator("#so-funktionierts");
   await expect(instructions.getByRole("button", { name: "How it works" }))
@@ -65,7 +65,7 @@ test("calculator engagement is tracked only on the first interaction", async ({
   page,
 }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
 
   await page.evaluate(() => {
     const analyticsWindow = window as typeof window & {
@@ -426,7 +426,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(householdDevices.getByText("Television", { exact: true })).toBeVisible();
   await expect(householdDevices.getByText("Kettle", { exact: true })).toBeVisible();
   await expect(householdDevices.getByRole("link", { name: "Add device" }))
-    .toHaveAttribute("href", "/#rechner");
+    .toHaveAttribute("href", "/calculator#rechner");
   await expect(page.locator("[data-room-assignment]")).toHaveCount(0);
   await expect(householdDevices.locator("summary")).toBeHidden();
 
@@ -483,7 +483,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByText("The estimate includes 3 saved devices. Consumers not yet saved appear as a difference.", { exact: true })).toBeVisible();
   await expect(
     consumptionInsight.getByRole("link", { name: "Add a missing device" }),
-  ).toHaveAttribute("href", "/#rechner");
+  ).toHaveAttribute("href", "/calculator#rechner");
   await page.getByRole("button", { name: /Device tip/ }).click();
   const savingTip = page.locator("[data-saving-tip]");
   await expect(savingTip).toContainText("Review Coffee machine first");
@@ -656,7 +656,7 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   page,
 }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
 
   await expect(
     page.getByText(
@@ -805,7 +805,7 @@ test("annual and continuous devices show the right usage inputs", async ({
   page,
 }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
 
   const deviceSelect = page.locator("#rechner select").first();
 
@@ -825,7 +825,7 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
   page,
 }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
 
   let firstFaqTop: number | null = null;
   for (const startAt of [350, 1500]) {
@@ -874,13 +874,13 @@ test("language switching keeps an open FAQ expanded and preserves its position",
   page,
 }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
   await page.evaluate(() => window.scrollTo(0, 400));
   const regularScrollBefore = await page.evaluate(() => window.scrollY);
   await page
     .getByRole("link", { name: "Zur deutschen Version wechseln" })
     .click();
-  await expect(page).toHaveURL("/de");
+  await expect(page).toHaveURL("/de/rechner");
   await expect(
     page.getByRole("button", { name: /Häufige Fragen zu EAVESENCE/ }),
   ).toHaveAttribute("aria-expanded", "false");
@@ -900,7 +900,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
     .getByRole("link", { name: "Zur deutschen Version wechseln" })
     .click();
 
-  await expect(page).toHaveURL("/de");
+  await expect(page).toHaveURL("/de/rechner");
   await expect(
     page.getByRole("button", { name: /Häufige Fragen zu EAVESENCE/ }),
   ).toHaveAttribute("aria-expanded", "true");
@@ -909,7 +909,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
     .toBeGreaterThan(scrollBefore - 8);
 
   await page.getByRole("link", { name: "Switch to English" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/calculator");
   await expect(englishFaq).toHaveAttribute("aria-expanded", "true");
 });
 
@@ -917,7 +917,7 @@ test("footer FAQ navigation opens the answers from the page end", async ({
   page,
 }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
   await page.locator("footer").scrollIntoViewIfNeeded();
 
   await page
@@ -941,25 +941,25 @@ test("legal-page footer links open and correctly position the FAQ", async ({
       path: "/en/imprint",
       linkName: "Frequently asked questions",
       title: /Frequently asked questions about EAVESENCE/,
-      homePath: "/",
+      homePath: "/calculator",
     },
     {
       path: "/en/privacy",
       linkName: "Frequently asked questions",
       title: /Frequently asked questions about EAVESENCE/,
-      homePath: "/",
+      homePath: "/calculator",
     },
     {
       path: "/impressum",
       linkName: "Häufige Fragen",
       title: /Häufige Fragen zu EAVESENCE/,
-      homePath: "/de",
+      homePath: "/de/rechner",
     },
     {
       path: "/datenschutz",
       linkName: "Häufige Fragen",
       title: /Häufige Fragen zu EAVESENCE/,
-      homePath: "/de",
+      homePath: "/de/rechner",
     },
   ]) {
     await page.goto(path);
@@ -996,7 +996,7 @@ test("legal-page footer links open and correctly position the FAQ", async ({
 test("desktop navigation opens after the logo intro and stays open", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/calculator");
 
   const logo = page.locator('a[aria-expanded]').first();
   await expect(logo).toHaveAttribute("aria-expanded", "false");
@@ -1039,7 +1039,7 @@ test("subpages show the open header immediately without replaying the logo intro
 
 test("all feedback links use the eavesence address", async ({ page }) => {
   for (const { path, homeHref } of [
-    { path: "/", homeHref: "/" },
+    { path: "/calculator", homeHref: "/" },
     { path: "/en/privacy", homeHref: "/" },
     { path: "/en/imprint", homeHref: "/" },
     { path: "/datenschutz", homeHref: "/de" },
@@ -1053,7 +1053,7 @@ test("all feedback links use the eavesence address", async ({ page }) => {
       /^mailto:feedback@eavesence\.com(?:\?|$)/,
     );
 
-    if (path !== "/") {
+    if (path !== "/calculator") {
       await expect(page.locator(`main a[href="${homeHref}"]`)).toHaveCount(1);
     }
   }
@@ -1063,7 +1063,7 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
   page,
 }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
   await openDesktopNavigation(page);
 
   const calculatorLink = page.locator('[data-navigation-key="calculator"]');
@@ -1109,7 +1109,7 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
 test("reset keeps the current scroll position", async ({ page }) => {
   await disableHeaderIntro(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto("/");
+  await page.goto("/calculator");
   await page.evaluate(() => window.scrollTo(0, 0));
 
   const before = await page.evaluate(() => window.scrollY);
@@ -1124,7 +1124,7 @@ test("device search never shows a different device than the calculation", async 
   page,
 }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
 
   const deviceSelect = page.getByLabel("Device", { exact: true });
   await page.getByRole("button", { name: "Search devices" }).click();
@@ -1140,7 +1140,7 @@ test("device search preserves measured-input mode and values", async ({
   page,
 }) => {
   await disableHeaderIntro(page);
-  await page.goto("/");
+  await page.goto("/calculator");
 
   await page.getByRole("button", { name: "Enter measured consumption" }).click();
   await page.getByLabel("Actual consumption per use").fill("0.42");
@@ -1210,7 +1210,7 @@ test.describe("mobile", () => {
   test("menu, FAQ and calculator fit without horizontal overflow", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/calculator");
     await page.getByRole("button", { name: "Open navigation" }).click();
     await page.getByRole("link", { name: "FAQ", exact: true }).click();
 
@@ -1397,7 +1397,7 @@ test.describe("responsive calculator layout", () => {
         width: viewport.width,
         height: viewport.height,
       });
-      await page.goto("/");
+      await page.goto("/calculator");
 
       const layout = await page.locator("#rechner").evaluate((calculator) => {
         const viewportWidth = document.documentElement.clientWidth;
