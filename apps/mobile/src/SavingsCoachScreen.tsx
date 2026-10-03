@@ -223,7 +223,7 @@ export function SavingsCoachScreen({
                     "Planned, no confirmed saving yet",
                   )}
           </Text>
-          {p.outdated.includes(a) &&
+          {p.outdated.includes(a) && input.costs.some(c => c.id === a.costId) &&
             button(t("Kosten prüfen", "Review cost"), () => {
               const cost = input.costs.find((c) => c.id === a.costId);
               if (cost) onReview(cost);
@@ -234,7 +234,7 @@ export function SavingsCoachScreen({
               () => void p.discard(a),
             )}
           {a.status === "planned" &&
-            a.effectiveMonth <= p.today.slice(0, 7) &&
+            !p.outdated.includes(a) && a.effectiveMonth <= p.today.slice(0, 7) &&
             button(
               t("Umgesetzt – Kosten aktualisieren", "Done — update costs"),
               () =>

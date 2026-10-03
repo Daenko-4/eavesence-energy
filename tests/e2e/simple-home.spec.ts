@@ -11,12 +11,12 @@ for (const locale of ['de', 'en'] as const) {
     await expect(setup).toContainText(de ? '1 · Einkommen eintragen' : '1 · Add your income');
     await expect(page.locator('[data-home-plan-content]')).toBeHidden();
     await expect(page.locator('#household-costs')).toHaveCount(0);
-    await setup.getByRole('button').click();
+    await setup.getByRole('button').first().click();
     await page.locator('#home-income-form input').fill('2400');
     await page.locator('#home-income-form button[type="submit"]').click();
     await expect(setup).toContainText(de ? '2 · Erste Kosten hinzufügen' : '2 · Add your first cost');
     await expect(overview.locator('article').nth(2)).toContainText('—');
-    await setup.getByRole('button').click();
+    await setup.getByRole('button').first().click();
     await page.locator('#household-cost-name').fill('Internet');
     await page.locator('#household-costs').getByLabel(de ? 'Betrag' : 'Amount', { exact: true }).fill('40');
     await page.locator('#household-costs').getByRole('button', { name: de ? 'Speichern' : 'Save', exact: true }).click();

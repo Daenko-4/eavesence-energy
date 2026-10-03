@@ -39,7 +39,7 @@ export function useSavingsCoach(
     .slice(0, 3);
   const outdated = actions.filter(
     (a) =>
-      a.status === "confirmed" &&
+      a.status === "planned" ? !input.costs.some(c => c.id === a.costId && c.amount === a.originalAmount && c.frequency === a.frequency) :
       !input.costs.some(
         (c) =>
           c.id === a.costId &&
@@ -75,6 +75,10 @@ export function useSavingsCoach(
     setError("");
   }
   async function plan() {
+    if (selected && !input.costs.some(c => c.id === selected.id && c.updatedAt === selected.updatedAt)) {
+      setError(de ? "Dieser Kostenposten wurde geändert. Wähle ihn erneut aus." : "This cost has changed. Select it again.");
+      return;
+    }
     const action = selected
       ? createSavingsAction(selected, parseMoney(amount), effective)
       : null;

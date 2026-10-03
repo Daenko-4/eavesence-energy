@@ -115,7 +115,7 @@ const en: Record<string, string> = {
   "Für Geräte starten wir mit 0,30 €/kWh. Du kannst den Strompreis später in den Einstellungen ändern.": "The initial electricity price is 0.30 per kWh. You can change it in settings.",
   "Dein Zuhause": "Your home", "Deine Daten": "Your data", "Deine Kacheln": "Your tiles", "Finanzen im Überblick": "Your finances",
   "Dein Überblick über Einkommen, feste Kosten und nächste Zahlungen.": "Your income, fixed costs and upcoming payments at a glance.",
-  "Sicherungen enthalten Einstellungen, Kacheln, Kosten, Geräte und Monatswerte. Du kannst auch eine Website-Sicherung importieren; vorhandene App-Daten werden erst nach deiner Bestätigung ersetzt.": "Backups contain settings, tiles, costs, devices and monthly entries. You can import a website backup; current app data is replaced only after you confirm.",
+  "Sicherungen enthalten auch Einkommen, Sonderzahlungen und Sparvorhaben sowie Einstellungen, Kacheln, Kosten, Geräte und Monatswerte. Du kannst auch eine Website-Sicherung importieren; vorhandene App-Daten werden erst nach deiner Bestätigung ersetzt.": "Backups include income, extra payments and savings plans as well as settings, tiles, costs, devices and monthly entries. You can import a website backup; current app data is replaced only after you confirm.",
   "Trage erst dein Nettoeinkommen und mindestens eine regelmäßige Ausgabe ein. Das dauert nur einen Moment.": "Add your net income and at least one recurring cost to get started.",
   "Zahlungstermine ergänzen": "Add payment dates", "Fällige Zahlungen": "Due payments", "Zahlungen schließen": "Close payments",
   "Keine datierten Zahlungen vorhanden.": "No dated payments yet.", "Kosten bearbeiten": "Edit costs", "Feste Ausgaben": "Fixed spending",

@@ -249,7 +249,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   page.once("dialog", dialog=>void dialog.accept());
   await panel.getByRole("button", { name: "Done — update costs" }).click();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("eavesence-home-costs-v1")!)[0].amount)).toBe(25);
-  await page.getByRole("button", {name:"3 · Saved",exact:true}).click();
+  await openPlan(page, "progress");
   await expect(page.getByRole("region", {name:"03 · What have I actually saved?",exact:true})).toContainText("Confirmed, costs updated");
 });
 
@@ -302,15 +302,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.getByLabel("Tile name").fill("Insurance & contracts");
   await page.getByRole("button", { name: "Save name" }).click();
   await expect(insuranceTile.getByText("Insurance & contracts", { exact: true })).toBeVisible();
-  const installCard = page.getByRole("region", {
-    name: "Install EAVESENCE as an app",
-  });
-  await expect(installCard).toBeVisible();
-  await expect(
-    installCard.getByText("Open My home directly from your home screen"),
-  ).toBeVisible();
-  await installCard.getByRole("button", { name: "Maybe later" }).click();
-  await expect(installCard).toHaveCount(0);
+  await expect(page.getByRole("region", {name:"Install EAVESENCE as an app"})).toHaveCount(0);
   const householdCosts = page.locator("#household-costs");
   await expect(
     householdCosts.getByRole("heading", { name: "Insurance & contracts", exact: true }),
@@ -323,6 +315,17 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdCosts.getByLabel("Next payment (optional)").fill("2026-10-01");
   await householdCosts.getByLabel("Amount").press("Enter");
   await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
+  await page.locator("[data-home-review]").getByRole("button", {name:"Overview checked",exact:true}).click();
+  const installCard = page.getByRole("region", {
+    name: "Install EAVESENCE as an app",
+  });
+  await expect(installCard).toBeVisible();
+  await expect(
+    installCard.getByText("Open My home directly from your home screen"),
+  ).toBeVisible();
+  await installCard.getByRole("button", { name: "Maybe later" }).click();
+  await expect(installCard).toHaveCount(0);
+
   await householdOverview.getByRole("button", { name: /Payments next month/ }).click();
   await expect(householdOverview).toContainText("All recorded costs have a payment date.");
   await expect(page.getByText("Recurring costs / month")).toBeVisible();

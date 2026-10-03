@@ -44,10 +44,10 @@ for (const width of [1365, 390]) {
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.goto(de ? '/de/zuhause' : '/home');
       await page.getByRole('button', { name: de ? 'Zuhause erstellen' : 'Create my home', exact: true }).click();
-      await page.locator('[data-home-setup]').getByRole('button').click();
+      await page.locator('[data-home-setup]').getByRole('button').first().click();
       await page.locator('#home-income-form input').fill('2400');
       await page.locator('#home-income-form button[type="submit"]').click();
-      await page.locator('[data-home-setup]').getByRole('button').click();
+      await page.locator('[data-home-setup]').getByRole('button').first().click();
       await page.locator('#household-cost-name').fill('Internet');
       await page.locator('#household-costs').getByLabel(de ? 'Betrag' : 'Amount', { exact: true }).fill('40');
       await page.locator('#household-costs').getByRole('button', { name: de ? 'Speichern' : 'Save', exact: true }).click();

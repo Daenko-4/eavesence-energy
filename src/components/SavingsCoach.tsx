@@ -241,7 +241,7 @@ export default function SavingsCoach({
                         "Planned, no confirmed saving yet",
                       )}
               </p>
-              {p.outdated.includes(a) && (
+              {p.outdated.includes(a) && input.costs.some(c => c.id === a.costId) && (
                 <button
                   type="button"
                   className={`${button} mt-2`}
@@ -264,7 +264,7 @@ export default function SavingsCoach({
                 </button>
               )}
               {a.status === "planned" &&
-                a.effectiveMonth <= p.today.slice(0, 7) && (
+                !p.outdated.includes(a) && a.effectiveMonth <= p.today.slice(0, 7) && (
                   <button
                     type="button"
                     className={`${button} mt-2`}

@@ -27,6 +27,7 @@ export type HouseholdProfile = {
   monthlyElectricityPayment?: number;
   electricityBillIncludesBonus?: boolean;
   overviewReviewed?: boolean;
+  incomeDeferred?: boolean;
   backupReminderDismissed?: boolean;
   incomeAmount?: number;
   incomeFrequency?: "monthly" | "yearly";
@@ -297,6 +298,7 @@ export function readHouseholdProfile(value: string | null) {
     if (candidate.savingsActions !== undefined) {
       candidate.savingsActions = readSavingsActions(candidate.savingsActions);
     }
+    if ([candidate.overviewReviewed, candidate.incomeDeferred, candidate.backupReminderDismissed].some(value => value !== undefined && typeof value !== "boolean")) return null;
     if (candidate.electricityCostMigrated !== undefined && typeof candidate.electricityCostMigrated !== "boolean") return null;
     if (
       candidate.electricityBillIncludesBonus !== undefined &&

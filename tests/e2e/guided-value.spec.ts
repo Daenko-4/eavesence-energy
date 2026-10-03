@@ -41,3 +41,20 @@ test('calculator uses the home tariff and area navigation stays available when o
   await page.goto('/calculator');
   await expect(page.getByLabel('Electricity price',{exact:true})).toHaveValue('0.27');
 });
+
+
+test('income can be deferred without inventing a remainder or blocking setup', async ({page}) => {
+  await page.goto('/home');
+  await page.getByRole('button',{name:'Create my home',exact:true}).click();
+  const setup=page.locator('[data-home-setup]');
+  await setup.getByRole('button',{name:'Add income later',exact:true}).click();
+  await expect(setup).toContainText('2 · Add your first cost');
+  await setup.getByRole('button',{name:'Add first cost',exact:true}).click();
+  await page.locator('#household-cost-name').fill('Rent');
+  await page.locator('#household-costs').getByLabel('Amount',{exact:true}).fill('800');
+  await page.locator('#household-costs').getByRole('button',{name:'Save',exact:true}).click();
+  await page.locator('[data-home-review]').getByRole('button',{name:'Overview checked',exact:true}).click();
+  await page.reload();
+  await expect(page.locator('[data-home-setup]')).toHaveCount(0);
+  await expect(page.getByRole('region',{name:'Your household at a glance'}).locator('article').nth(2)).toContainText('—');
+});
