@@ -289,7 +289,8 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   expect(new Set(collapsedHeights).size).toBe(1);
   await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Edit income" }).click();
   expect(await financeCards.evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height))).toEqual(collapsedHeights);
-  await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Edit income" }).click();
+  await householdOverview.getByLabel("Net income").press("Enter");
+  await openEnergyTile(page);
   await expect(page.getByRole("button", { name: /Monthly values & history/ })).toBeVisible();
   await openCostAreas(page);
   await page.getByRole("button", { name: /New tile/ }).click();
@@ -325,7 +326,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdOverview.getByRole("button", { name: /Payments next month/ }).click();
   await expect(householdOverview).toContainText("All recorded costs have a payment date.");
   await expect(page.getByText("Recurring costs / month")).toBeVisible();
-  await expect(householdCosts.getByText("€900.00", { exact: true }).first()).toBeVisible();
+  await expect(householdCosts.getByText("€900.00", { exact: true }).filter({ visible: true }).first()).toBeVisible();
   expect(
     await page.evaluate(() =>
       JSON.parse(window.localStorage.getItem("eavesence-home-costs-v1") ?? "[]"),
@@ -340,7 +341,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(householdCosts.getByText("€900.00", { exact: true })).toHaveCount(0);
   await expect(householdCosts.getByRole("button", { name: "Add cost", exact: true })).toBeVisible();
   await insuranceTile.getByRole("button").first().click();
-  await expect(householdCosts.getByText("€900.00", { exact: true }).first()).toBeVisible();
+  await expect(householdCosts.getByText("€900.00", { exact: true }).filter({ visible: true }).first()).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await insuranceTile.getByRole("button", { name: "Remove" }).click();
   await expect(insuranceTile).toHaveCount(0);
@@ -1236,6 +1237,7 @@ test.describe("mobile", () => {
     expect(navigationBounds?.x ?? -1).toBeGreaterThanOrEqual(0);
     expect((navigationBounds?.x ?? 0) + (navigationBounds?.width ?? 0)).toBeLessThanOrEqual(390);
 
+    await openPlan(page, "savings", true);
     await expect(
       page.getByRole("heading", { name: "Your monthly planning basics" }),
     ).toBeVisible();
@@ -1613,6 +1615,7 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   await expect(costs.getByRole('heading', { name: 'Household costs', exact: true })).toBeVisible();
   await expect(costs).not.toContainText('Private insurance');
   await page.reload();
+  await openCostAreas(page);
   await customTile.getByRole('button').first().click();
   await expect(costs).toContainText('Private insurance');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

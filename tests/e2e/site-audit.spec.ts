@@ -62,7 +62,7 @@ for (const locale of ['en', 'de'] as const) for (const width of [320, 390, 1365]
     await expect(page.locator('[data-home-plan-content]')).toBeHidden();
     const organizer = page.getByText(de ? 'Kostenbereiche organisieren' : 'Organize cost areas', { exact: true });
     await organizer.click();
-    const summary = organizer.locator('..');
+    const summary = organizer;
     await expect.poll(() => summary.evaluate(el => getComputedStyle(el, '::after').transform)).toBe('matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)');
     await summary.press('Enter');
     await expect.poll(() => summary.evaluate(el => getComputedStyle(el, '::after').transform)).toBe('matrix(1, 0, 0, 1, 0, 0)');

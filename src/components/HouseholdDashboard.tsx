@@ -1266,7 +1266,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setHouseholdCosts(backup.costs);
     setCostEvents(backup.costEvents ?? []);
     setHomeTiles(backup.tiles);
-    setActiveTileId(null);
+    setView("overview");
+    setActiveTileId(backup.tiles.find(tile => tile.kind === "costs")?.id ?? null);
     setName(localizeDefaultHouseholdName(backup.profile.name, locale));
     setCurrency(backup.profile.currency);
     setPrice(backup.profile.electricityPrice);
@@ -1324,7 +1325,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setElectricityBillIncludesBonus(false);
     setGoal(10);
     setHomeTiles(defaultHomeTiles());
-    setActiveTileId(null);
+    setActiveTileId("default-costs");
     setCheckInFeedback(null);
     setSettingsOpen(false);
     setNotice("");
@@ -1642,7 +1643,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const householdCostSummary = summarizeHouseholdCosts(householdCosts);
   const upcomingPayments = paymentsNextMonth(householdCosts);
   const monthlyIncome = (profile.incomeAmount ?? 0) / (profile.incomeFrequency === "yearly" ? 12 : 1);
-  const activeTile = homeTiles.find((tile) => tile.id === activeTileId) ?? homeTiles.find((tile) => tile.kind === "costs") ?? null;
+  const activeTile = activeTileId === null ? null : homeTiles.find((tile) => tile.id === activeTileId) ?? homeTiles.find((tile) => tile.kind === "costs") ?? null;
   const primaryCostTileId = homeTiles.find((tile) => tile.kind === "costs")?.id ?? null;
 
   function costsForTile(tileId: string) {
@@ -1830,7 +1831,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
 
 
-          <details className="home-disclosure mt-5" open={homeTiles.length > 1 || tileFormOpen}><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary>
+          <details className="home-disclosure mt-5"><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
               <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
@@ -1840,7 +1841,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
               <div className="mt-4 grid gap-3 rounded-2xl bg-[#24272c] p-3 sm:grid-cols-2 lg:grid-cols-4" data-home-tiles>
                 {homeTiles.map((tile) => {
-                  const active = activeTileId === tile.id;
+                  const active = activeTile?.id === tile.id;
                   const title = tile.title ?? text.tileTitles[tile.kind];
                   return (
                     <article

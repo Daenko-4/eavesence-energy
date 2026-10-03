@@ -12,6 +12,7 @@ type Props = {
 export default function HomeCoreOverview({ locale, currency, income, fixed, count, upcoming, incomeOpen, onIncome, onCost, upcomingOpen, onUpcoming, incomeForm }: Props) {
   const de = locale === "de";
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
+  const deficit = income > 0 && fixed > income;
   const cards = [
     { label: de ? "Nettoeinkommen pro Monat" : "Net income / month", value: income > 0 ? money(income) : "—" },
     { label: de ? "Feste Kosten pro Monat" : "Recurring costs / month", value: money(fixed) },
@@ -22,10 +23,11 @@ export default function HomeCoreOverview({ locale, currency, income, fixed, coun
     <div className="mt-3 grid items-start gap-3 md:grid-cols-3">
       {cards.map(card => <article key={card.label} className={`min-w-0 rounded-2xl border p-4 ${card.emphasis ? "border-[#32363b] bg-[#24272c] text-white" : "border-[#dfe5dd] bg-white text-[#17211f]"}`}>
         <p className={`text-[11px] font-semibold ${card.emphasis ? "text-[#d1d7d4]" : "text-[#65716d]"}`}>{card.label}</p>
-        <p className={`mt-2 text-[24px] font-extrabold tracking-[-.035em] ${card.emphasis ? "text-[#72dca3]" : ""}`}>{card.value}</p>
+        <p className={`mt-2 text-[24px] font-extrabold tracking-[-.035em] ${card.emphasis ? deficit ? "text-[#ffd28c]" : "text-[#72dca3]" : ""}`}>{card.value}</p>
       </article>)}
     </div>
     <p className="mt-3 max-w-3xl text-[12px] leading-5 text-[#65716d]">{de ? "Monatsdurchschnitte deiner erfassten Kosten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen vom Rest noch ab. Er ist kein Kontostand und noch kein Sparbetrag." : "Monthly averages of the costs you have entered. Groceries, leisure and other everyday spending still come out of the remainder. It is not your account balance or a savings amount."}</p>
+    {deficit && <p role="status" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[12px] text-amber-900">{de ? "Deine erfassten Fixkosten übersteigen dein Einkommen. Alltagsausgaben sind dabei noch nicht berücksichtigt. Prüfe zuerst deine Beträge und Zahlungsrhythmen." : "Your entered fixed costs exceed your income, before everyday spending. Check your amounts and payment frequencies first."}</p>}
     {(!income || !count) && <div data-home-setup className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
       <p className="text-[13px] font-bold">{income <= 0 ? de ? "1 · Einkommen eintragen" : "1 · Add your income" : de ? "2 · Erste Kosten hinzufügen" : "2 · Add your first cost"}</p>
       <p className="mt-1 text-[12px] text-[#52605b]">{income <= 0 ? de ? "Ein Betrag reicht. Danach ergänzen wir deine regelmäßigen Kosten." : "One amount is enough. Add your recurring costs next." : de ? "Beginne mit Miete, Internet oder einer Versicherung. Weitere Kosten kannst du später ergänzen." : "Start with rent, internet or insurance. Add more costs later."}</p>
