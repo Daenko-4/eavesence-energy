@@ -1816,8 +1816,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
 
           <nav aria-label={locale === "de" ? "Bereich wählen" : "Choose workspace"} className="mt-6 flex flex-wrap gap-2 border-b border-[#dfe5dd] pb-3">
-            <button type="button" aria-pressed={view === "overview"} onClick={() => setView("overview")} className={`min-h-11 rounded-xl px-4 text-[13px] font-bold ${view === "overview" ? "bg-[#24272c] text-white" : "text-[#52605b]"}`}>{locale === "de" ? "Übersicht" : "Overview"}</button>
-            {homeRelease.proPreview && <button type="button" aria-pressed={view === "plan"} onClick={() => { setView("plan"); setSettingsOpen(false); }} className={`min-h-11 rounded-xl px-4 text-[13px] font-bold ${view === "plan" ? "bg-[#24272c] text-white" : "text-[#52605b]"}`}>{locale === "de" ? "Planen & sparen" : "Plan & save"}<span className="ml-2 text-[10px] font-semibold opacity-75">Pro</span></button>}
+            <button type="button" aria-pressed={view === "overview"} onClick={() => setView("overview")} className={`${homeDashboardActionClass} home-workspace-pill ${view === "overview" ? "home-workspace-selected" : ""}`}>{locale === "de" ? "Übersicht" : "Overview"}</button>
+            {homeRelease.proPreview && <button type="button" aria-pressed={view === "plan"} onClick={() => { setView("plan"); setSettingsOpen(false); }} className={`${homeDashboardActionClass} home-workspace-pill home-pro-pill ${view === "plan" ? "home-workspace-selected" : ""}`}>{locale === "de" ? "Planen & sparen" : "Plan & save"}<span className="ml-2 text-[10px] font-semibold opacity-75">Pro</span></button>}
           </nav>
           <div hidden={view !== "overview"} data-home-overview-content>
           <HomeCoreOverview locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} incomeForm={
@@ -1831,7 +1831,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
 
 
-          <details className="home-disclosure mt-5"><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary>
+          <details className="home-disclosure mt-5"><summary className="home-cost-areas-summary min-h-11 cursor-pointer rounded-xl border border-transparent px-4 text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
               <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
