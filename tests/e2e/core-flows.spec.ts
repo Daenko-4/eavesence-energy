@@ -4,7 +4,18 @@ async function disableHeaderIntro(page: Page) {
   await page.emulateMedia({ reducedMotion: "reduce" });
 }
 
+async function openPlan(page: Page, question: "payday" | "savings" | "progress" = "savings", budget = false) {
+  await page.getByRole("navigation", { name: /Choose workspace|Bereich wählen/ }).getByRole("button", { name: /Plan & save|Planen & sparen/ }).click();
+  await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Spend until payday|Bis zum Gehalt ausgeben/ : question === "savings" ? /Find realistic savings|Realistisch sparen/ : /Savings achieved|Erreichte Ersparnis/ }).click();
+  if (budget && !await page.getByLabel(/Everyday spending per month|Alltagsausgaben pro Monat/).isVisible()) await page.getByRole("button", { name: /Add a monthly budget|Monatsbudget ergänzen/ }).click();
+}
+async function openCostAreas(page: Page) {
+  await page.getByRole("navigation", { name: /Choose workspace|Bereich wählen/ }).getByRole("button", { name: /^(Overview|Übersicht)$/ }).click();
+  if (!await page.locator("[data-home-tiles]").isVisible()) await page.getByText(/^(Organize cost areas|Kostenbereiche organisieren)$/).click();
+}
+
 async function openEnergyTile(page: Page) {
+  await openCostAreas(page);
   const tile = page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first();
   if (await tile.count()) {
     if (await tile.getAttribute("aria-expanded") === "false") await tile.click();
@@ -208,6 +219,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
     sessionStorage.setItem("test-current-month", current);
   });
   await page.reload();
+  await openPlan(page, "savings", true);
   const panel = page.locator("#savings-plan");
   await expect(panel).toContainText("Left after fixed costs and reserve");
   await expect(panel).toContainText("It is not a savings amount yet");
@@ -216,13 +228,14 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   await panel.getByRole("button", { name: "Save plan", exact: true }).click();
   await expect(panel).toContainText("Estimated amount left");
   await expect(panel).toContainText("€1,360.00");
-  await panel.getByText("Try a cost change", { exact: true }).click();
+
   await expect(panel.getByRole("heading", { name: "What if you paid less?" })).toBeVisible();
   await panel.getByLabel("New amount per month").fill("25");
   await expect(panel).toContainText("Lower spending over the next 12 months");
   await expect(panel).toContainText("€180.00");
   await panel.getByRole("button", { name: "Save this plan" }).click();
   await page.reload();
+  await openPlan(page);
   await expect(panel).toContainText("planned, not yet done");
   await page.evaluate(() => {
     const profile = JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!);
@@ -230,8 +243,9 @@ test("savings scenarios persist and ask for confirmation when the effective mont
     localStorage.setItem("eavesence-home-profile-v1", JSON.stringify(profile));
   });
   await page.reload();
+  await openPlan(page);
   await expect(panel).toContainText("Check-in: Did the amount actually change?");
-  await panel.getByText("Try a cost change", { exact: true }).click();
+
   page.once("dialog", dialog=>void dialog.accept());
   await panel.getByRole("button", { name: "Mark as done" }).click();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("eavesence-home-costs-v1")!)[0].amount)).toBe(25);
@@ -262,45 +276,22 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByRole("heading", { name: "Sections in your home" }))
     .toBeVisible();
   const householdOverview = page.getByRole("region", { name: "Your household at a glance" });
-  await expect(householdOverview).toContainText("No costs added yet.");
   await householdOverview.getByRole("button", { name: "Add income" }).click();
   await householdOverview.getByLabel("Net income").fill("24000");
   await householdOverview.getByLabel("Period").selectOption("yearly");
   await householdOverview.getByLabel("Net income").press("Enter");
   await expect(householdOverview).toContainText("€2,000.00");
-  await expect(householdOverview).toContainText("Monthly budget after recurring costs");
   const financeCards = householdOverview.locator("article");
-  await expect(financeCards.nth(0)).toContainText("Payments next month");
-  await expect(financeCards.nth(1)).toContainText("Net income / month");
-  await expect(financeCards.nth(2)).toContainText("Recurring costs / month");
-  const collapsedHeights = await financeCards.evaluateAll((cards) =>
-    cards.map((card) => card.getBoundingClientRect().height),
-  );
+  await expect(financeCards.nth(0)).toContainText("Net income / month");
+  await expect(financeCards.nth(1)).toContainText("Recurring costs / month");
+  await expect(financeCards.nth(2)).toContainText("Left after fixed costs");
+  const collapsedHeights = await financeCards.evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height));
   expect(new Set(collapsedHeights).size).toBe(1);
-  const actionTops = await householdOverview.evaluate(section => {
-    const buttons = Array.from(section.querySelectorAll("button"));
-    return ["Scheduled payments", "Edit income"].map(label => buttons.find(button => button.textContent?.trim() === label)?.getBoundingClientRect().top);
-  });
-  expect(actionTops.every(top => top !== undefined)).toBe(true);
-  expect(Math.abs(actionTops[0]! - actionTops[1]!)).toBeLessThan(1);
-  await householdOverview.getByRole("button", { name: "Scheduled payments" }).click();
-  await expect(householdOverview).toContainText("Add due dates to your costs");
-  const expandedHeights = await financeCards.evaluateAll((cards) =>
-    cards.map((card) => card.getBoundingClientRect().height),
-  );
-  expect(expandedHeights[0]).toBeGreaterThan(collapsedHeights[0]);
-  expect(expandedHeights.slice(1)).toEqual(collapsedHeights.slice(1));
-  await householdOverview.getByRole("button", { name: "Scheduled payments" }).click();
-  await householdOverview.getByRole("button", { name: "Edit income" }).click();
-  const incomeExpandedHeights = await financeCards.evaluateAll((cards) =>
-    cards.map((card) => card.getBoundingClientRect().height),
-  );
-  expect(incomeExpandedHeights[1]).toBeGreaterThan(collapsedHeights[1]);
-  expect(incomeExpandedHeights[0]).toBe(collapsedHeights[0]);
-  expect(incomeExpandedHeights[2]).toBe(collapsedHeights[2]);
-  await householdOverview.getByRole("button", { name: "Edit income" }).click();
-  await expect(page.locator("#household-costs")).toHaveCount(0);
+  await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Edit income" }).click();
+  expect(await financeCards.evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height))).toEqual(collapsedHeights);
+  await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Edit income" }).click();
   await expect(page.getByRole("button", { name: /Monthly values & history/ })).toBeVisible();
+  await openCostAreas(page);
   await page.getByRole("button", { name: /New tile/ }).click();
   await page.getByLabel("Tile name").fill("Insurance");
   await page.getByLabel("Tile name").press("Enter");
@@ -331,6 +322,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdCosts.getByLabel("Next payment (optional)").fill("2026-10-01");
   await householdCosts.getByLabel("Amount").press("Enter");
   await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
+  await householdOverview.getByRole("button", { name: /Payments next month/ }).click();
   await expect(householdOverview).toContainText("All recorded costs have a payment date.");
   await expect(page.getByText("Recurring costs / month")).toBeVisible();
   await expect(householdCosts.getByText("€900.00", { exact: true }).first()).toBeVisible();
@@ -339,6 +331,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
       JSON.parse(window.localStorage.getItem("eavesence-home-costs-v1") ?? "[]"),
     ),
   ).toHaveLength(1);
+  await openCostAreas(page);
   await page.getByRole("button", { name: /New tile/ }).click();
   await page.getByLabel("Tile name").fill("Car");
   await page.getByRole("button", { name: "Create tile", exact: true }).click();
@@ -506,6 +499,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await septemberEntry.getByRole("button", { name: "Delete" }).click();
   await expect(septemberEntry).toHaveCount(0);
 
+  await openPlan(page, "savings", true);
   const savingsPlan = page.locator("#savings-plan");
   await expect(savingsPlan.getByRole("heading", { name: "Your monthly planning basics" })).toBeVisible();
   await savingsPlan.getByLabel("Everyday spending per month (estimate)").fill("500");
@@ -607,49 +601,24 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBe(3);
 });
 
-test("My home explains upcoming costs and records a contract review", async ({ page }) => {
+test("My home distinguishes annual monthly averages from dated payment forecasts", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-20T12:00:00Z") });
-  await disableHeaderIntro(page);
-  await page.goto("/home");
-  await page.getByLabel("Home name").fill("Review home");
-  await page.getByLabel("Home name").press("Enter");
-  await openEnergyTile(page);
-  await page.getByRole("button", { name: /Electricity Calculator/ }).click();
-  await page.getByLabel("Electricity price per kWh").fill("0.35");
-  await page.getByLabel("Electricity price per kWh").press("Enter");
-
-  await page.getByText("View payment forecast and insights", { exact: true }).click();
-  const insights = page.locator("[data-household-insights]");
-  await expect(insights.getByText("0 of 3 recurring costs added.", { exact: false })).toBeVisible();
-  await insights.getByRole("button", { name: "Add contract" }).click();
+  await page.goto("/home"); await page.getByRole("button", { name: "Create my home" }).click();
+  await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Add cost" }).click();
   const costs = page.locator("#household-costs");
-  await expect(costs.getByLabel("Name")).toHaveValue("Internet or subscription");
-  await costs.getByLabel("Amount").fill("600");
+  await costs.getByLabel("Name", { exact: true }).fill("Insurance");
+  await costs.getByLabel("Amount", { exact: true }).fill("600");
   await costs.getByLabel("How often?").selectOption("yearly");
-  if (!await costs.getByLabel("Next payment (optional)").isVisible()) await costs.getByText("More details: category and dates", { exact: true }).click();
+  await costs.getByText("More details: category and dates", { exact: true }).click();
   await costs.getByLabel("Next payment (optional)").fill("2026-10-15");
   await costs.getByLabel("Cancellation deadline (optional, enter yourself)").fill("2026-09-28");
   await costs.getByRole("button", { name: "Save", exact: true }).click();
-
-  const forecast = page.locator("[data-monthly-forecast]");
-  await expect(forecast).toContainText("October 2026");
-  await expect(forecast).toContainText("€550.00 more than your average monthly recurring costs");
-  await expect(forecast).toContainText("Largest extra payment: Internet or subscription");
-  const review = page.locator("[data-contract-review]");
-  await expect(review).toContainText("€600.00 per year");
-  await expect(review).toContainText("Cancellation deadline: 28 Sept 2026");
-  const calendar = page.waitForEvent("download");
-  await review.getByRole("button", { name: "Add deadline to calendar" }).click();
-  expect((await calendar).suggestedFilename()).toBe("eavesence-deadline.ics");
-
-  await review.getByRole("button", { name: "Check price" }).click();
-  await expect(costs.getByLabel("Amount")).toHaveValue("600");
-  await costs.getByLabel("Amount").fill("720");
-  await costs.getByRole("button", { name: "Update", exact: true }).click();
-  await expect(forecast).toContainText("€660.00 more than your average monthly recurring costs");
-  const recap = page.locator("[data-monthly-review]");
-  await expect(recap).toContainText("Internet or subscription: €50.00 → €60.00 per month");
-  await expect(recap).toContainText("Internet or subscription added: €50.00 per month");
+  const overview = page.getByRole("region", { name: "Your household at a glance" });
+  await expect(overview.locator("article").nth(1)).toContainText("€50.00");
+  await overview.getByRole("button", { name: /Payments next month/ }).click();
+  await expect(overview).toContainText("€600.00"); await expect(overview).toContainText("15 Oct");
+  await page.reload(); await expect(page.locator("#household-costs")).toContainText("Insurance");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-costs-v1")!)[0].cancellationDeadline)).toBe("2026-09-28");
 });
 
 test("calculator updates live and a saved calculation can be deleted", async ({
@@ -1248,7 +1217,7 @@ test.describe("mobile", () => {
       appNavigation.getByRole("link", { name: "Costs" }),
     ).toHaveAttribute("href", "#household-costs");
     const planDestination = appNavigation.getByRole("link", { name: "Plan" });
-    await expect(planDestination).toHaveAttribute("href", "#savings-plan");
+    await expect(planDestination).toHaveAttribute("href", "#home-plan");
     await planDestination.click();
     await expect(planDestination).toHaveAttribute("aria-current", "location");
     await page.getByRole("button", { name: "Settings", exact: true }).click();
@@ -1452,84 +1421,40 @@ test.describe("responsive calculator layout", () => {
   }
 });
 
-test("planning tools retain goals, reserves and monthly checks and preview a purchase", async ({ page }) => {
-  await disableHeaderIntro(page);
-  await page.goto("/home");
-  await page.getByRole("button", { name: "Create my home" }).click();
+test("hidden advanced plans survive core edits and export", async ({ page }) => {
+  await page.goto("/home"); await page.getByRole("button", { name: "Create my home" }).click();
   await page.evaluate(() => {
-    const profile=JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!);
-    const now=new Date();const next=new Date(Date.UTC(now.getFullYear(),now.getMonth()+1,1));const due=new Date(Date.UTC(next.getUTCFullYear(),next.getUTCMonth()+3,15));
-    const start=next.toISOString().slice(0,7);
-    Object.assign(profile,{incomeAmount:2000,incomeFrequency:"monthly",variableMonthly:500,goalMonthly:200,bufferMonthly:0});
-    localStorage.setItem("eavesence-home-profile-v1",JSON.stringify(profile));
-    localStorage.setItem("eavesence-home-costs-v1",JSON.stringify([{id:"rent",name:"Rent",amount:900,category:"housing",frequency:"monthly",nextDueDate:`${start}-01`,updatedAt:now.toISOString()},{id:"insurance",name:"Insurance",amount:600,category:"insurance",frequency:"yearly",nextDueDate:due.toISOString().slice(0,10),updatedAt:now.toISOString()}]));
-    sessionStorage.setItem("goal-target-month",due.toISOString().slice(0,7));
+    const p = JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!);
+    p.planning = { goals: [{ id: "holiday", name: "Holiday", target: 1200, saved: 400, targetMonth: "2027-06" }], reserves: [{ costId: "insurance", saved: 200 }], checks: [], reviews: [] };
+    localStorage.setItem("eavesence-home-profile-v1", JSON.stringify(p));
   });
-  await page.reload();
-  const tools=page.getByRole("region",{name:"Plan ahead"});
-  await tools.getByRole("checkbox").nth(0).check();
-  await tools.getByRole("checkbox").nth(1).check();
-  await tools.getByRole("checkbox").nth(2).check();
-  await tools.getByRole("button",{name:"Complete monthly check"}).click();
-  await expect(tools).toContainText("Reviewed this month");
-  await tools.getByText("Savings goals with a purpose and date",{exact:true}).click();
-  await tools.getByLabel("Goal name",{exact:true}).fill("Holiday");
-  await tools.getByLabel("Target amount",{exact:true}).fill("1200");
-  await tools.getByLabel("Already set aside for this goal",{exact:true}).fill("400");
-  await tools.getByLabel("Target month",{exact:true}).fill(await page.evaluate(()=>sessionStorage.getItem("goal-target-month")!));
-  await tools.getByRole("button",{name:"Save savings goal"}).click();
-  await expect(tools).toContainText("Holiday");
-  await expect(tools).toContainText("Still needed: €200.00 per month");
-  await tools.getByText("Prepare for larger bills",{exact:true}).click();
-  await tools.getByLabel("Already set aside for this bill",{exact:true}).fill("200");
-  await tools.getByRole("button",{name:"Save set-aside amount"}).click();
-  await expect(tools).toContainText("Set aside until then: €100.00 per month");
-  await tools.getByText("Try a one-off purchase",{exact:true}).click();
-  await tools.getByLabel("One-off amount",{exact:true}).fill("800");
-  await tools.getByLabel("Funds available for this purchase (optional)").fill("1200");
-  await expect(tools).toContainText("After purchase in the monthly plan: -€400.00");
-  await expect(tools).toContainText("Your entered available funds would become: €400.00");
-  await page.reload();
-  await expect(tools).toContainText("Reviewed this month");
-  await tools.getByText("Savings goals with a purpose and date",{exact:true}).click();
-  await expect(tools).toContainText("Holiday");
-  await tools.getByText("Prepare for larger bills",{exact:true}).click();
-  await expect(tools.getByLabel("Already set aside for this bill",{exact:true})).toHaveValue("200");
+  await page.reload(); await openPlan(page);
+  await expect(page.getByRole("region", { name: "Plan ahead" })).toHaveCount(0);
+  await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Add income", exact: true }).click();
+  await page.locator("#home-income-form").getByLabel("Net income").fill("2400");
+  await page.locator("#home-income-form").getByRole("button", { name: "Save", exact: true }).click();
+  const planning = await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!).planning);
+  expect(planning.goals[0].saved).toBe(400); expect(planning.reserves[0].saved).toBe(200);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const downloaded = page.waitForEvent("download"); await page.getByRole("button", { name: "Export backup", exact: true }).click();
+  const { readFile } = await import("node:fs/promises");
+  const file = await (await downloaded).path();
+  expect(JSON.parse(await readFile(file!, "utf8")).profile.planning).toEqual(planning);
 });
-
 for (const width of [320, 390, 1365]) {
-  test(`planning cards remain connected and independent at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    await disableHeaderIntro(page);
-    await page.goto("/home");
-    await page.getByRole("button", { name: "Create my home" }).click();
-    const changes = page.getByRole("region", { name: "Try changes", exact: true });
-    const cards = changes.locator("details");
-    await expect(cards).toHaveCount(2);
-    const purchase = cards.nth(0);
-    const costChange = cards.nth(1);
-    const before = await purchase.boundingBox();
-    await costChange.getByText("Try a cost change", { exact: true }).click();
-    await expect(costChange.getByRole("heading", { name: "What if you paid less?" })).toBeVisible();
-    const after = await purchase.boundingBox();
-    expect(after?.height).toBe(before?.height);
-    const costBounds = await costChange.boundingBox();
-    if (width >= 1024) expect(costBounds?.y).toBe(after?.y);
-    else expect(costBounds!.y).toBeGreaterThan(after!.y + after!.height);
-    await purchase.getByText("Try a one-off purchase", { exact: true }).click();
-    await expect(purchase.getByLabel("Purchase", { exact: true })).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    await page.getByText("Savings goals with a purpose and date", { exact: true }).click();
-    const controls = page.locator("#savings-plan input:not([type=checkbox]), #savings-plan select");
-    const bounds = await controls.evaluateAll(elements => elements.map(element => {
-      const r = element.getBoundingClientRect();
-      return { left: r.left, right: r.right, fontSize: Number.parseFloat(getComputedStyle(element).fontSize) };
-    }));
-    for (const control of bounds) {
-      expect(control.left).toBeGreaterThanOrEqual(0);
-      expect(control.right).toBeLessThanOrEqual(width);
-      expect(control.fontSize).toBe(width < 768 ? 16 : 13);
-    }
+  test(`Pro questions are separate and fit at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 900 }); await page.goto("/home"); await page.getByRole("button", { name: "Create my home" }).click();
+    await expect(page.getByRole("heading", { name: "What can I spend until my next payday?", exact: true })).toBeHidden();
+    await openPlan(page, "payday");
+    await expect(page.getByRole("heading", { name: "What can I spend until my next payday?", exact: true })).toBeVisible();
+    await openPlan(page, "savings");
+    await expect(page.getByRole("region", { name: "02 · Where can I realistically save?", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What can I spend until my next payday?", exact: true })).toBeHidden();
+    await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toHaveCount(0);
+    await openPlan(page, "progress");
+    await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: info.outputPath(`pro-progress-${width}.png`) });
   });
 }
 
@@ -1572,7 +1497,7 @@ test('photo recognition runs locally and proposes the labelled invoice total',as
 
 for(const width of [320,1365])test(`payday overview stays readable and recalculates at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
- const panel=page.getByRole('region',{name:'Your available budget',exact:true});await panel.getByRole('button',{name:'Plan until next payday'}).click();
+ await openPlan(page, 'payday');const panel=page.getByRole('region',{name:'Your available budget',exact:true});await panel.getByRole('button',{name:'Plan until next payday'}).click();
  const fields=await panel.locator('form input').evaluateAll(inputs=>inputs.map(input=>{const box=input.getBoundingClientRect();return {top:box.top,height:box.height,fontSize:getComputedStyle(input).fontSize};}));
  expect(fields).toHaveLength(4);
  for(const field of fields){expect(field.height).toBe(44);expect(field.fontSize).toBe(width<768?'16px':'13px');}
@@ -1581,15 +1506,15 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
  await panel.getByLabel('Balance available today',{exact:true}).fill('1000');await panel.getByLabel('Next payday',{exact:true}).fill(day);await panel.getByLabel('Keep untouched from this balance',{exact:true}).fill('200');await panel.getByLabel('Everyday spending until payday (optional)',{exact:true}).fill('150');await panel.getByRole('button',{name:'Confirm balance & calculate'}).click();
  await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel).toContainText('UNTIL YOUR NEXT PAYDAY');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
- await page.reload();await expect(panel).toContainText('€650.00');
+ await page.reload();await openPlan(page, 'payday');await expect(panel).toContainText('€650.00');
 });
 
 test('savings assistant plans a cancellation, confirms it and updates recurring costs',async({page})=>{
  await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
  await page.evaluate(()=>{const today=new Date(),day=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'streaming',name:'Streaming',amount:18,category:'subscriptions',frequency:'monthly',nextDueDate:day,updatedAt:today.toISOString()}]));});await page.reload();
- const coach=page.getByRole('region',{name:'02 · Where can I realistically save?',exact:true});const progress=page.getByRole('region',{name:'03 · What have I actually saved?',exact:true});await coach.getByRole('button',{name:'Plan change',exact:true}).click();await coach.getByLabel('New amount per payment (0 = ends)').fill('0');await coach.getByRole('button',{name:'Save this plan',exact:true}).click();await expect(coach).toContainText('Planned, no confirmed saving yet');
- page.once('dialog',dialog=>void dialog.accept());await coach.getByRole('button',{name:'Done — update costs'}).click();await expect(progress).toContainText('€18.00');await expect(progress).toContainText('Confirmed, costs updated');await expect(coach).not.toContainText('Confirmed, costs updated');
- expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!))).toHaveLength(0);await page.reload();await expect(progress).toContainText('Confirmed, costs updated');
+ await openPlan(page);const coach=page.getByRole('region',{name:'02 · Where can I realistically save?',exact:true});const progress=page.getByRole('region',{name:'03 · What have I actually saved?',exact:true});await coach.getByRole('button',{name:'Plan change',exact:true}).click();await coach.getByLabel('New amount per payment (0 = ends)').fill('0');await coach.getByRole('button',{name:'Save this plan',exact:true}).click();await expect(coach).toContainText('Planned, no confirmed saving yet');
+ page.once('dialog',dialog=>void dialog.accept());await coach.getByRole('button',{name:'Done — update costs'}).click();await openPlan(page,'progress');await expect(progress).toContainText('€18.00');await expect(progress).toContainText('Confirmed, costs updated');
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!))).toHaveLength(0);await page.reload();await openPlan(page,'progress');await expect(progress).toContainText('Confirmed, costs updated');
 });
 
 test('PDF text extraction proposes the invoice without uploading it',async({page})=>{
@@ -1652,6 +1577,7 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   await page.setViewportSize({ width, height: 900 });
   await page.goto('/home');
   await page.getByRole('button', { name: 'Create my home' }).click();
+  await openCostAreas(page);
   const newTile = page.getByRole('button', { name: /New tile/ });
   const form = page.locator('[data-home-tile-form]');
   await newTile.click();
@@ -1699,6 +1625,7 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   const tiles = page.locator("[data-home-tiles] article");
   await expect(tiles).toHaveCount(1);
   await expect(tiles.first()).toContainText("Household costs");
+  await openCostAreas(page);
   await expect(page.getByRole("link", { name: "Open energy calculator", exact: true })).toBeVisible();
   await openEnergyTile(page);
   await expect(tiles).toHaveCount(2);
@@ -1710,6 +1637,7 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   await expect(costsTile).toHaveAttribute("aria-expanded", "true");
   await page.reload();
   await expect(tiles).toHaveCount(2);
+  await openCostAreas(page);
   await page.getByRole("button", { name: /New tile/ }).click();
   await page.getByLabel("Tile name", { exact: true }).fill("Insurance");
   await page.locator("#home-tile-form").getByRole("button", { name: "Create tile", exact: true }).click();
@@ -1730,15 +1658,18 @@ for (const locale of ['de', 'en'] as const) {
       localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'internet',name:'Internet',amount:35,category:'subscriptions',frequency:'monthly',nextDueDate:'',updatedAt:stamp}]));
     });
     await page.reload();
+    await openPlan(page, 'payday');
     const question = page.getByRole('heading',{name:locale==='de'?'Was kann ich bis zum nächsten Gehalt ausgeben?':'What can I spend until my next payday?',exact:true});
     await expect(question).toBeVisible();
     await question.scrollIntoViewIfNeeded();
     await page.screenshot({path:info.outputPath(`cash-window-${locale}.png`)});
+    await openPlan(page, 'savings');
     const plan = page.locator('#savings-plan');
     await expect(plan.getByRole('heading',{name:locale==='de'?'02 · Wo kann ich realistisch sparen?':'02 · Where can I realistically save?',exact:true})).toBeVisible();
-    const progress = plan.getByRole('heading',{name:locale==='de'?'03 · Was habe ich tatsächlich eingespart?':'03 · What have I actually saved?',exact:true});
+    await openPlan(page, 'progress');
+    const progress = page.getByRole('heading',{name:locale==='de'?'03 · Was habe ich tatsächlich eingespart?':'03 · What have I actually saved?',exact:true});
     await expect(progress).toBeVisible();
-    await expect(plan).toContainText(locale==='de'?'Noch keine bestätigte Ersparnis':'No confirmed savings yet');
+    await expect(page.locator('[data-home-plan-content]')).toContainText(locale==='de'?'Noch keine bestätigte Ersparnis':'No confirmed savings yet');
     await progress.scrollIntoViewIfNeeded();
     await page.screenshot({path:info.outputPath(`confirmed-savings-${locale}.png`)});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
