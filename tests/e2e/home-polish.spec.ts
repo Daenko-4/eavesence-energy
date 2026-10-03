@@ -72,6 +72,7 @@ for (const width of [1365, 390]) {
         const values = await Promise.all([pro, action].map(locator => locator.evaluate((el, prop) => getComputedStyle(el).getPropertyValue(prop === 'borderRadius' ? 'border-radius' : 'font-size'), property)));
         expect(values[0]).toBe(values[1]);
       }
+      expect((await pro.boundingBox())!.height).toBe((await action.boundingBox())!.height);
       await pro.click();
       await expect(pro).toHaveAttribute('aria-pressed', 'true');
       await expect(page.locator('[data-home-plan-content]')).toBeVisible();

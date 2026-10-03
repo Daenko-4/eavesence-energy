@@ -424,6 +424,7 @@ a {
 
 /* Workspace navigation uses the same compact pills as the home actions. */
 .eavesence-pill-button.home-workspace-pill {
+  padding-block: calc(0.25rem - 1px);
   border: 1px solid #dfe5dd;
   background: #fff;
   color: #52605b;
