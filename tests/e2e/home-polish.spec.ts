@@ -56,10 +56,13 @@ for (const width of [1365, 390]) {
       const textLeft = await summary.evaluate(el => {
         const range = document.createRange();
         range.selectNode(el.firstChild!);
-        return range.getBoundingClientRect().left;
+        const rect = range.getBoundingClientRect();
+        return { left: rect.left, centerY: rect.top + rect.height / 2 };
       });
       const paymentText = await payments.locator(':scope > span').first().boundingBox();
-      expect(Math.abs(textLeft - paymentText!.x)).toBeLessThanOrEqual(1);
+      expect(Math.abs(textLeft.left - paymentText!.x)).toBeLessThanOrEqual(1);
+      const summaryBox = await summary.boundingBox();
+      expect(Math.abs(textLeft.centerY - (summaryBox!.y + summaryBox!.height / 2))).toBeLessThanOrEqual(2);
       const plusRight = await summary.evaluate(el => {
         const css = getComputedStyle(el);
         return el.getBoundingClientRect().right - parseFloat(css.paddingRight) - parseFloat(css.borderRightWidth);

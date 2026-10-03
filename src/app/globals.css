@@ -443,3 +443,6 @@ a {
   background: #24272c;
   color: #fff;
 }
+
+/* A single-line cost-area label needs one grid row for a centered plus. */
+.home-disclosure > summary.home-cost-areas-summary::after { grid-row: 1; }
