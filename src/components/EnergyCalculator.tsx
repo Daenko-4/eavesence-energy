@@ -4,6 +4,7 @@ import { track } from "@vercel/analytics";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
+import { HOUSEHOLD_PROFILE_STORAGE_KEY, readHouseholdProfile } from "@/lib/household";
 import DeviceCategoryIcon from "@/components/DeviceCategoryIcon";
 import {
   devices,
@@ -633,9 +634,8 @@ export default function EnergyCalculator({
     currencies.find((item) => item.code === currency)?.symbol ?? currency;
 
   useEffect(() => {
-    const storedCurrency = window.localStorage.getItem(
-      CURRENCY_STORAGE_KEY
-    );
+    const household = readHouseholdProfile(window.localStorage.getItem(HOUSEHOLD_PROFILE_STORAGE_KEY));
+    const storedCurrency = household?.currency ?? window.localStorage.getItem(CURRENCY_STORAGE_KEY);
 
     if (!storedCurrency || !isCurrencyCode(storedCurrency)) {
       return;
@@ -643,7 +643,7 @@ export default function EnergyCalculator({
 
     const frame = window.requestAnimationFrame(() => {
       setCurrency(storedCurrency);
-      setPrice(storedCurrency === "EUR" ? 0.35 : "");
+      setPrice(household?.electricityPrice ?? (storedCurrency === "EUR" ? 0.35 : ""));
     });
 
     return () => window.cancelAnimationFrame(frame);

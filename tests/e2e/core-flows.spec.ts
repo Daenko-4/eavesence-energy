@@ -229,14 +229,14 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   await expect(panel).toContainText("Estimated amount left");
   await expect(panel).toContainText("€1,360.00");
 
-  await expect(panel.getByRole("heading", { name: "What if you paid less?" })).toBeVisible();
-  await panel.getByLabel("New amount per month").fill("25");
-  await expect(panel).toContainText("Lower spending over the next 12 months");
+  await panel.getByLabel("Test a cost change · choose a cost").selectOption("internet");
+  await panel.getByLabel("New amount per payment (0 = ends)").fill("25");
+  await expect(panel).toContainText("Estimated over the next 12 planning months");
   await expect(panel).toContainText("€180.00");
   await panel.getByRole("button", { name: "Save this plan" }).click();
   await page.reload();
   await openPlan(page);
-  await expect(panel).toContainText("planned, not yet done");
+  await expect(panel).toContainText("Planned, no confirmed saving yet");
   await page.evaluate(() => {
     const profile = JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!);
     profile.savingsActions[0].effectiveMonth = sessionStorage.getItem("test-current-month");
@@ -244,13 +244,13 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   });
   await page.reload();
   await openPlan(page);
-  await expect(panel).toContainText("Check-in: Did the amount actually change?");
+  await expect(panel).toContainText("Planned changes");
 
   page.once("dialog", dialog=>void dialog.accept());
-  await panel.getByRole("button", { name: "Mark as done" }).click();
+  await panel.getByRole("button", { name: "Done — update costs" }).click();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("eavesence-home-costs-v1")!)[0].amount)).toBe(25);
-  await expect(panel).toContainText("marked done by you");
-  await expect(panel).toContainText("€180.00");
+  await page.getByRole("button", {name:"3 · Saved",exact:true}).click();
+  await expect(page.getByRole("region", {name:"03 · What have I actually saved?",exact:true})).toContainText("Confirmed, costs updated");
 });
 
 test("EAVESENCE Home onboarding builds a household and records a monthly check-in", async ({

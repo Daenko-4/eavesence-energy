@@ -425,3 +425,16 @@ export function calendarReview(name: string, date: string, de: boolean) {
     "",
   ].join("\r\n");
 }
+
+/** Practical review prompts, not assumed savings or market prices. */
+export function costReviewTip(category: HouseholdCostCategory, de: boolean) {
+  const tips: Partial<Record<HouseholdCostCategory, [string, string]>> = {
+    subscriptions: ["Prüfe deine letzte Nutzung. Gibt es doppelte Abos oder reicht ein kleinerer Tarif?", "Check when you last used it. Are subscriptions duplicated, or would a smaller plan work?"],
+    energy: ["Vergleiche deinen Arbeitspreis und die Grundgebühr mit einem konkreten Angebot. Einmalige Boni sind keine dauerhafte Ersparnis.", "Compare your unit price and standing charge with an actual offer. One-off bonuses are not recurring savings."],
+    insurance: ["Vergleiche denselben Schutz und Selbstbehalt. Kündige erst, wenn eine passende Anschlussdeckung gesichert ist.", "Compare the same cover and excess. Arrange suitable replacement cover before cancelling."],
+    mobility: ["Prüfe, ob dein Tarif zu deinen tatsächlichen Fahrten passt und ob du Leistungen doppelt bezahlst.", "Check whether your plan fits your actual journeys and whether you pay twice for similar services."],
+    financing: ["Prüfe Gesamtkosten, Laufzeit und mögliche Gebühren einer Änderung. Ein kleinerer Monatsbetrag kann insgesamt mehr kosten.", "Review total cost, term and any change fees. A smaller monthly payment can cost more overall."],
+  };
+  const tip = tips[category] ?? ["Prüfe Nutzung, Vertrag und ein konkretes günstigeres Angebot. Trage nur eine Änderung ein, die du tatsächlich umsetzen kannst.", "Check usage, your contract and a specific lower-priced offer. Enter only a change you can actually make."];
+  return tip[de ? 0 : 1];
+}

@@ -26,6 +26,8 @@ export type HouseholdProfile = {
   annualElectricityKwh?: number;
   monthlyElectricityPayment?: number;
   electricityBillIncludesBonus?: boolean;
+  overviewReviewed?: boolean;
+  backupReminderDismissed?: boolean;
   incomeAmount?: number;
   incomeFrequency?: "monthly" | "yearly";
   incomeExtras?: IncomeExtra[];
@@ -214,6 +216,7 @@ export function createHouseholdProfile({
     annualElectricityKwh: 0,
     monthlyElectricityPayment: 0,
     electricityBillIncludesBonus: false,
+    overviewReviewed: false,
     incomeAmount: 0,
     incomeFrequency: "monthly",
     electricityCostMigrated: true,

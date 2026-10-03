@@ -1,6 +1,6 @@
 "use client";
 import { useSavingsCoach } from "@eavesence/core/useSavingsCoach";
-import { calendarReview } from "@eavesence/core/homeValue";
+import { costReviewTip, calendarReview } from "@eavesence/core/homeValue";
 import {
   monthlyCost,
   type HouseholdCost,
@@ -105,6 +105,7 @@ export default function SavingsCoach({
           )}
         </p>
       )}
+      {mode !== "progress" && input.costs.length > 0 && <label className="mt-4 grid max-w-lg gap-1 text-[12px] font-semibold">{t("Kostenänderung testen · Kosten auswählen", "Test a cost change · choose a cost")}<select className={field} value={p.selected?.id ?? ""} onChange={e => {const cost=input.costs.find(c=>c.id===e.target.value);if(cost)p.choose(cost);else p.cancel();}}><option value="">{t("Kosten auswählen", "Choose a cost")}</option>{input.costs.map(c=><option key={c.id} value={c.id}>{c.name} · {money(c.amount)}</option>)}</select></label>}
       <div className="mt-3 grid items-start gap-3 md:grid-cols-3">
         {(mode === "progress" ? [] : p.tasks).map((c) => (
           <article
@@ -117,15 +118,8 @@ export default function SavingsCoach({
               {t("im Monatsdurchschnitt", "monthly average")}
             </p>
             <p className="mt-2 text-[#52605b]">
-              {c.cancellationDeadline
-                ? t(
-                    `Frist: ${c.cancellationDeadline}. Prüfe vor einer Verlängerung, ob du die Leistung noch brauchst.`,
-                    `Deadline: ${c.cancellationDeadline}. Review whether you still need it before renewal.`,
-                  )
-                : t(
-                    "Nutzt du die Leistung noch? Prüfe einen günstigeren Tarif oder ob sie wegfallen kann.",
-                    "Still using this service? Check a lower price or whether you can stop it.",
-                  )}
+              {c.cancellationDeadline && <span className="block">{t("Frist", "Deadline")}: {c.cancellationDeadline}</span>}
+              {costReviewTip(c.category, de)}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
@@ -203,6 +197,7 @@ export default function SavingsCoach({
               "This starts as a plan. Your recurring costs change only after you confirm it happened.",
             )}
           </p>
+          {p.preview && <p role="status" className="rounded-xl bg-white p-3 text-[12px] sm:col-span-2">{t("In den nächsten 12 Planungsmonaten voraussichtlich", "Estimated over the next 12 planning months")}: <strong>{money(p.preview.totalDifference)}</strong> {t("weniger Ausgaben. Zahlungstermine und Startmonat sind berücksichtigt. Noch keine bestätigte Ersparnis.", "lower spending. Payment dates and the start month are included. This is not a confirmed saving yet.")}</p>}
           <div className="flex flex-wrap gap-2">
             <button type="submit" className={button} disabled={p.busy}>
               {t("Änderung vormerken", "Save this plan")}
@@ -216,10 +211,7 @@ export default function SavingsCoach({
       {shownActions.length > 0 && (
         <details
           className="mt-3"
-          open={mode === "progress" || actions.some(
-            (a) =>
-              a.status === "planned" && a.effectiveMonth <= p.today.slice(0, 7),
-          )}
+          open
         >
           <summary className="cursor-pointer text-[13px] font-bold">
             {mode === "progress" ? t("Bestätigte Änderungen ansehen", "View confirmed changes") : t("Vorgemerkte Änderungen", "Planned changes")}{" "}
@@ -233,7 +225,7 @@ export default function SavingsCoach({
               <strong>{a.name}</strong>
               <p className="mt-1">
                 {money(a.originalAmount)} → {money(a.newAmount)} ·{" "}
-                {t("ab", "from")} {a.effectiveMonth} ·{" "}
+                {t("ab", "from")} {new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", {month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${a.effectiveMonth}-01T00:00:00Z`))} ·{" "}
                 {p.outdated.includes(a)
                   ? t(
                       "Angaben geändert – bitte prüfen",

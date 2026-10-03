@@ -523,7 +523,7 @@ function MyDevicesPanel(
             {text.viewHome}
           </a>
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-slate-500">{locale === "de" ? "Optional: Deine gespeicherten Geräte erscheinen gesammelt in einer eigenen Stromkachel. Geräteschätzungen werden nicht zusätzlich von deinem Monatsbudget abgezogen." : "Optional: your saved devices appear together in a dedicated energy tile. Device estimates are not deducted again from your monthly budget."}</p>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">{locale === "de" ? "Optional: Deine gespeicherten Geräte erscheinen in einer eigenen Stromkachel. Dort gilt der Strompreis aus deinen Zuhause-Einstellungen; abweichende Geräteschätzungen werden neu berechnet. Sie werden nicht zusätzlich vom Monatsbudget abgezogen." : "Optional: saved devices appear in a dedicated energy tile using the electricity price from your home settings. Different device estimates are recalculated. They are not deducted again from your monthly budget."}</p>
       </section>
     );
   }

@@ -3,6 +3,7 @@ import { localToday, parseMoney, savingsToDate } from "./homeValue.ts";
 import { readPlanningData, type PlanningData } from "./planning.ts";
 import {
   createSavingsAction,
+  compareSavingsActions,
   savingsReviewCandidates,
   type SavingsAction,
   type SavingsPlanInput,
@@ -107,7 +108,10 @@ export function useSavingsCoach(
       }),
     );
   }
+  const candidate = selected ? createSavingsAction(selected, parseMoney(amount), effective) : null;
+  const preview = candidate ? compareSavingsActions(input, [candidate]) : null;
   return {
+    preview,
     tasks,
     totals,
     outdated,

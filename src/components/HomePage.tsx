@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { homeRelease } from "@/lib/homeRelease";
 import EnergyCalculator from "@/components/EnergyCalculator";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -172,7 +173,7 @@ const content = {
           title: "Mein Zuhause (My Home)",
           items: [
             { question: "Wie erfasse ich 13./14. Gehalt und Boni?", answer: "Trage dein reguläres Monatsnetto ohne Extras ein. Unter Sonderzahlungen kannst du zusätzliche Nettobeträge und Auszahlungsmonate ergänzen. 13./14. Gehalt sind standardmäßig jährlich, ein Bonus einmalig mit Jahr. Der Jahresdurchschnitt wird separat angezeigt. Geplante Extras sind kein heute verfügbares Geld." },
-            { question: "Was kann ich in My Home erfassen?", answer: "Du kannst regelmäßige Haushaltskosten, Einkommen, gespeicherte Geräte und monatliche Stromwerte an einem Ort verwalten. Starte mit wenigen Kostenposten; die Übersicht wächst mit deinen Angaben." },
+            { question: "Was kann ich in My Home erfassen?", answer: "Beginne mit deinem regulären Nettoeinkommen, ergänze deine größten regelmäßigen Kosten und prüfe den Rest nach Fixkosten. Alltagsausgaben gehen davon noch ab. Stromgeräte und Pro-Planung sind optionale Ergänzungen." },
             { question: "Wie entstehen Monatsdurchschnitt und Zahlungsvorschau?", answer: "Jährliche, halbjährliche und andere regelmäßige Kosten werden auf einen Monatsdurchschnitt umgerechnet. Die Vorschau zeigt nur Zahlungen, die im nächsten Monat laut eingetragenem Zahlungstermin fällig sind. Kosten ohne Termin fehlen dort und werden ausdrücklich gezählt." },
             { question: "Was bedeutet das Budget nach laufenden Kosten?", answer: "Es ist dein eingetragenes monatliches Nettoeinkommen minus der Durchschnitt deiner erfassten regelmäßigen Kosten. Variable Ausgaben wie Einkäufe und nicht erfasste Kosten sind darin nicht berücksichtigt." },
             { question: "Sind die Werte im Monatsrückblick bereits bezahlte Ausgaben?", answer: "Nein. Der Vergleich geplanter Zahlungen wird aus den heute gespeicherten Kosten rekonstruiert. Änderungen an Kosten protokolliert My Home erst ab ihrer Erfassung. Nur eingetragene Strom-Monatswerte sind tatsächliche Werte." },
@@ -335,7 +336,7 @@ const content = {
           title: "My Home",
           items: [
             { question: "How do I record extra salaries and bonuses?", answer: "Enter regular monthly net income without extras. Under extra income, add each additional net amount and payment month. Extra salary payments default to yearly; a bonus defaults to one year only. The annual average is shown separately. Planned extras are not money available today." },
-            { question: "What can I track in My Home?", answer: "You can manage recurring household costs, income, saved devices and monthly electricity values in one place. Start with a few costs and add details when you need them." },
+            { question: "What can I track in My Home?", answer: "Start with regular net income, add your largest recurring costs and check what remains after fixed costs. Everyday spending still comes out of that amount. Electricity devices and Pro planning are optional extras." },
             { question: "How are the monthly average and payment forecast calculated?", answer: "Yearly, half-yearly and other recurring costs are converted to a monthly average. The forecast shows payments due next month according to the payment dates you enter. Costs without dates are excluded and counted separately." },
             { question: "What does the budget after recurring costs mean?", answer: "It is your recorded monthly net income minus the average of your recorded recurring costs. Variable spending such as groceries and costs you have not added are not included." },
             { question: "Are the monthly review figures expenses I have paid?", answer: "No. Scheduled payments are reconstructed from the costs currently saved. My Home records cost changes only from the point you make them. Only monthly electricity values you enter are actual values." },
@@ -594,11 +595,11 @@ export default function HomePage({
             >
               <div className="overflow-hidden">
                 <div className="border-b border-slate-200 pb-2">
-                  {text.faq.groups.map((group) => (
+                  {[...text.faq.groups].sort((a,b) => Number(b.title === "My Home") - Number(a.title === "My Home")).map((group) => (
                     <div key={group.title} className="pt-5 first:pt-4">
                       <h3 className="pb-2 text-[12px] font-extrabold uppercase tracking-[0.09em] text-[var(--brand-green)]">{group.title}</h3>
                       <div className="divide-y divide-slate-200">
-                        {group.items.map((faq) => (
+                        {group.items.filter(faq => homeRelease.detailedInsights || !/Monatsrückblick|monthly review/.test(faq.question)).map((faq) => (
                           <details key={faq.question} className="group">
                             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 site-card-title text-[#07111f] transition hover:text-[var(--brand-green)] [&::-webkit-details-marker]:hidden">
                               {faq.question}
