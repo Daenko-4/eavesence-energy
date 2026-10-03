@@ -179,7 +179,6 @@ export default function Footer({ locale = "de" }: FooterProps) {
               {text.company}
             </p>
             <div className="grid gap-1.5 text-[12px] font-medium leading-5 text-slate-500">
-              <Link href={getHouseholdHref(locale)} className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900">{locale === "de" ? "Mein Zuhause" : "My home"}</Link>
               <Link
                 href={imprintHref}
                 onClick={(event) =>

@@ -1,4 +1,4 @@
-# EAVESENCE Home mobile
+# EAVESENCE mobile
 
 Shared Expo/React Native application for iOS and Android. It is local-first:
 onboarding, recurring household costs, net income, devices and monthly history

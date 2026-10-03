@@ -1,4 +1,4 @@
-# EAVESENCE Home 0.2 — iPhone beta
+# EAVESENCE 0.2.1 — iPhone beta
 
 The free beta requires no login or bank connection. The TestFlight profile
 explicitly disables purchases; all planning tools are a preview. Data stays on
@@ -40,8 +40,13 @@ A paid Apple Developer membership is required. See
 
 Export real data first. Use invented amounts for destructive tests.
 
-1. Fresh start: choose English, Get started. Only household costs appear.
-   Open Settings in the header, switch DE/EN, relaunch: language persists.
+1. Fresh start: choose English, Get started. Follow income → first cost →
+   first overview. Settings and bottom navigation must stay hidden until
+   completion. Enter 2,400/month and rent 800, then open the overview. Test
+   force-close during the cost step: income and the current step persist.
+   Test skip, back, invalid amounts and keyboard save. In a fresh second run,
+   enter 28,800/year: the first overview must show 2,400/month.
+   Afterwards open Settings, switch DE/EN, relaunch: language persists.
 2. Income 2,400/month; rent 800, internet 40, insurance 240/year. Fixed costs:
    860/month. Remainder: 1,540 before everyday spending. Missing payment dates
    must produce an explicitly incomplete payment forecast.

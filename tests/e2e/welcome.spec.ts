@@ -8,6 +8,7 @@ for (const de of [false, true]) {
     const start = page.getByRole("link", { name: de ? "Meinen Überblick starten" : "Start my overview", exact: true });
     await expect(start).toHaveAttribute("href", de ? "/de/zuhause" : "/home");
     await expect(start).toBeInViewport();
+    expect((await start.boundingBox())?.height).toBeGreaterThanOrEqual(44);
     await expect(page.getByRole("link", { name: de ? "Zum kostenlosen Stromrechner" : "Open the free electricity calculator", exact: true })).toHaveAttribute("href", de ? "/de/rechner#rechner" : "/calculator#rechner");
     await expect(page.locator("#rechner")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
