@@ -434,6 +434,10 @@ a {
   background: #edf2f8;
   color: #314866;
 }
+.eavesence-pill-button.home-workspace-pill.home-pro-pill > span {
+  font-size: inherit;
+  line-height: inherit;
+}
 .eavesence-pill-button.home-workspace-pill:hover {
   border-color: #aebbb2;
   background: #eefbf3;
