@@ -1,7 +1,9 @@
+import { DisclosureIcon } from "./BrandMotion";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { monthlyCost, type forecastHouseholdCosts, type HouseholdCost } from "@eavesence/core/householdCosts";
 
 type Props = {
+  incomeIsAverage?: boolean;
   locale: "de" | "en";
   currency: string;
   income: number;
@@ -15,16 +17,16 @@ type Props = {
   onReview: (cost: HouseholdCost) => void;
 };
 
-export function HomeCoreOverview({ locale, currency, income, costs, forecast, upcomingOpen, onUpcoming, onIncome, onCost, onCosts, onReview }: Props) {
+export function HomeCoreOverview({ incomeIsAverage = false, locale, currency, income, costs, forecast, upcomingOpen, onUpcoming, onIncome, onCost, onCosts, onReview }: Props) {
   const de = locale === "de";
   const t = (a: string, b: string) => de ? a : b;
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
   const fixed = forecast.summary.monthlyTotal;
   const deficit = income > 0 && fixed > income;
   const cards = [
-    { label: t("Nettoeinkommen pro Monat", "Net income / month"), value: income > 0 ? money(income) : "—" },
+    { label: incomeIsAverage ? t("Nettoeinkommen · Monatsdurchschnitt", "Net income · monthly average") : t("Reguläres Monatsnetto", "Regular monthly net income"), value: income > 0 ? money(income) : "—" },
     { label: t("Fixkosten pro Monat", "Recurring costs / month"), value: money(fixed) },
-    { label: t("Rest nach Fixkosten", "Left after fixed costs"), value: income > 0 && costs.length > 0 ? money(income - fixed) : "—", emphasis: true },
+    { label: incomeIsAverage ? t("Rest nach Fixkosten · Durchschnitt", "Left after fixed costs · average") : t("Rest nach Fixkosten", "Left after fixed costs"), value: income > 0 && costs.length > 0 ? money(income - fixed) : "—", emphasis: true },
   ];
   return <View style={styles.section}>
     <Text accessibilityRole="header" style={styles.heading}>{t("Dein Monat auf einen Blick", "Your month at a glance")}</Text>
@@ -42,7 +44,7 @@ export function HomeCoreOverview({ locale, currency, income, costs, forecast, up
     {costs.length > 0 && <View style={styles.card}>
       <Pressable accessibilityRole="button" accessibilityState={{ expanded: upcomingOpen }} onPress={onUpcoming} style={styles.disclosure}>
         <View style={styles.flex}><Text style={styles.rowTitle}>{t("Zahlungen im nächsten Monat", "Payments next month")}</Text><Text style={styles.note}>{forecast.next.undatedCount > 0 ? t("Termine fehlen", "Dates missing") : money(forecast.next.total)}</Text></View>
-        <Text style={styles.plus}>{upcomingOpen ? "×" : "+"}</Text>
+        <DisclosureIcon open={upcomingOpen} />
       </Pressable>
       {upcomingOpen && <View style={styles.expanded}>
         <Text style={styles.note}>{forecast.next.undatedCount > 0 ? t(`${forecast.next.undatedCount} Kosten ohne Zahlungstermin fehlen in dieser Vorschau. Der Monatsdurchschnitt oben berücksichtigt sie trotzdem.`, `${forecast.next.undatedCount} costs without a payment date are excluded from this forecast. The monthly average above still includes them.`) : t("Alle erfassten Kosten haben einen Zahlungstermin.", "All recorded costs have a payment date.")}</Text>

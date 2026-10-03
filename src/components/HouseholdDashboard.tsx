@@ -1,5 +1,8 @@
 "use client";
 
+import IncomeExtrasEditor from "@/components/IncomeExtrasEditor";
+import IncomeExtrasSummary from "@/components/IncomeExtrasSummary";
+import { incomeExtraDrafts, incomeExtrasFromDraft, parseIncomeAmount, summarizeIncome, type IncomeExtraDraft } from "@eavesence/core/income";
 import { track } from "@vercel/analytics";
 import Link from "next/link";
 import {
@@ -763,6 +766,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [householdCosts, setHouseholdCosts] = useState<HouseholdCost[]>([]);
   const [costEvents, setCostEvents] = useState<CostEvent[]>([]);
   const [incomeValue, setIncomeValue] = useState("");
+  const [incomeExtras, setIncomeExtras] = useState<IncomeExtraDraft[]>([]);
+  const [incomeExtrasOpen, setIncomeExtrasOpen] = useState(false);
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">("monthly");
   const [incomeOpen, setIncomeOpen] = useState(false);
   const [incomeError, setIncomeError] = useState("");
@@ -847,6 +852,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     if (storedProfile) {
       setIncomeValue(storedProfile.incomeAmount ? String(storedProfile.incomeAmount) : "");
       setIncomeFrequency(storedProfile.incomeFrequency ?? "monthly");
+      setIncomeExtras(incomeExtraDrafts(storedProfile.incomeExtras));
       setName(localizeDefaultHouseholdName(storedProfile.name, locale));
       setCurrency(storedProfile.currency);
       setPrice(storedProfile.electricityPrice);
@@ -1049,13 +1055,28 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   function saveIncome() {
     if (!profile) return;
-    const number = Number(incomeValue.replace(",", "."));
+    if (profile.incomeFrequency === "yearly" && incomeFrequency === "monthly" && !incomeValue.trim()) {
+      setIncomeError(locale === "de" ? "Trage dein tatsächliches Monatsnetto ein. Wir leiten es nicht aus dem Jahresnetto ab." : "Enter your actual monthly net income. We do not infer it from your annual income.");
+      return;
+    }
+    const number = parseIncomeAmount(incomeValue, locale);
     const parsed = incomeValue.trim() === "" ? 0 : Number.isFinite(number) && number >= 0 ? number : null;
     if (parsed === null) {
       setIncomeError(locale === "de" ? "Bitte einen Betrag ab 0 eingeben." : "Enter an amount of 0 or more.");
       return;
     }
-    persistProfile({ ...profile, incomeAmount: parsed, incomeFrequency, updatedAt: new Date().toISOString() });
+    const extras = incomeFrequency === "yearly" ? profile.incomeExtras ?? [] : incomeExtrasFromDraft(incomeExtras, locale);
+    if (!extras) {
+      setIncomeExtrasOpen(true);
+      setIncomeError(locale === "de" ? "Prüfe bei jeder Sonderzahlung Nettobetrag, Monat und gegebenenfalls Jahr." : "Check the net amount, month and year (if applicable) for every extra payment.");
+      return;
+    }
+    try {
+      persistProfile({ ...profile, incomeExtras: extras, incomeAmount: parsed, incomeFrequency, updatedAt: new Date().toISOString() });
+    } catch {
+      setIncomeError(locale === "de" ? "Einkommen konnte nicht gespeichert werden. Deine Eingaben bleiben erhalten." : "Could not save income. Your entries have been kept.");
+      return;
+    }
     setIncomeError("");
     setIncomeOpen(false);
   }
@@ -1642,7 +1663,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     : null;
   const householdCostSummary = summarizeHouseholdCosts(householdCosts);
   const upcomingPayments = paymentsNextMonth(householdCosts);
-  const monthlyIncome = (profile.incomeAmount ?? 0) / (profile.incomeFrequency === "yearly" ? 12 : 1);
+  const incomeSummary = summarizeIncome(profile);
+  const monthlyIncome = incomeSummary.monthly;
   const activeTile = activeTileId === null ? null : homeTiles.find((tile) => tile.id === activeTileId) ?? homeTiles.find((tile) => tile.kind === "costs") ?? null;
   const primaryCostTileId = homeTiles.find((tile) => tile.kind === "costs")?.id ?? null;
 
@@ -1820,18 +1842,20 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             {homeRelease.proPreview && <button type="button" aria-pressed={view === "plan"} onClick={() => { setView("plan"); setSettingsOpen(false); }} className={`${homeDashboardActionClass} home-workspace-pill home-pro-pill ${view === "plan" ? "home-workspace-selected" : ""}`}>{locale === "de" ? "Planen & sparen" : "Plan & save"}<span className="ml-2 text-[10px] font-semibold opacity-75">Pro</span></button>}
           </nav>
           <div hidden={view !== "overview"} data-home-overview-content>
-          <HomeCoreOverview locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} incomeForm={
+          <HomeCoreOverview incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
-                    <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financeIncomeAmount}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
-                    <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<select value={incomeFrequency} onChange={(event) => setIncomeFrequency(event.target.value as "monthly" | "yearly")} className={homeFieldClass}><option value="monthly">{text.financeMonthly}</option><option value="yearly">{text.financeYearly}</option></select></label>
+                    <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Sonderzahlungen)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
+                    <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<select value={incomeFrequency} onChange={(event) => { const next = event.target.value as "monthly" | "yearly"; if (incomeFrequency === "yearly" && next === "monthly") setIncomeValue(""); setIncomeFrequency(next); }} className={homeFieldClass}><option value="monthly">{locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net income"}</option><option value="yearly">{locale === "de" ? "Jahresnetto (Monatsdurchschnitt)" : "Annual net income (monthly average)"}</option></select></label>
+                    <IncomeExtrasEditor locale={locale} frequency={incomeFrequency} drafts={incomeExtras} onChange={setIncomeExtras} open={incomeExtrasOpen} onToggle={setIncomeExtrasOpen} />
                     {incomeError && <p role="alert" className="text-[11px] text-red-700">{incomeError}</p>}
                     <button type="submit" className={`${homeDashboardActionClass} w-fit`}>{text.financeSave}</button>
                   </form>
           } />
+          <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />
 
 
 
-          <details className="home-disclosure mt-5"><summary className="home-cost-areas-summary min-h-11 cursor-pointer rounded-xl border border-transparent px-4 text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary>
+          <details className="home-disclosure mt-5"><summary className="home-single-line-summary min-h-11 cursor-pointer rounded-xl border border-transparent px-4 text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
               <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
@@ -2238,6 +2262,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           </div>
           <div id="home-plan" hidden={view !== "plan"} data-home-plan-content className="scroll-mt-24">
+            {incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />}
             <p className="mt-5 text-[11px] font-bold uppercase tracking-[.1em] text-[var(--brand-green)]">{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</p>
             <h2 className="mt-2 site-section-title">{locale === "de" ? "Dein Plan" : "Your plan"}</h2>
             <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{locale === "de" ? "Wähle eine Frage. Deine Angaben aus My Home sind übernommen." : "Choose a question. Your My Home entries are already included."}</p>
@@ -2255,6 +2280,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             locale={locale}
             currency={profile.currency}
             incomeMonthly={monthlyIncome}
+            incomeExtras={incomeSummary.extras}
             costs={householdCosts}
             variableMonthly={profile.variableMonthly}
             bufferMonthly={profile.bufferMonthly}

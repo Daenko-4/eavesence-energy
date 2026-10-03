@@ -4,19 +4,20 @@ import type { Locale } from "@/i18n/config";
 import type { paymentsNextMonth } from "@/lib/householdCosts";
 
 type Props = {
+  incomeIsAverage?: boolean;
   locale: Locale; currency: string; income: number; fixed: number; count: number;
   upcoming: ReturnType<typeof paymentsNextMonth>;
   incomeOpen: boolean; onIncome: () => void; onCost: () => void;
   upcomingOpen: boolean; onUpcoming: () => void; incomeForm: ReactNode;
 };
-export default function HomeCoreOverview({ locale, currency, income, fixed, count, upcoming, incomeOpen, onIncome, onCost, upcomingOpen, onUpcoming, incomeForm }: Props) {
+export default function HomeCoreOverview({ incomeIsAverage = false, locale, currency, income, fixed, count, upcoming, incomeOpen, onIncome, onCost, upcomingOpen, onUpcoming, incomeForm }: Props) {
   const de = locale === "de";
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
   const deficit = income > 0 && fixed > income;
   const cards = [
-    { label: de ? "Nettoeinkommen pro Monat" : "Net income / month", value: income > 0 ? money(income) : "—" },
+    { label: incomeIsAverage ? de ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : de ? "Reguläres Monatsnetto" : "Regular monthly net income", value: income > 0 ? money(income) : "—" },
     { label: de ? "Fixkosten pro Monat" : "Recurring costs / month", value: money(fixed) },
-    { label: de ? "Rest nach Fixkosten" : "Left after fixed costs", value: income > 0 && count > 0 ? money(income - fixed) : "—", emphasis: true },
+    { label: incomeIsAverage ? de ? "Rest nach Fixkosten · Durchschnitt" : "Left after fixed costs · average" : de ? "Rest nach Fixkosten" : "Left after fixed costs", value: income > 0 && count > 0 ? money(income - fixed) : "—", emphasis: true },
   ];
   return <section className="mt-6" aria-label={de ? "Finanzen im Überblick" : "Your household at a glance"}>
     <h2 className="site-section-title">{de ? "Dein Monat auf einen Blick" : "Your month at a glance"}</h2>

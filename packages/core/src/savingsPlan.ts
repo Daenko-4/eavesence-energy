@@ -1,7 +1,9 @@
+import { extraIncomeForMonth, readIncomeExtras, type IncomeExtra } from "./income.ts";
 import { monthlyCost, paymentsForMonth, type HouseholdCost, type HouseholdCostFrequency } from "./householdCosts.ts";
 
 export type SavingsPlanInput = {
   incomeMonthly: number;
+  incomeExtras?: IncomeExtra[];
   variableMonthly: number | null;
   bufferMonthly: number;
   goalMonthly: number;
@@ -87,7 +89,7 @@ export function createSavingsPlan(input: SavingsPlanInput) {
   const { incomeMonthly, variableMonthly, bufferMonthly, goalMonthly, costs, startMonth } = input;
   const safe = (value: number) => Number.isFinite(value) && value >= 0;
   if (![incomeMonthly, bufferMonthly, goalMonthly].every(safe) ||
-    (variableMonthly !== null && !safe(variableMonthly)) || !validMonth(startMonth)) return null;
+    (variableMonthly !== null && !safe(variableMonthly)) || !validMonth(startMonth) || readIncomeExtras(input.incomeExtras) === null) return null;
 
   const averageFixed = costs.reduce((sum, cost) => sum + monthlyCost(cost.amount, cost.frequency), 0);
   const undatedCount = costs.filter((cost) => !cost.nextDueDate).length;
@@ -100,8 +102,9 @@ export function createSavingsPlan(input: SavingsPlanInput) {
     const unplannedAverage = costs.filter((cost) => !cost.nextDueDate)
       .reduce((sum, cost) => sum + monthlyCost(cost.amount, cost.frequency), 0);
     const fixed = scheduled.total + unplannedAverage;
-    const remaining = incomeMonthly - fixed - (variableMonthly ?? 0) - bufferMonthly;
-    return { month: key, fixed, remaining, afterGoal: remaining - goalMonthly };
+    const extraIncome = extraIncomeForMonth(input.incomeExtras ?? [], key);
+    const remaining = incomeMonthly + extraIncome - fixed - (variableMonthly ?? 0) - bufferMonthly;
+    return { month: key, fixed, extraIncome, remaining, afterGoal: remaining - goalMonthly };
   });
   return {
     averageFixed,
