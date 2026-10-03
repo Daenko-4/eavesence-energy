@@ -421,3 +421,24 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .home-disclosure > summary::after { transition: none; }
 }
+
+/* Workspace navigation uses the same compact pills as the home actions. */
+.eavesence-pill-button.home-workspace-pill {
+  border: 1px solid #dfe5dd;
+  background: #fff;
+  color: #52605b;
+}
+.eavesence-pill-button.home-workspace-pill.home-pro-pill {
+  border-color: #b8c4d6;
+  background: #edf2f8;
+  color: #314866;
+}
+.eavesence-pill-button.home-workspace-pill:hover {
+  border-color: #aebbb2;
+  background: #eefbf3;
+}
+.eavesence-pill-button.home-workspace-pill.home-workspace-selected {
+  border-color: #24272c;
+  background: #24272c;
+  color: #fff;
+}

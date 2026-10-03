@@ -77,7 +77,14 @@ function NavigationLink({
   );
 }
 
-export default function Header({
+const LANGUAGE_INTRO_KEY = "eavesence:header-language-intro";
+
+export default function Header(props: HeaderProps) {
+  // A locale change remounts the mark and restarts its CSS animation.
+  return <HeaderContent key={props.locale ?? "de"} {...props} />;
+}
+
+function HeaderContent({
   locale = "de",
   calculatorHrefOverride,
   languageHrefOverride,
@@ -87,6 +94,8 @@ export default function Header({
   const homeHref = getHomeHref(locale);
   const isCalculatorPage = pathname === getCalculatorHref(locale);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [languageIntro, setLanguageIntro] = useState(false);
+  const languageIntroRef = useRef<string | null>(null);
   const [desktopNavigationOpen, setDesktopNavigationOpen] = useState(
     !isCalculatorPage,
   );
@@ -146,21 +155,38 @@ export default function Header({
   }, []);
 
   useEffect(() => {
-    if (!isCalculatorPage) return;
+    // Carry only the requested destination across the language navigation.
+    // The ref retains the consumed request during Strict Mode's effect replay.
+    try {
+      if (window.sessionStorage.getItem(LANGUAGE_INTRO_KEY) === pathname) {
+        languageIntroRef.current = pathname;
+        window.sessionStorage.removeItem(LANGUAGE_INTRO_KEY);
+      }
+    } catch { /* Navigation still works when browser storage is unavailable. */ }
+    if (!isCalculatorPage && languageIntroRef.current !== pathname) return;
 
     const desktopQuery = window.matchMedia("(min-width: 1024px)");
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     );
 
-    if (!desktopQuery.matches) return;
+    const languageStart = window.setTimeout(() => {
+      if (languageIntroRef.current === pathname) {
+        setLanguageIntro(true);
+        if (desktopQuery.matches && !reducedMotionQuery.matches) setDesktopNavigationOpen(false);
+      }
+    }, 0);
+    if (!desktopQuery.matches) return () => window.clearTimeout(languageStart);
 
     if (reducedMotionQuery.matches) {
       introOpenTimeoutRef.current = setTimeout(() => {
         setDesktopNavigationOpen(true);
         introOpenTimeoutRef.current = null;
       }, 0);
-      return;
+      return () => {
+        window.clearTimeout(languageStart);
+        if (introOpenTimeoutRef.current) clearTimeout(introOpenTimeoutRef.current);
+      };
     }
 
     let disposed = false;
@@ -189,6 +215,7 @@ export default function Header({
 
     return () => {
       disposed = true;
+      window.clearTimeout(languageStart);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (introOpenTimeoutRef.current) {
         clearTimeout(introOpenTimeoutRef.current);
@@ -199,7 +226,7 @@ export default function Header({
         introCloseTimeoutRef.current = null;
       }
     };
-  }, [isCalculatorPage]);
+  }, [isCalculatorPage, pathname]);
 
   useEffect(() => {
     if (!isCalculatorPage) return;
@@ -428,7 +455,7 @@ export default function Header({
             aria-label={text.homeLabel}
           >
             <BrandLogo
-              markClassName={`${isCalculatorPage ? "eavesence-logo-load-animation " : ""}h-8 w-8`}
+              markClassName={`${isCalculatorPage || languageIntro ? "eavesence-logo-load-animation " : ""}h-8 w-8`}
               wordmarkClassName="text-[1.05rem]"
               className="inline-flex items-center gap-2"
             />
@@ -470,7 +497,7 @@ export default function Header({
               aria-label={text.homeLabel}
             >
               <BrandMark
-                className={`${isCalculatorPage ? "eavesence-logo-load-animation " : ""}h-8 w-8 shrink-0`}
+                className={`${isCalculatorPage || languageIntro ? "eavesence-logo-load-animation " : ""}h-8 w-8 shrink-0`}
               />
               <span
                 className={`shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
@@ -529,7 +556,11 @@ export default function Header({
             data-header-language
             href={languageHref}
             scroll={false}
-            onClick={() => {
+            onClick={(event) => {
+              if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+                try { window.sessionStorage.setItem(LANGUAGE_INTRO_KEY, new URL(languageHref, window.location.href).pathname); }
+                catch { /* Storage restrictions must not block language switching. */ }
+              }
               onLanguageChange?.();
               closeMenu();
             }}
