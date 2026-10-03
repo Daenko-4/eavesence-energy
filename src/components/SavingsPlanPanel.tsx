@@ -10,6 +10,8 @@ import type { Locale } from "@/i18n/config";
 import SavingsActionsPanel from "@/components/SavingsActionsPanel";
 
 type Props = {
+  section?: "savings" | "progress";
+  advanced?: boolean;
   locale: Locale;
   currency: string;
   incomeMonthly: number;
@@ -28,12 +30,13 @@ type Props = {
   onSaveActions: (actions: SavingsAction[]) => void;
 };
 
-export default function SavingsPlanPanel({ locale, currency, incomeMonthly, costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions, onConfirmAction, onReviewCost }: Props) {
+export default function SavingsPlanPanel({ section, advanced = true, locale, currency, incomeMonthly, costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions, onConfirmAction, onReviewCost }: Props) {
   const [variable, setVariable] = useState(variableMonthly == null ? "" : String(variableMonthly));
   const [buffer, setBuffer] = useState(String(bufferMonthly ?? 0));
   const [goal, setGoal] = useState(String(goalMonthly ?? 0));
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [budgetOpen, setBudgetOpen] = useState(false);
   const de = locale === "de";
   const money = (value: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(value);
   const date = new Date();
@@ -49,7 +52,10 @@ export default function SavingsPlanPanel({ locale, currency, incomeMonthly, cost
     }
     setError(""); onSave({ variableMonthly: nextVariable, bufferMonthly: nextBuffer, goalMonthly: nextGoal }); setNotice(de ? "Sparplan gespeichert." : "Savings plan saved.");
   }
+  if (section === "progress") return <section className="mt-5"><SavingsCoach mode="progress" locale={locale} currency={currency} input={{incomeMonthly,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/></section>;
   return <section id="savings-plan" className="mt-7 rounded-[1.45rem] border border-[#b8efcc] bg-[#eefbf3] p-5 sm:p-6">
+    {section && <><h2 className="site-section-title">{de ? "Wo lohnt sich eine Änderung?" : "Where could a change help?"}</h2><p className="mt-2 text-[13px] leading-6 text-[#52605b]">{de ? "Prüfe einen Kostenposten, plane eine konkrete Änderung und bestätige sie erst, wenn sie umgesetzt ist." : "Review one cost, plan a specific change and confirm it only after it happens."}</p><button type="button" className="eavesence-pill-button home-dashboard-action mt-3" aria-expanded={budgetOpen} onClick={() => setBudgetOpen(!budgetOpen)}>{de ? "Monatsbudget ergänzen (optional)" : "Add a monthly budget (optional)"}</button></>}
+    <div hidden={!!section && !budgetOpen}>
     <p className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--brand-green)]">{de ? "PRO-VORSCHAU · KOSTENLOS TESTEN" : "PRO PREVIEW · FREE TO TRY"}</p>
     <h2 className="mt-2 text-xl font-extrabold">{de ? "Deine monatliche Planungsbasis" : "Your monthly planning basics"}</h2>
     <p className="mt-1 text-[13px] text-[#52605b]">{de ? "Einkommen und Fixkosten sind schon übernommen. Schätze noch deine übrigen Alltagsausgaben – daraus berechnen wir, was dir im Monat bleibt." : "Income and fixed costs are already included. Estimate your other everyday spending to see what is left each month."}</p>
@@ -79,9 +85,13 @@ export default function SavingsPlanPanel({ locale, currency, incomeMonthly, cost
         <p className="mt-3">{de ? `${result.undatedCount} Kosten ohne Termin werden monatlich gemittelt. Die Monatswerte sind eine Vorschau mit deinen heutigen Angaben.` : `${result.undatedCount} undated costs use a monthly average. These monthly figures are a forecast based on your current entries.`}</p>
       </details>
 
+    </>}
+    </div>
+    {result && <>
       <SavingsCoach mode="opportunities" locale={locale} currency={currency} input={{incomeMonthly,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>
-      <SavingsCoach mode="progress" locale={locale} currency={currency} input={{incomeMonthly,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>
-      <PlanningWorkbench input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} costChange={<SavingsActionsPanel embedded locale={locale} currency={currency} input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />} />
+      {!section && <SavingsCoach mode="progress" locale={locale} currency={currency} input={{incomeMonthly,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>}
+      {section === "savings" && <SavingsActionsPanel embedded locale={locale} currency={currency} input={{incomeMonthly,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />}
+      {advanced && <PlanningWorkbench input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} costChange={<SavingsActionsPanel embedded locale={locale} currency={currency} input={{ incomeMonthly, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />} />}
     </>}
   </section>;
 }

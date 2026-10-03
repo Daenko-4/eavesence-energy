@@ -30,7 +30,7 @@ const copy = {
     eyebrow: "Haushaltskosten",
     title: "Was kostet dein Zuhause wirklich?",
     intro:
-      "Lege regelmäßige Kosten einmal an. Jährliche, halbjährliche und quartalsweise Zahlungen rechnen wir automatisch auf einen echten Monatswert um.",
+      "Trage Kosten einmal ein. Jahres- und andere unregelmäßige Zahlungen rechnen wir auf einen Monatsdurchschnitt um.",
     add: "Kosten hinzufügen",
     close: "Formular einklappen",
     monthly: "Pro Monat",
@@ -92,7 +92,7 @@ const copy = {
     eyebrow: "Household costs",
     title: "What does your home really cost?",
     intro:
-      "Add recurring costs once. We automatically turn yearly, half-yearly and quarterly payments into a true monthly amount.",
+      "Add costs once. Annual and other less frequent payments are included as monthly averages.",
     add: "Add cost",
     close: "Hide form",
     monthly: "Per month",
@@ -210,6 +210,7 @@ export default function HouseholdCostsPanel({
   currency,
   costs,
   embedded = false,
+  compact = false,
   tileTitle,
   request,
   onChange,
@@ -218,6 +219,7 @@ export default function HouseholdCostsPanel({
   currency: SavedDeviceCurrency;
   costs: HouseholdCost[];
   embedded?: boolean;
+  compact?: boolean;
   tileTitle?: string;
   request?: { costId?: string; template?: HouseholdCostCategory; nonce: number };
   onChange: (costs: HouseholdCost[]) => void;
@@ -313,13 +315,13 @@ export default function HouseholdCostsPanel({
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
+          <p hidden={compact} className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
             {tileTitle ? (locale === "de" ? "Gewählter Kostenbereich" : "Selected cost area") : text.eyebrow}
           </p>
-          <h2 className="mt-1 text-xl font-extrabold tracking-[-0.03em]">
+          <h2 className="mt-1 site-section-title">
             {tileTitle ?? text.title}
           </h2>
-          <p className="mt-2 text-[13px] leading-6 text-[#65716d]">
+          <p hidden={compact} className="mt-2 text-[13px] leading-6 text-[#65716d]">
             {text.intro}
           </p>
         </div>
@@ -335,7 +337,7 @@ export default function HouseholdCostsPanel({
         </button>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div hidden={compact} className="mt-5 grid gap-3 sm:grid-cols-2">
         {[
           [text.monthly, money(summary.monthlyTotal, locale, currency)],
           [text.yearly, money(summary.annualTotal, locale, currency)],
@@ -414,7 +416,7 @@ export default function HouseholdCostsPanel({
         </form>
       )}
 
-      {costs.length === 0 ? (
+      {costs.length === 0 && !formOpen ? (
         <div className="mt-5 rounded-xl border border-dashed border-[#cdd6cf] bg-white/60 p-4">
           <h3 className="text-[14px] font-bold">{text.suggestions}</h3>
           <p className="mt-1 text-[12px] leading-5 text-[#65716d]">{text.suggestionsText}</p>
@@ -430,7 +432,7 @@ export default function HouseholdCostsPanel({
 
       {costs.length > 0 ? (
         <>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <div hidden={compact} className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {summary.categoryTotals.map((item) => (
               <article key={item.category} className="rounded-xl border border-[#d8ded8] bg-[#fbfcf8] px-3 py-2.5">
                 <div className="flex items-center justify-between gap-3">
@@ -445,8 +447,8 @@ export default function HouseholdCostsPanel({
             ))}
           </div>
 
-          <div className="mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
-            <h3 className="text-[14px] font-bold">{text.entries}</h3>
+          <div className={compact ? "mt-3" : "mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4"}>
+            <h3 hidden={compact} className="text-[14px] font-bold">{text.entries}</h3>
             <div className="mt-3 divide-y divide-[#e2e6df]">
               {costs.map((cost) => (
                 <div
@@ -503,7 +505,7 @@ export default function HouseholdCostsPanel({
                 </div>
               ))}
             </div>
-            {costs.length > 0 && !formOpen && (
+            {!compact && costs.length > 0 && !formOpen && (
               <div className="mt-3 flex justify-end border-t border-[#e2e6df] pt-3">
                 <button type="button" onClick={() => openNewCost()} className={addCostClass}>
                   {text.add}

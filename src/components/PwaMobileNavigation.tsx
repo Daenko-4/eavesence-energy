@@ -26,7 +26,7 @@ const activeItemClass = "bg-[#eefbf3] text-[var(--brand-green)]";
 
 type AppDestination = "overview" | "costs" | "plan" | "settings";
 
-export default function PwaMobileNavigation({ locale, settingsOpen, }: { locale: Locale; settingsOpen: boolean; }) {
+export default function PwaMobileNavigation({ locale, settingsOpen, view = "overview", onNavigate }: { locale: Locale; settingsOpen: boolean; view?: "overview" | "plan"; onNavigate?: (destination: AppDestination) => void; }) {
   const text = copy[locale];
   const [activeDestination, setActiveDestination] = useState<AppDestination>("overview");
 
@@ -45,13 +45,13 @@ export default function PwaMobileNavigation({ locale, settingsOpen, }: { locale:
         { id: "household-costs", destination: "costs" },
         { id: "savings-plan", destination: "plan" },
       ];
-      let nextDestination: AppDestination = "overview";
+      let nextDestination: AppDestination = view === "plan" ? "plan" : "overview";
 
       for (const section of sections) {
         const element = document.getElementById(section.id);
-        if (!element) continue;
+        if (!element || !element.getClientRects().length) continue;
         const top = element.getBoundingClientRect().top + window.scrollY;
-        if (top <= activationPoint) nextDestination = section.destination;
+        if (view !== "plan" && top <= activationPoint) nextDestination = section.destination;
       }
       setActiveDestination(nextDestination);
     };
@@ -59,7 +59,7 @@ export default function PwaMobileNavigation({ locale, settingsOpen, }: { locale:
       if (!frame) frame = window.requestAnimationFrame(updateActiveDestination);
     };
 
-    updateActiveDestination();
+    scheduleUpdate();
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
     window.addEventListener("hashchange", scheduleUpdate);
 
@@ -68,16 +68,16 @@ export default function PwaMobileNavigation({ locale, settingsOpen, }: { locale:
       window.removeEventListener("scroll", scheduleUpdate);
       window.removeEventListener("hashchange", scheduleUpdate);
     };
-  }, [settingsOpen]);
+  }, [settingsOpen, view]);
 
   const destinationClass = (destination: AppDestination) =>
     `${itemClass} ${activeDestination === destination ? activeItemClass : ""}`;
 
   return (
     <nav aria-label={text.navigation} data-pwa-mobile-nav className="pwa-mobile-navigation">
-      <a href="#home-overview" onClick={() => setActiveDestination("overview")} aria-current={activeDestination === "overview" ? "location" : undefined} className={destinationClass("overview")}><span className="h-[18px] w-[18px]"><OverviewIcon /></span><span className="truncate">{text.overview}</span></a>
-      <a href="#household-costs" onClick={() => setActiveDestination("costs")} aria-current={activeDestination === "costs" ? "location" : undefined} className={destinationClass("costs")}><span className="h-[18px] w-[18px]"><CostsIcon /></span><span className="truncate">{text.costs}</span></a>
-      <a href="#savings-plan" onClick={() => setActiveDestination("plan")} aria-current={activeDestination === "plan" ? "location" : undefined} className={destinationClass("plan")}><span className="h-[18px] w-[18px]"><PlanIcon /></span><span className="truncate">{locale === "de" ? "Plan" : "Plan"}</span></a>
+      <a href="#home-overview" onClick={() => { onNavigate?.("overview"); setActiveDestination("overview"); }} aria-current={activeDestination === "overview" ? "location" : undefined} className={destinationClass("overview")}><span className="h-[18px] w-[18px]"><OverviewIcon /></span><span className="truncate">{text.overview}</span></a>
+      <a href="#household-costs" onClick={() => { onNavigate?.("costs"); setActiveDestination("costs"); }} aria-current={activeDestination === "costs" ? "location" : undefined} className={destinationClass("costs")}><span className="h-[18px] w-[18px]"><CostsIcon /></span><span className="truncate">{text.costs}</span></a>
+      <a href="#home-plan" onClick={() => { onNavigate?.("plan"); setActiveDestination("plan"); }} aria-current={activeDestination === "plan" ? "location" : undefined} className={destinationClass("plan")}><span className="h-[18px] w-[18px]"><PlanIcon /></span><span className="truncate">{locale === "de" ? "Plan" : "Plan"}</span></a>
     </nav>
   );
 }
