@@ -381,7 +381,6 @@ export default function HomePage({
 
   const devicesHref =
     locale === "de" ? "/geraete" : "/en/devices";
-  const householdHref = locale === "de" ? "/de/zuhause" : "/home";
   const feedbackHref = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(
     text.faq.feedbackSubject
   )}`;
@@ -496,23 +495,6 @@ export default function HomePage({
             <p className="mt-3 text-center text-base font-medium tracking-[-0.02em] text-slate-600">
               {hero.subtitle}
             </p>
-
-            <div className="mt-5 flex justify-center">
-              <a
-                href={householdHref}
-                className="group grid w-full max-w-2xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-[#b8efcc] bg-[#eefbf3] px-4 py-3 text-left shadow-[0_14px_30px_-26px_rgba(8,122,69,0.8)] transition hover:border-[#8ee2ae] hover:bg-[#e5f9ed] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-green-mint)]"
-              >
-                <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[var(--brand-green)] shadow-sm">
-                  <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 7-6 7 6v8H3V9Z"/><path d="M8 17v-5h4v5"/></svg>
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-[10px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">EAVESENCE</span>
-                  <span className="mt-0.5 block text-[14px] font-extrabold text-[#17211f]">{locale === "de" ? "Deine Kostenübersicht in My Home" : "Your cost overview in My Home"}</span>
-                  <span className="mt-0.5 block text-[11px] leading-4 text-[#65716d]">{locale === "de" ? "Geräte und laufende Kosten organisieren. Jetzt kostenlos; Vollversion in Vorbereitung." : "Organize devices and recurring costs. Free now; full version in development."}</span>
-                </span>
-                <span className="rounded-full bg-[var(--brand-green)] px-3 py-1.5 text-[11px] font-bold text-white transition group-hover:bg-[var(--brand-green-dark)]">{locale === "de" ? "Öffnen" : "Open"}</span>
-              </a>
-            </div>
 
             <div className="mx-auto mt-6 max-w-6xl sm:mt-7">
               <p className="mb-3 text-center text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.calculator.label}</p>
