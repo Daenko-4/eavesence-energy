@@ -1,3 +1,4 @@
+import { tileIconMetadata, type TileSymbol } from '@eavesence/core/tileSymbols';
 export const HOME_TILES_STORAGE_KEY = "eavesence-home-tiles-v1";
 
 export type HomeTileKind = "costs" | "energy";
@@ -6,6 +7,7 @@ export type HomeTile = {
   id: string;
   kind: HomeTileKind;
   title: string | null;
+  icon?: TileSymbol | null;
 };
 
 const tileKinds: HomeTileKind[] = ["energy", "costs"];
@@ -27,17 +29,19 @@ export function readHomeTiles(value: string | null): HomeTile[] {
 
     const tiles = candidate.flatMap((item): HomeTile[] => {
       if (!item || typeof item !== "object") return [];
-      const tile = item as { id?: unknown; kind?: string; title?: unknown };
+      const tile = item as { id?: unknown; kind?: string; title?: unknown; icon?: unknown };
       const valid =
         typeof tile.id === "string" &&
         tile.id.length > 0 &&
         (tile.title === null || typeof tile.title === "string");
       if (!valid || tile.kind === "monthly") return [];
+      const {icon,...rest}=tile;
+      const clean={...rest,...tileIconMetadata(icon)};
       if (tile.kind === "devices") {
-        return [{ ...tile, kind: "energy" } as HomeTile];
+        return [{ ...clean, kind: "energy" } as HomeTile];
       }
       return tileKinds.includes(tile.kind as HomeTileKind)
-        ? [tile as HomeTile]
+        ? [clean as HomeTile]
         : [];
     });
 
@@ -55,7 +59,7 @@ export function readHomeTiles(value: string | null): HomeTile[] {
   }
 }
 
-export function createHomeTile(kind: HomeTileKind, title: string): HomeTile {
+export function createHomeTile(kind: HomeTileKind, title: string, icon?: TileSymbol|null): HomeTile {
   const id =
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
@@ -65,6 +69,7 @@ export function createHomeTile(kind: HomeTileKind, title: string): HomeTile {
     id,
     kind,
     title: title.trim() || null,
+    ...tileIconMetadata(icon),
   };
 }
 

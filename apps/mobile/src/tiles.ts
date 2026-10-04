@@ -1,4 +1,5 @@
-export type MobileTile = { id: string; kind: "energy" | "costs"; title: string };
+import { tileIconMetadata, type TileSymbol } from '@eavesence/core/tileSymbols';
+export type MobileTile = { id: string; kind: "energy" | "costs"; title: string; icon?:TileSymbol|null };
 
 export function defaultTiles(): MobileTile[] {
   return [
@@ -14,7 +15,7 @@ export function parseTiles(value: unknown): MobileTile[] | null {
   if (new Set(tiles.map((tile) => tile.id)).size !== tiles.length) return null;
   if (tiles.filter((tile) => tile.kind === "energy").length > 1 ||
     !tiles.some((tile) => tile.id === "default-costs" && tile.kind === "costs")) return null;
-  return tiles;
+  return tiles.map(tile=>{const {icon,...rest}=tile;return {...rest,...tileIconMetadata(icon)};});
 }
 
 export function readTiles(value: unknown): MobileTile[] {
@@ -30,6 +31,6 @@ export function moveTile(tiles: MobileTile[], id: string, direction: -1 | 1): Mo
   return next;
 }
 
-export function createCostTile(title: string): MobileTile {
-  return { id: `tile-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, kind: "costs", title: title.trim() };
+export function createCostTile(title: string, icon?:TileSymbol|null): MobileTile {
+  return { id: `tile-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, kind: "costs", title: title.trim(), ...tileIconMetadata(icon) };
 }

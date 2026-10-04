@@ -1,3 +1,5 @@
+import { TileSymbol, TileSymbolPicker } from "./src/TileSymbol";
+import { iconForTile, type TileSymbol as SymbolKey } from "@eavesence/core/tileSymbols";
 import { BrandMotion, DisclosureIcon } from "./src/BrandMotion";
 import { readIncomeExtras, summarizeIncome, type IncomeExtra } from "@eavesence/core/income";
 import { IncomeExtrasSummary } from "./src/IncomeExtrasSummary";
@@ -160,6 +162,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   const [costStartAction, setCostStartAction] = useState<"none" | "income" | "cost">("none");
   const [tileFormOpen, setTileFormOpen] = useState(false);
   const [tileName, setTileName] = useState("");
+  const [tileIcon,setTileIcon] = useState<SymbolKey|null>(null);
   const [editingTileId, setEditingTileId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("home");
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -443,8 +446,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       showLocalizedAlert(locale,"Name bereits vorhanden", "Wähle einen anderen Kachelnamen."); return;
     }
     const next = editingTileId
-      ? tiles.map((tile) => tile.id === editingTileId ? { ...tile, title } : tile)
-      : [...tiles, createCostTile(title)];
+      ? tiles.map((tile) => tile.id === editingTileId ? { ...tile, title: title === (tile.id.startsWith("default-") ? localize(locale,tile.title) : tile.title) ? tile.title : title, icon:tileIcon } : tile)
+      : [...tiles, createCostTile(title,tileIcon)];
     if (next.length > 30) { showLocalizedAlert(locale,"Zu viele Kacheln", "Maximal 30 Kacheln sind möglich."); return; }
     try {
       await writeJson(TILES_KEY, next);
@@ -791,7 +794,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           {homeDetailsOpen && <>
           <HomeCoreOverview incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency ?? "EUR"} income={monthlyIncome} costs={costs} forecast={forecast} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} onIncome={() => startWith("income")} onCost={() => startWith("cost")} onCosts={openMainCosts} onReview={reviewCost} />
           <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency ?? "EUR"} />
-          {tiles.length > 1 && <View accessibilityLabel={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} style={styles.presetRow}>{tiles.map(tile => <Pressable key={tile.id} accessibilityRole="button" onPress={() => openTile(tile)} style={[styles.financePill, styles.outlinedAction]}><Text style={styles.outlinedText}>{tile.id.startsWith("default-") ? localize(locale,tile.title) : tile.title}</Text></Pressable>)}</View>}
+          {tiles.length > 1 && <View accessibilityLabel={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} style={styles.presetRow}>{tiles.map(tile => <Pressable key={tile.id} accessibilityRole="button" onPress={() => openTile(tile)} style={[styles.financePill, styles.outlinedAction]}><View style={styles.tileTitleRow}><TileSymbol icon={iconForTile(tile)}/><Text style={styles.outlinedText}>{tile.id.startsWith("default-") ? localize(locale,tile.title) : tile.title}</Text></View></Pressable>)}</View>}
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: areasOpen }} onPress={() => setAreasOpen(!areasOpen)} style={styles.areaDisclosure}><Text style={styles.areaDisclosureText}>{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</Text><DisclosureIcon open={areasOpen} /></Pressable>
           {areasOpen && <>
           <View style={styles.tilesSection}>
@@ -801,19 +804,19 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
               const tileCosts = costs.filter((cost) => tile.kind === "costs" && (tile.id === "default-costs" ? !cost.tileId || cost.tileId === tile.id : cost.tileId === tile.id));
               return <View key={tile.id} style={[styles.tileCard, tiles.length === 1 && { width: "100%" }]}>
                 <Pressable accessibilityRole="button" onPress={() => openTile(tile)} style={styles.tileMain}>
-                  <Text style={styles.tileName}>{tile.id.startsWith("default-") ? localize(locale, tile.title) : tile.title}</Text>
+                  <View style={styles.tileTitleRow}><TileSymbol icon={iconForTile(tile)}/><Text style={[styles.tileName,{flexShrink:1}]}>{tile.id.startsWith("default-") ? localize(locale, tile.title) : tile.title}</Text></View>
                   <Text style={styles.tileDetail}>{tile.kind === "energy" ? `${devices.length} ${locale === "de" ? "Geräte" : "devices"}` : `${tileCosts.length} ${locale === "de" ? "Kosten" : "costs"} · ${euro.format(tileCosts.reduce((sum, cost) => sum + monthlyCost(cost.amount, cost.frequency), 0))}/${locale === "de" ? "Monat" : "month"}`}</Text>
                 </Pressable>
                 <View style={styles.tileControls}>
                   <Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? `${tile.title} nach vorne verschieben` : `Move ${tile.title} earlier`} disabled={index === 0} onPress={() => void shiftTile(tile.id, -1)} style={styles.tileMove}><Text style={[styles.tileMoveText, index === 0 && styles.tileMoveDisabled]}>‹</Text></Pressable>
                   <Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? `${tile.title} nach hinten verschieben` : `Move ${tile.title} later`} disabled={index === tiles.length - 1} onPress={() => void shiftTile(tile.id, 1)} style={styles.tileMove}><Text style={[styles.tileMoveText, index === tiles.length - 1 && styles.tileMoveDisabled]}>›</Text></Pressable>
-                  {!tile.id.startsWith("default-") && <><Pressable onPress={() => { setTileName(tile.title); setEditingTileId(tile.id); setTileFormOpen(true); }} style={styles.tileEdit}><Text style={styles.financePillText}>Ändern</Text></Pressable><Pressable accessibilityLabel={locale === "de" ? `${tile.title} entfernen` : `Remove ${tile.title}`} onPress={() => confirmRemoveTile(tile)} style={styles.tileEdit}><Text style={styles.dangerText}>×</Text></Pressable></>}
+                  <Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? `${tile.title} bearbeiten` : `Edit ${tile.title}`} onPress={() => { setTileName(tile.id.startsWith("default-") ? localize(locale,tile.title) : tile.title); setTileIcon(iconForTile(tile)); setEditingTileId(tile.id); setTileFormOpen(true); }} style={styles.tileEdit}><Text style={styles.financePillText}>Ändern</Text></Pressable>{!tile.id.startsWith("default-") && <Pressable accessibilityLabel={locale === "de" ? `${tile.title} entfernen` : `Remove ${tile.title}`} onPress={() => confirmRemoveTile(tile)} style={styles.tileEdit}><Text style={styles.dangerText}>×</Text></Pressable>}
                 {tile.kind === "energy" && tile.id.startsWith("default-") && <Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? "Stromkachel entfernen" : "Remove energy tile"} onPress={() => confirmRemoveTile(tile)} style={styles.tileEdit}><Text style={styles.dangerText}>×</Text></Pressable>}
                 </View>
               </View>;
             })}</View>
-            {tileFormOpen ? <FormSection style={styles.tileForm} onSave={saveTile} saveLabel={editingTileId ? "Kachel umbenennen" : "Kachel erstellen"}><Field label="Kachelname" value={tileName} onChangeText={setTileName} placeholder="z. B. Versicherungen" /><PrimaryButton label={editingTileId ? "Kachel umbenennen" : "Kachel erstellen"} onPress={() => void saveTile()} /><Pressable onPress={() => { setTileFormOpen(false); setEditingTileId(null); setTileName(""); }} style={styles.financePill}><Text style={styles.financePillText}>Abbrechen</Text></Pressable></FormSection>
-              : <Pressable onPress={() => { setTileName(""); setEditingTileId(null); setTileFormOpen(true); }} style={styles.addTile}><Text style={styles.addTileText}>+ Eigene Kachel</Text></Pressable>}
+            {tileFormOpen ? <FormSection style={styles.tileForm} onSave={saveTile} saveLabel={editingTileId ? "Änderungen speichern" : "Kachel erstellen"}><Field label="Kachelname" value={tileName} onChangeText={setTileName} placeholder="z. B. Versicherungen" /><TileSymbolPicker key={editingTileId ?? "new"} value={tileIcon} onChange={setTileIcon} locale={locale}/><PrimaryButton label={editingTileId ? "Änderungen speichern" : "Kachel erstellen"} onPress={() => void saveTile()} /><Pressable onPress={() => { setTileFormOpen(false); setEditingTileId(null); setTileName(""); }} style={styles.financePill}><Text style={styles.financePillText}>Abbrechen</Text></Pressable></FormSection>
+              : <Pressable onPress={() => { setTileName(""); setTileIcon(null); setEditingTileId(null); setTileFormOpen(true); }} style={styles.addTile}><Text style={styles.addTileText}>+ Eigene Kachel</Text></Pressable>}
           </View>
           </>}
 
@@ -1012,6 +1015,7 @@ const styles = StyleSheet.create({
   tilesGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9, padding: 10, backgroundColor: "#24272c", borderRadius: 16 },
   tileCard: { width: "48%", minHeight: 112, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 12, justifyContent: "space-between" },
   tileMain: { minHeight: 60 },
+  tileTitleRow: {flexDirection:"row",alignItems:"center",gap:8},
   tileName: { fontSize: 14, fontWeight: "900", color: "#17211f" },
   tileDetail: { marginTop: 5, fontSize: 11, lineHeight: 16, color: "#65716d" },
   tileControls: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 3, marginTop: 7 },
