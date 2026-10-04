@@ -483,7 +483,12 @@ a {
   background: #3b4a41;
   color: #72dca3;
 }
-.home-cost-area-disclosure > section { margin-top: 0; }
+.home-cost-area-disclosure[open] { overflow: clip; }
+.home-cost-area-disclosure > section {
+  margin-top: 0;
+  border-top: 0;
+  border-radius: 0 0 0.75rem 0.75rem;
+}
 @media (prefers-reduced-motion: reduce) {
   .home-cost-area-disclosure > summary { transition: none; }
 }
