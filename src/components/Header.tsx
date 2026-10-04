@@ -564,16 +564,15 @@ function HeaderContent({
               onLanguageChange?.();
               closeMenu();
             }}
-            className="group flex h-11 items-center gap-1.5 rounded-lg px-2 text-[11px] font-bold uppercase tracking-[0.04em] transition hover:bg-[#eaf8ef] active:scale-[0.98] lg:h-8"
+            className="group flex h-11 shrink-0 items-center gap-0.5 rounded-lg px-1 text-[11px] font-bold uppercase tracking-[0.04em] transition hover:bg-[#eaf8ef] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-green)] active:scale-[0.98] lg:h-8"
             aria-label={
-              locale === "de" ? "Switch to English" : "Zur deutschen Version wechseln"
+              locale === "de" ? "Aktuelle Sprache: Deutsch. Zu Englisch wechseln." : "Current language: English. Switch to German."
             }
           >
-            <span className={locale === "de" ? "text-[var(--brand-green)]" : "text-[#8a9591] group-hover:text-[#52605b]"}>
+            <span lang="de" aria-current={locale === "de" ? "true" : undefined} className={`rounded-full px-1.5 py-1 ${locale === "de" ? "bg-[#24272c] text-white" : "text-[#65716d] group-hover:text-[#17211f]"}`}>
               DE
             </span>
-            <span aria-hidden="true" className="font-medium text-[#bdc5c1]">/</span>
-            <span className={locale === "en" ? "text-[var(--brand-green)]" : "text-[#8a9591] group-hover:text-[#52605b]"}>
+            <span lang="en" aria-current={locale === "en" ? "true" : undefined} className={`rounded-full px-1.5 py-1 ${locale === "en" ? "bg-[#24272c] text-white" : "text-[#65716d] group-hover:text-[#17211f]"}`}>
               EN
             </span>
           </Link>

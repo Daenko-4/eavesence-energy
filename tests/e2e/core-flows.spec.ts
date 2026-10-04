@@ -856,7 +856,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
   await page.evaluate(() => window.scrollTo(0, 400));
   const regularScrollBefore = await page.evaluate(() => window.scrollY);
   await page
-    .getByRole("link", { name: "Zur deutschen Version wechseln" })
+    .getByRole("link", { name: "Current language: English. Switch to German." })
     .click();
   await expect(page).toHaveURL("/de/rechner");
   await expect(
@@ -875,7 +875,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
 
   const scrollBefore = await page.evaluate(() => window.scrollY);
   await page
-    .getByRole("link", { name: "Zur deutschen Version wechseln" })
+    .getByRole("link", { name: "Current language: English. Switch to German." })
     .click();
 
   await expect(page).toHaveURL("/de/rechner");
@@ -886,7 +886,7 @@ test("language switching keeps an open FAQ expanded and preserves its position",
     .poll(() => page.evaluate(() => window.scrollY))
     .toBeGreaterThan(scrollBefore - 8);
 
-  await page.getByRole("link", { name: "Switch to English" }).click();
+  await page.getByRole("link", { name: "Aktuelle Sprache: Deutsch. Zu Englisch wechseln." }).click();
   await expect(page).toHaveURL("/calculator");
   await expect(englishFaq).toHaveAttribute("aria-expanded", "true");
 });
