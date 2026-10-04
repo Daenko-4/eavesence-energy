@@ -2,6 +2,7 @@ import { BrandMotion, DisclosureIcon } from "./src/BrandMotion";
 import { readIncomeExtras, summarizeIncome, type IncomeExtra } from "@eavesence/core/income";
 import { IncomeExtrasSummary } from "./src/IncomeExtrasSummary";
 import appConfig from "./app.json";
+import { HomeSetupForm } from "./src/HomeSetupForm";
 import { HomeCoreOverview } from "./src/HomeCoreOverview";
 import { homeRelease } from "../../src/lib/homeRelease";
 import {PaydayScreen} from './src/PaydayScreen';
@@ -147,6 +148,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   const [ready, setReady] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
+  const [homeSetupOpen, setHomeSetupOpen] = useState(false);
   const [profile, setProfile] = useState<MobileProfile | null>(null);
   const [devices, setDevices] = useState<MobileDevice[]>([]);
   const [history, setHistory] = useState<MobileHistoryEntry[]>([]);
@@ -226,7 +228,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
-  }, [tab, profile?.setupStep]);
+  }, [tab, profile?.setupStep, homeSetupOpen]);
 
   useEffect(() => {
     const shown = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
@@ -271,16 +273,16 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   async function createHome() {
     const price = parseLocalNumber(electricityPrice);
     const target = parseLocalNumber(goal);
-    if (!homeName.trim() || !Number.isFinite(price) || price <= 0 || !Number.isFinite(target) || target < 1 || target > 50) {
-      showLocalizedAlert(locale,"Angaben prüfen", "Gib einen Namen, einen Strompreis über 0 und ein Sparziel zwischen 1 und 50 % ein.");
+    if (!homeName.trim()) {
+      showLocalizedAlert(locale, locale === "de" ? "Name fehlt" : "Name missing", locale === "de" ? "Gib deinem Zuhause einen Namen." : "Enter a name for your home.");
       return;
     }
     const nextProfile: MobileProfile = {
       name: homeName.trim() === "Mein Zuhause" && locale === "en" ? "My home" : homeName.trim(),
       locale,
       currency,
-      electricityPrice: price,
-      savingsGoalPercent: target,
+      electricityPrice: Number.isFinite(price) && price > 0 ? price : .30,
+      savingsGoalPercent: Number.isFinite(target) && target >= 1 && target <= 50 ? target : 10,
       setupStep: "income",
       createdAt: new Date().toISOString(),
     };
@@ -416,6 +418,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           await clearAll();
           let reminderRemovalFailed = false;
           try { await disableAllReminders(); } catch { reminderRemovalFailed = true; }
+          setHomeSetupOpen(false);
           setProfile(null);
           setDevices([]); setHistory([]); setCosts([]); setTiles(defaultTiles());
           setBetaInterested(false); setHomeName(locale === "de" ? "Mein Zuhause" : "My home"); setElectricityPrice("0.30"); setGoal("10");
@@ -705,7 +708,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       const enabled = await enableMonthlyReminder(locale);
       if (!enabled) { showLocalizedAlert(locale,"Benachrichtigungen nicht erlaubt", "Aktiviere Mitteilungen für EAVESENCE in den iPhone-Einstellungen."); return; }
       setReminderActive(true);
-      showLocalizedAlert(locale,"Erinnerung aktiv", "Wir erinnern dich jeden Monat am 1. um 9:00 Uhr.");
+      showLocalizedAlert(locale, locale === "de" ? "Monatscheck-Erinnerung aktiv" : "Monthly check reminder enabled", locale === "de" ? "Am 1. jedes Monats um 9:00 Uhr: Prüfe dein Einkommen, deine regelmäßigen Kosten und deine Alltagsschätzung." : "On the 1st of each month at 9:00 am: review income, recurring costs and your everyday-spending estimate.");
     } catch { showLocalizedAlert(locale,"Erinnerung fehlgeschlagen", "Bitte versuche es erneut."); }
   }
 
@@ -725,6 +728,14 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     return <SafeAreaView style={styles.loading}><StatusBar style="dark" /><Image source={brandIcon} alt="EAVESENCE Logo" style={styles.loadingMark} /><Text style={styles.loadingBrand}>EAVESENCE</Text></SafeAreaView>;
   }
 
+  if (!profile && homeSetupOpen) {
+    return <SafeAreaView style={styles.safe}><StatusBar style="dark" />
+      <View style={styles.appHeader}><BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
+      <KeyboardScrollContext.Provider value={input => scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input,72,true)}><ScrollView ref={scrollRef} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
+        <HomeSetupForm name={homeName} onName={setHomeName} currency={currency} onCurrency={setCurrency} onSave={createHome} />
+      </ScrollView></KeyboardScrollContext.Provider>
+    </SafeAreaView>;
+  }
   if (!profile) {
     return (
       <SafeAreaView style={[styles.safe, styles.onboardingSafe]}>
@@ -735,7 +746,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             <Text style={styles.eyebrow}>EAVESENCE</Text>
             <Text style={styles.hero}>{locale === "de" ? "Damit aus Überblick ein Plan wird." : "Turn clarity into a plan."}</Text>
             <Text style={styles.body}>Erfasse dein Nettoeinkommen und deine festen Kosten. EAVESENCE zeigt dir, welche Zahlungen anstehen und was übrig bleibt.</Text>
-            <PrimaryButton label={localize(locale, "Jetzt starten")} onPress={createHome} />
+            <PrimaryButton label={localize(locale, "Jetzt starten")} onPress={() => setHomeSetupOpen(true)} />
             <View style={styles.languageRow}>{(["de", "en"] as const).map(item => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: locale === item }} onPress={() => void changeLanguage(item)} style={[styles.financePill, locale === item && styles.choiceSelected]}><Text style={styles.financePillText}>{item === "de" ? "Deutsch" : "English"}</Text></Pressable>)}</View>
             <Text style={styles.privateText}>Ohne Konto · lokal gespeichert · jederzeit löschbar</Text>
           </ScrollView>
@@ -750,7 +761,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       <View style={styles.appHeader}><BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
       <KeyboardScrollContext.Provider value={input => scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input,72,true)}><ScrollView ref={scrollRef} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         <Text style={styles.eyebrow}>{locale === "de" ? `SCHRITT ${step === "income" ? 1 : step === "cost" ? 2 : 3} VON 3` : `STEP ${step === "income" ? 1 : step === "cost" ? 2 : 3} OF 3`}</Text>
-        {step === "review" ? <><Text style={styles.heroSmall}>{locale === "de" ? "Dein erster Überblick ist bereit." : "Your first overview is ready."}</Text><Text style={styles.financeNote}>{locale === "de" ? "Deine Angaben sind gespeichert. Weitere Kosten, Einstellungen und den Stromrechner findest du anschließend in deiner Übersicht." : "Your entries are saved. Find more costs, settings and the electricity calculator in your overview."}</Text><View style={styles.formSurface}><Metric full label={incomeSummary.annualAverage ? locale === "de" ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : locale === "de" ? "Nettoeinkommen pro Monat" : "Net income per month"} value={hasIncome ? euro.format(monthlyIncome) : locale === "de" ? "Später ergänzen" : "Add later"} /><Metric full label={locale === "de" ? "Fixkosten pro Monat" : "Recurring costs per month"} value={euro.format(costSummary.monthlyTotal)} /><Metric full label={locale === "de" ? "Rest nach Fixkosten" : "Left after fixed costs"} value={hasIncome && hasCosts ? euro.format(monthlyIncome-costSummary.monthlyTotal) : "—"} /><Text style={styles.financeNote}>{locale === "de" ? "Monatsdurchschnitte. Alltagsausgaben gehen davon noch ab; fehlende Zahlungstermine kannst du später ergänzen." : "Monthly averages. Everyday spending still comes out of this amount; add missing payment dates later."}</Text></View><Text style={styles.financeNote}>{locale === "de" ? "Sind Miete, Energie, Versicherungen und Abos berücksichtigt? Ergänze deine größten Kosten zuerst. Erstelle danach in den Einstellungen eine Sicherung, damit deine Angaben auch beim Gerätewechsel erhalten bleiben." : "Have you included rent, energy, insurance and subscriptions? Add your largest costs first. Then create a backup in settings to keep your entries when changing devices."}</Text><Pressable accessibilityRole="button" style={styles.financePill} onPress={() => setSetupStep("cost")}><Text style={styles.financePillText}>{locale === "de" ? "Weitere Kosten ergänzen" : "Add more costs"}</Text></Pressable><PrimaryButton label={locale === "de" ? "Meine Übersicht öffnen" : "Open my overview"} onPress={() => setSetupStep("complete")} /></> : <CostsScreen key={`setup-${step}`} setup={step} profile={profile} costs={costs} tiles={tiles} tileId="default-costs" tileTitle="Haushaltskosten" onSaveIncome={saveIncome} onSaveCost={saveCost} onDeleteCost={deleteCost} onBack={step === "cost" ? () => setSetupStep("income") : undefined} onSkip={() => step === "income" ? saveIncome(0,"monthly") : setSetupStep("review")} />}
+        {step === "review" ? <><Text style={styles.heroSmall}>{locale === "de" ? "Dein erster Überblick ist bereit." : "Your first overview is ready."}</Text><Text style={styles.financeNote}>{locale === "de" ? "Deine Angaben sind gespeichert. Weitere Kosten, Einstellungen und den Stromrechner findest du anschließend in deiner Übersicht." : "Your entries are saved. Find more costs, settings and the electricity calculator in your overview."}</Text><View style={styles.formSurface}><Metric full label={incomeSummary.annualAverage ? locale === "de" ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : locale === "de" ? "Nettoeinkommen pro Monat" : "Net income per month"} value={hasIncome ? euro.format(monthlyIncome) : locale === "de" ? "Später ergänzen" : "Add later"} /><Metric full label={locale === "de" ? "Fixkosten pro Monat" : "Recurring costs per month"} value={euro.format(costSummary.monthlyTotal)} /><Metric full label={locale === "de" ? "Rest nach Fixkosten" : "Left after fixed costs"} value={hasIncome && hasCosts ? euro.format(monthlyIncome-costSummary.monthlyTotal) : "—"} /><Text style={styles.financeNote}>{locale === "de" ? "Monatsdurchschnitte. Alltagsausgaben gehen davon noch ab; fehlende Zahlungstermine kannst du später ergänzen." : "Monthly averages. Everyday spending still comes out of this amount; add missing payment dates later."}</Text></View><Text style={styles.financeNote}>{locale === "de" ? "Weitere Kosten kannst du anschließend ergänzen. Prüfe kurz diese Angaben und öffne dann deine Übersicht." : "You can add more costs afterwards. Check these entries, then open your overview."}</Text><PrimaryButton label={locale === "de" ? "Meine Übersicht öffnen" : "Open my overview"} onPress={() => setSetupStep("complete")} /></> : <CostsScreen key={`setup-${step}`} setup={step} profile={profile} costs={costs} tiles={tiles} tileId="default-costs" tileTitle="Haushaltskosten" onSaveIncome={saveIncome} onSaveCost={saveCost} onDeleteCost={deleteCost} />}
       </ScrollView></KeyboardScrollContext.Provider>
     </SafeAreaView>;
   }
@@ -809,8 +820,9 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             <Text style={styles.financeLabel}>WÄHRUNG</Text><View style={styles.presetRow}>{(["EUR", "CHF"] as const).map((item) => <Pressable key={item} accessibilityState={{ selected: currency === item }} onPress={() => setCurrency(item)} style={styles.financePill}><Text style={styles.financePillText}>{currency === item ? "✓ " : ""}{item}</Text></Pressable>)}</View>
             <Text style={styles.financeLabel}>SPRACHE / LANGUAGE</Text><View style={styles.presetRow}>{(["de", "en"] as const).map((item) => <Pressable key={item} onPress={() => void changeLanguage(item)} style={styles.financePill}><Text style={styles.financePillText}>{locale === item ? "✓ " : ""}{item === "de" ? "Deutsch" : "English"}</Text></Pressable>)}</View>
             <View style={styles.dataSection}><Text style={styles.dataTitle}>Stromrechner</Text><Field label={`${locale === "de" ? "Strompreis pro kWh" : "Electricity price per kWh"} (${currency})`} value={electricityPrice} onChangeText={setElectricityPrice} keyboardType="decimal-pad" /><Field label={locale === "de" ? "Stromverbrauch reduzieren um (%)" : "Reduce electricity use by (%)"} value={goal} onChangeText={setGoal} keyboardType="number-pad" /><Text style={styles.financeNote}>{locale === "de" ? "Nur für die Stromauswertung. Dein Sparbetrag in Planen & sparen wird separat festgelegt." : "Only for electricity analysis. Set your savings amount separately in Plan & save."}</Text></View>
-            <Pressable style={styles.financePill} onPress={() => void toggleReminder()}><Text style={styles.financePillText}>{reminderActive ? "Monatliche Erinnerung ausschalten" : "Monatliche Erinnerung aktivieren"}</Text></Pressable>
+
             <PrimaryButton label="Einstellungen speichern" onPress={() => void saveSettings()} />
+            <View style={styles.dataSection}><Text style={styles.dataTitle}>{locale === "de" ? "Erinnerungen" : "Reminders"}</Text><Text style={styles.financeHeading}>{locale === "de" ? "Monatlicher Kostencheck" : "Monthly cost check"}</Text><Text style={styles.financeNote}>{locale === "de" ? "Eine Erinnerung auf deinem Handy: jeden Monat am 1. um 9:00 Uhr. Prüfe dann, ob Einkommen und regelmäßige Kosten noch stimmen, und aktualisiere bei Bedarf deine Alltagsschätzung. Sie ist optional und keine Zahlungserinnerung für einzelne Rechnungen." : "A reminder on your phone on the 1st of each month at 9:00 am. Check your income and recurring costs, and update your everyday-spending estimate if needed. It is optional and does not remind you of individual bill due dates."}</Text><Pressable accessibilityRole="switch" accessibilityLabel={locale === "de" ? "Monatlichen Kostencheck erinnern" : "Monthly cost check reminder"} accessibilityState={{checked:reminderActive}} style={styles.financePill} onPress={() => void toggleReminder()}><Text style={styles.financePillText}>{reminderActive ? locale === "de" ? "Monatscheck-Erinnerung ausschalten" : "Turn off monthly check reminder" : locale === "de" ? "Monatscheck-Erinnerung aktivieren" : "Enable monthly check reminder"}</Text></Pressable></View>
             <View style={styles.dataSection}>
               <Text style={styles.dataTitle}>Deine Daten</Text>
               <Text style={styles.financeNote}>Sicherungen enthalten auch Einkommen, Sonderzahlungen und Sparvorhaben sowie Einstellungen, Kacheln, Kosten, Geräte und Monatswerte. Du kannst auch eine Website-Sicherung importieren; vorhandene App-Daten werden erst nach deiner Bestätigung ersetzt.</Text>

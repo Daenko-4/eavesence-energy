@@ -187,6 +187,10 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   }
 
   async function saveIncome() {
+    if (setup === "income" && !income.trim()) {
+      Alert.alert(locale === "de" ? "Nettoeinkommen eintragen" : "Enter net income", locale === "de" ? "Trage deinen Nettobetrag ein. Wenn du derzeit kein Einkommen hast, gib 0 ein." : "Enter your net amount. If you currently have no income, enter 0.");
+      return;
+    }
     if (profile.incomeFrequency === "yearly" && incomeFrequency === "monthly" && !income.trim()) {
       Alert.alert(locale === "de" ? "Monatsnetto ergänzen" : "Add monthly net income", locale === "de" ? "Trage den tatsächlichen Monatsbetrag ein. Wir leiten ihn nicht aus dem Jahresnetto ab." : "Enter your actual monthly amount. We do not infer it from annual income.");
       return;
@@ -210,16 +214,16 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   }
 
   if (setup === "income") return <FormSection style={styles.panel} onSave={saveIncome} saveLabel={locale === "de" ? "Einkommen speichern & weiter" : "Save income & continue"}>
-    <Text style={styles.title}>{locale === "de" ? "Dein Einkommen" : "Your income"}</Text>
+    <Text style={styles.title}>{locale === "de" ? "1 · Nettoeinkommen eintragen" : "1 · Add net income"}</Text>
     <Text style={styles.help}>{locale === "de" ? "Wie viel kommt nach Steuern auf dein Konto? Ein Betrag reicht für den Start. Du kannst ihn später ändern." : "How much reaches your account after tax? One amount is enough to start. You can change it later."}</Text>
     <FormInput label={incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Extras)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"} value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 2400" : "e.g. 2400"} />
-    <Choice options={[["monthly", locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net"], ["yearly", locale === "de" ? "Jahresnetto · Durchschnitt" : "Annual net · average"]]} value={incomeFrequency} onChange={next => { if (incomeFrequency === "yearly" && next === "monthly") setIncome(""); setIncomeFrequency(next); }} />
-    <IncomeExtrasEditor frequency={incomeFrequency} drafts={incomeExtras} onChange={setIncomeExtras} open={incomeExtrasOpen} onToggle={() => setIncomeExtrasOpen(!incomeExtrasOpen)} />
+    {incomeFrequency === "yearly" && <Choice options={[["monthly", locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net"], ["yearly", locale === "de" ? "Jahresnetto · Durchschnitt" : "Annual net · average"]]} value={incomeFrequency} onChange={next => { if (next === "monthly") setIncome(""); setIncomeFrequency(next); }} />}
+    <Text style={styles.help}>{locale === "de" ? "Ohne 13./14. Gehalt oder Bonus. Sonderzahlungen kannst du später ergänzen. Kein Einkommen? Trage 0 ein." : "Exclude extra salaries or bonuses. Add them later. No income? Enter 0."}</Text>
     <FormSubmitButton label={locale === "de" ? "Einkommen speichern & weiter" : "Save income & continue"} style={styles.primary} textStyle={styles.primaryText} />
     {onSkip && <FormActionButton label={locale === "de" ? "Einkommen später ergänzen" : "Add income later"} onPress={onSkip} style={styles.secondary} textStyle={styles.secondaryText} />}
   </FormSection>;
   if (setup === "cost") return <FormSection style={styles.panel} onSave={save} saveLabel={locale === "de" ? "Kosten speichern & weiter" : "Save cost & continue"}>
-    <Text style={styles.title}>{locale === "de" ? "Deine ersten Kosten" : "Your first cost"}</Text>
+    <Text style={styles.title}>{locale === "de" ? "2 · Erste Kosten hinzufügen" : "2 · Add your first cost"}</Text>
     <Text style={styles.help}>{locale === "de" ? "Beginne mit einer regelmäßigen Ausgabe, etwa Miete oder Internet. Weitere Kosten ergänzt du danach in deiner Übersicht." : "Start with one recurring expense, such as rent or internet. Add more later in your overview."}</Text>
     <FormInput label="Bezeichnung" value={name} onChangeText={setName} placeholder={locale === "de" ? "z. B. Miete" : "e.g. Rent"} />
     <FormInput label="Betrag" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="0,00" />

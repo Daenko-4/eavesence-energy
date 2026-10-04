@@ -32,7 +32,7 @@ export async function enableMonthlyReminder(locale: "de" | "en" = "de") {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: locale === "de" ? reminderTitle : "EAVESENCE monthly check",
-      body: locale === "de" ? "Prüfe Einkommen, Fixkosten und Alltagsschätzung. Dein Monatscheck ist bereit." : "Review income, fixed costs and your everyday estimate. Your monthly check is ready.",
+      body: locale === "de" ? "Prüfe, ob Einkommen und regelmäßige Kosten noch stimmen. Aktualisiere deine Alltagsschätzung bei Bedarf." : "Check that income and recurring costs are up to date. Update your everyday-spending estimate if needed.",
       data: { eavesenceMonthlyCheck: true },
     },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.MONTHLY, day: 1, hour: 9, minute: 0 },
