@@ -29,7 +29,7 @@ export function HomeCoreOverview({ incomeIsAverage = false, locale, currency, in
     { label: incomeIsAverage ? t("Rest nach Fixkosten · Durchschnitt", "Left after fixed costs · average") : t("Rest nach Fixkosten", "Left after fixed costs"), value: income > 0 && costs.length > 0 ? money(income - fixed) : "—", emphasis: true },
   ];
   return <View style={styles.section}>
-    <Text accessibilityRole="header" style={styles.heading}>{t("Dein Monat auf einen Blick", "Your month at a glance")}</Text>
+    <Text accessibilityRole="header" style={styles.heading}>{t("Dein Monatsbudget", "Your monthly budget")}</Text>
     {cards.map(card => <View key={card.label} style={[styles.card, card.emphasis && styles.darkCard]}>
       <Text style={[styles.label, card.emphasis && styles.darkLabel]}>{card.label}</Text>
       <Text style={[styles.amount, card.emphasis && styles.darkAmount, card.emphasis && deficit && styles.warningAmount]}>{card.value}</Text>

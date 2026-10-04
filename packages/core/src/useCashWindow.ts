@@ -29,6 +29,7 @@ export function useCashWindow(
     cash,
     input.variableMonthly,
     today,
+    p.paidPayments,
   );
   async function save() {
     const next = readCashWindow({
@@ -40,7 +41,7 @@ export function useCashWindow(
     });
     if (
       !next ||
-      !paydayForecast(input.costs, next, input.variableMonthly, today)
+      !paydayForecast(input.costs, next, input.variableMonthly, today, p.paidPayments)
     ) {
       setError(
         de
@@ -75,7 +76,7 @@ export function useCashWindow(
     save,
     forecast,
     today,
-    stale: !!cash && cash.asOf !== today,
+    stale: !!cash && (cash.needsRefresh === true || cash.asOf !== today),
     cash,
   };
 }

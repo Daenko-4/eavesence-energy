@@ -34,6 +34,7 @@ test('calculator uses the home tariff and area navigation stays available when o
     localStorage.setItem('eavesence-home-tiles-v1',JSON.stringify([{id:'default-costs',kind:'costs',title:'Household costs'},{id:'default-energy',kind:'energy',title:'Electricity'}]));
   });
   await page.reload();
+  await page.locator('[data-cost-manager] > summary').click();
   const areas=page.getByRole('navigation',{name:'Choose cost area',exact:true});
   await expect(areas).toBeVisible();
   await areas.getByRole('button',{name:'Electricity',exact:true}).click();

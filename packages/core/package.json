@@ -14,6 +14,8 @@
     "./homeValue": "./src/homeValue.ts",
     "./useCashWindow": "./src/useCashWindow.ts",
     "./useSavingsCoach": "./src/useSavingsCoach.ts",
+    "./paymentChecklist": "./src/paymentChecklist.ts",
+    "./usePaymentChecklist": "./src/usePaymentChecklist.ts",
     "./income": "./src/income.ts"
   }
 }

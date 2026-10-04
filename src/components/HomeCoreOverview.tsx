@@ -30,7 +30,7 @@ export default function HomeCoreOverview({ incomeDeferred = false, onSkipIncome,
       <button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={needsIncome ? onIncome : onCost} aria-expanded={needsIncome ? incomeOpen : undefined}>{needsIncome ? de ? "Einkommen eintragen" : "Add income" : de ? "Erste Kosten hinzufügen" : "Add first cost"}</button>
       {needsReview && needsIncome && <button type="button" onClick={onSkipIncome} className="ml-2 min-h-11 px-2 text-[12px] font-semibold">{de ? "Einkommen später ergänzen" : "Add income later"}</button>}
     </div>}
-    <h2 className="site-section-title">{de ? "Dein Monat auf einen Blick" : "Your month at a glance"}</h2>
+    <h2 className="site-section-title">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
     <div className="mt-3 grid items-start gap-3 md:grid-cols-3">
       {cards.map(card => <article key={card.label} className={`min-w-0 rounded-2xl border p-4 ${card.emphasis ? "border-[#32363b] bg-[#24272c] text-white" : "border-[#dfe5dd] bg-white text-[#17211f]"}`}>
         <p className={`text-[11px] font-semibold ${card.emphasis ? "text-[#d1d7d4]" : "text-[#65716d]"}`}>{card.label}</p>

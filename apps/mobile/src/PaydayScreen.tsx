@@ -96,8 +96,8 @@ export function PaydayScreen({
         {p.stale && (
           <Text style={styles.warning}>
             {t(
-              "Guthaben ist von einem früheren Tag. Bitte aktualisieren.",
-              "Balance is from an earlier day. Please update it.",
+              "Bitte bestätige dein aktuelles Guthaben. Es kann sich seit einer abgehakten Zahlung oder dem letzten Tag geändert haben.",
+              "Please confirm your current balance. It may have changed since a payment was checked off or since the last day.",
             )}
           </Text>
         )}
@@ -123,8 +123,8 @@ export function PaydayScreen({
         <FormSection style={styles.form} onSave={p.save} saveLabel={t("Guthaben bestätigen & berechnen", "Confirm balance & calculate")}>
           <Text style={styles.note}>
             {t(
-              "Guthaben nach bereits bezahlten Rechnungen eintragen. Zahlungen für heute zählen als offen; passe deren nächste Fälligkeit an, falls bezahlt. Das nächste Gehalt wird noch nicht dazugezählt.",
-              "Enter your balance after bills already paid. Today’s payments count as pending; update their next due date if paid. Your next salary is not added yet.",
+              "Guthaben nach bereits bezahlten Rechnungen eintragen. Hake bezahlte Rechnungen in deiner Monatscheckliste ab. Nur offene Zahlungen mit Termin werden abgezogen. Das nächste Gehalt wird noch nicht dazugezählt.",
+              "Enter your balance after bills already paid. Mark paid bills in your monthly checklist; only unchecked dated payments count as pending. Your next salary is not added yet.",
             )}
           </Text>
           <FormInput
