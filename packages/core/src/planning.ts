@@ -1,3 +1,4 @@
+import {readMemos,type HomeMemo} from './memos.ts';
 import { readPaidPayments, type PaidPayment } from './paymentChecklist.ts';
 import { readCashWindow, type CashWindow } from './homeValue.ts';
 import { createSavingsPlan, savingsReviewCandidates, type SavingsPlanInput } from './savingsPlan.ts';
@@ -6,13 +7,14 @@ import { paymentsForMonth } from './householdCosts.ts';
 export type NamedGoal = { id: string; name: string; target: number; saved: number; targetMonth: string };
 export type BillReserve = { costId: string; saved: number };
 export type MonthlyCheck = { month: string; checkedAt: string; incomeMonthly: number; variableMonthly: number; fixedMonthly: number; fingerprint: string };
-export type PlanningData = { goals: NamedGoal[]; reserves: BillReserve[]; checks: MonthlyCheck[]; cash?: CashWindow; paidPayments?: PaidPayment[]; reviews?: Array<{costId:string;updatedAt:string;until:string}> };
+export type PlanningData = { memos?:HomeMemo[]; goals: NamedGoal[]; reserves: BillReserve[]; checks: MonthlyCheck[]; cash?: CashWindow; paidPayments?: PaidPayment[]; reviews?: Array<{costId:string;updatedAt:string;until:string}> };
 const monthOK = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(v);
 const nonnegative = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 export function readPlanningData(value: unknown): PlanningData {
   const data = value && typeof value === 'object' ? value as Partial<PlanningData> : {};
   const unique = <T>(rows: T[], key: (row: T) => string) => rows.filter((row, i) => rows.findIndex(r => key(r) === key(row)) === i);
   return {
+    ...(data.memos !== undefined ? {memos:readMemos(data.memos)} : {}),
     ...(data.paidPayments !== undefined ? {paidPayments:readPaidPayments(data.paidPayments)} : {}),
     ...(readCashWindow(data.cash) ? {cash:readCashWindow(data.cash)} : {}),
     reviews:(Array.isArray(data.reviews)?data.reviews:[]).filter(r=>r&&typeof r.costId==='string'&&typeof r.updatedAt==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(r.until)),

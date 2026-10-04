@@ -5,6 +5,7 @@ import { readIncomeExtras, summarizeIncome, type IncomeExtra } from "@eavesence/
 import { IncomeExtrasSummary } from "./src/IncomeExtrasSummary";
 import appConfig from "./app.json";
 import { HomeSetupForm } from "./src/HomeSetupForm";
+import {HomeMemos} from "./src/HomeMemos";
 import { MonthlyPayments } from "./src/MonthlyPayments";
 import { HomeCoreOverview } from "./src/HomeCoreOverview";
 import { homeRelease } from "../../src/lib/homeRelease";
@@ -51,7 +52,7 @@ import { PlanningScreen } from "./src/PlanningScreen";
 import type { PlanningData } from "@eavesence/core/planning";
 import { SavingsBudgetSummary } from "./src/SavingsBudgetSummary";
 import { LocaleContext, LocalizedText as Text, localize, showLocalizedAlert, useMobileLocale, type MobileLocale } from "./src/i18n";
-import { cancelCostReview, disableAllReminders, disableCostReminders, disableMonthlyReminder, enableMonthlyReminder, monthlyReminderIsActive } from "./src/reminders";
+import { cancelCostReview, reconcileMemoReminders, disableMemoReminders, disableAllReminders, disableCostReminders, disableMonthlyReminder, enableMonthlyReminder, monthlyReminderIsActive } from "./src/reminders";
 import {
   BETA_KEY,
   COSTS_KEY,
@@ -206,6 +207,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       if (storedProfile && readIncomeExtras(storedProfile.incomeExtras) === null) throw new Error("Invalid stored income extras");
       setProfile(storedProfile);
       if (storedProfile) {
+        void reconcileMemoReminders(storedProfile.planning?.memos??[],storedProfile.locale??"de").catch(()=>{});
         setHomeName(storedProfile.name);
         setLocale(storedProfile.locale ?? "de");
         setElectricityPrice(String(storedProfile.electricityPrice));
@@ -331,6 +333,15 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   }
 
   const [homeDetailsOpen, setHomeDetailsOpen] = useState(false);
+  const [memosOpen,setMemosOpen]=useState(false);
+  useEffect(()=>{
+    const handle=(response:Notifications.NotificationResponse|null)=>{
+      if(response?.notification.request.content.data?.eavesenceMemo===true){setTab("home");setMemosOpen(true);void Notifications.clearLastNotificationResponseAsync().catch(()=>{});}
+    };
+    const subscription=Notifications.addNotificationResponseReceivedListener(handle);
+    void Notifications.getLastNotificationResponseAsync().then(handle).catch(()=>{});
+    return()=>subscription.remove();
+  },[]);
 
   async function savePlanning(planning: PlanningData) {
     if (!profile) return;
@@ -374,7 +385,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
         [COSTS_KEY, backup.costs], [TILES_KEY, backup.tiles], [BETA_KEY, backup.betaInterested],
       ]);
       let remindersCleared = true;
-      try { await disableCostReminders(); } catch { remindersCleared = false; }
+      const reminderResults=await Promise.allSettled([disableCostReminders(), (async()=>{await disableMemoReminders();await reconcileMemoReminders(backup.profile.planning?.memos??[],backup.profile.locale??"de");})()]);
+      remindersCleared=reminderResults.every(result=>result.status==="fulfilled");
       setProfile(backup.profile);
       setHomeName(backup.profile.name);
       setLocale(backup.profile.locale ?? "de");
@@ -392,7 +404,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       setSelectedCostTileId("default-costs");
       setTab("home");
       setLoadFailed(false); setReady(true);
-      showLocalizedAlert(locale,"Sicherung importiert", remindersCleared ? "Deine App-Daten wurden ersetzt." : locale === "de" ? "Deine App-Daten wurden ersetzt. Alte Kosten-Erinnerungen konnten nicht entfernt werden; bitte prüfe sie." : "Your app data was replaced. Old cost reminders could not be removed; please review them.");
+      showLocalizedAlert(locale,"Sicherung importiert", remindersCleared ? "Deine App-Daten wurden ersetzt." : locale === "de" ? "Deine App-Daten wurden ersetzt. Alte Erinnerungen konnten nicht entfernt werden; bitte prüfe sie." : "Your app data was replaced. Old reminders could not be removed; please review them.");
     } catch {
       showLocalizedAlert(locale,"Import fehlgeschlagen", "Die Daten konnten nicht gespeichert werden. Bitte versuche es erneut.");
     }
@@ -431,7 +443,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           setCurrency("EUR"); setVariableBudget(""); setBufferBudget("0"); setSavingsGoal("0");
           if (!reminderRemovalFailed) setReminderActive(false);
           setSelectedCostTileId("default-costs"); setTab("home");
-          setAreasOpen(false); setUpcomingOpen(false); setBudgetOpen(false); setPlanQuestion("payday");
+          setMemosOpen(false); setAreasOpen(false); setUpcomingOpen(false); setBudgetOpen(false); setPlanQuestion("payday");
           if (reminderRemovalFailed) showLocalizedAlert(locale,"Daten gelöscht", "Die Erinnerung konnte nicht ausgeschaltet werden. Deaktiviere sie später in der App.");
         } catch { showLocalizedAlert(locale,"Zurücksetzen fehlgeschlagen", "Bitte versuche es erneut."); }
       })(); } },
@@ -535,6 +547,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       catch { showLocalizedAlert(locale, "Speichern fehlgeschlagen", "Bitte versuche es erneut."); return; }
     } else setHomeName(nextLocale === "de" ? "Mein Zuhause" : "My home");
     setLocale(nextLocale);
+    if(profile)void reconcileMemoReminders(profile.planning?.memos??[],nextLocale).catch(()=>{});
   }
 
   async function addEnergyTile() {
@@ -790,6 +803,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             <Pressable accessibilityRole="button" style={[styles.financePill, styles.outlinedAction]} onPress={() => startWith("income")}><Text style={styles.outlinedText}>{hasIncome ? locale === "de" ? "Einkommen ändern" : "Edit income" : locale === "de" ? "Einkommen eintragen" : "Add income"}</Text></Pressable>
           </View>
           <MonthlyPayments costs={costs} data={profile.planning} onSave={savePlanning} locale={locale} currency={profile.currency ?? "EUR"} onEdit={reviewCost} onAdd={() => startWith("cost")} />
+          <HomeMemos data={profile.planning} onSave={savePlanning} locale={locale} open={memosOpen} onToggle={()=>setMemosOpen(!memosOpen)}/>
           <Pressable accessibilityRole="button" accessibilityState={{expanded:homeDetailsOpen}} onPress={() => setHomeDetailsOpen(!homeDetailsOpen)} style={styles.areaDisclosure}><Text style={styles.areaDisclosureText}>{locale === "de" ? "Monatsbudget & Kostenbereiche" : "Monthly budget & cost areas"}</Text><DisclosureIcon open={homeDetailsOpen}/></Pressable>
           {homeDetailsOpen && <>
           <HomeCoreOverview incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency ?? "EUR"} income={monthlyIncome} costs={costs} forecast={forecast} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} onIncome={() => startWith("income")} onCost={() => startWith("cost")} onCosts={openMainCosts} onReview={reviewCost} />

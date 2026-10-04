@@ -26,6 +26,7 @@ import PaydayPanel from '@/components/PaydayPanel';
 import {confirmSavingsChange,localToday} from '@eavesence/core/homeValue';
 import type {SavingsAction} from '@eavesence/core/savingsPlan';
 import SavingsPlanPanel from "@/components/SavingsPlanPanel";
+import HomeMemos from "@/components/HomeMemos";
 import MonthlyPayments from "@/components/MonthlyPayments";
 import HomeCoreOverview from "@/components/HomeCoreOverview";
 import { homeRelease } from "@/lib/homeRelease";
@@ -1854,6 +1855,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </nav>
           <div hidden={view !== "overview"} data-home-overview-content>
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
+          {householdCosts.length > 0 && profile.overviewReviewed !== false && <HomeMemos data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale}/>}
           <HomeCoreOverview incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} undatedCosts={householdCosts.filter(cost => !cost.nextDueDate)} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Sonderzahlungen)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>

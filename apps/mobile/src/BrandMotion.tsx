@@ -17,7 +17,7 @@ export function BrandMotion({ source, style, locale }: { source: ImageSourceProp
   return <Animated.Image source={source} accessibilityLabel="EAVESENCE" style={[style, { transform: [{ scale }] }]} />;
 }
 
-export function DisclosureIcon({ open }: { open: boolean }) {
+export function DisclosureIcon({ open, color = "#087a45" }: { open: boolean; color?:string }) {
   const [rotation] = useState(() => new Animated.Value(open ? 1 : 0));
   useEffect(() => {
     let disposed = false;
@@ -29,5 +29,5 @@ export function DisclosureIcon({ open }: { open: boolean }) {
     }).catch(() => { if (!disposed) rotation.setValue(open ? 1 : 0); });
     return () => { disposed = true; animation?.stop(); };
   }, [open, rotation]);
-  return <Animated.Text accessible={false} style={{ width: 18, textAlign: "center", color: "#087a45", fontSize: 22, transform: [{ rotate: rotation.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "-45deg"] }) }] }}>+</Animated.Text>;
+  return <Animated.Text accessible={false} style={{ width: 18, textAlign: "center", color, fontSize: 22, transform: [{ rotate: rotation.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "-45deg"] }) }] }}>+</Animated.Text>;
 }

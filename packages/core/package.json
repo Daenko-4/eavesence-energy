@@ -17,6 +17,8 @@
     "./paymentChecklist": "./src/paymentChecklist.ts",
     "./usePaymentChecklist": "./src/usePaymentChecklist.ts",
     "./tileSymbols": "./src/tileSymbols.ts",
-    "./income": "./src/income.ts"
+    "./income": "./src/income.ts",
+    "./memos": "./src/memos.ts",
+    "./useMemos": "./src/useMemos.ts"
   }
 }

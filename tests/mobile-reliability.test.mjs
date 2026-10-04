@@ -1,3 +1,4 @@
+import * as memoCore from '../packages/core/src/memos.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -8,7 +9,7 @@ function productionModule(path, mocks) {
   const source = readFileSync(new URL(`../apps/mobile/src/${path}.ts`, import.meta.url), 'utf8');
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
   const target = { exports: {} };
-  runInNewContext(compiled, { module: target, exports: target.exports, require: name => mocks[name], Date, Promise });
+  runInNewContext(compiled, { module: target, exports: target.exports, require: name => name === '@eavesence/core/memos' ? memoCore : mocks[name], Date, Promise });
   return target.exports;
 }
 function storageFixture() {
@@ -85,4 +86,28 @@ test('iPhone monthly reminder remains active after native calendar serialization
   request.trigger.repeats = true;
   request.trigger.dateComponents.year = 2026;
   assert.equal(await r.monthlyReminderIsActive(), false);
+});
+
+test('memo reminders update text and date, cancel completed or removed notes, and preserve unrelated reminders',async()=>{
+ const scheduled=[{identifier:'other',content:{title:'Unrelated'}}];let prompts=0;let granted=true;
+ const api={getAllScheduledNotificationsAsync:async()=>[...scheduled],getPermissionsAsync:async()=>({granted}),requestPermissionsAsync:async()=>{prompts++;return {granted};},cancelScheduledNotificationAsync:async id=>{const i=scheduled.findIndex(r=>r.identifier===id);if(i>=0)scheduled.splice(i,1);},scheduleNotificationAsync:async r=>{scheduled.push(r);},SchedulableTriggerInputTypes:{DATE:'date'}};
+ const r=productionModule('reminders',{'expo-notifications':api});
+ const memo={id:'annual',text:'Review annual billing',date:'2099-12-31',done:false,updatedAt:'2026-10-04T08:00:00Z'};
+ assert.equal(await r.reconcileMemoReminders([memo],'en',true),'scheduled');assert.equal(prompts,1);
+ assert.equal(scheduled[1].trigger.date.getHours(),9);assert.equal(scheduled[1].content.body,memo.text);
+ await r.reconcileMemoReminders([memo],'en');assert.equal(scheduled.length,2);assert.equal(prompts,1);
+ const edited={...memo,text:'Review three subscriptions',date:'2099-12-28',updatedAt:'2026-10-05T08:00:00Z'};
+ await r.reconcileMemoReminders([edited],'de');assert.equal(scheduled.length,2);assert.equal(scheduled[1].content.body,edited.text);assert.equal(scheduled[1].trigger.date.getDate(),28);
+ await r.reconcileMemoReminders([{...edited,done:true}],'de');assert.deepEqual(scheduled.map(r=>r.identifier),['other']);
+ await r.reconcileMemoReminders([edited],'de');granted=false;assert.equal(await r.reconcileMemoReminders([edited],'de'),'denied');assert.deepEqual(scheduled.map(r=>r.identifier),['other']);
+ granted=true;await r.reconcileMemoReminders([edited],'de');await r.disableAllReminders();assert.deepEqual(scheduled.map(r=>r.identifier),['other']);
+ await r.reconcileMemoReminders([{...memo,date:'2000-12-31'}],'en',true);assert.equal(prompts,1);
+});
+
+test('reset queued during a memo schedule waits and then removes the pending notification',async()=>{
+ const scheduled=[];let release;const waiting=new Promise(resolve=>{release=resolve;});let entered;const started=new Promise(resolve=>{entered=resolve;});
+ const api={getAllScheduledNotificationsAsync:async()=>[...scheduled],getPermissionsAsync:async()=>({granted:true}),scheduleNotificationAsync:async request=>{entered();await waiting;scheduled.push(request);},cancelScheduledNotificationAsync:async id=>{const index=scheduled.findIndex(r=>r.identifier===id);if(index>=0)scheduled.splice(index,1);},SchedulableTriggerInputTypes:{DATE:'date'}};
+ const r=productionModule('reminders',{'expo-notifications':api});
+ const writing=r.reconcileMemoReminders([{id:'memo',text:'Remember',date:'2099-12-31',done:false,updatedAt:'2026-10-04T08:00:00Z'}],'en');
+ await started;const reset=r.disableAllReminders();release();await Promise.all([writing,reset]);assert.equal(scheduled.length,0);
 });
