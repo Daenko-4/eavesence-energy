@@ -8,6 +8,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`memos and c
  await page.setViewportSize({width,height:844});await seed(page,de);
  const list=page.getByRole('region',{name:de?'Monatscheckliste':'Monthly checklist'}),toggle=list.getByRole('button',{name:de?'Zahlungen abhaken':'Check off payments',exact:true});
  const payment=list.getByRole('checkbox',{name:/^Rent ·/});await payment.check();await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','false');await expect(payment).toBeHidden();await expect(list.locator('[data-checklist-open]')).toBeVisible();await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 1 bezahlt':'1 of 1 paid');
+ await list.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`checklist-collapsed-${de?'de':'en'}-${width}.png`)});
  await toggle.click();await expect(payment).toBeChecked();expect(await toggle.locator('span').last().evaluate(el=>getComputedStyle(el).rotate)).toBe('-45deg');
  const memos=page.getByRole('region',{name:de?'Merken & erinnern':'Notes & reminders'}),summary=memos.getByRole('button').first();
  await expect(summary).toHaveAttribute('aria-expanded','false');await summary.click();await memos.getByRole('button',{name:de?'Notiz hinzufügen':'Add note',exact:true}).click();
@@ -19,7 +20,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`memos and c
  await memos.getByRole('button',{name:de?'Notiz hinzufügen':'Add note',exact:true}).click();await form.getByLabel(de?'Notiz':'Note',{exact:true}).fill('Ask the insurance provider about a cheaper rate');
  const bounds=await form.boundingBox();for(const control of await form.locator('input, textarea, button').all()){const box=await control.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(bounds!.x);expect(box!.x+box!.width).toBeLessThanOrEqual(bounds!.x+bounds!.width);}
  await form.scrollIntoViewIfNeeded();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:info.outputPath(`memos-${de?'de':'en'}-${width}.png`)});
- await form.getByRole('button',{name:de?'Notiz speichern':'Save note',exact:true}).click();await note.check();await memos.getByText(de?'Erledigt (1)':'Done (1)',{exact:true}).click();await expect(note).toBeChecked();
+ await form.getByRole('button',{name:de?'Notiz speichern':'Save note',exact:true}).click();await note.click();await memos.getByText(de?'Erledigt (1)':'Done (1)',{exact:true}).click();await expect(note).toBeChecked();
  await page.reload();await memos.getByRole('button').first().click();await memos.getByText(de?'Erledigt (1)':'Done (1)',{exact:true}).click();await expect(note).toBeChecked();
  page.once('dialog',dialog=>dialog.accept());await memos.getByRole('button',{name:/Review annual billing.* · (Entfernen|Remove)$/}).click();await expect(note).toHaveCount(0);
  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning.memos.length)).toBe(1);
