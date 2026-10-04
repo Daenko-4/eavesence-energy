@@ -70,7 +70,7 @@ function NavigationLink({
       onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
-      className="group relative flex h-full items-center whitespace-nowrap px-1 text-[13px] !font-bold uppercase tracking-[0.05em] !text-[#52605b] transition duration-150 hover:!text-[var(--brand-green)]"
+      className="group relative flex h-full items-center whitespace-nowrap px-1 text-[15px] !font-extrabold uppercase tracking-[0.05em] !text-[#24272c] transition duration-150 hover:!text-[var(--brand-green)]"
     >
       {children}
     </a>
@@ -547,7 +547,7 @@ function HeaderContent({
               <span
                 ref={activeIndicatorRef}
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-[18px] left-0 h-[2px] rounded-full bg-[var(--brand-green-mint)] opacity-0 transition-[width,transform,opacity] duration-[360ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none"
+                className="pointer-events-none absolute bottom-[18px] left-0 h-[3px] rounded-full bg-[var(--brand-green-mint)] opacity-0 transition-[width,transform,opacity] duration-[360ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none"
               />
             </nav>
           </div>
@@ -595,7 +595,7 @@ function HeaderContent({
                       handleFaqActivate(event);
                     }
                   }}
-                  className="rounded-xl px-3 py-2.5 text-sm font-bold uppercase tracking-[0.05em] text-slate-700 transition hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
+                  className="rounded-xl px-3 py-2.5 text-[15px] font-extrabold uppercase tracking-[0.05em] text-[#24272c] transition hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
                 >
                   {label}
                 </a>
