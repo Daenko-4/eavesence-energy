@@ -1,3 +1,4 @@
+import {readMemos} from '@eavesence/core/memos';
 import * as Notifications from "expo-notifications";
 
 const reminderTitle = "EAVESENCE Monats-Check";
@@ -57,6 +58,7 @@ export async function cancelCostReview(id: string) {
 
 /** Remove only this app's scheduled reminders, including legacy review IDs. */
 export async function disableAllReminders() {
+  await disableMemoReminders();
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   const owned = scheduled.filter(request => request.content.data?.eavesenceMonthlyCheck === true || request.content.data?.eavesenceCostReview === true || request.content.title === reminderTitle || request.identifier.startsWith("eavesence-review-"));
   await Promise.all(owned.map(request => Notifications.cancelScheduledNotificationAsync(request.identifier)));
@@ -65,4 +67,37 @@ export async function disableAllReminders() {
 export async function disableCostReminders() {
   const requests = await Notifications.getAllScheduledNotificationsAsync();
   await Promise.all(requests.filter(request => request.content.data?.eavesenceCostReview === true || request.identifier.startsWith("eavesence-review-")).map(request => Notifications.cancelScheduledNotificationAsync(request.identifier)));
+}
+
+// Serialize reconciliation and removal so an in-flight schedule cannot undo a reset.
+let memoQueue:Promise<unknown>=Promise.resolve();
+function memoOperation<T>(operation:()=>Promise<T>):Promise<T> {
+  const task=memoQueue.then(operation);
+  memoQueue=task.catch(()=>{});
+  return task;
+}
+function ownsMemo(request:{identifier:string;content:{data?:Record<string,unknown>}}) {
+  return request.content.data?.eavesenceMemo===true || request.identifier.startsWith('eavesence-memo-');
+}
+export async function disableMemoReminders() {
+  return memoOperation(async()=>{
+    const scheduled=await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(scheduled.filter(ownsMemo).map(r=>Notifications.cancelScheduledNotificationAsync(r.identifier)));
+  });
+}
+export async function reconcileMemoReminders(memos:import('@eavesence/core/memos').HomeMemo[],locale:'de'|'en',requestPermission=false):Promise<'scheduled'|'denied'|'none'> {
+  return memoOperation(async()=>{
+    const upcoming=readMemos(memos).filter(m=>!m.done && m.date && new Date(`${m.date}T09:00:00`)>new Date());
+    const scheduled=(await Notifications.getAllScheduledNotificationsAsync()).filter(ownsMemo);
+    const permission=upcoming.length?(requestPermission?await Notifications.requestPermissionsAsync():await Notifications.getPermissionsAsync()):null;
+    const desired=permission?.granted?upcoming:[];
+    const matches=(request:typeof scheduled[number],memo:typeof desired[number])=>request.identifier===`eavesence-memo-${memo.id}` && request.content.data?.memoUpdatedAt===memo.updatedAt && request.content.data?.locale===locale;
+    for(const request of scheduled)if(!desired.some(m=>matches(request,m)))await Notifications.cancelScheduledNotificationAsync(request.identifier);
+    for(const memo of desired)if(!scheduled.some(r=>matches(r,memo)))await Notifications.scheduleNotificationAsync({
+      identifier:`eavesence-memo-${memo.id}`,
+      content:{title:locale==='de'?'EAVESENCE · Merken & erinnern':'EAVESENCE · Notes & reminders',body:memo.text,data:{eavesenceMemo:true,memoId:memo.id,memoUpdatedAt:memo.updatedAt,locale}},
+      trigger:{type:Notifications.SchedulableTriggerInputTypes.DATE,date:new Date(`${memo.date}T09:00:00`)},
+    });
+    return upcoming.length?(permission?.granted?'scheduled':'denied'):'none';
+  });
 }

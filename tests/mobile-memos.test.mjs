@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import {runInNewContext} from 'node:vm';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import ts from 'typescript';
+import {localToday} from '../packages/core/src/homeValue.ts';
+const require=createRequire(import.meta.url);
+const primitive=tag=>function Native({children,accessibilityRole,accessibilityState,accessibilityLabel}){return React.createElement(tag,{role:accessibilityRole,'aria-checked':accessibilityState?.checked,'aria-expanded':accessibilityState?.expanded,'aria-label':accessibilityLabel},children);};
+const native={Text:primitive('span'),View:primitive('div'),Pressable:primitive('button'),StyleSheet:{create:s=>s},Alert:{},Keyboard:{}};
+const compiled=ts.transpileModule(readFileSync(new URL('../apps/mobile/src/HomeMemos.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+const appModule={exports:{}};runInNewContext(compiled,{module:appModule,exports:appModule.exports,require:name=>name==='react-native'?native:name==='./BrandMotion'?{DisclosureIcon:()=>null}:name==='./FormSection'?{FormSection:()=>null,FormSubmitButton:()=>null}:name==='./FormInput'?{FormInput:()=>null}:name==='./reminders'?{reconcileMemoReminders:async()=> 'none'}:require(name)});
+const memo=(id,date,done=false)=>({id,text:id,date,done,updatedAt:new Date().toISOString()});
+for(const locale of ['de','en'])test(`native memos show current notes first and localize reminders in ${locale}`,()=>{
+ const props={data:{goals:[],reserves:[],checks:[],memos:[memo('Current note',localToday()),memo('Later note','2099-12-31'),memo('Finished note','',true)]},onSave:()=>{},locale,open:true,onToggle:()=>{}};
+ const html=renderToStaticMarkup(React.createElement(appModule.exports.HomeMemos,props));
+ assert.match(html,/role="checkbox" aria-checked="false"/);assert.ok(html.includes('Current note'));assert.ok(!html.includes('Later note'));assert.ok(!html.includes('Finished note'));
+ assert.ok(html.includes(locale==='de'?'Merken &amp; erinnern':'Notes &amp; reminders'));assert.ok(html.includes(locale==='de'?'1 fällig':'1 due'));assert.ok(html.includes(locale==='de'?'Später':'Later'));
+ const closed=renderToStaticMarkup(React.createElement(appModule.exports.HomeMemos,{...props,open:false}));assert.ok(!closed.includes('role="checkbox"'));assert.ok(closed.includes(locale==='de'?'1 fällig':'1 due'));
+});
