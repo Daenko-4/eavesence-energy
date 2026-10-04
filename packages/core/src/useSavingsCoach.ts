@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { localToday, parseMoney, savingsToDate } from "./homeValue.ts";
 import { readPlanningData, type PlanningData } from "./planning.ts";
 import {
@@ -8,7 +8,7 @@ import {
   type SavingsAction,
   type SavingsPlanInput,
 } from "./savingsPlan.ts";
-import type { HouseholdCost } from "./householdCosts.ts";
+import { monthlyCost, type HouseholdCost } from "./householdCosts.ts";
 export function useSavingsCoach(
   input: SavingsPlanInput,
   actions: SavingsAction[],
@@ -24,7 +24,9 @@ export function useSavingsCoach(
     [amount, setAmount] = useState(""),
     [effective, setEffective] = useState(today.slice(0, 7)),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [notice, setNotice] = useState("");
+  const saving = useRef(false);
   const tasks = savingsReviewCandidates(input.costs, today)
     .filter(
       (c) =>
@@ -53,18 +55,23 @@ export function useSavingsCoach(
     today,
   );
   async function run(work: () => void | Promise<void>) {
-    if (busy) return;
+    if (saving.current) return false;
+    saving.current = true;
     setBusy(true);
     setError("");
+    setNotice("");
     try {
       await work();
+      return true;
     } catch {
       setError(
         de
           ? "Speichern fehlgeschlagen oder Angaben inzwischen geändert. Bitte prüfen."
           : "Could not save or the entries have changed. Please review.",
       );
+      return false;
     } finally {
+      saving.current = false;
       setBusy(false);
     }
   }
@@ -80,7 +87,7 @@ export function useSavingsCoach(
       return;
     }
     const action = selected
-      ? createSavingsAction(selected, parseMoney(amount), effective)
+      ? createSavingsAction(selected, parseMoney(amount, de ? "de" : "en"), effective)
       : null;
     if (!action) {
       setError(
@@ -90,12 +97,13 @@ export function useSavingsCoach(
       );
       return;
     }
-    await run(async () => {
+    return run(async () => {
       await onActions([
         action,
         ...actions.filter((a) => a.costId !== action.costId),
       ]);
       setSelected(null);
+      setNotice(de ? "Änderung vorgemerkt. Deine Kosten bleiben bis zur Bestätigung unverändert." : "Change planned. Your costs stay unchanged until you confirm it happened.");
     });
   }
   function later(c: HouseholdCost) {
@@ -112,9 +120,12 @@ export function useSavingsCoach(
       }),
     );
   }
-  const candidate = selected ? createSavingsAction(selected, parseMoney(amount), effective) : null;
+  const candidate = selected ? createSavingsAction(selected, parseMoney(amount, de ? "de" : "en"), effective) : null;
   const preview = candidate ? compareSavingsActions(input, [candidate]) : null;
   return {
+    notice,
+    plannedMonthly: actions.filter(a => a.status === "planned" && !outdated.includes(a)).reduce((sum,a) => sum + monthlyCost(a.originalAmount-a.newAmount,a.frequency),0),
+    confirmedMonthly: actions.filter(a => a.status === "confirmed" && !outdated.includes(a)).reduce((sum,a) => sum + monthlyCost(a.originalAmount-a.newAmount,a.frequency),0),
     preview,
     tasks,
     totals,
@@ -131,7 +142,7 @@ export function useSavingsCoach(
     later,
     today,
     cancel: () => setSelected(null),
-    confirm: (a: SavingsAction) => run(() => onConfirm(a)),
+    confirm: (a: SavingsAction) => run(async () => { await onConfirm(a); setNotice(de ? "Umsetzung bestätigt und laufende Kosten aktualisiert. Die Ersparnis findest du unter Erspart." : "Change confirmed and recurring costs updated. Find the savings under Saved."); }),
     discard: (a: SavingsAction) =>
       run(() => onActions(actions.filter((item) => item.costId !== a.costId))),
   };

@@ -21,6 +21,7 @@ export default function SavingsCoach({
   onActions,
   onConfirm,
   onReview,
+  onNavigate,
   currency,
   mode = "all",
   locale,
@@ -32,6 +33,7 @@ export default function SavingsCoach({
   onActions: (a: SavingsAction[]) => void | Promise<void>;
   onConfirm: (a: SavingsAction) => void | Promise<void>;
   onReview: (c: HouseholdCost) => void;
+  onNavigate?: (question: "savings" | "progress") => void;
   currency: string;
   mode?: "all" | "opportunities" | "progress";
   locale: "de" | "en";
@@ -71,12 +73,14 @@ export default function SavingsCoach({
           "Review → plan a change → confirm it happened. Up to three next tasks. You decide what makes sense.",
         )}
       </p>
+      {mode !== "progress" && p.plannedMonthly > 0 && <div className="mt-3 rounded-xl bg-[#eefbf3] p-3 text-[12px]"><p className="font-semibold">{t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: {money(p.plannedMonthly)} {t("pro Monat", "per month")}</p><p className="mt-1">{t("Noch nicht erreicht. Bestätige jede Änderung erst nach der Umsetzung.", "Not achieved yet. Confirm each change only after it happens.")}</p></div>}
+      {p.notice && <p role="status" className="mt-3 text-[12px] text-[#087a45]">{p.notice}</p>}
       {mode === "progress" && !shownActions.length && <p className="mt-3 text-[12px] text-[#52605b]">{t("Noch keine bestätigte Ersparnis. Plane eine konkrete Kostenänderung und bestätige sie erst nach der Umsetzung.", "No confirmed savings yet. Plan a specific cost change and confirm it after it happens.")}</p>}
-      {p.outdated.length > 0 && (
+      {p.outdated.some(a => shownActions.includes(a)) && (
         <p role="status" className="mt-3 text-[12px] text-amber-800">
           {t(
-            "Kosten zu einer bestätigten Änderung wurden erneut geändert. Diese Änderung ist bis zur Prüfung nicht im Ersparniswert enthalten.",
-            "A cost linked to a confirmed change has changed again. That change is excluded from the savings total until reviewed.",
+            "Die Kosten zu einer Änderung wurden erneut geändert. Prüfe die Angaben; betroffene Änderungen zählen bis dahin nicht zur Ersparnis.",
+            "A cost linked to a change has changed again. Review the entries; affected changes are excluded from savings until then.",
           )}
         </p>
       )}
@@ -84,15 +88,15 @@ export default function SavingsCoach({
         <div className="mt-3 rounded-xl bg-[#24272c] p-3 text-white">
           <p className="text-[12px] text-[#d1d7d4]">
             {t(
-              "Seit deinen bestätigten Änderungen rechnerisch weniger ausgegeben",
-              "Estimated lower spending since your confirmed changes",
+              "Bis heute anhand bestätigter Änderungen und Zahlungstermine eingespart",
+              "Saved to date from confirmed changes and payment dates",
             )}
           </p>
-          <p className="mt-1 text-xl font-extrabold">{money(p.totals.total)}</p>
+          <p className="mt-1 text-xl font-extrabold">{money(p.totals.scheduled)}</p>
           <p className="mt-1 text-[11px] text-[#d1d7d4]">
             {t(
-              "Aus deinen Bestätigungen und Zahlungsterminen berechnet, nicht anhand von Kontobuchungen geprüft. Ohne Termin wird anteilig geschätzt.",
-              "Calculated from your confirmations and payment dates, not verified against bank transactions. Undated costs use a prorated estimate.",
+              "Aus deinen Bestätigungen und Zahlungsterminen berechnet, nicht anhand von Kontobuchungen geprüft.",
+              "Calculated from your confirmations and payment dates, not verified against bank transactions.",
             )}
           </p>
         </div>
@@ -291,6 +295,9 @@ export default function SavingsCoach({
           ))}
         </details>
       )}
+      {mode === "progress" && p.totals.estimated > 0 && <p className="mt-3 text-[12px] text-[#52605b]">{t("Zusätzlich ohne Zahlungstermin geschätzt", "Additional estimate without payment dates")}: {money(p.totals.estimated)}. {t("Nicht im Betrag oben enthalten.", "Not included in the amount above.")}</p>}
+      {mode === "progress" && p.confirmedMonthly > 0 && <p className="mt-2 text-[12px] text-[#52605b]">{t("Deine bestätigten Änderungen senken die laufenden Kosten durchschnittlich um", "Your confirmed changes reduce recurring costs by an average of")} {money(p.confirmedMonthly)} {t("pro Monat. Das ist kein zusätzlich bereits angesparter Betrag.", "per month. This is not extra money already saved.")}</p>}
+      {onNavigate && mode !== "all" && <button type="button" className={`${button} mt-3`} onClick={() => onNavigate(mode === "progress" ? "savings" : "progress")}>{mode === "progress" ? t("Eine Sparmöglichkeit prüfen", "Review a savings opportunity") : t("Erreichte Ersparnis ansehen", "View achieved savings")}</button>}
       {p.error && (
         <p role="alert" className="mt-2 text-[12px] text-red-700">
           {p.error}

@@ -74,6 +74,9 @@ export default function PaydayPanel({
                 p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter today’s balance, your next payday and expected everyday spending. You can update existing entries.",
               )}
         </p>
+        {complete && p.forecast!.remaining! >= 0 && <p className="mt-2 text-[12px] leading-5 text-[#d1d7d4]">{t(`Zusätzlich etwa ${money(p.forecast!.remaining! / p.forecast!.days)} pro Tag für ${p.forecast!.days} Tage. Deine eingeplanten Alltagsausgaben sind bereits abgezogen.`, `About ${money(p.forecast!.remaining! / p.forecast!.days)} extra per day for ${p.forecast!.days} days. Your planned everyday spending is already deducted.`)}</p>}
+        {complete && p.forecast!.remaining! < 0 && <p className="mt-2 text-[12px] text-[#ffe1a8]">{t(`Es fehlen voraussichtlich ${money(-p.forecast!.remaining!)}. Prüfe offene Zahlungen und deine Alltagsschätzung.`, `Estimated shortfall: ${money(-p.forecast!.remaining!)}. Review pending payments and your everyday estimate.`)}</p>}
+        {p.forecast && p.forecast.overdue > 0 && <p className="mt-2 text-[12px] text-[#ffe1a8]">{t(`${p.forecast.overdue} frühere Zahlungen dieses Monats sind noch nicht abgehakt und deshalb enthalten. Bereits bezahlt? In der Monatscheckliste abhaken und Guthaben erneut bestätigen.`, `${p.forecast.overdue} earlier payments this month are still unchecked and included. Already paid? Check them off in the monthly checklist, then confirm your balance again.`)}</p>}
         {p.forecast && <div className="mt-3 flex flex-wrap gap-2">{input.costs.filter(c => !c.nextDueDate).map(c => <button key={c.id} type="button" className="min-h-11 rounded-full border border-[#72dca3] px-3 text-[12px] font-semibold" onClick={() => onReviewCost?.(c)}>{c.name} · {t("Termin ergänzen", "Add date")}</button>)}</div>}
         {p.forecast?.everyday === null && <p className="mt-2 text-[12px] text-[#ffe1a8]">{t("Noch offen: Alltag bis zum Gehalt. Öffne die Rechnung und ergänze den Betrag; 0 ist möglich.", "Still missing: everyday spending until payday. Open the calculation and add an amount; 0 is allowed.")}</p>}
         {p.stale && (
@@ -104,8 +107,8 @@ export default function PaydayPanel({
         <div className="space-y-3 bg-white p-4 sm:p-5">
           <p className="text-[12px] text-[#52605b]">
             {t(
-              "Guthaben nach bereits bezahlten Rechnungen eintragen. Hake bezahlte Rechnungen in deiner Monatscheckliste ab. Nur offene Zahlungen mit Termin werden abgezogen. Das nächste Gehalt wird hier noch nicht dazugezählt.",
-              "Enter your balance after bills already paid. Mark paid bills in your monthly checklist; only unchecked dated payments count as pending. Your next salary is not added yet.",
+              "Guthaben nach bereits bezahlten Rechnungen eintragen. Hake bezahlte Rechnungen in deiner Monatscheckliste ab. Offene Zahlungen mit Termin werden abgezogen, auch frühere Zahlungen dieses Monats, die noch nicht abgehakt sind. Das nächste Gehalt wird hier noch nicht dazugezählt.",
+              "Enter your balance after bills already paid. Mark paid bills in your monthly checklist; unchecked dated payments count as pending, including earlier payments this month. Your next salary is not added yet.",
             )}
           </p>
           <form
@@ -130,8 +133,8 @@ export default function PaydayPanel({
               />
               <span id="payday-balance-help" className="text-[#52605b]">
                 {t(
-                  "Geld auf den Konten, aus denen du die nächsten Ausgaben bezahlst.",
-                  "Money in the accounts used to pay your upcoming expenses.",
+                  "Geld auf den Konten, aus denen du die nächsten Ausgaben bezahlst. Ein negativer Kontostand ist möglich.",
+                  "Money in the accounts used to pay upcoming expenses. A negative balance is allowed.",
                 )}
               </span>
             </label>

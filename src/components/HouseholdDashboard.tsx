@@ -2298,6 +2298,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <div hidden={planQuestion === "payday"}>
           <SavingsPlanPanel
             key={`savings-plan-${profile.createdAt}`}
+            onNavigate={setPlanQuestion}
             section={planQuestion === "progress" ? "progress" : "savings"}
             advanced={homeRelease.advancedPlanning}
             locale={locale}

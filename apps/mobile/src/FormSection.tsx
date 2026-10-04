@@ -14,7 +14,7 @@ export function FormSection({ onSave, saveLabel = "Speichern", children, ...prop
   async function save(work = onSave) {
     if (saving.current) return;
     saving.current = true; setBusy(true);
-    try { await work(); }
+    try { const result = await work(); if (result === true) Keyboard.dismiss(); }
     catch { showLocalizedAlert(locale, "Speichern fehlgeschlagen", "Bitte versuche es erneut."); }
     finally { saving.current = false; setBusy(false); }
   }

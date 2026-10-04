@@ -5,7 +5,7 @@ import type { PlanningData } from "@eavesence/core/planning";
 import {
   type SavingsPlanInput,
 } from "@eavesence/core/savingsPlan";
-import { FormSection } from "./FormSection";
+import { FormSection, FormSubmitButton } from "./FormSection";
 import { FormInput } from "./FormInput";
 import { LocalizedText as Text, useMobileLocale } from "./i18n";
 export function PaydayScreen({
@@ -44,7 +44,7 @@ export function PaydayScreen({
     const d = value.replace(/\D/g, "").slice(0, 8);
     return d.length === 8
       ? `${d.slice(4)}-${d.slice(2, 4)}-${d.slice(0, 2)}`
-      : value;
+      : [d.slice(0,2),d.slice(2,4),d.slice(4)].filter(Boolean).join(".");
   };
   const display = p.payday.match(/^\d{4}-\d{2}-\d{2}$/)
     ? p.payday.split("-").reverse().join(".")
@@ -91,6 +91,9 @@ export function PaydayScreen({
                 p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter today’s balance, your next payday and expected everyday spending. You can update existing entries.",
               )}
         </Text>
+        {complete && p.forecast!.remaining! >= 0 && <Text style={styles.light}>{t(`Zusätzlich etwa ${money(p.forecast!.remaining! / p.forecast!.days)} pro Tag für ${p.forecast!.days} Tage. Deine eingeplanten Alltagsausgaben sind bereits abgezogen.`, `About ${money(p.forecast!.remaining! / p.forecast!.days)} extra per day for ${p.forecast!.days} days. Your planned everyday spending is already deducted.`)}</Text>}
+        {complete && p.forecast!.remaining! < 0 && <Text style={styles.warning}>{t(`Es fehlen voraussichtlich ${money(-p.forecast!.remaining!)}. Prüfe offene Zahlungen und deine Alltagsschätzung.`, `Estimated shortfall: ${money(-p.forecast!.remaining!)}. Review pending payments and your everyday estimate.`)}</Text>}
+        {p.forecast && p.forecast.overdue > 0 && <Text style={styles.warning}>{t(`${p.forecast.overdue} frühere Zahlungen dieses Monats sind noch nicht abgehakt und deshalb enthalten. Bereits bezahlt? In der Monatscheckliste abhaken und Guthaben erneut bestätigen.`, `${p.forecast.overdue} earlier payments this month are still unchecked and included. Already paid? Check them off in the monthly checklist, then confirm your balance again.`)}</Text>}
         {p.forecast && input.costs.filter(c => !c.nextDueDate).map(c => <Pressable key={c.id} accessibilityRole="button" style={styles.mintButton} onPress={() => onReviewCost?.(c)}><Text style={styles.mintText}>{c.name} · {t("Termin ergänzen", "Add date")}</Text></Pressable>)}
         {p.forecast?.everyday === null && <Text style={styles.warning}>{t("Noch offen: Alltag bis zum Gehalt. Öffne die Rechnung und ergänze den Betrag; 0 ist möglich.", "Still missing: everyday spending until payday. Open the calculation and add an amount; 0 is allowed.")}</Text>}
         {p.stale && (
@@ -123,20 +126,20 @@ export function PaydayScreen({
         <FormSection style={styles.form} onSave={p.save} saveLabel={t("Guthaben bestätigen & berechnen", "Confirm balance & calculate")}>
           <Text style={styles.note}>
             {t(
-              "Guthaben nach bereits bezahlten Rechnungen eintragen. Hake bezahlte Rechnungen in deiner Monatscheckliste ab. Nur offene Zahlungen mit Termin werden abgezogen. Das nächste Gehalt wird noch nicht dazugezählt.",
-              "Enter your balance after bills already paid. Mark paid bills in your monthly checklist; only unchecked dated payments count as pending. Your next salary is not added yet.",
+              "Guthaben nach bereits bezahlten Rechnungen eintragen. Hake bezahlte Rechnungen in deiner Monatscheckliste ab. Offene Zahlungen mit Termin werden abgezogen, auch frühere Zahlungen dieses Monats, die noch nicht abgehakt sind. Das nächste Gehalt wird noch nicht dazugezählt.",
+              "Enter your balance after bills already paid. Mark paid bills in your monthly checklist; unchecked dated payments count as pending, including earlier payments this month. Your next salary is not added yet.",
             )}
           </Text>
           <FormInput
             label={t("Heute verfügbares Guthaben", "Balance available today")}
-            keyboardType="decimal-pad"
+            keyboardType="numbers-and-punctuation"
             value={p.balance}
             onChangeText={p.setBalance}
           />
           <Text style={styles.note}>
             {t(
-              "Geld auf den Konten, aus denen du die nächsten Ausgaben bezahlst.",
-              "Money in the accounts used to pay your upcoming expenses.",
+              "Geld auf den Konten, aus denen du die nächsten Ausgaben bezahlst. Ein negativer Kontostand ist möglich.",
+              "Money in the accounts used to pay upcoming expenses. A negative balance is allowed.",
             )}
           </Text>
           <FormInput
@@ -145,7 +148,8 @@ export function PaydayScreen({
               "Next payday (DD.MM.YYYY)",
             )}
             keyboardType="number-pad"
-            placeholder="25.10.2026"
+            maxLength={10}
+            placeholder={p.today.split("-").reverse().join(".")}
             value={display}
             onChangeText={(v) => p.setPayday(dateInput(v))}
           />
@@ -188,10 +192,7 @@ export function PaydayScreen({
               "Blank = use monthly estimate",
             )}
           />
-          {button(
-            t("Guthaben bestätigen & berechnen", "Confirm balance & calculate"),
-            () => void p.save(),
-          )}
+          <FormSubmitButton label={t("Guthaben bestätigen & berechnen", "Confirm balance & calculate")} style={styles.button} textStyle={styles.buttonText}/>
           {p.error && (
             <Text accessibilityRole="alert" style={styles.error}>
               {p.error}

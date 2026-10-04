@@ -6,7 +6,7 @@ import { createMobileBackup, readMobileBackup, type MobileBackup } from "./backu
 import type { MobileTile } from "./tiles.ts";
 
 /** Keep the website file read-only; import creates a new mobile snapshot. */
-export function convertWebBackup(json: string): MobileBackup | null {
+export function convertWebBackup(json: string, locale: "de" | "en" = "en"): MobileBackup | null {
   if (json.length > 2_000_000) return null;
   const source = readHouseholdBackup(json);
   if (!source || (source.profile.currency !== "EUR" && source.profile.currency !== "CHF")) return null;
@@ -37,7 +37,8 @@ export function convertWebBackup(json: string): MobileBackup | null {
   const converted = createMobileBackup({
     profile: {
       name: source.profile.name,
-      locale: "de",
+      locale,
+      backupReminderDismissed: source.profile.backupReminderDismissed,
       currency: source.profile.currency,
       electricityPrice: source.profile.electricityPrice,
       savingsGoalPercent: source.profile.savingsGoalPercent,

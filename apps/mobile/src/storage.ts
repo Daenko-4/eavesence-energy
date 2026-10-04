@@ -12,6 +12,7 @@ export const TILES_KEY = "eavesence-mobile-tiles-v1";
 
 export type MobileProfile = {
   name: string;
+  backupReminderDismissed?: boolean;
   setupStep?: "income" | "cost" | "review" | "complete";
   locale?: "de" | "en";
   currency?: "EUR" | "CHF";
