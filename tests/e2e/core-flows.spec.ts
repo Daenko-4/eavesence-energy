@@ -9,9 +9,12 @@ async function openPlan(page: Page, question: "payday" | "savings" | "progress" 
   await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Spend until payday|Bis zum Gehalt ausgeben/ : question === "savings" ? /Find realistic savings|Realistisch sparen/ : /Savings achieved|Erreichte Ersparnis/ }).click();
   if (budget && !await page.getByLabel(/Everyday spending per month|Alltagsausgaben pro Monat/).isVisible()) await page.getByRole("button", { name: /Add a monthly budget|Monatsbudget ergänzen/ }).click();
 }
-async function openCostAreas(page: Page) {
+async function openCostManager(page: Page) {
   await page.getByRole("navigation", { name: /Choose workspace|Bereich wählen/ }).getByRole("button", { name: /^(Overview|Übersicht)$/ }).click();
   if (!await page.locator("[data-cost-manager]").evaluate(el => (el as HTMLDetailsElement).open)) await page.locator("[data-cost-manager] > summary").click();
+}
+async function openCostAreas(page: Page) {
+  await openCostManager(page);
   if (!await page.locator("[data-home-tiles]").isVisible()) await page.getByText(/^(Organize cost areas|Kostenbereiche organisieren)$/).click();
 }
 
@@ -330,6 +333,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdOverview.getByRole("button", { name: /Payments next month/ }).click();
   await expect(householdOverview).toContainText("All recorded costs have a payment date.");
   await expect(page.getByText("Recurring costs / month")).toBeVisible();
+  await openCostManager(page);
   await expect(householdCosts.getByText("€900.00", { exact: true }).filter({ visible: true }).first()).toBeVisible();
   expect(
     await page.evaluate(() =>
@@ -1466,6 +1470,7 @@ for (const width of [320, 390, 1365]) {
 
 test('invoice and bank import require review, persist costs and explicitly update duplicates',async({page})=>{
  await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
+ await openCostManager(page);
  const panel=page.getByRole('region',{name:'Import costs',exact:true});
  const toggle=panel.getByRole('button',{name:'Import costs instead of typing'}),icon=toggle.locator('[aria-hidden="true"]');
  await expect(toggle).toHaveAttribute('aria-expanded','false');
@@ -1480,7 +1485,7 @@ test('invoice and bank import require review, persist costs and explicitly updat
  await expect(panel.getByLabel('Amount',{exact:true})).toHaveValue('39.90');
  await panel.getByRole('button',{name:'Import reviewed costs'}).click();
  await expect(panel.getByRole('status')).toContainText('Costs imported');
- await page.reload();
+ await page.reload();await openCostManager(page);
  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!));expect(stored[0].amount).toBe(39.9);
  await panel.getByRole('button',{name:'Import costs instead of typing'}).click();
  await panel.getByLabel('Choose files').setInputFiles({name:'bank.csv',mimeType:'text/csv',buffer:Buffer.from('name;amount;date;frequency;currency\nInternet Provider;-35;2026-10-05;monthly;EUR')});
@@ -1493,6 +1498,7 @@ test('invoice and bank import require review, persist costs and explicitly updat
 test('photo recognition runs locally and proposes the labelled invoice total',async({page})=>{
  test.setTimeout(120000);
  await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
+ await openCostManager(page);
  const panel=page.getByRole('region',{name:'Import costs',exact:true});await panel.getByRole('button',{name:'Import costs instead of typing'}).click();
  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="500"><rect width="100%" height="100%" fill="white"/><g font-family="Arial" font-size="40" fill="black"><text x="50" y="80">Internet Provider</text><text x="50" y="160">Total due: 39.90 EUR</text><text x="50" y="240">Monthly</text><text x="50" y="320">Payment due: 05.11.2026</text></g></svg>';
  await panel.getByLabel('Choose files').setInputFiles({name:'invoice.svg',mimeType:'image/svg+xml',buffer:Buffer.from(svg)});
@@ -1525,6 +1531,7 @@ test('savings assistant plans a cancellation, confirms it and updates recurring 
 
 test('PDF text extraction proposes the invoice without uploading it',async({page})=>{
  await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
+ await openCostManager(page);
  const panel=page.getByRole('region',{name:'Import costs',exact:true});await panel.getByRole('button',{name:'Import costs instead of typing'}).click();
  const stream='BT /F1 16 Tf 50 750 Td (Internet Provider) Tj 0 -30 Td (Total due: 39.90 EUR) Tj 0 -30 Td (Monthly) Tj ET';
  const objects=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`];

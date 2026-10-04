@@ -65,5 +65,5 @@ test('failed checkmark persistence leaves the payment open with a visible retry 
     Storage.prototype.setItem=function(key,value){if(key==='eavesence-home-profile-v1')throw new DOMException('Quota exceeded','QuotaExceededError');original.call(this,key,value);};
   });
   const rent=page.getByRole('checkbox',{name:/^Rent ·/});await rent.click();await expect(rent).not.toBeChecked();
-  await expect(page.getByRole('alert')).toContainText('Could not save this checkmark');
+  await expect(page.getByRole('region',{name:'Monthly checklist'}).getByRole('alert')).toContainText('Could not save this checkmark');
 });
