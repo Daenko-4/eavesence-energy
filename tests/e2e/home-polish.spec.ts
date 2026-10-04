@@ -54,13 +54,13 @@ for (const width of [1365, 390]) {
       const summary = page.locator('summary').filter({ hasText: de ? 'Kostenbereiche organisieren' : 'Organize cost areas' });
       const textLeft = await summary.evaluate(el => {
         const range = document.createRange();
-        range.selectNode(el.firstChild!);
+        range.selectNode(el.firstChild!.firstChild!);
         const rect = range.getBoundingClientRect();
         return { left: rect.left, centerY: rect.top + rect.height / 2 };
       });
       const pillContent = await page.locator('[data-cost-area-overview] nav button').first().locator('span').first().boundingBox();
       expect(Math.abs(textLeft.left - pillContent!.x)).toBeLessThanOrEqual(1);
-      const summaryBox = await summary.boundingBox();
+      const summaryBox = await summary.locator('.home-cost-area-control').boundingBox();
       expect(Math.abs(textLeft.centerY - (summaryBox!.y + summaryBox!.height / 2))).toBeLessThanOrEqual(2);
       const pro = page.getByRole('navigation', { name: de ? 'Bereich wählen' : 'Choose workspace' }).getByRole('button', { name: /Plan & save|Planen & sparen/ });
       const action = page.getByRole('group', { name: de ? 'Aktionen für dein Zuhause' : 'Home actions' }).getByRole('button').first();
@@ -78,7 +78,7 @@ for (const width of [1365, 390]) {
       const areaNav = areaBar.getByRole('navigation');
       await expect(areaNav.getByRole('button')).not.toHaveCount(0);
       await expect(areaBar.locator('[data-home-tiles]')).toBeHidden();
-      expect(await summary.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(45, 52, 50)');
+      expect(await summary.locator('.home-cost-area-control').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(45, 52, 50)');
       expect(await summary.evaluate(el => getComputedStyle(el, '::after').color)).toBe('rgb(114, 220, 163)');
       await page.screenshot({ path: info.outputPath(`cost-areas-collapsed-${locale}-${width}.png`) });
       await summary.click();

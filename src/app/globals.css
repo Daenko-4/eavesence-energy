@@ -455,25 +455,41 @@ a {
 
 .home-cost-area-disclosure {
   display: flow-root;
+  overflow: clip;
   border-radius: 0 0 0.75rem 0.75rem;
   background: #24272c;
 }
 .home-cost-area-disclosure > summary {
+  position: relative;
+  display: block;
+  padding: 4px 16px 12px;
+  background: #24272c;
+  color: #b8efcc;
+}
+.home-cost-area-control {
+  display: flex;
+  align-items: center;
   min-height: 48px;
-  margin: 4px 16px 12px;
-  padding: 6px 16px;
+  padding: 6px 56px 6px 16px;
   border: 1px solid #45574f;
   border-radius: 10px;
   background: #2d3432;
-  color: #b8efcc;
   transition: background 180ms ease, border-color 180ms ease;
 }
-.home-cost-area-disclosure > summary:hover,
-.home-cost-area-disclosure[open] > summary {
+.home-cost-area-disclosure > summary:hover .home-cost-area-control,
+.home-cost-area-disclosure[open] .home-cost-area-control {
   border-color: #72dca3;
   background: #343f39;
 }
+.home-cost-area-disclosure > summary:focus-visible { outline: none; }
+.home-cost-area-disclosure > summary:focus-visible .home-cost-area-control {
+  outline: 2px solid #72dca3;
+  outline-offset: 1px;
+}
 .home-cost-area-disclosure > summary::after {
+  position: absolute;
+  top: calc(50% - 18px);
+  right: 33px;
   display: flex;
   width: 28px;
   height: 28px;
@@ -483,12 +499,12 @@ a {
   background: #3b4a41;
   color: #72dca3;
 }
-.home-cost-area-disclosure[open] { overflow: clip; }
+.home-cost-area-disclosure[open] { background: transparent; }
 .home-cost-area-disclosure > section {
   margin-top: 0;
   border-top: 0;
   border-radius: 0 0 0.75rem 0.75rem;
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-cost-area-disclosure > summary { transition: none; }
+  .home-cost-area-control { transition: none; }
 }
