@@ -693,7 +693,7 @@ test("calculator updates live and a saved calculation can be deleted", async ({
   await expect(page.getByText("€25.48", { exact: true }).first()).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Your cost overview in My Home/ }),
-  ).toHaveAttribute("href", "/home");
+  ).toHaveCount(0);
   await expect(page.getByText("planned from €5.99 / month", { exact: true }))
     .toHaveCount(0);
 
