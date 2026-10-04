@@ -483,8 +483,15 @@ a {
   background: #3b4a41;
   color: #72dca3;
 }
-.home-cost-area-disclosure[open] { overflow: clip; }
+.home-cost-area-disclosure[open] {
+  overflow: clip;
+  background: transparent;
+}
+.home-cost-area-disclosure[open] > summary {
+  box-shadow: 0 0 0 16px #24272c;
+}
 .home-cost-area-disclosure > section {
+  position: relative;
   margin-top: 0;
   border-top: 0;
   border-radius: 0 0 0.75rem 0.75rem;
