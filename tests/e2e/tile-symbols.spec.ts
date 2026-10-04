@@ -25,6 +25,13 @@ for(const de of [false,true])for(const width of [320,1365])test(`cost area icons
   const picker=form.getByRole('group',{name:de?'Symbol auswählen':'Choose icon'});
   await expect(picker.getByRole('button')).toHaveCount(11);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  const bounds=await form.boundingBox();
+  for(const control of await form.locator('input, button').all()) {
+    const box=await control.boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(bounds!.x);
+    expect(box!.x+box!.width).toBeLessThanOrEqual(bounds!.x+bounds!.width);
+  }
+  expect((await form.locator('button[type=submit]').boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await form.scrollIntoViewIfNeeded();
   await page.screenshot({path:info.outputPath(`tile-symbol-picker-${de?'de':'en'}-${width}.png`)});
   await picker.getByRole('button',{name:de?'Mobilität':'Transport',exact:true}).click();

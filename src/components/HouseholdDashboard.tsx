@@ -1936,10 +1936,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   <h3 className="text-[14px] font-bold">{editingTileId ? text.editTile : text.newTile}</h3>
                   <button type="button" onClick={() => setTileFormOpen(false)} className="text-[11px] font-semibold text-[#65716d] hover:text-[#17211f]">{text.cancelTile}</button>
                 </div>
-                <form onSubmit={(event) => { event.preventDefault(); saveHomeTile(); }} className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                  <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">{text.tileName}<input ref={tileNameInputRef} value={tileName} onChange={(event) => { setTileName(event.target.value); setTileFeedback(""); }} placeholder={text.tileNamePlaceholder} className={homeFieldClass} /></label>
+                <form onSubmit={(event) => { event.preventDefault(); saveHomeTile(); }} className="mt-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                  <label className="grid min-w-0 gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">{text.tileName}<input ref={tileNameInputRef} value={tileName} onChange={(event) => { setTileName(event.target.value); setTileFeedback(""); }} placeholder={text.tileNamePlaceholder} className={`min-w-0 w-full ${homeFieldClass}`} /></label>
                   <TileSymbolPicker key={editingTileId ?? "new"} value={tileIcon} onChange={setTileIcon} locale={locale}/>
-                  <button type="submit" className={homePrimaryActionClass}>{editingTileId ? text.updateTile : text.createTile}</button>
+                  <button type="submit" className={`${homePrimaryActionClass} justify-self-start`} style={{minHeight:44,paddingInline:16}}>{editingTileId ? text.updateTile : text.createTile}</button>
                 </form>
                 {tileFeedback && <p role="alert" className="mt-2 text-[11px] font-bold text-red-700">{tileFeedback}</p>}
               </div>
