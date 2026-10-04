@@ -37,9 +37,9 @@ for (const de of [false, true]) {
 test("welcome language switch stays on welcome; damaged storage does not prevent starting", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("eavesence-home-profile-v1", "broken json"));
   await page.goto("/");
-  await page.getByRole("link", { name: "Zur deutschen Version wechseln" }).click();
+  await page.getByRole("link", { name: "Current language: English. Switch to German." }).click();
   await expect(page).toHaveURL("/de");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Damit aus Überblick ein Plan wird.");
-  await page.getByRole("link", { name: "Switch to English" }).click();
+  await page.getByRole("link", { name: "Aktuelle Sprache: Deutsch. Zu Englisch wechseln." }).click();
   await expect(page).toHaveURL("/");
 });
