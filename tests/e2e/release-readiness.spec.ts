@@ -42,5 +42,5 @@ for(const de of [false,true])test(`failed monthly budget write keeps draft and s
  await page.getByRole('button',{name:/Monatsbudget ergänzen|Add a monthly budget/}).click();
  const input=page.getByLabel(de?'Alltagsausgaben pro Monat (geschätzt)':'Everyday spending per month (estimate)',{exact:true});await input.fill(de?'1.234,50':'1,234.50');
  await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='eavesence-home-profile-v1')throw new DOMException('Storage full','QuotaExceededError');return original.call(this,key,value);};});
- await page.getByRole('button',{name:de?'Plan speichern':'Save plan',exact:true}).click();await expect(page.getByRole('alert')).toContainText(de?'Speichern fehlgeschlagen':'Could not save');await expect(input).toHaveValue(de?'1.234,50':'1,234.50');await expect(page.getByText(de?'Sparplan gespeichert.':'Savings plan saved.',{exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:de?'Plan speichern':'Save plan',exact:true}).click();await expect(page.locator('#savings-plan').getByRole('alert')).toContainText(de?'Speichern fehlgeschlagen':'Could not save');await expect(input).toHaveValue(de?'1.234,50':'1,234.50');await expect(page.getByText(de?'Sparplan gespeichert.':'Savings plan saved.',{exact:true})).toHaveCount(0);
 });
