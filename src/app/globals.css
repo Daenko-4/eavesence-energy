@@ -450,3 +450,6 @@ a {
 
 /* A single-line cost-area label needs one grid row for a centered plus. */
 .home-disclosure > summary.home-single-line-summary::after { grid-row: 1; }
+
+/* Area selection and organization form one dark navigation surface. */
+.home-cost-area-disclosure > summary::after { color: #72dca3; }
