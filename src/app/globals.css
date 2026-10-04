@@ -452,4 +452,38 @@ a {
 .home-disclosure > summary.home-single-line-summary::after { grid-row: 1; }
 
 /* Area selection and organization form one dark navigation surface. */
-.home-cost-area-disclosure > summary::after { color: #72dca3; }
+
+.home-cost-area-disclosure {
+  display: flow-root;
+  border-radius: 0 0 0.75rem 0.75rem;
+  background: #24272c;
+}
+.home-cost-area-disclosure > summary {
+  min-height: 48px;
+  margin: 4px 16px 12px;
+  padding: 6px 16px;
+  border: 1px solid #45574f;
+  border-radius: 10px;
+  background: #2d3432;
+  color: #b8efcc;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+.home-cost-area-disclosure > summary:hover,
+.home-cost-area-disclosure[open] > summary {
+  border-color: #72dca3;
+  background: #343f39;
+}
+.home-cost-area-disclosure > summary::after {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #3b4a41;
+  color: #72dca3;
+}
+.home-cost-area-disclosure > section { margin-top: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .home-cost-area-disclosure > summary { transition: none; }
+}

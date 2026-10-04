@@ -810,7 +810,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           {!incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency ?? "EUR"} />}
           <View style={styles.areaNavigation}>
           <View accessibilityLabel={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} style={styles.presetRow}>{tiles.map(tile => <Pressable key={tile.id} accessibilityRole="button" onPress={() => openTile(tile)} style={styles.areaPill}><View style={styles.tileTitleRow}><TileSymbol icon={iconForTile(tile)} color="#72dca3"/><Text style={styles.areaPillText}>{tile.id.startsWith("default-") ? localize(locale,tile.title) : tile.title}</Text></View></Pressable>)}</View>
-          <Pressable accessibilityRole="button" accessibilityState={{ expanded: areasOpen }} onPress={() => setAreasOpen(!areasOpen)} style={styles.areaOrganizer}><Text style={styles.areaOrganizerText}>{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</Text><DisclosureIcon open={areasOpen} color="#72dca3" /></Pressable>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: areasOpen }} onPress={() => setAreasOpen(!areasOpen)} style={styles.areaOrganizer}><Text style={styles.areaOrganizerText}>{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</Text><View style={styles.areaOrganizerIcon}><DisclosureIcon open={areasOpen} color="#72dca3" /></View></Pressable>
           </View>
           {areasOpen && <>
           <View style={styles.tilesSection}>
@@ -1000,10 +1000,11 @@ const styles = StyleSheet.create({
   outlinedAction: { backgroundColor: "transparent", borderColor: "#aebbb2" },
   outlinedText: { fontSize: 12, fontWeight: "700", color: "#24272c" },
   areaNavigation: { backgroundColor: "#24272c", borderRadius: 12, paddingHorizontal: 16, paddingTop: 12, marginTop: 16 },
-  areaPill: { minHeight: 44, borderRadius: 24, borderWidth: 1, borderColor: "#65716d", paddingHorizontal: 14, justifyContent: "center" },
+  areaPill: { minHeight: 44, borderRadius: 24, borderWidth: 1, borderColor: "#65716d", paddingHorizontal: 16, justifyContent: "center" },
   areaPillText: { fontSize: 12, fontWeight: "600", color: "#fff", flexShrink: 1 },
-  areaOrganizer: { minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  areaOrganizerText: { flex: 1, fontSize: 13, fontWeight: "700", color: "#fff" },
+  areaOrganizer: { minHeight: 48, marginTop: 4, marginBottom: 12, paddingHorizontal: 16, paddingVertical: 6, borderWidth: 1, borderColor: "#45574f", borderRadius: 10, backgroundColor: "#2d3432", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  areaOrganizerIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#3b4a41", alignItems: "center", justifyContent: "center" },
+  areaOrganizerText: { flex: 1, fontSize: 13, fontWeight: "700", color: "#b8efcc" },
   areaDisclosure: { borderWidth: 1, borderColor: "transparent", paddingHorizontal: 16, minHeight: 48, marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   areaDisclosureText: { flex: 1, fontSize: 13, fontWeight: "700", color: "#17211f" },
   disclosureIcon: { fontSize: 22, color: "#087a45" },
