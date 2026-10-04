@@ -83,6 +83,7 @@ for (const width of [1365, 390]) {
       await page.screenshot({ path: info.outputPath(`cost-areas-collapsed-${locale}-${width}.png`) });
       await summary.click();
       await expect(areaBar.locator('[data-home-tiles]')).toBeVisible();
+      await page.screenshot({ path: info.outputPath(`cost-areas-expanded-${locale}-${width}.png`) });
       expect(await summary.evaluate(el => getComputedStyle(el, '::after').transform)).toBe('matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)');
       await summary.click();
       await expect(areaBar.locator('[data-home-tiles]')).toBeHidden();
