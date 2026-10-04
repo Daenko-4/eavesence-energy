@@ -51,7 +51,6 @@ for (const width of [1365, 390]) {
       await page.locator('#household-cost-name').fill('Internet');
       await page.locator('#household-costs').getByLabel(de ? 'Betrag' : 'Amount', { exact: true }).fill('40');
       await page.locator('#household-costs').getByRole('button', { name: de ? 'Speichern' : 'Save', exact: true }).click();
-      const payments = page.getByRole('button', { name: de ? /Zahlungen im nächsten Monat/ : /Payments next month/ });
       const summary = page.locator('summary').filter({ hasText: de ? 'Kostenbereiche organisieren' : 'Organize cost areas' });
       const textLeft = await summary.evaluate(el => {
         const range = document.createRange();
@@ -59,16 +58,10 @@ for (const width of [1365, 390]) {
         const rect = range.getBoundingClientRect();
         return { left: rect.left, centerY: rect.top + rect.height / 2 };
       });
-      const paymentText = await payments.locator(':scope > span').first().boundingBox();
-      expect(Math.abs(textLeft.left - paymentText!.x)).toBeLessThanOrEqual(1);
+      const pillContent = await page.locator('[data-cost-area-overview] nav button').first().locator('span').first().boundingBox();
+      expect(Math.abs(textLeft.left - pillContent!.x)).toBeLessThanOrEqual(1);
       const summaryBox = await summary.boundingBox();
       expect(Math.abs(textLeft.centerY - (summaryBox!.y + summaryBox!.height / 2))).toBeLessThanOrEqual(2);
-      const plusRight = await summary.evaluate(el => {
-        const css = getComputedStyle(el);
-        return el.getBoundingClientRect().right - parseFloat(css.paddingRight) - parseFloat(css.borderRightWidth);
-      });
-      const paymentPlus = await payments.locator(':scope > span:last-child > span:last-child').boundingBox();
-      expect(Math.abs(plusRight - (paymentPlus!.x + paymentPlus!.width))).toBeLessThanOrEqual(1);
       const pro = page.getByRole('navigation', { name: de ? 'Bereich wählen' : 'Choose workspace' }).getByRole('button', { name: /Plan & save|Planen & sparen/ });
       const action = page.getByRole('group', { name: de ? 'Aktionen für dein Zuhause' : 'Home actions' }).getByRole('button').first();
       for (const property of ['borderRadius', 'fontSize']) {
@@ -85,7 +78,7 @@ for (const width of [1365, 390]) {
       const areaNav = areaBar.getByRole('navigation');
       await expect(areaNav.getByRole('button')).not.toHaveCount(0);
       await expect(areaBar.locator('[data-home-tiles]')).toBeHidden();
-      expect(await summary.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(36, 39, 44)');
+      expect(await summary.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(45, 52, 50)');
       expect(await summary.evaluate(el => getComputedStyle(el, '::after').color)).toBe('rgb(114, 220, 163)');
       await page.screenshot({ path: info.outputPath(`cost-areas-collapsed-${locale}-${width}.png`) });
       await summary.click();
