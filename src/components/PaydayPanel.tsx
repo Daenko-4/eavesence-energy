@@ -79,8 +79,8 @@ export default function PaydayPanel({
         {p.stale && (
           <p className="mt-2 text-[12px] text-[#ffe1a8]">
             {t(
-              "Guthaben ist von einem früheren Tag. Bitte aktualisieren.",
-              "Your balance is from an earlier day. Please update it.",
+              "Bitte bestätige dein aktuelles Guthaben. Es kann sich seit einer abgehakten Zahlung oder dem letzten Tag geändert haben.",
+              "Please confirm your current balance. It may have changed since a payment was checked off or since the last day.",
             )}
           </p>
         )}
@@ -104,8 +104,8 @@ export default function PaydayPanel({
         <div className="space-y-3 bg-white p-4 sm:p-5">
           <p className="text-[12px] text-[#52605b]">
             {t(
-              "Guthaben nach bereits bezahlten Rechnungen eintragen. Zahlungen für heute zählen noch als offen; verschiebe deren nächste Fälligkeit, wenn sie schon bezahlt sind. Das nächste Gehalt wird hier noch nicht dazugezählt.",
-              "Enter your balance after bills already paid. Today’s payments count as pending; move their next due date if already paid. Your next salary is not added yet.",
+              "Guthaben nach bereits bezahlten Rechnungen eintragen. Hake bezahlte Rechnungen in deiner Monatscheckliste ab. Nur offene Zahlungen mit Termin werden abgezogen. Das nächste Gehalt wird hier noch nicht dazugezählt.",
+              "Enter your balance after bills already paid. Mark paid bills in your monthly checklist; only unchecked dated payments count as pending. Your next salary is not added yet.",
             )}
           </p>
           <form

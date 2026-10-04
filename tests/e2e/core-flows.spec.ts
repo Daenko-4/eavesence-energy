@@ -11,6 +11,7 @@ async function openPlan(page: Page, question: "payday" | "savings" | "progress" 
 }
 async function openCostAreas(page: Page) {
   await page.getByRole("navigation", { name: /Choose workspace|Bereich wählen/ }).getByRole("button", { name: /^(Overview|Übersicht)$/ }).click();
+  if (!await page.locator("[data-cost-manager]").evaluate(el => (el as HTMLDetailsElement).open)) await page.locator("[data-cost-manager] > summary").click();
   if (!await page.locator("[data-home-tiles]").isVisible()) await page.getByText(/^(Organize cost areas|Kostenbereiche organisieren)$/).click();
 }
 
@@ -621,7 +622,7 @@ test("My home distinguishes annual monthly averages from dated payment forecasts
   await expect(overview.locator("article").nth(1)).toContainText("€50.00");
   await overview.getByRole("button", { name: /Payments next month/ }).click();
   await expect(overview).toContainText("€600.00"); await expect(overview).toContainText("15 Oct");
-  await page.reload(); await expect(page.locator("#household-costs")).toContainText("Insurance");
+  await page.reload(); await page.locator("[data-cost-manager] > summary").click(); await expect(page.locator("#household-costs")).toContainText("Insurance");
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-costs-v1")!)[0].cancellationDeadline)).toBe("2026-09-28");
 });
 

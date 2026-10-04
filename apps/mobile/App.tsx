@@ -3,6 +3,7 @@ import { readIncomeExtras, summarizeIncome, type IncomeExtra } from "@eavesence/
 import { IncomeExtrasSummary } from "./src/IncomeExtrasSummary";
 import appConfig from "./app.json";
 import { HomeSetupForm } from "./src/HomeSetupForm";
+import { MonthlyPayments } from "./src/MonthlyPayments";
 import { HomeCoreOverview } from "./src/HomeCoreOverview";
 import { homeRelease } from "../../src/lib/homeRelease";
 import {PaydayScreen} from './src/PaydayScreen';
@@ -325,6 +326,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     try { await writeJson(PROFILE_KEY, next); setProfile(next); Keyboard.dismiss(); showLocalizedAlert(locale,"Gespeichert", "Dein Sparplan wurde aktualisiert."); }
     catch { showLocalizedAlert(locale,"Speichern fehlgeschlagen", "Bitte versuche es erneut."); }
   }
+
+  const [homeDetailsOpen, setHomeDetailsOpen] = useState(false);
 
   async function savePlanning(planning: PlanningData) {
     if (!profile) return;
@@ -778,11 +781,14 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
         {tab === "home" && <>
           <Text style={styles.eyebrow}>EAVESENCE</Text>
           <Text style={styles.homeTitle}>{profile.name === "Mein Zuhause" || profile.name === "My home" ? localize(locale, "Mein Zuhause") : profile.name}</Text>
-          <Text style={styles.homeSubtitle}>{locale === "de" ? "Einkommen, feste Kosten und was übrig bleibt — ohne Bankverbindung." : "Income, fixed costs and what is left — without connecting your bank."}</Text>
+          <Text style={styles.homeSubtitle}>{locale === "de" ? "Was steht diesen Monat noch an? Hake bezahlte Kosten ab." : "What is still due this month? Check off paid costs."}</Text>
           <View style={styles.presetRow}>
             <Pressable accessibilityRole="button" style={[styles.financePill, styles.outlinedAction]} onPress={() => startWith("cost")}><Text style={styles.outlinedText}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</Text></Pressable>
             <Pressable accessibilityRole="button" style={[styles.financePill, styles.outlinedAction]} onPress={() => startWith("income")}><Text style={styles.outlinedText}>{hasIncome ? locale === "de" ? "Einkommen ändern" : "Edit income" : locale === "de" ? "Einkommen eintragen" : "Add income"}</Text></Pressable>
           </View>
+          <MonthlyPayments costs={costs} data={profile.planning} onSave={savePlanning} locale={locale} currency={profile.currency ?? "EUR"} onEdit={reviewCost} onAdd={() => startWith("cost")} />
+          <Pressable accessibilityRole="button" accessibilityState={{expanded:homeDetailsOpen}} onPress={() => setHomeDetailsOpen(!homeDetailsOpen)} style={styles.areaDisclosure}><Text style={styles.areaDisclosureText}>{locale === "de" ? "Monatsbudget & Kostenbereiche" : "Monthly budget & cost areas"}</Text><DisclosureIcon open={homeDetailsOpen}/></Pressable>
+          {homeDetailsOpen && <>
           <HomeCoreOverview incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency ?? "EUR"} income={monthlyIncome} costs={costs} forecast={forecast} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} onIncome={() => startWith("income")} onCost={() => startWith("cost")} onCosts={openMainCosts} onReview={reviewCost} />
           <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency ?? "EUR"} />
           {tiles.length > 1 && <View accessibilityLabel={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} style={styles.presetRow}>{tiles.map(tile => <Pressable key={tile.id} accessibilityRole="button" onPress={() => openTile(tile)} style={[styles.financePill, styles.outlinedAction]}><Text style={styles.outlinedText}>{tile.id.startsWith("default-") ? localize(locale,tile.title) : tile.title}</Text></Pressable>)}</View>}
@@ -809,6 +815,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             {tileFormOpen ? <FormSection style={styles.tileForm} onSave={saveTile} saveLabel={editingTileId ? "Kachel umbenennen" : "Kachel erstellen"}><Field label="Kachelname" value={tileName} onChangeText={setTileName} placeholder="z. B. Versicherungen" /><PrimaryButton label={editingTileId ? "Kachel umbenennen" : "Kachel erstellen"} onPress={() => void saveTile()} /><Pressable onPress={() => { setTileFormOpen(false); setEditingTileId(null); setTileName(""); }} style={styles.financePill}><Text style={styles.financePillText}>Abbrechen</Text></Pressable></FormSection>
               : <Pressable onPress={() => { setTileName(""); setEditingTileId(null); setTileFormOpen(true); }} style={styles.addTile}><Text style={styles.addTileText}>+ Eigene Kachel</Text></Pressable>}
           </View>
+          </>}
+
           </>}
 
         </>}

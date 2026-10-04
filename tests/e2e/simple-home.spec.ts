@@ -23,6 +23,7 @@ for (const locale of ['de', 'en'] as const) {
     await expect(setup).toHaveCount(0);
     await expect(page.locator('[data-home-review]')).toContainText(de ? '3 · Deinen Überblick prüfen' : '3 · Check your overview');
     await page.reload();
+    await page.locator('[data-cost-manager] > summary').click();
     await expect(page.locator('#household-costs')).toContainText('Internet');
     await expect(overview.locator('article').nth(2)).toContainText(de ? '2.360,00' : '2,360.00');
     await expect(overview).toContainText(de ? 'kein Kontostand' : 'not your account balance');

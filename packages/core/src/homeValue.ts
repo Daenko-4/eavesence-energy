@@ -1,3 +1,4 @@
+import { paymentIsPaid, type PaidPayment } from './paymentChecklist.ts';
 import {
   createHouseholdCost,
   monthlyCost,
@@ -29,6 +30,7 @@ export const parseMoney = (s: string) => {
   return /^-?\d+(\.\d{1,2})?$/.test(v) ? Number(v) : NaN;
 };
 export type CashWindow = {
+  needsRefresh?: boolean;
   balance: number;
   asOf: string;
   payday: string;
@@ -40,6 +42,7 @@ export function readCashWindow(v: unknown): CashWindow | undefined {
   const safe = (n: unknown) =>
     typeof n === "number" && Number.isFinite(n) && n >= 0;
   return c &&
+    (c.needsRefresh === undefined || typeof c.needsRefresh === "boolean") &&
     safe(c.balance) &&
     safe(c.protected) &&
     validDay(c.asOf) &&
@@ -53,8 +56,9 @@ export function paydayForecast(
   cash: CashWindow | undefined,
   variableMonthly: number | null,
   today: string,
+  paid: PaidPayment[] = [],
 ) {
-  if (!cash || !validDay(today) || cash.asOf !== today || cash.payday <= today)
+  if (!cash || cash.needsRefresh || !validDay(today) || cash.asOf !== today || cash.payday <= today)
     return null;
   const days = (Date.parse(cash.payday) - Date.parse(today)) / 86400000;
   if (days > 90) return null;
@@ -63,7 +67,7 @@ export function paydayForecast(
   while (cursor <= cash.payday.slice(0, 7)) {
     payments.push(
       ...paymentsForMonth(costs, cursor).payments.filter(
-        (p) => p.date >= today && p.date < cash.payday,
+        (p) => p.date >= today && p.date < cash.payday && !paymentIsPaid({...p,month:p.date.slice(0,7)},paid),
       ),
     );
     const [y, m] = cursor.split("-").map(Number);
