@@ -355,7 +355,7 @@ const copy = {
     saved: "Gespeichert",
     dataTitle: "Daten verwalten",
     dataText:
-      "Die Sicherung enthält Einstellungen, deine Kacheln, Haushaltskosten, gespeicherte Geräte und den Monatsverlauf.",
+      "Die Sicherung enthält Einkommen und Sonderzahlungen, Kosten, Sparvorhaben, Einstellungen, Kacheln, Geräte und den Monatsverlauf.",
     dataPrivacy: "Sie enthält keine Konto- oder Cloud-Daten.",
     importHome: "Sicherung importieren",
     exportHome: "Sicherung exportieren",
@@ -612,7 +612,7 @@ const copy = {
     saved: "Saved",
     dataTitle: "Manage data",
     dataText:
-      "The backup contains settings, your tiles, household costs, saved devices and monthly history.",
+      "The backup includes income and extra payments, costs, savings plans, settings, tiles, devices and monthly history.",
     dataPrivacy: "It contains no account or cloud data.",
     importHome: "Import backup",
     exportHome: "Export backup",
@@ -1072,7 +1072,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       return;
     }
     try {
-      persistProfile({ ...profile, incomeExtras: extras, incomeAmount: parsed, incomeFrequency, updatedAt: new Date().toISOString() });
+      persistProfile({ ...profile, incomeExtras: extras, incomeAmount: parsed, incomeDeferred: parsed === 0, incomeFrequency, updatedAt: new Date().toISOString() });
     } catch {
       setIncomeError(locale === "de" ? "Einkommen konnte nicht gespeichert werden. Deine Eingaben bleiben erhalten." : "Could not save income. Your entries have been kept.");
       return;
@@ -1246,6 +1246,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     link.download = `eavesence-home-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
+    persistProfile({...profile,backupReminderDismissed:true});
   }
 
   async function importHome(event: ChangeEvent<HTMLInputElement>) {
@@ -1753,7 +1754,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }} className="grid gap-4 sm:grid-cols-4">
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
-              <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.goal}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="mt-3 accent-[var(--brand-green)]" /></label>
+              <details className="home-disclosure sm:col-span-4"><summary className="cursor-pointer text-[12px] font-semibold">{locale === "de" ? "Stromrechner · optionales Verbrauchsziel" : "Energy calculator · optional consumption goal"}</summary><label className="mt-2 grid max-w-sm gap-1.5 text-[12px]"><span>{locale === "de" ? "Stromverbrauch reduzieren um" : "Reduce electricity use by"}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="accent-[var(--brand-green)]" /></label><p className="mt-2 text-[12px] text-[#65716d]">{locale === "de" ? "Nur für die Stromauswertung. Dein Sparbetrag in Planen & sparen wird separat festgelegt." : "Only for electricity analysis. Set your savings amount separately in Plan & save."}</p></details>
               <button type="submit" className={`${homeDashboardActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
               </form>
               <div className="mt-4 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
@@ -1842,7 +1843,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             {homeRelease.proPreview && <button type="button" aria-pressed={view === "plan"} onClick={() => { setView("plan"); setSettingsOpen(false); }} className={`${homeDashboardActionClass} home-workspace-pill home-pro-pill ${view === "plan" ? "home-workspace-selected" : ""}`}>{locale === "de" ? "Planen & sparen" : "Plan & save"}<span className="ml-2 text-[10px] font-semibold opacity-75">Pro</span></button>}
           </nav>
           <div hidden={view !== "overview"} data-home-overview-content>
-          <HomeCoreOverview incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} incomeForm={
+          <HomeCoreOverview incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()})} undatedCosts={householdCosts.filter(cost => !cost.nextDueDate)} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Sonderzahlungen)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<select aria-label={text.financePeriod} value={incomeFrequency} onChange={(event) => { const next = event.target.value as "monthly" | "yearly"; if (incomeFrequency === "yearly" && next === "monthly") setIncomeValue(""); setIncomeFrequency(next); }} className={`${homeFieldClass} min-w-0 w-full`}><option value="monthly">{locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net income"}</option><option value="yearly">{locale === "de" ? "Jahresnetto (Monatsdurchschnitt)" : "Annual net income (monthly average)"}</option></select></label>
@@ -1855,6 +1856,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
 
 
+          {homeTiles.length > 1 && <nav aria-label={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} className="mt-5 flex flex-wrap gap-2 rounded-xl bg-[#24272c] p-3">{homeTiles.map(tile => <button type="button" key={tile.id} aria-pressed={activeTileId === tile.id} onClick={() => {setCostRequest(null);setActiveTileId(tile.id);}} className={`min-h-11 rounded-full border px-4 text-[12px] font-semibold ${activeTileId === tile.id ? "border-[#72dca3] bg-[#dcfce8] text-[#17211f]" : "border-[#65716d] text-white"}`}>{tile.title ?? text.tileTitles[tile.kind]}</button>)}</nav>}
+          {profile.overviewReviewed === true && !profile.backupReminderDismissed && <p className="mt-4 text-[12px] leading-5 text-[#65716d]">{locale === "de" ? "Deine Angaben bleiben in diesem Browser. Eine Sicherung schützt sie beim Gerätewechsel oder Löschen der Browserdaten." : "Your entries stay in this browser. A backup protects them when you switch devices or clear browser data."} <button type="button" onClick={exportHome} className="eavesence-pill-button home-dashboard-action">{text.exportHome}</button> <button type="button" onClick={() => persistProfile({...profile,backupReminderDismissed:true})} className="min-h-11 px-2 text-[12px] font-semibold">{locale === "de" ? "Später" : "Later"}</button></p>}
           <details className="home-disclosure mt-5"><summary className="home-single-line-summary min-h-11 cursor-pointer rounded-xl border border-transparent px-4 text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
@@ -2258,7 +2261,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
 
 
-          {activeTile && <PwaInstallCard locale={locale} />}
+          {activeTile && profile.overviewReviewed !== false && <PwaInstallCard locale={locale} />}
 
           </div>
           <div id="home-plan" hidden={view !== "plan"} data-home-plan-content className="scroll-mt-24">
@@ -2270,7 +2273,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               {(["payday", "savings", "progress"] as const).map((item, index) => <button type="button" key={item} aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"} aria-pressed={planQuestion === item} onClick={() => setPlanQuestion(item)} className={`min-h-12 rounded-xl border px-3 py-3 text-left text-[12px] font-semibold ${planQuestion === item ? "border-[#087a45] bg-[#ddf8e9] text-[#087a45]" : "border-[#dfe5dd] bg-white text-[#52605b]"}`}>{index+1} · {item === "payday" ? locale === "de" ? "Bis Gehalt" : "To payday" : item === "savings" ? locale === "de" ? "Sparen" : "Save" : locale === "de" ? "Erspart" : "Saved"}</button>)}
             </div>
             <div hidden={planQuestion !== "payday"}>
-          <PaydayPanel key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+          <PaydayPanel onReviewCost={cost=>openCostForm(cost)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
             </div>
             <div hidden={planQuestion === "payday"}>
           <SavingsPlanPanel

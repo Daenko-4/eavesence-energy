@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { costReviewTip } from "@eavesence/core/homeValue";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { scheduleCostReview } from "./reminders";
 import { useSavingsCoach } from "@eavesence/core/useSavingsCoach";
@@ -84,6 +86,7 @@ export function SavingsCoachScreen({
       );
     }
   }
+  const [costPickerOpen, setCostPickerOpen] = useState(false);
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
     <View style={styles.card}>
@@ -130,6 +133,7 @@ export function SavingsCoachScreen({
           )}
         </Text>
       )}
+      {mode !== "progress" && input.costs.length > 0 && <>{button(t("Kostenänderung testen · Kosten auswählen", "Test a cost change · choose a cost"), () => setCostPickerOpen(!costPickerOpen))}{costPickerOpen && <View style={styles.row}>{input.costs.map(c => <View key={c.id}>{button(`${c.name} · ${money(c.amount)}`, () => {p.choose(c);setCostPickerOpen(false);})}</View>)}</View>}</>}
       {(mode === "progress" ? [] : p.tasks).map((c) => (
         <View key={c.id} style={styles.box}>
           <Text style={styles.title}>{c.name}</Text>
@@ -138,15 +142,7 @@ export function SavingsCoachScreen({
             {t("im Monatsdurchschnitt", "monthly average")}
           </Text>
           <Text style={styles.note}>
-            {c.cancellationDeadline
-              ? t(
-                  `Frist: ${c.cancellationDeadline}. Brauchst du die Leistung noch?`,
-                  `Deadline: ${c.cancellationDeadline}. Still need this service?`,
-                )
-              : t(
-                  "Prüfe einen günstigeren Tarif oder ob die Ausgabe wegfallen kann.",
-                  "Check a lower price or whether you can stop this expense.",
-                )}
+            {c.cancellationDeadline ? `${t("Frist", "Deadline")}: ${c.cancellationDeadline}. ` : ""}{costReviewTip(c.category, de)}
           </Text>
           <View style={styles.row}>
             {button(t("Angaben prüfen", "Review details"), () => onReview(c))}
@@ -196,6 +192,7 @@ export function SavingsCoachScreen({
               "Recurring costs change only after you confirm it happened.",
             )}
           </Text>
+          {p.preview && <Text accessibilityRole="summary" style={styles.note}>{t("In den nächsten 12 Planungsmonaten voraussichtlich", "Estimated over the next 12 planning months")}: {money(p.preview.totalDifference)} {t("weniger Ausgaben. Zahlungstermine und Startmonat sind berücksichtigt. Noch keine bestätigte Ersparnis.", "lower spending. Payment dates and the start month are included. Not a confirmed saving yet.")}</Text>}
           <View style={styles.row}>
             {button(
               t("Änderung vormerken", "Save this plan"),
@@ -210,7 +207,7 @@ export function SavingsCoachScreen({
           <Text style={styles.title}>{a.name}</Text>
           <Text style={styles.note}>
             {money(a.originalAmount)} → {money(a.newAmount)} · {t("ab", "from")}{" "}
-            {a.effectiveMonth} ·{" "}
+            {new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", {month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${a.effectiveMonth}-01T00:00:00Z`))} ·{" "}
             {p.outdated.includes(a)
               ? t(
                   "Angaben geändert – bitte prüfen",
@@ -226,7 +223,7 @@ export function SavingsCoachScreen({
                     "Planned, no confirmed saving yet",
                   )}
           </Text>
-          {p.outdated.includes(a) &&
+          {p.outdated.includes(a) && input.costs.some(c => c.id === a.costId) &&
             button(t("Kosten prüfen", "Review cost"), () => {
               const cost = input.costs.find((c) => c.id === a.costId);
               if (cost) onReview(cost);
@@ -237,7 +234,7 @@ export function SavingsCoachScreen({
               () => void p.discard(a),
             )}
           {a.status === "planned" &&
-            a.effectiveMonth <= p.today.slice(0, 7) &&
+            !p.outdated.includes(a) && a.effectiveMonth <= p.today.slice(0, 7) &&
             button(
               t("Umgesetzt – Kosten aktualisieren", "Done — update costs"),
               () =>

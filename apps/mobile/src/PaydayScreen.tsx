@@ -13,10 +13,12 @@ export function PaydayScreen({
   data,
   onSave,
   currency,
+  onReviewCost,
 }: {
   input: SavingsPlanInput;
   data?: PlanningData;
   onSave: (p: PlanningData) => Promise<void>;
+  onReviewCost?: (cost: SavingsPlanInput["costs"][number]) => void;
   currency: string;
 }) {
   const de = useMobileLocale() === "de",
@@ -85,10 +87,12 @@ export function PaydayScreen({
                 "After upcoming payments, everyday spending and money to keep untouched.",
               )
             : t(
-                "Für diese Vorschau brauchen wir dein heutiges Guthaben und den nächsten Gehaltstermin. Dein Monatsdurchschnitt steht unten in der Planungsbasis.",
-                "This forecast needs today’s balance and your next payday. Your monthly average is shown below in the planning basics.",
+                p.forecast ? `Dein Guthaben ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben für einen vollständigen Spielraum.` : "Trage dein heutiges Guthaben, den nächsten Gehaltstermin und deine erwarteten Alltagsausgaben ein. Bestehende Angaben kannst du aktualisieren.",
+                p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter today’s balance, your next payday and expected everyday spending. You can update existing entries.",
               )}
         </Text>
+        {p.forecast && input.costs.filter(c => !c.nextDueDate).map(c => <Pressable key={c.id} accessibilityRole="button" style={styles.mintButton} onPress={() => onReviewCost?.(c)}><Text style={styles.mintText}>{c.name} · {t("Termin ergänzen", "Add date")}</Text></Pressable>)}
+        {p.forecast?.everyday === null && <Text style={styles.warning}>{t("Noch offen: Alltag bis zum Gehalt. Öffne die Rechnung und ergänze den Betrag; 0 ist möglich.", "Still missing: everyday spending until payday. Open the calculation and add an amount; 0 is allowed.")}</Text>}
         {p.stale && (
           <Text style={styles.warning}>
             {t(

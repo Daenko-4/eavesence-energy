@@ -9,6 +9,7 @@ import {
   savingsToDate,
   confirmSavingsChange,
   parseMoney,
+  costReviewTip,
 } from "../packages/core/src/homeValue.ts";
 import { createSavingsAction } from "../packages/core/src/savingsPlan.ts";
 const cost = (id, amount, frequency, date) => ({
@@ -149,4 +150,12 @@ test("localized monetary formats support decimal and grouping separators without
   assert.equal(parseMoney("1,234.56"), 1234.56);
   assert.ok(Number.isNaN(parseMoney("")));
   assert.ok(Number.isNaN(parseMoney("12 apples")));
+});
+
+test("review prompts match categories and avoid invented savings claims", () => {
+  assert.match(costReviewTip("insurance", false), /same cover and excess/);
+  assert.match(costReviewTip("energy", true), /Einmalige Boni/);
+  assert.match(costReviewTip("financing", false), /total cost/);
+  assert.match(costReviewTip("subscriptions", true), /doppelte Abos/);
+  assert.match(costReviewTip("other", false), /actually make/);
 });

@@ -26,6 +26,9 @@ export type HouseholdProfile = {
   annualElectricityKwh?: number;
   monthlyElectricityPayment?: number;
   electricityBillIncludesBonus?: boolean;
+  overviewReviewed?: boolean;
+  incomeDeferred?: boolean;
+  backupReminderDismissed?: boolean;
   incomeAmount?: number;
   incomeFrequency?: "monthly" | "yearly";
   incomeExtras?: IncomeExtra[];
@@ -214,6 +217,7 @@ export function createHouseholdProfile({
     annualElectricityKwh: 0,
     monthlyElectricityPayment: 0,
     electricityBillIncludesBonus: false,
+    overviewReviewed: false,
     incomeAmount: 0,
     incomeFrequency: "monthly",
     electricityCostMigrated: true,
@@ -294,6 +298,7 @@ export function readHouseholdProfile(value: string | null) {
     if (candidate.savingsActions !== undefined) {
       candidate.savingsActions = readSavingsActions(candidate.savingsActions);
     }
+    if ([candidate.overviewReviewed, candidate.incomeDeferred, candidate.backupReminderDismissed].some(value => value !== undefined && typeof value !== "boolean")) return null;
     if (candidate.electricityCostMigrated !== undefined && typeof candidate.electricityCostMigrated !== "boolean") return null;
     if (
       candidate.electricityBillIncludesBonus !== undefined &&

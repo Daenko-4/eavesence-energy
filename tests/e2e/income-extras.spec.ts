@@ -8,7 +8,7 @@ for (const locale of ['de', 'en'] as const) {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(de ? '/de/zuhause' : '/home');
     await page.getByRole('button', { name: de ? 'Zuhause erstellen' : 'Create my home', exact: true }).click();
-    await page.locator('[data-home-setup]').getByRole('button').click();
+    await page.locator('[data-home-setup]').getByRole('button').first().click();
     const form = page.locator('#home-income-form');
     await form.locator('input').first().fill(de ? '2.400' : '2,400');
     await form.locator('summary').click();
@@ -20,7 +20,7 @@ for (const locale of ['de', 'en'] as const) {
     }
     await expect(form.getByRole('group', { name: 'Bonus', exact: true }).getByLabel(de ? 'Jedes Jahr' : 'Every year')).not.toBeChecked();
     await form.locator('button[type="submit"]').click();
-    await page.locator('[data-home-setup]').getByRole('button').click();
+    await page.locator('[data-home-setup]').getByRole('button').first().click();
     await page.locator('#household-cost-name').fill('Internet');
     await page.locator('#household-costs').getByLabel(de ? 'Betrag' : 'Amount', { exact: true }).fill('40');
     await page.locator('#household-costs').getByRole('button', { name: de ? 'Speichern' : 'Save', exact: true }).click();
@@ -72,7 +72,7 @@ test('legacy annual net stays labelled as average and switching requires actual 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/home');
   await page.getByRole('button', { name: 'Create my home', exact: true }).click();
-  await page.locator('[data-home-setup]').getByRole('button').click();
+  await page.locator('[data-home-setup]').getByRole('button').first().click();
   const form = page.locator('#home-income-form');
   await form.getByLabel('Period', { exact: true }).selectOption('yearly');
   await form.locator('input').first().fill('33600');
