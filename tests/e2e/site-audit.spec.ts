@@ -63,7 +63,7 @@ for (const locale of ['en', 'de'] as const) for (const width of [320, 390, 1365]
     await page.locator('[data-cost-manager] > summary').click();
     const organizer = page.getByText(de ? 'Kostenbereiche organisieren' : 'Organize cost areas', { exact: true });
     await organizer.click();
-    const summary = organizer;
+    const summary = page.locator('summary').filter({hasText: de ? 'Kostenbereiche organisieren' : 'Organize cost areas'});
     await expect.poll(() => summary.evaluate(el => getComputedStyle(el, '::after').transform)).toBe('matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)');
     await summary.press('Enter');
     await expect.poll(() => summary.evaluate(el => getComputedStyle(el, '::after').transform)).toBe('matrix(1, 0, 0, 1, 0, 0)');
