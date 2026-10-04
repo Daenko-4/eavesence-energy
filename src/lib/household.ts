@@ -1,3 +1,4 @@
+import { tileIconMetadata } from '@eavesence/core/tileSymbols';
 import { readIncomeExtras, type IncomeExtra } from "@eavesence/core/income";
 import { readPlanningData, type PlanningData } from "@eavesence/core/planning";
 import type { SavedDevice, SavedDeviceCurrency } from "./savedDevices";
@@ -116,15 +117,17 @@ function readBackupTiles(value: unknown): HomeTile[] | null {
   if (!Array.isArray(value)) return null;
   const tiles = value.flatMap((item): HomeTile[] => {
     if (!item || typeof item !== "object") return [];
-    const tile = item as { id?: unknown; kind?: string; title?: unknown };
+    const tile = item as { id?: unknown; kind?: string; title?: unknown; icon?: unknown };
     const valid =
       typeof tile.id === "string" &&
       tile.id.length > 0 &&
       (tile.title === null || typeof tile.title === "string");
     if (!valid || tile.kind === "monthly") return [];
-    if (tile.kind === "devices") return [{ ...tile, kind: "energy" } as HomeTile];
+    const {icon,...rest}=tile;
+    const clean={...rest,...tileIconMetadata(icon)};
+    if (tile.kind === "devices") return [{ ...clean, kind: "energy" } as HomeTile];
     return backupTileKinds.includes(tile.kind as HomeTileKind)
-      ? [tile as HomeTile]
+      ? [clean as HomeTile]
       : [];
   });
   if (value.length > 0 && tiles.length === 0) return null;

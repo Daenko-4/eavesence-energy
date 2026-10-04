@@ -142,7 +142,7 @@ export function SavingsCoachScreen({
             {t("im Monatsdurchschnitt", "monthly average")}
           </Text>
           <Text style={styles.note}>
-            {c.cancellationDeadline ? `${t("Frist", "Deadline")}: ${c.cancellationDeadline}. ` : ""}{costReviewTip(c.category, de)}
+            {c.cancellationDeadline ? `${t("Frist", "Deadline")}: ${c.cancellationDeadline}. ` : ""}{costReviewTip(c.category, de, c.frequency)}
           </Text>
           <View style={styles.row}>
             {button(t("Angaben prüfen", "Review details"), () => onReview(c))}

@@ -16,6 +16,7 @@
     "./useSavingsCoach": "./src/useSavingsCoach.ts",
     "./paymentChecklist": "./src/paymentChecklist.ts",
     "./usePaymentChecklist": "./src/usePaymentChecklist.ts",
+    "./tileSymbols": "./src/tileSymbols.ts",
     "./income": "./src/income.ts"
   }
 }

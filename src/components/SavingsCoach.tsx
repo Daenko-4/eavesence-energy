@@ -119,7 +119,7 @@ export default function SavingsCoach({
             </p>
             <p className="mt-2 text-[#52605b]">
               {c.cancellationDeadline && <span className="block">{t("Frist", "Deadline")}: {c.cancellationDeadline}</span>}
-              {costReviewTip(c.category, de)}
+              {costReviewTip(c.category, de, c.frequency)}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button

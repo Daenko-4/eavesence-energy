@@ -1,5 +1,8 @@
 "use client";
 
+import TileSymbol from "@/components/TileSymbol";
+import TileSymbolPicker from "@/components/TileSymbolPicker";
+import { iconForTile, type TileSymbol as SymbolKey } from '@eavesence/core/tileSymbols';
 import IncomeExtrasEditor from "@/components/IncomeExtrasEditor";
 import IncomeExtrasSummary from "@/components/IncomeExtrasSummary";
 import { incomeExtraDrafts, incomeExtrasFromDraft, parseIncomeAmount, summarizeIncome, type IncomeExtraDraft } from "@eavesence/core/income";
@@ -185,12 +188,12 @@ const copy = {
     workspaceEmpty: "Lege deine erste Kachel an und wähle aus, welches Werkzeug sich dahinter verbergen soll.",
     addTile: "Neue Kachel",
     addTileHint: "Eigenen Bereich anlegen",
-    editTile: "Kachel umbenennen",
+    editTile: "Kachel anpassen",
     newTile: "Neue Kachel",
     tileName: "Name der Kachel",
     tileNamePlaceholder: "Zum Beispiel Versicherungen",
     createTile: "Kachel anlegen",
-    updateTile: "Namen speichern",
+    updateTile: "Änderungen speichern",
     cancelTile: "Abbrechen",
     renameTile: "Umbenennen",
     deleteTile: "Entfernen",
@@ -442,12 +445,12 @@ const copy = {
     workspaceEmpty: "Create your first tile and choose which tool it should contain.",
     addTile: "New tile",
     addTileHint: "Create your own section",
-    editTile: "Rename tile",
+    editTile: "Edit tile",
     newTile: "New tile",
     tileName: "Tile name",
     tileNamePlaceholder: "For example Insurance",
     createTile: "Create tile",
-    updateTile: "Save name",
+    updateTile: "Save changes",
     cancelTile: "Cancel",
     renameTile: "Rename",
     deleteTile: "Remove",
@@ -806,6 +809,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [tileFormOpen, setTileFormOpen] = useState(false);
   const [editingTileId, setEditingTileId] = useState<string | null>(null);
   const [tileName, setTileName] = useState("");
+  const [tileIcon,setTileIcon] = useState<SymbolKey|null>(null);
   const [tileFeedback, setTileFeedback] = useState("");
   const [draggedTileId, setDraggedTileId] = useState<string | null>(null);
   const [openEnergyDetail, setOpenEnergyDetail] = useState<
@@ -1118,12 +1122,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     }
     setEditingTileId(null);
     setTileName("");
+    setTileIcon(null);
     setTileFeedback("");
     setTileFormOpen(true);
   }
 
   function openRenameTileForm(tile: HomeTile) {
     setEditingTileId(tile.id);
+    setTileIcon(iconForTile(tile));
     setTileName(tile.title ?? text.tileTitles[tile.kind]);
     setTileFeedback("");
     setTileFormOpen(true);
@@ -1138,11 +1144,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     if (editingTileId) {
       persistHomeTiles(
         homeTiles.map((tile) =>
-          tile.id === editingTileId ? { ...tile, title: tileName.trim() } : tile,
+          tile.id === editingTileId ? { ...tile, title: tileName.trim() === (tile.title ?? text.tileTitles[tile.kind]) ? tile.title : tileName.trim(), icon:tileIcon } : tile,
         ),
       );
     } else {
-      const tile = createHomeTile("costs", tileName);
+      const tile = createHomeTile("costs", tileName, tileIcon);
       persistHomeTiles([...homeTiles, tile]);
       setActiveTileId(tile.id);
       track("Home Tile Created", { locale, kind: tile.kind });
@@ -1863,7 +1869,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           {profile.overviewReviewed === true && !profile.backupReminderDismissed && <p className="mt-4 text-[12px] leading-5 text-[#65716d]">{locale === "de" ? "Deine Angaben bleiben in diesem Browser. Eine Sicherung schützt sie beim Gerätewechsel oder Löschen der Browserdaten." : "Your entries stay in this browser. A backup protects them when you switch devices or clear browser data."} <button type="button" onClick={exportHome} className="eavesence-pill-button home-dashboard-action">{text.exportHome}</button> <button type="button" onClick={() => persistProfile({...profile,backupReminderDismissed:true})} className="min-h-11 px-2 text-[12px] font-semibold">{locale === "de" ? "Später" : "Later"}</button></p>}
           <details data-cost-manager open={costManagerOpen} onToggle={event=>setCostManagerOpen(event.currentTarget.open)} className="home-disclosure mt-5"><summary className="home-single-line-summary min-h-11 cursor-pointer rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] px-4 text-[13px] font-semibold">{locale === "de" ? "Kosten verwalten" : "Manage costs"}</summary>
-          {homeTiles.length > 1 && <nav aria-label={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} className="mt-5 flex flex-wrap gap-2 rounded-xl bg-[#24272c] p-3">{homeTiles.map(tile => <button type="button" key={tile.id} aria-pressed={activeTileId === tile.id} onClick={() => {setCostRequest(null);setActiveTileId(tile.id);}} className={`min-h-11 rounded-full border px-4 text-[12px] font-semibold ${activeTileId === tile.id ? "border-[#72dca3] bg-[#dcfce8] text-[#17211f]" : "border-[#65716d] text-white"}`}>{tile.title ?? text.tileTitles[tile.kind]}</button>)}</nav>}
+          {homeTiles.length > 1 && <nav aria-label={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} className="mt-5 flex flex-wrap gap-2 rounded-xl bg-[#24272c] p-3">{homeTiles.map(tile => <button type="button" key={tile.id} aria-pressed={activeTileId === tile.id} onClick={() => {setCostRequest(null);setActiveTileId(tile.id);}} className={`min-h-11 rounded-full border px-4 text-[12px] font-semibold ${activeTileId === tile.id ? "border-[#72dca3] bg-[#dcfce8] text-[#17211f]" : "border-[#65716d] text-white"}`}><span className="flex items-center gap-2"><TileSymbol icon={iconForTile(tile)}/>{tile.title ?? text.tileTitles[tile.kind]}</span></button>)}</nav>}
           <details className="home-disclosure mt-5"><summary className="home-single-line-summary min-h-11 cursor-pointer rounded-xl border border-transparent px-4 text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
@@ -1902,14 +1908,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                         <svg viewBox="0 0 10 16" className="h-4 w-2.5" fill="currentColor" aria-hidden="true"><circle cx="2" cy="3" r="1" /><circle cx="8" cy="3" r="1" /><circle cx="2" cy="8" r="1" /><circle cx="8" cy="8" r="1" /><circle cx="2" cy="13" r="1" /><circle cx="8" cy="13" r="1" /></svg>
                       </span>
                       <button type="button" onClick={() => { setCostRequest(null); setActiveTileId(active ? null : tile.id); }} aria-expanded={active} className="block w-full px-4 pb-3 pt-4 pr-10 text-left">
-                        <span className={`block text-[14px] font-extrabold ${active ? "text-[var(--brand-green)]" : "text-white"}`}>{title}</span>
+                        <span className={`block text-[14px] font-extrabold ${active ? "text-[var(--brand-green)]" : "text-white"}`}><span className="flex items-start gap-2"><TileSymbol icon={iconForTile(tile)} className="mt-0.5 h-4 w-4 shrink-0"/><span>{title}</span></span></span>
                         <span className={`mt-1 block text-[11px] leading-4 ${active ? "text-[#52605b]" : "text-[#c3cbc7]"}`}>{text.tileHints[tile.kind]}</span>
                         <span className={`mt-3 block text-[12px] font-bold ${active ? "text-[var(--brand-green)]" : "text-[#72dca3]"}`}>{homeTileSummary(tile)}</span>
                       </button>
-                      {active && tile.kind !== "energy" && (
+                      {active && (
                         <div className="flex items-center gap-1 border-t border-[#b8efcc] px-3 py-1.5">
                           <button type="button" onClick={() => openRenameTileForm(tile)} aria-label={text.renameTile} title={text.renameTile} className="flex h-6 w-6 items-center justify-center rounded-full text-[#65716d] transition hover:bg-white/70 hover:text-[var(--brand-green)]"><svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m11.8 2.5 1.7 1.7-7.9 7.9-2.5.4.4-2.5 8.3-7.5Z" /></svg></button>
-                          <button type="button" onClick={() => deleteHomeTile(tile)} aria-label={text.deleteTile} title={text.deleteTile} className="flex h-6 w-6 items-center justify-center rounded-full text-[#9a7777] transition hover:bg-red-50 hover:text-red-600"><svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg></button>
+                          {tile.kind !== "energy" && <button type="button" onClick={() => deleteHomeTile(tile)} aria-label={text.deleteTile} title={text.deleteTile} className="flex h-6 w-6 items-center justify-center rounded-full text-[#9a7777] transition hover:bg-red-50 hover:text-red-600"><svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg></button>}
                         </div>
                       )}
                     </article>
@@ -1930,9 +1936,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   <h3 className="text-[14px] font-bold">{editingTileId ? text.editTile : text.newTile}</h3>
                   <button type="button" onClick={() => setTileFormOpen(false)} className="text-[11px] font-semibold text-[#65716d] hover:text-[#17211f]">{text.cancelTile}</button>
                 </div>
-                <form onSubmit={(event) => { event.preventDefault(); saveHomeTile(); }} className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                  <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.tileName}<input ref={tileNameInputRef} value={tileName} onChange={(event) => { setTileName(event.target.value); setTileFeedback(""); }} placeholder={text.tileNamePlaceholder} className={homeFieldClass} /></label>
-                  <button type="submit" className={homePrimaryActionClass}>{editingTileId ? text.updateTile : text.createTile}</button>
+                <form onSubmit={(event) => { event.preventDefault(); saveHomeTile(); }} className="mt-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                  <label className="grid min-w-0 gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">{text.tileName}<input ref={tileNameInputRef} value={tileName} onChange={(event) => { setTileName(event.target.value); setTileFeedback(""); }} placeholder={text.tileNamePlaceholder} className={`min-w-0 w-full ${homeFieldClass}`} /></label>
+                  <TileSymbolPicker key={editingTileId ?? "new"} value={tileIcon} onChange={setTileIcon} locale={locale}/>
+                  <button type="submit" className={`${homePrimaryActionClass} justify-self-start`} style={{minHeight:44,paddingInline:16}}>{editingTileId ? text.updateTile : text.createTile}</button>
                 </form>
                 {tileFeedback && <p role="alert" className="mt-2 text-[11px] font-bold text-red-700">{tileFeedback}</p>}
               </div>

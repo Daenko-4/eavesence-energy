@@ -304,7 +304,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(insuranceTile).toBeVisible();
   await insuranceTile.getByRole("button", { name: "Rename" }).click();
   await page.getByLabel("Tile name").fill("Insurance & contracts");
-  await page.getByRole("button", { name: "Save name" }).click();
+  await page.getByRole("button", { name: "Save changes" }).click();
   await expect(insuranceTile.getByText("Insurance & contracts", { exact: true })).toBeVisible();
   await expect(page.getByRole("region", {name:"Install EAVESENCE as an app"})).toHaveCount(0);
   const householdCosts = page.locator("#household-costs");

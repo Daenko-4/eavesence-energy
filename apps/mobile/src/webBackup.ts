@@ -1,3 +1,4 @@
+import { tileIconMetadata } from '@eavesence/core/tileSymbols';
 import { devices as libraryDevices } from "../../../src/data/devices.ts";
 import { readHouseholdBackup } from "../../../src/lib/household.ts";
 
@@ -12,6 +13,7 @@ export function convertWebBackup(json: string): MobileBackup | null {
   const tiles: MobileTile[] = source.tiles.map((tile) => ({
     id: tile.id,
     kind: tile.kind,
+    ...tileIconMetadata(tile.icon),
     title: tile.title ?? (tile.kind === "energy" ? "Strom & Geräte" : "Haushaltskosten"),
   }));
   if (!tiles.some((tile) => tile.id === "default-costs")) tiles.push({ id: "default-costs", kind: "costs", title: "Haushaltskosten" });
