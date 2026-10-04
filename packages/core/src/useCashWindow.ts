@@ -33,11 +33,11 @@ export function useCashWindow(
   );
   async function save() {
     const next = readCashWindow({
-      balance: parseMoney(balance),
+      balance: parseMoney(balance, de ? "de" : "en"),
       asOf: today,
       payday,
-      protected: parseMoney(protectedAmount),
-      everydayRemaining: everyday.trim() ? parseMoney(everyday) : null,
+      protected: parseMoney(protectedAmount, de ? "de" : "en"),
+      everydayRemaining: everyday.trim() ? parseMoney(everyday, de ? "de" : "en") : null,
     });
     if (
       !next ||
@@ -45,8 +45,8 @@ export function useCashWindow(
     ) {
       setError(
         de
-          ? "Beträge ab 0 und einen Gehaltstermin innerhalb der nächsten 90 Tage eingeben."
-          : "Enter non-negative amounts and a payday within the next 90 days.",
+          ? "Guthaben als gültigen Betrag, Ausgaben und Reserve ab 0 und einen Gehaltstermin innerhalb der nächsten 90 Tage eingeben."
+          : "Enter a valid balance, non-negative spending and protected amounts, and a payday within the next 90 days.",
       );
       return false;
     }

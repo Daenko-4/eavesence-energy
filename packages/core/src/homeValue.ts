@@ -1,3 +1,4 @@
+import { parseIncomeAmount } from "./income.ts";
 import { paymentIsPaid, type PaidPayment } from './paymentChecklist.ts';
 import {
   createHouseholdCost,
@@ -18,9 +19,14 @@ export const localToday = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
-export const parseMoney = (s: string) => {
+export const parseMoney = (s: string, locale?: "de" | "en") => {
   let v = s.replace(/€|\s|CHF/g, "");
   if (!v) return NaN;
+  if (locale) {
+    const negative = v.startsWith("-");
+    const amount = parseIncomeAmount(negative ? v.slice(1) : v, locale);
+    return negative ? -amount : amount;
+  }
   if (v.includes(",") && v.includes("."))
     v =
       v.lastIndexOf(",") > v.lastIndexOf(".")
@@ -43,7 +49,7 @@ export function readCashWindow(v: unknown): CashWindow | undefined {
     typeof n === "number" && Number.isFinite(n) && n >= 0;
   return c &&
     (c.needsRefresh === undefined || typeof c.needsRefresh === "boolean") &&
-    safe(c.balance) &&
+    typeof c.balance === "number" && Number.isFinite(c.balance) &&
     safe(c.protected) &&
     validDay(c.asOf) &&
     validDay(c.payday) &&
@@ -67,7 +73,7 @@ export function paydayForecast(
   while (cursor <= cash.payday.slice(0, 7)) {
     payments.push(
       ...paymentsForMonth(costs, cursor).payments.filter(
-        (p) => p.date >= today && p.date < cash.payday && !paymentIsPaid({...p,month:p.date.slice(0,7)},paid),
+        (p) => p.date >= `${today.slice(0, 7)}-01` && p.date < cash.payday && !paymentIsPaid({...p,month:p.date.slice(0,7)},paid),
       ),
     );
     const [y, m] = cursor.split("-").map(Number);
@@ -83,6 +89,7 @@ export function paydayForecast(
   const missingDates = costs.filter((c) => !c.nextDueDate).length;
   return {
     days,
+    overdue: payments.filter(p => p.date < today).length,
     payments,
     fixed,
     everyday,
@@ -364,7 +371,7 @@ export function confirmSavingsChange(
     throw new Error("ACTION_NOT_DUE");
   const cost = costs.find((c) => c.id === action.costId);
   const applied =
-    cost?.amount === action.newAmount || (!cost && action.newAmount === 0);
+    (cost?.amount === action.newAmount && cost.frequency === action.frequency) || (!cost && action.newAmount === 0);
   if (
     !applied &&
     (!cost ||

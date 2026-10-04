@@ -3,8 +3,9 @@
 import SavingsCoach from '@/components/SavingsCoach';
 import PlanningWorkbench from "@/components/PlanningWorkbench";
 import type { PlanningData } from "@eavesence/core/planning";
+import { parseIncomeAmount } from "@eavesence/core/income";
 import type { IncomeExtra } from "@eavesence/core/income";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createSavingsPlan, type SavingsAction } from "@eavesence/core/savingsPlan";
 import type { HouseholdCost } from "@/lib/householdCosts";
 import type { Locale } from "@/i18n/config";
@@ -12,6 +13,7 @@ import SavingsActionsPanel from "@/components/SavingsActionsPanel";
 
 type Props = {
   section?: "savings" | "progress";
+  onNavigate?: (question: "savings" | "progress") => void;
   advanced?: boolean;
   locale: Locale;
   currency: string;
@@ -26,35 +28,44 @@ type Props = {
   onSavePlanning: (data: PlanningData) => void;
   onEditCosts: () => void;
   onEditIncome: () => void;
-  onSave: (values: { variableMonthly: number | null; bufferMonthly: number; goalMonthly: number }) => void;
+  onSave: (values: { variableMonthly: number | null; bufferMonthly: number; goalMonthly: number }) => void | Promise<void>;
   onConfirmAction: (action: SavingsAction) => void;
   onReviewCost: (cost: HouseholdCost) => void;
   onSaveActions: (actions: SavingsAction[]) => void;
 };
 
-export default function SavingsPlanPanel({ section, advanced = true, locale, currency, incomeMonthly, incomeExtras = [], costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions, onConfirmAction, onReviewCost }: Props) {
+export default function SavingsPlanPanel({ section, onNavigate, advanced = true, locale, currency, incomeMonthly, incomeExtras = [], costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions, onConfirmAction, onReviewCost }: Props) {
   const [variable, setVariable] = useState(variableMonthly == null ? "" : String(variableMonthly));
   const [buffer, setBuffer] = useState(String(bufferMonthly ?? 0));
   const [goal, setGoal] = useState(String(goalMonthly ?? 0));
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+  const saving = useRef(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
   const de = locale === "de";
   const money = (value: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(value);
   const date = new Date();
   const startMonth = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 1)).toISOString().slice(0, 7);
   const result = createSavingsPlan({ incomeMonthly, incomeExtras, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth });
-  function save() {
-    const parse = (value: string) => Number(value.trim().replace(",", "."));
+  async function save() {
+    if (saving.current) return;
+    setNotice("");
+    const parse = (value: string) => parseIncomeAmount(value, locale);
     const nextVariable = variable.trim() === "" ? null : parse(variable);
     const nextBuffer = parse(buffer || "0");
     const nextGoal = parse(goal || "0");
     if ([nextBuffer, nextGoal, ...(nextVariable === null ? [] : [nextVariable])].some((value) => !Number.isFinite(value) || value < 0)) {
       setError(de ? "Bitte nur Beträge ab 0 eingeben." : "Enter amounts of 0 or more."); return;
     }
-    setError(""); onSave({ variableMonthly: nextVariable, bufferMonthly: nextBuffer, goalMonthly: nextGoal }); setNotice(de ? "Sparplan gespeichert." : "Savings plan saved.");
+    setError(""); saving.current = true; setBusy(true);
+    try {
+      await onSave({ variableMonthly: nextVariable, bufferMonthly: nextBuffer, goalMonthly: nextGoal });
+      setNotice(de ? "Sparplan gespeichert." : "Savings plan saved.");
+    } catch { setError(de ? "Speichern fehlgeschlagen. Deine Eingaben bleiben erhalten." : "Could not save. Your entries have been kept."); }
+    finally { saving.current = false; setBusy(false); }
   }
-  if (section === "progress") return <section className="mt-5"><SavingsCoach mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/></section>;
+  if (section === "progress") return <section className="mt-5"><SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/></section>;
   return <section id="savings-plan" className="mt-7 rounded-[1.45rem] border border-[#b8efcc] bg-[#eefbf3] p-5 sm:p-6">
     {section && <><h2 className="site-section-title">{de ? "Wo lohnt sich eine Änderung?" : "Where could a change help?"}</h2><p className="mt-2 text-[13px] leading-6 text-[#52605b]">{de ? "Prüfe einen Kostenposten, plane eine konkrete Änderung und bestätige sie erst, wenn sie umgesetzt ist." : "Review one cost, plan a specific change and confirm it only after it happens."}</p><button type="button" className="eavesence-pill-button home-dashboard-action mt-3" aria-expanded={budgetOpen} onClick={() => setBudgetOpen(!budgetOpen)}>{de ? "Monatsbudget ergänzen (optional)" : "Add a monthly budget (optional)"}</button></>}
     <div hidden={!!section && !budgetOpen}>
@@ -65,7 +76,7 @@ export default function SavingsPlanPanel({ section, advanced = true, locale, cur
       {[[de ? "Alltagsausgaben pro Monat (geschätzt)" : "Everyday spending per month (estimate)", variable, setVariable], [de ? "Gewünschter Sparbetrag pro Monat (optional)" : "Desired savings per month (optional)", goal, setGoal]].map(([label, value, setter], index) => <label key={label as string} className="grid gap-1 text-[12px] font-semibold text-[#52605b]">{label as string}<input aria-label={label as string} id={index === 0 ? "savings-budget-input" : undefined} inputMode="decimal" value={value as string} onChange={(event) => (setter as (value: string) => void)(event.target.value)} className="home-planning-field min-h-11 rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder={index === 0 ? de ? "z. B. 500" : "e.g. 500" : "0"} /><span className="font-normal">{index === 0 ? de ? "Zum Beispiel Lebensmittel und Freizeit. Nur Ausgaben, die noch nicht in deinen Fixkosten stehen." : "For example groceries and leisure. Only spending not already in your fixed costs." : de ? "Geld, das du vom verbleibenden Budget zurücklegen möchtest – nachdem Fixkosten und Alltagsausgaben bezahlt sind." : "Money you want to set aside from what is left after fixed costs and everyday spending."}</span></label>)}
     </div>
     <details open={(bufferMonthly ?? 0) > 0} className="home-disclosure mt-3 text-[12px] text-[#52605b]"><summary className="cursor-pointer font-semibold">{de ? "Erweiterte Optionen: freiwillige Reserve" : "More options: optional reserve"}</summary><p className="mt-2">{de ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</p><label className="mt-2 grid max-w-xs gap-1 font-semibold">{de ? "Freiwillige Reserve pro Monat" : "Optional reserve per month"}<input inputMode="decimal" value={buffer} onChange={(event) => setBuffer(event.target.value)} className="home-planning-field min-h-11 rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder="0" /></label></details>
-    <button type="button" onClick={save} className="eavesence-pill-button home-primary-action mt-4">{de ? "Plan speichern" : "Save plan"}</button>
+    <button type="button" onClick={() => void save()} disabled={busy} className="eavesence-pill-button home-primary-action mt-4">{de ? "Plan speichern" : "Save plan"}</button>
     {notice && <p role="status" className="mt-2 text-[12px] font-semibold text-[#087a45]">{notice}</p>}
     {error && <p role="alert" className="mt-2 text-[12px] text-red-700">{error}</p>}
     {result && <>
@@ -90,8 +101,8 @@ export default function SavingsPlanPanel({ section, advanced = true, locale, cur
     </>}
     </div>
     {result && <>
-      <SavingsCoach mode="opportunities" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>
-      {!section && <SavingsCoach mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>}
+      <SavingsCoach onNavigate={onNavigate} mode="opportunities" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>
+      {!section && <SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>}
       {advanced && section === "savings" && <SavingsActionsPanel embedded locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />}
       {advanced && <PlanningWorkbench input={{ incomeMonthly, incomeExtras, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} costChange={<SavingsActionsPanel embedded locale={locale} currency={currency} input={{ incomeMonthly, incomeExtras, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />} />}
     </>}

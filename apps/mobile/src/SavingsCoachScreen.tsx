@@ -14,7 +14,7 @@ import type {
 } from "@eavesence/core/savingsPlan";
 import { shiftPlanningMonth } from "@eavesence/core/planning";
 import { LocalizedText as Text, useMobileLocale } from "./i18n";
-import { FormSection } from "./FormSection";
+import { FormSection, FormSubmitButton } from "./FormSection";
 import { FormInput } from "./FormInput";
 export function SavingsCoachScreen({
   input,
@@ -24,6 +24,7 @@ export function SavingsCoachScreen({
   onActions,
   onConfirm,
   onReview,
+  onNavigate,
   currency,
   mode = "all",
 }: {
@@ -34,6 +35,7 @@ export function SavingsCoachScreen({
   onActions: (a: SavingsAction[]) => Promise<void>;
   onConfirm: (a: SavingsAction) => Promise<void>;
   onReview: (c: HouseholdCost) => void;
+  onNavigate?: (question: "savings" | "progress") => void;
   currency: string;
   mode?: "all" | "opportunities" | "progress";
 }) {
@@ -99,8 +101,10 @@ export function SavingsCoachScreen({
           "Review → plan a change → confirm it happened. Up to three next tasks.",
         )}
       </Text>
+      {mode !== "progress" && p.plannedMonthly > 0 && <View style={styles.box}><Text style={styles.title}>{t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: {money(p.plannedMonthly)} {t("pro Monat", "per month")}</Text><Text style={styles.note}>{t("Noch nicht erreicht. Bestätige jede Änderung erst nach der Umsetzung.", "Not achieved yet. Confirm each change only after it happens.")}</Text></View>}
+      {p.notice && <Text accessibilityRole="summary" style={styles.note}>{p.notice}</Text>}
       {mode === "progress" && !shownActions.length && <Text style={styles.note}>{t("Noch keine bestätigte Ersparnis. Plane eine konkrete Kostenänderung und bestätige sie erst nach der Umsetzung.", "No confirmed savings yet. Plan a specific cost change and confirm it after it happens.")}</Text>}
-      {p.outdated.length > 0 && (
+      {p.outdated.some(a => shownActions.includes(a)) && (
         <Text style={styles.error}>
           {t(
             "Kosten erneut geändert. Betroffene Änderungen sind bis zur Prüfung nicht im Ersparniswert enthalten.",
@@ -112,15 +116,15 @@ export function SavingsCoachScreen({
         <View style={styles.dark}>
           <Text style={styles.light}>
             {t(
-              "Seit deinen bestätigten Änderungen rechnerisch weniger ausgegeben",
-              "Estimated lower spending since your confirmed changes",
+              "Bis heute anhand bestätigter Änderungen und Zahlungstermine eingespart",
+              "Saved to date from confirmed changes and payment dates",
             )}
           </Text>
-          <Text style={styles.amount}>{money(p.totals.total)}</Text>
+          <Text style={styles.amount}>{money(p.totals.scheduled)}</Text>
           <Text style={styles.light}>
             {t(
-              "Aus Bestätigungen und Zahlungsterminen berechnet. Ohne Termin anteilig geschätzt. Nicht anhand von Kontobuchungen geprüft.",
-              "Calculated from confirmations and payment dates. Prorated without dates. Not verified against bank transactions.",
+              "Aus Bestätigungen und Zahlungsterminen berechnet. Nicht anhand von Kontobuchungen geprüft.",
+              "Calculated from confirmations and payment dates. Not verified against bank transactions.",
             )}
           </Text>
         </View>
@@ -194,10 +198,7 @@ export function SavingsCoachScreen({
           </Text>
           {p.preview && <Text accessibilityRole="summary" style={styles.note}>{t("In den nächsten 12 Planungsmonaten voraussichtlich", "Estimated over the next 12 planning months")}: {money(p.preview.totalDifference)} {t("weniger Ausgaben. Zahlungstermine und Startmonat sind berücksichtigt. Noch keine bestätigte Ersparnis.", "lower spending. Payment dates and the start month are included. Not a confirmed saving yet.")}</Text>}
           <View style={styles.row}>
-            {button(
-              t("Änderung vormerken", "Save this plan"),
-              () => void p.plan(),
-            )}
+            <FormSubmitButton label={t("Änderung vormerken", "Save this plan")} style={styles.button} textStyle={styles.buttonText}/>
             {button(t("Abbrechen", "Cancel"), p.cancel)}
           </View>
         </FormSection>
@@ -258,6 +259,9 @@ export function SavingsCoachScreen({
             )}
         </View>
       ))}
+      {mode === "progress" && p.totals.estimated > 0 && <Text style={styles.note}>{t("Zusätzlich ohne Zahlungstermin geschätzt", "Additional estimate without payment dates")}: {money(p.totals.estimated)}. {t("Nicht im Betrag oben enthalten.", "Not included in the amount above.")}</Text>}
+      {mode === "progress" && p.confirmedMonthly > 0 && <Text style={styles.note}>{t("Deine bestätigten Änderungen senken die laufenden Kosten durchschnittlich um", "Your confirmed changes reduce recurring costs by an average of")} {money(p.confirmedMonthly)} {t("pro Monat. Das ist kein zusätzlich bereits angesparter Betrag.", "per month. This is not extra money already saved.")}</Text>}
+      {onNavigate && mode !== "all" && button(mode === "progress" ? t("Eine Sparmöglichkeit prüfen", "Review a savings opportunity") : t("Erreichte Ersparnis ansehen", "View achieved savings"), () => onNavigate(mode === "progress" ? "savings" : "progress"))}
       {p.error && (
         <Text accessibilityRole="alert" style={styles.error}>
           {p.error}

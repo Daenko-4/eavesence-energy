@@ -10,7 +10,7 @@ import {
   type HouseholdCostFrequency,
 } from "@eavesence/core/householdCosts";
 import { homeRelease } from "../../../src/lib/homeRelease";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Keyboard, Pressable, StyleSheet, View } from "react-native";
 
 import { costsForTile, destinationTileId } from "./costTiles";
@@ -38,10 +38,6 @@ const suggestions: Array<[HouseholdCostCategory, string, HouseholdCostFrequency]
   ["subscriptions", "Internet oder Abo", "monthly"],
   ["financing", "Kreditrate", "monthly"],
 ];
-
-function parseAmount(value: string) {
-  return Number(value.trim().replace(",", "."));
-}
 
 function displayDate(iso: string) {
   if (!iso) return "";
@@ -85,8 +81,9 @@ function nextMonthDate(day: number | "last") {
 }
 
 function DateField({ label, value, onChangeText }: { label: string; value: string; onChangeText: (value: string) => void }) {
+  const locale = useMobileLocale();
   return <View>
-    <FormInput label={label} value={value} onChangeText={(text) => onChangeText(maskDate(text, value))} placeholder="TT.MM.JJJJ" keyboardType="number-pad" maxLength={10} />
+    <FormInput label={label} value={value} onChangeText={(text) => onChangeText(maskDate(text, value))} placeholder={locale === "de" ? "TT.MM.JJJJ" : "DD.MM.YYYY"} keyboardType="number-pad" maxLength={10} />
     <View style={styles.dateSuggestions}>
       <Pressable onPress={() => { onChangeText(suggestedDate(0)); Keyboard.dismiss(); }} style={styles.dateSuggestion}><Text style={styles.dateSuggestionText}>Heute</Text></Pressable>
       <Pressable onPress={() => { onChangeText(suggestedDate(30)); Keyboard.dismiss(); }} style={styles.dateSuggestion}><Text style={styles.dateSuggestionText}>In 30 Tagen</Text></Pressable>
@@ -106,7 +103,9 @@ function Choice<T extends string>({ options, value, onChange }: {
   return <View style={styles.choices}>{options.map(([key, label]) => <Pressable key={key} accessibilityRole="button" accessibilityState={{ selected: value === key }} onPress={() => onChange(key)} style={[styles.choice, value === key && styles.choiceActive]}><Text style={[styles.choiceText, value === key && styles.choiceTextActive]}>{label}</Text></Pressable>)}</View>;
 }
 
-export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, initialAction = "none", initialCostId, setup, onSkip, onBack, onSaveCost, onDeleteCost, onSaveIncome }: {
+export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, initialAction = "none", initialCostId, setup, onSkip, onBack, onSaveCost, onDeleteCost, onSaveIncome, onEditingChange, onOverview }: {
+  onEditingChange?: (editing: boolean) => void;
+  onOverview?: () => void;
   setup?: "income" | "cost";
   onSkip?: () => Promise<void>;
   onBack?: () => Promise<void>;
@@ -128,6 +127,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   const [incomeOpen, setIncomeOpen] = useState(initialAction === "income");
   const [feedback, setFeedback] = useState("");
   const [formOpen, setFormOpen] = useState(initialAction === "cost"||!!initialCost);
+  useEffect(() => { onEditingChange?.(formOpen || incomeOpen || !!setup); }, [formOpen, incomeOpen, setup, onEditingChange]);
   const [name, setName] = useState(initialCost?.name??"");
   const [amount, setAmount] = useState(initialCost?String(initialCost.amount):"");
   const [category, setCategory] = useState<HouseholdCostCategory>(initialCost?.category??"housing");
@@ -167,7 +167,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   }
 
   async function save() {
-    const cost = createHouseholdCost({ id: editingId ?? undefined, name, amount: parseAmount(amount), category: setup ? inferSetupCategory(name) : category, frequency, tileId: destinationTileId(costs, editingId, tileId), nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
+    const cost = createHouseholdCost({ id: editingId ?? undefined, name, amount: parseIncomeAmount(amount, locale), category: setup ? inferSetupCategory(name) : category, frequency, tileId: destinationTileId(costs, editingId, tileId), nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
     if (!cost) {
       Alert.alert((locale === "de" ? "Angaben prüfen" : "Check your entries"), (locale === "de" ? "Gib eine Bezeichnung, einen Betrag über 0 und gültige Termine im Format TT.MM.JJJJ ein." : "Enter a name, a positive amount and valid dates in DD.MM.YYYY format."));
       return;
@@ -287,7 +287,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
         <Text style={styles.costDetail}>{item.entryCount} {locale === "de" ? item.entryCount === 1 ? "Eintrag" : "Einträge" : item.entryCount === 1 ? "entry" : "entries"}</Text>
       </View>)}</View>
     </>}
-    {!!feedback && <Text accessibilityRole="alert" style={styles.help}>{feedback}</Text>}
+    {!!feedback && <View style={styles.panel}><Text style={styles.help}>{feedback}</Text>{onOverview && <Pressable accessibilityRole="button" onPress={onOverview} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Monatsübersicht ansehen" : "View monthly overview"}</Text></Pressable>}</View>}
     {!formOpen && <><Text style={styles.sectionTitle}>Angelegte Kosten</Text>
     {visibleCosts.length === 0 ? <Text style={styles.help}>Noch keine Kosten angelegt.</Text> : visibleCosts.map((cost) => <View key={cost.id} style={styles.costRow}>
       <Text style={styles.costName}>{cost.name}</Text>
