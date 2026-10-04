@@ -1,4 +1,5 @@
 import { incomeExtraDrafts, incomeExtrasFromDraft, parseIncomeAmount, type IncomeExtra } from "@eavesence/core/income";
+import { IncomeExtrasSummary } from "./IncomeExtrasSummary";
 import { IncomeExtrasEditor } from "./IncomeExtrasEditor";
 import {
   createHouseholdCost,
@@ -218,6 +219,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
     <Text style={styles.help}>{locale === "de" ? "Wie viel kommt nach Steuern auf dein Konto? Ein Betrag reicht für den Start. Du kannst ihn später ändern." : "How much reaches your account after tax? One amount is enough to start. You can change it later."}</Text>
     <FormInput label={incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Extras)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"} value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 2400" : "e.g. 2400"} />
     {incomeFrequency === "yearly" && <Choice options={[["monthly", locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net"], ["yearly", locale === "de" ? "Jahresnetto · Durchschnitt" : "Annual net · average"]]} value={incomeFrequency} onChange={next => { if (next === "monthly") setIncome(""); setIncomeFrequency(next); }} />}
+    {profile.incomeFrequency === "yearly" && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency ?? "EUR"} />}
     <Text style={styles.help}>{locale === "de" ? "Ohne 13./14. Gehalt oder Bonus. Sonderzahlungen kannst du später ergänzen. Kein Einkommen? Trage 0 ein." : "Exclude extra salaries or bonuses. Add them later. No income? Enter 0."}</Text>
     <FormSubmitButton label={locale === "de" ? "Einkommen speichern & weiter" : "Save income & continue"} style={styles.primary} textStyle={styles.primaryText} />
     {onSkip && <FormActionButton label={locale === "de" ? "Einkommen später ergänzen" : "Add income later"} onPress={onSkip} style={styles.secondary} textStyle={styles.secondaryText} />}
@@ -240,6 +242,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
     <Text style={styles.help}>{locale === "de" ? "Trage dein reguläres Monatsnetto ohne Extras ein. Sonderzahlungen kannst du optional ergänzen. Jahresnetto zeigt nur einen Durchschnitt." : "Enter regular monthly net income without extras. Add extra payments optionally. Annual net income shows an average only."}</Text>
     <FormInput label={incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Extras)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"} value={income} onChangeText={setIncome} keyboardType="decimal-pad" placeholder={locale === "de" ? "z. B. 2400" : "e.g. 2400"} />
     <Choice options={[["monthly", locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net"], ["yearly", locale === "de" ? "Jahresnetto · Durchschnitt" : "Annual net · average"]]} value={incomeFrequency} onChange={next => { if (incomeFrequency === "yearly" && next === "monthly") setIncome(""); setIncomeFrequency(next); }} />
+    {profile.incomeFrequency === "yearly" && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency ?? "EUR"} />}
     <IncomeExtrasEditor frequency={incomeFrequency} drafts={incomeExtras} onChange={setIncomeExtras} open={incomeExtrasOpen} onToggle={() => setIncomeExtrasOpen(!incomeExtrasOpen)} />
     <FormSubmitButton label="Einkommen speichern" style={styles.primary} textStyle={styles.primaryText} />
     <Pressable accessibilityRole="button" onPress={() => setIncomeOpen(false)} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Zur Kostenliste" : "Back to costs"}</Text></Pressable>

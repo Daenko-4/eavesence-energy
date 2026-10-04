@@ -1860,19 +1860,21 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Sonderzahlungen)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<select aria-label={text.financePeriod} value={incomeFrequency} onChange={(event) => { const next = event.target.value as "monthly" | "yearly"; if (incomeFrequency === "yearly" && next === "monthly") setIncomeValue(""); setIncomeFrequency(next); }} className={`${homeFieldClass} min-w-0 w-full`}><option value="monthly">{locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net income"}</option><option value="yearly">{locale === "de" ? "Jahresnetto (Monatsdurchschnitt)" : "Annual net income (monthly average)"}</option></select></label>
+                    {incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />}
                     <IncomeExtrasEditor locale={locale} frequency={incomeFrequency} drafts={incomeExtras} onChange={setIncomeExtras} open={incomeExtrasOpen} onToggle={setIncomeExtrasOpen} />
                     {incomeError && <p role="alert" className="text-[11px] text-red-700">{incomeError}</p>}
                     <button type="submit" className={`${homeDashboardActionClass} w-fit`}>{text.financeSave}</button>
                   </form>
           } />
-          <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />
+          {!incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />}
 
 
 
           {profile.overviewReviewed === true && !profile.backupReminderDismissed && <p className="mt-4 text-[12px] leading-5 text-[#65716d]">{locale === "de" ? "Deine Angaben bleiben in diesem Browser. Eine Sicherung schützt sie beim Gerätewechsel oder Löschen der Browserdaten." : "Your entries stay in this browser. A backup protects them when you switch devices or clear browser data."} <button type="button" onClick={exportHome} className="eavesence-pill-button home-dashboard-action">{text.exportHome}</button> <button type="button" onClick={() => persistProfile({...profile,backupReminderDismissed:true})} className="min-h-11 px-2 text-[12px] font-semibold">{locale === "de" ? "Später" : "Later"}</button></p>}
           <details data-cost-manager open={costManagerOpen} onToggle={event=>setCostManagerOpen(event.currentTarget.open)} className="home-disclosure mt-5"><summary className="home-single-line-summary min-h-11 cursor-pointer rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] px-4 text-[13px] font-semibold">{locale === "de" ? "Kosten verwalten" : "Manage costs"}</summary>
-          {homeTiles.length > 1 && <nav aria-label={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} className="mt-5 flex flex-wrap gap-2 rounded-xl bg-[#24272c] p-3">{homeTiles.map(tile => <button type="button" key={tile.id} aria-pressed={activeTileId === tile.id} onClick={() => {setCostRequest(null);setActiveTileId(tile.id);}} className={`min-h-11 rounded-full border px-4 text-[12px] font-semibold ${activeTileId === tile.id ? "border-[#72dca3] bg-[#dcfce8] text-[#17211f]" : "border-[#65716d] text-white"}`}><span className="flex items-center gap-2"><TileSymbol icon={iconForTile(tile)}/>{tile.title ?? text.tileTitles[tile.kind]}</span></button>)}</nav>}
-          <details className="home-disclosure mt-5"><summary className="home-single-line-summary min-h-11 cursor-pointer rounded-xl border border-transparent px-4 text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary>
+          <div className="mt-5" data-cost-area-overview>
+          <nav aria-label={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} className="flex flex-wrap gap-2 rounded-t-xl bg-[#24272c] px-4 pt-3 pb-2">{homeTiles.map(tile => <button type="button" key={tile.id} aria-pressed={activeTileId === tile.id} onClick={() => {setCostRequest(null);setActiveTileId(tile.id);}} className={`min-h-11 rounded-full border px-4 text-[12px] font-semibold ${activeTileId === tile.id ? "border-[#72dca3] bg-[#dcfce8] text-[#17211f]" : "border-[#65716d] text-white"}`}><span className="flex items-center gap-2"><TileSymbol icon={iconForTile(tile)}/>{tile.title ?? text.tileTitles[tile.kind]}</span></button>)}</nav>
+          <details className="home-disclosure home-cost-area-disclosure"><summary className="home-single-line-summary min-h-11 cursor-pointer rounded-b-xl border border-transparent bg-[#24272c] px-4 text-[13px] font-semibold text-white">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
               <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
@@ -1949,6 +1951,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             {!homeTiles.some(tile => tile.kind === "energy") && <p className="mt-4 text-[11px] leading-relaxed text-[#65716d]">{locale === "de" ? "Stromkosten genauer ansehen?" : "Want to explore device electricity costs?"}{" "}<a href={locale === "de" ? "/de/rechner#rechner" : "/calculator#rechner"} className="eavesence-pill-link">{locale === "de" ? "Zum Stromrechner" : "Open energy calculator"}</a>{" "}{locale === "de" ? "Dort kannst du Geräte speichern und freiwillig als eigene Kachel übernehmen." : "Save devices there and optionally add them as a dedicated tile."}</p>}
           </section>
           </details>
+          </div>
 
           {activeTile?.kind === "energy" && <section className="mt-8 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4" aria-labelledby="monthly-overview-title">
             <button type="button" onClick={() => setOpenEnergyDetail(openEnergyDetail === "monthly" ? null : "monthly")} aria-expanded={openEnergyDetail === "monthly"} className="flex w-full items-center justify-between gap-4 text-left">
@@ -2282,7 +2285,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           </div>
           <div id="home-plan" hidden={view !== "plan"} data-home-plan-content className="scroll-mt-24">
-            {incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />}
+
             <p className="mt-5 text-[11px] font-bold uppercase tracking-[.1em] text-[var(--brand-green)]">{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</p>
             <h2 className="mt-2 site-section-title">{locale === "de" ? "Dein Plan" : "Your plan"}</h2>
             <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{locale === "de" ? "Wähle eine Frage. Deine Angaben aus My Home sind übernommen." : "Choose a question. Your My Home entries are already included."}</p>

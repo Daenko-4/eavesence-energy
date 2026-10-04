@@ -81,8 +81,9 @@ test('legacy annual net stays labelled as average and switching requires actual 
   const overview = page.getByRole('region', { name: 'Your household at a glance' });
   await expect(overview.locator('article').first()).toContainText('Net income · monthly average');
   await expect(overview.locator('article').first()).toContainText('2,800.00');
-  await expect(page.locator('[data-home-overview-content] [data-income-average-note]')).toContainText('not your actual monthly salary');
+  await expect(page.locator('[data-income-average-note]')).toHaveCount(0);
   await page.getByRole('group', { name: 'Home actions' }).getByRole('button', { name: 'Edit income', exact: true }).click();
+  await expect(page.locator('[data-income-average-note]')).toContainText('not your actual monthly salary');
   await form.locator('summary').click();
   await expect(form).toContainText('not added again');
   await expect(form.getByRole('button', { name: '+ Bonus', exact: true })).toHaveCount(0);
