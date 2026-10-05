@@ -50,7 +50,7 @@ test('payment changes invalidate the old balance and a fresh payday calculation 
   await page.getByRole('checkbox',{name:/^Rent ·/}).check();
   await page.getByRole('navigation',{name:'Choose workspace'}).getByRole('button',{name:/Plan & save/}).click();
   const payday=page.getByRole('region',{name:'Your available budget',exact:true});
-  await expect(payday).toContainText('Please confirm your current balance');
+  await expect(payday).toContainText('Please update your account balance');
   await payday.getByRole('button',{name:'Update account balance',exact:true}).click();
   await payday.getByLabel('Current account balance',{exact:true}).fill('700');
   await payday.getByRole('button',{name:'Calculate available money',exact:true}).click();

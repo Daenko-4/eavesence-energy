@@ -186,6 +186,8 @@ export default function PaydayPanel({
               <input
                 className={field}
                 inputMode="decimal"
+                aria-label={t("Alltagsausgaben bis zum Gehalt", "Everyday spending until payday")}
+                aria-describedby="payday-everyday-help"
                 value={p.everyday}
                 onChange={(e) => p.setEveryday(e.target.value)}
                 placeholder={t(
@@ -193,7 +195,7 @@ export default function PaydayPanel({
                   "Blank = use monthly estimate",
                 )}
               />
-              <span className="text-[#52605b]">{t("Für Lebensmittel, Freizeit und andere Ausgaben bis zum Gehalt. Gespeicherte Rechnungen nicht nochmals eintragen. Leer = vorhandene Monatsschätzung verwenden; ohne Schätzung ist ein Betrag nötig, auch 0.", "For groceries, leisure and other spending until payday. Do not include saved bills again. Blank = use your existing monthly estimate; without one, enter an amount, including 0.")}</span>
+              <span id="payday-everyday-help" className="text-[#52605b]">{t("Für Lebensmittel, Freizeit und andere Ausgaben bis zum Gehalt. Gespeicherte Rechnungen nicht nochmals eintragen. Leer = vorhandene Monatsschätzung verwenden; ohne Schätzung ist ein Betrag nötig, auch 0.", "For groceries, leisure and other spending until payday. Do not include saved bills again. Blank = use your existing monthly estimate; without one, enter an amount, including 0.")}</span>
             </label>
             <button
               type="submit"
