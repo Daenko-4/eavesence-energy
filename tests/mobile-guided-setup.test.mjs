@@ -23,6 +23,7 @@ function production(file) {
  runInNewContext(code,{module:appModule,exports:appModule.exports,require:name=>{
   if(name==='react-native')return native;
   if(name==='./BrandMotion')return {DisclosureIcon:()=>null};
+  if(name==='./reminders')return {scheduleCostReview:async()=>true};
   if(name==='./deadlineFile')return {shareDeadline:async()=>{}};
   if(name.startsWith('.')) {
    const local=resolve(dirname(path),name);
@@ -83,4 +84,11 @@ for (const locale of ['de','en']) test(`native payday explains the calculation w
  assert.match(html,locale==='de'?/Noch offene Rechnungen/:/Unpaid bills/);
  assert.match(html,locale==='de'?/650,00/:/650.00/);
  assert.ok(!html.includes('<input'));
+});
+
+for(const locale of ['de','en']) test(`native savings progress keeps secondary details closed in ${locale}`,()=>{
+ const {SavingsCoachScreen}=production('SavingsCoachScreen.tsx');const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+ const action={costId:'hidden',name:'Hidden subscription',originalAmount:18,newAmount:0,frequency:'monthly',effectiveMonth:today.slice(0,7),nextDueDate:today,status:'confirmed',confirmedAt:now.toISOString()};
+ const html=render(SavingsCoachScreen,{currency:'EUR',mode:'progress',input:{incomeMonthly:2400,costs:[],variableMonthly:500,bufferMonthly:0,goalMonthly:0,startMonth:today.slice(0,7)},actions:[action],onSave:noop,onActions:noop,onConfirm:noop,onReview:()=>{}},locale);
+ assert.match(html,locale==='de'?/18,00/:/18.00/);assert.match(html,locale==='de'?/Bestätigte Änderungen &amp; Schätzungen/:/Confirmed changes &amp; estimates/);assert.ok(!html.includes('Hidden subscription'));assert.ok(!html.includes('reduce recurring costs'));
 });

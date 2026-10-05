@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {paydayForecast,parseMoney,savingsToDate,confirmSavingsChange} from '../packages/core/src/homeValue.ts';
+import {paydayForecast,paydayPayments,parseMoney,savingsToDate,confirmSavingsChange} from '../packages/core/src/homeValue.ts';
 import {createSavingsAction} from '../packages/core/src/savingsPlan.ts';
 import {monthChecklist,togglePayment} from '../packages/core/src/paymentChecklist.ts';
+import {usePaymentChecklist} from '../packages/core/src/usePaymentChecklist.ts';
 import {useSavingsCoach} from '../packages/core/src/useSavingsCoach.ts';
 import {createHouseholdProfile,createHouseholdBackup} from '../src/lib/household.ts';
 import {convertWebBackup} from '../apps/mobile/src/webBackup.ts';
@@ -59,4 +60,17 @@ test('website backup import keeps the selected app language and complete savings
  for(const locale of ['de','en']) {const imported=convertWebBackup(JSON.stringify(web),locale);assert.equal(imported.profile.locale,locale);assert.equal(imported.profile.backupReminderDismissed,true);assert.deepEqual(imported.profile.planning.memos,profile.planning.memos);}
  const mobile=createMobileBackup(convertWebBackup(JSON.stringify(web),'en'));
  assert.equal(readMobileBackup(JSON.stringify({...mobile,profile:{...mobile.profile,backupReminderDismissed:'yes'}})),null);
+});
+
+test('payday bill selection keeps paid bills available for undo across the salary window',()=>{
+ const costs=[cost(),cost({id:'stream',amount:18,nextDueDate:'2026-10-05'})];
+ const bills=paydayPayments(costs,{...cash,payday:'2026-11-08'},'2026-10-05');
+ assert.equal(bills.length,4);assert.equal(bills[0].date,'2026-10-01');assert.equal(bills[3].month,'2026-11');
+ assert.equal(paydayPayments(costs,{...cash,payday:'2027-01-25'},'2026-10-05').length,0);
+});
+
+test('checking an earlier unpaid bill invalidates the balance and serializes duplicate taps',async()=>{
+ const original=cost(),payment={cost:original,date:'2026-10-01',month:'2026-10'};let controls,saved,writes=0,release;
+ function Probe(){controls=usePaymentChecklist([original],{cash},async data=>{writes++;await new Promise(resolve=>{release=resolve;});saved=data;},false);return null;}
+ renderToStaticMarkup(React.createElement(Probe));const first=controls.toggle(payment);await controls.toggle(payment);assert.equal(writes,1);release();await first;assert.equal(saved.cash.needsRefresh,true);assert.equal(saved.paidPayments.length,1);assert.equal(cash.needsRefresh,undefined);assert.equal(original.amount,900);
 });
