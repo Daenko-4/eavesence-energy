@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { usePaymentChecklist } from "@eavesence/core/usePaymentChecklist";
+import { paymentKey } from "@eavesence/core/paymentChecklist";
+import { DisclosureIcon } from "./BrandMotion";
 import { useCashWindow } from "@eavesence/core/useCashWindow";
 import type { PlanningData } from "@eavesence/core/planning";
 import {
@@ -25,6 +28,8 @@ export function PaydayScreen({
     t = (a: string, b: string) => (de ? a : b),
     p = useCashWindow(input, data, onSave, de),
     [open, setOpen] = useState(false);
+  const checklist = usePaymentChecklist(input.costs,data,onSave,de);
+  const [billsOpen,setBillsOpen] = useState(false);
   const money = (n: number) =>
       new Intl.NumberFormat(de ? "de-AT" : "en-GB", {
         style: "currency",
@@ -131,6 +136,7 @@ export function PaydayScreen({
         </Pressable>
       </View>
       {!open && complete && <View style={styles.form}><Text style={styles.subTitle}>{t("So entsteht dein Spielraum", "How your available money is calculated")}</Text>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}</View>}
+      {p.bills.length > 0 && <View style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:billsOpen}} onPress={()=>setBillsOpen(!billsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Zahlungen bis zum Gehalt abhaken", "Check off payments until payday")} · {p.bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</Text><DisclosureIcon open={billsOpen}/></Pressable>{billsOpen&&<><Text style={styles.note}>{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</Text>{p.bills.map(b=>{const paid=checklist.isPaid(b);return <Pressable key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})} accessibilityRole="checkbox" accessibilityState={{checked:paid,disabled:checklist.busy}} accessibilityLabel={`${b.cost.name} · ${day(b.date)} · ${money(b.cost.amount)} · ${t("Bezahlt", "Paid")}`} disabled={checklist.busy} onPress={()=>void checklist.toggle(b)} style={styles.payment}><Text style={styles.check}>{paid?"✓":"○"}</Text><Text style={[styles.paymentName,paid&&styles.paid]}>{b.cost.name} · {day(b.date)}</Text><Text style={styles.note}>{money(b.cost.amount)}</Text></Pressable>})}{checklist.error&&<Text accessibilityRole="alert" style={styles.error}>{checklist.error}</Text>}</>}</View>}
       {open && (
         <FormSection style={styles.form} onSave={p.save} saveLabel={t("Spielraum berechnen", "Calculate available money")}>
           <Text style={styles.note}>
@@ -252,6 +258,11 @@ export function PaydayScreen({
   );
 }
 const styles = StyleSheet.create({
+  disclosure: {minHeight:44,flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:10},
+  payment: {minHeight:48,flexDirection:"row",alignItems:"center",gap:10},
+  paymentName: {fontSize:12,color:"#24272c",flex:1},
+  paid: {textDecorationLine:"line-through",color:"#65716d"},
+  check: {fontSize:22,color:"#28734d"},
   card: {
     marginVertical: 14,
     borderRadius: 20,
