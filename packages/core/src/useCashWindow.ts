@@ -3,6 +3,7 @@ import {
   localToday,
   parseMoney,
   paydayForecast,
+  paydayPayments,
   readCashWindow,
 } from "./homeValue.ts";
 import { readPlanningData, type PlanningData } from "./planning.ts";
@@ -63,6 +64,7 @@ export function useCashWindow(
     }
   }
   return {
+    bills: paydayPayments(input.costs,cash,today),
     balance,
     setBalance,
     payday,

@@ -57,6 +57,22 @@ export function readCashWindow(v: unknown): CashWindow | undefined {
     ? c
     : undefined;
 }
+export function paydayPayments(costs: HouseholdCost[], cash: CashWindow | undefined, today: string) {
+  if (!cash || !validDay(today) || !validDay(cash.payday) || cash.payday <= today || (Date.parse(cash.payday)-Date.parse(today))/86400000 > 90) return [];
+  const payments: Array<{ cost: HouseholdCost; date: string }> = [];
+  let cursor = today.slice(0, 7);
+  while (cursor <= cash.payday.slice(0, 7)) {
+    payments.push(
+      ...paymentsForMonth(costs, cursor).payments.filter(
+        (p) => p.date >= `${today.slice(0, 7)}-01` && p.date < cash.payday,
+      ),
+    );
+    const [y, m] = cursor.split("-").map(Number);
+    cursor = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 7);
+  }
+  payments.sort((a, b) => a.date.localeCompare(b.date));
+  return payments.map(p => ({...p,month:p.date.slice(0,7)}));
+}
 export function paydayForecast(
   costs: HouseholdCost[],
   cash: CashWindow | undefined,
@@ -68,18 +84,7 @@ export function paydayForecast(
     return null;
   const days = (Date.parse(cash.payday) - Date.parse(today)) / 86400000;
   if (days > 90) return null;
-  const payments: Array<{ cost: HouseholdCost; date: string }> = [];
-  let cursor = today.slice(0, 7);
-  while (cursor <= cash.payday.slice(0, 7)) {
-    payments.push(
-      ...paymentsForMonth(costs, cursor).payments.filter(
-        (p) => p.date >= `${today.slice(0, 7)}-01` && p.date < cash.payday && !paymentIsPaid({...p,month:p.date.slice(0,7)},paid),
-      ),
-    );
-    const [y, m] = cursor.split("-").map(Number);
-    cursor = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 7);
-  }
-  payments.sort((a, b) => a.date.localeCompare(b.date));
+  const payments = paydayPayments(costs,cash,today).filter(p => !paymentIsPaid(p,paid));
   const fixed = payments.reduce((sum, p) => sum + p.cost.amount, 0);
   const everyday =
     cash.everydayRemaining ??

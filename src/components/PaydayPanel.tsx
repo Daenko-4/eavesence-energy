@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useId, useState } from "react";
+import { usePaymentChecklist } from "@eavesence/core/usePaymentChecklist";
+import { paymentKey } from "@eavesence/core/paymentChecklist";
 import { useCashWindow } from "@eavesence/core/useCashWindow";
 import type { PlanningData } from "@eavesence/core/planning";
 import type { SavingsPlanInput } from "@eavesence/core/savingsPlan";
@@ -24,6 +26,8 @@ export default function PaydayPanel({
     t = (a: string, b: string) => (de ? a : b),
     p = useCashWindow(input, data, onSave, de),
     [open, setOpen] = useState(false);
+  const checklist = usePaymentChecklist(input.costs,data,onSave,de);
+  const [billsOpen,setBillsOpen] = useState(false), billsId = useId();
   const money = (n: number) =>
     new Intl.NumberFormat(de ? "de-AT" : "en-GB", {
       style: "currency",
@@ -112,6 +116,10 @@ export default function PaydayPanel({
         </button>
       </div>
       {!open && complete && <div className="bg-white p-4 sm:p-5"><p className="mb-2 text-[12px] font-semibold">{t("So entsteht dein Spielraum", "How your available money is calculated")}</p><dl className="space-y-2 text-[12px]">{calculationRows.map(([label, value]) => <div key={String(label)} className="flex justify-between gap-3"><dt>{label}</dt><dd className="shrink-0 font-semibold">{value === null ? "—" : money(Number(value))}</dd></div>)}</dl></div>}
+      {p.bills.length > 0 && <div className="border-t border-[#dfe5dd] bg-white p-4 sm:p-5">
+        <button type="button" aria-expanded={billsOpen} aria-controls={billsId} onClick={()=>setBillsOpen(!billsOpen)} className="flex min-h-11 w-full items-center justify-between gap-3 text-left text-[12px] font-semibold"><span>{t("Zahlungen bis zum Gehalt abhaken", "Check off payments until payday")} · {p.bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</span><span aria-hidden="true" className={`text-xl text-[#28734d] transition-transform duration-200 motion-reduce:transition-none ${billsOpen?"-rotate-45":""}`}>+</span></button>
+        <div id={billsId} hidden={!billsOpen}><p className="my-2 text-[12px] text-[#52605b]">{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</p><ul className="divide-y divide-[#e7ebe5]">{p.bills.map(b=>{const paid=checklist.isPaid(b);return <li key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})}><label className="flex min-h-12 cursor-pointer items-center gap-3 py-2 text-[12px]"><input type="checkbox" checked={paid} disabled={checklist.busy} onChange={()=>void checklist.toggle(b)} aria-label={`${b.cost.name} · ${day(b.date)} · ${t("Bezahlt", "Paid")}`} className="h-5 w-5 shrink-0 accent-[#28734d]"/><span className={`min-w-0 flex-1 ${paid?"text-[#65716d] line-through":""}`}>{b.cost.name}<span className="block text-[11px] text-[#65716d]">{day(b.date)}</span></span><span className="shrink-0">{money(b.cost.amount)}</span></label></li>})}</ul>{checklist.error&&<p role="alert" className="mt-2 text-[12px] text-red-700">{checklist.error}</p>}</div>
+      </div>}
       {open && (
         <div className="space-y-3 bg-white p-4 sm:p-5">
           <p className="text-[12px] text-[#52605b]">

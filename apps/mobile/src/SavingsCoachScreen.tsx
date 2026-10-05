@@ -1,3 +1,4 @@
+import { DisclosureIcon } from "./BrandMotion";
 import { useState } from "react";
 import { costReviewTip } from "@eavesence/core/homeValue";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
@@ -89,6 +90,7 @@ export function SavingsCoachScreen({
     }
   }
   const [costPickerOpen, setCostPickerOpen] = useState(false);
+  const [progressDetailsOpen,setProgressDetailsOpen] = useState(false), [taskOptionsOpen,setTaskOptionsOpen] = useState(false);
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
     <View style={styles.card}>
@@ -97,8 +99,8 @@ export function SavingsCoachScreen({
       </Text>
       <Text style={styles.note}>
         {mode === "progress" ? t("Nur umgesetzte und bestätigte Änderungen zählen. Der Betrag ist aus deinen Angaben berechnet, nicht über ein Bankkonto nachgewiesen.", "Only completed, confirmed changes count. The amount is calculated from your entries, not verified against a bank account.") : t(
-          "Prüfen → Änderung vormerken → Umsetzung bestätigen. Höchstens drei nächste Aufgaben.",
-          "Review → plan a change → confirm it happened. Up to three next tasks.",
+          "Wähle einen Kostenposten, prüfe einen günstigeren Betrag und merke die Änderung vor. Erst nach der Umsetzung bestätigen.",
+          "Choose one cost, check a lower amount and save the plan. Confirm it only after the change happens.",
         )}
       </Text>
       {mode !== "progress" && p.plannedMonthly > 0 && <View style={styles.box}><Text style={styles.title}>{t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: {money(p.plannedMonthly)} {t("pro Monat", "per month")}</Text><Text style={styles.note}>{t("Noch nicht erreicht. Bestätige jede Änderung erst nach der Umsetzung.", "Not achieved yet. Confirm each change only after it happens.")}</Text></View>}
@@ -137,8 +139,9 @@ export function SavingsCoachScreen({
           )}
         </Text>
       )}
+      {mode !== "progress" && input.costs.length > 0 && <Text style={styles.title}>{t("1 · Kostenposten auswählen", "1 · Choose one cost")}</Text>}
       {mode !== "progress" && input.costs.length > 0 && <>{button(t("Kostenänderung testen · Kosten auswählen", "Test a cost change · choose a cost"), () => setCostPickerOpen(!costPickerOpen))}{costPickerOpen && <View style={styles.row}>{input.costs.map(c => <View key={c.id}>{button(`${c.name} · ${money(c.amount)}`, () => {p.choose(c);setCostPickerOpen(false);})}</View>)}</View>}</>}
-      {(mode === "progress" ? [] : p.tasks).map((c) => (
+      {(mode === "progress" || p.selected ? [] : p.tasks.slice(0,1)).map((c) => (
         <View key={c.id} style={styles.box}>
           <Text style={styles.title}>{c.name}</Text>
           <Text style={styles.note}>
@@ -148,22 +151,13 @@ export function SavingsCoachScreen({
           <Text style={styles.note}>
             {c.cancellationDeadline ? `${t("Frist", "Deadline")}: ${c.cancellationDeadline}. ` : ""}{costReviewTip(c.category, de, c.frequency)}
           </Text>
-          <View style={styles.row}>
-            {button(t("Angaben prüfen", "Review details"), () => onReview(c))}
-            {button(t("Änderung planen", "Plan change"), () => p.choose(c))}
-            {c.cancellationDeadline &&
-              c.cancellationDeadline >= p.today &&
-              button(
-                t("Erinnerung setzen", "Set reminder"),
-                () => void remind(c),
-              )}
-            {button(
-              t("In 30 Tagen erneut prüfen", "Review again in 30 days"),
-              () => p.later(c),
-            )}
-          </View>
+          {button(t("Änderung planen", "Plan change"),()=>p.choose(c))}
+          <Pressable accessibilityRole="button" accessibilityState={{expanded:taskOptionsOpen}} onPress={()=>setTaskOptionsOpen(!taskOptionsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Weitere Optionen", "More options")}</Text><DisclosureIcon open={taskOptionsOpen}/></Pressable>
+          {taskOptionsOpen&&<View style={styles.row}>{button(t("Angaben prüfen", "Review details"),()=>onReview(c))}{c.cancellationDeadline&&c.cancellationDeadline>=p.today&&button(t("Erinnerung setzen", "Set reminder"),()=>void remind(c))}{button(t("In 30 Tagen erneut prüfen", "Review again in 30 days"),()=>p.later(c))}</View>}
+
         </View>
       ))}
+      {mode !== "progress" && p.selected && <Text style={styles.title}>{t("2 · Neuen Betrag prüfen und vormerken", "2 · Check a new amount and save the plan")}</Text>}
       {mode !== "progress" && p.selected && (
         <FormSection style={styles.box} onSave={p.plan} saveLabel={t("Änderung vormerken", "Save this plan")}>
           <Text style={styles.title}>
@@ -203,6 +197,9 @@ export function SavingsCoachScreen({
           </View>
         </FormSection>
       )}
+      {mode !== "progress" && shownActions.length > 0 && <Text style={styles.title}>{t("3 · Erst nach der Umsetzung bestätigen", "3 · Confirm only after it happens")}</Text>}
+      {mode === "progress" && shownActions.length > 0 && <Pressable accessibilityRole="button" accessibilityState={{expanded:progressDetailsOpen}} onPress={()=>setProgressDetailsOpen(!progressDetailsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Bestätigte Änderungen & Schätzungen", "Confirmed changes & estimates")} · {shownActions.length}</Text><DisclosureIcon open={progressDetailsOpen}/></Pressable>}
+      {(mode !== "progress" || progressDetailsOpen)&&<>
       {shownActions.map((a) => (
         <View key={a.costId} style={styles.box}>
           <Text style={styles.title}>{a.name}</Text>
@@ -261,6 +258,7 @@ export function SavingsCoachScreen({
       ))}
       {mode === "progress" && p.totals.estimated > 0 && <Text style={styles.note}>{t("Zusätzlich ohne Zahlungstermin geschätzt", "Additional estimate without payment dates")}: {money(p.totals.estimated)}. {t("Nicht im Betrag oben enthalten.", "Not included in the amount above.")}</Text>}
       {mode === "progress" && p.confirmedMonthly > 0 && <Text style={styles.note}>{t("Deine bestätigten Änderungen senken die laufenden Kosten durchschnittlich um", "Your confirmed changes reduce recurring costs by an average of")} {money(p.confirmedMonthly)} {t("pro Monat. Das ist kein zusätzlich bereits angesparter Betrag.", "per month. This is not extra money already saved.")}</Text>}
+      </>}
       {onNavigate && mode !== "all" && button(mode === "progress" ? t("Eine Sparmöglichkeit prüfen", "Review a savings opportunity") : t("Erreichte Ersparnis ansehen", "View achieved savings"), () => onNavigate(mode === "progress" ? "savings" : "progress"))}
       {p.error && (
         <Text accessibilityRole="alert" style={styles.error}>
@@ -271,6 +269,7 @@ export function SavingsCoachScreen({
   );
 }
 const styles = StyleSheet.create({
+  disclosure: {minHeight:44,flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:10},
   card: {
     marginTop: 14,
     padding: 14,
