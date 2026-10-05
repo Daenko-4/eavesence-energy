@@ -59,6 +59,14 @@ export function PaydayScreen({
       <Text style={styles.buttonText}>{label}</Text>
     </Pressable>
   );
+  const calculationRows = p.forecast ? [
+    [t("Aktueller Kontostand", "Current account balance"), p.cash!.balance],
+    [t("− Noch offene Rechnungen", "− Unpaid bills"), p.forecast.fixed],
+    [p.forecast.estimated
+      ? t("− Alltag (anteilig geschätzt)", "− Everyday spending (estimated share)")
+      : t("− Alltag (deine Eingabe)", "− Everyday spending (your entry)"), p.forecast.everyday],
+    [t("− Reserve", "− Money kept in reserve"), p.cash!.protected],
+  ] : [];
   return (
     <View style={styles.card}>
       <View style={styles.dark}>
@@ -83,12 +91,12 @@ export function PaydayScreen({
         <Text style={styles.light}>
           {complete
             ? t(
-                "Nach anstehenden Zahlungen, Alltag und dem Geld, das unberührt bleiben soll.",
-                "After upcoming payments, everyday spending and money to keep untouched.",
+                "Zusätzlich verfügbar, nachdem offene Rechnungen, eingeplante Alltagsausgaben und deine Reserve abgezogen sind.",
+                "Extra money available after unpaid bills, planned everyday spending and your reserve have been deducted.",
               )
             : t(
-                p.forecast ? `Dein Guthaben ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben für einen vollständigen Spielraum.` : "Trage dein heutiges Guthaben, den nächsten Gehaltstermin und deine erwarteten Alltagsausgaben ein. Bestehende Angaben kannst du aktualisieren.",
-                p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter today’s balance, your next payday and expected everyday spending. You can update existing entries.",
+                p.forecast ? `Dein Kontostand ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben für einen vollständigen Spielraum.` : "Kontostand eintragen, nächsten Gehaltstag wählen und Alltag bis dahin schätzen. Offene Rechnungen aus My Home berücksichtigen wir automatisch.",
+                p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter your account balance, choose your next payday and estimate everyday spending until then. We include unpaid bills from My Home automatically.",
               )}
         </Text>
         {complete && p.forecast!.remaining! >= 0 && <Text style={styles.light}>{t(`Zusätzlich etwa ${money(p.forecast!.remaining! / p.forecast!.days)} pro Tag für ${p.forecast!.days} Tage. Deine eingeplanten Alltagsausgaben sind bereits abgezogen.`, `About ${money(p.forecast!.remaining! / p.forecast!.days)} extra per day for ${p.forecast!.days} days. Your planned everyday spending is already deducted.`)}</Text>}
@@ -99,8 +107,8 @@ export function PaydayScreen({
         {p.stale && (
           <Text style={styles.warning}>
             {t(
-              "Bitte bestätige dein aktuelles Guthaben. Es kann sich seit einer abgehakten Zahlung oder dem letzten Tag geändert haben.",
-              "Please confirm your current balance. It may have changed since a payment was checked off or since the last day.",
+              "Bitte aktualisiere deinen Kontostand. Seit dem letzten Tag oder einer abgehakten Zahlung kann er sich geändert haben.",
+              "Please update your account balance. It may have changed since the last day or a payment was checked off.",
             )}
           </Text>
         )}
@@ -115,31 +123,32 @@ export function PaydayScreen({
               ? t("Einklappen", "Collapse")
               : p.cash
                 ? t(
-                    "Guthaben aktualisieren / Rechnung ansehen",
-                    "Update balance / see calculation",
+                    "Kontostand aktualisieren",
+                    "Update account balance",
                   )
-                : t("Bis zum nächsten Gehalt planen", "Plan until next payday")}
+                : t("Spielraum berechnen", "Calculate available money")}
           </Text>
         </Pressable>
       </View>
+      {!open && complete && <View style={styles.form}><Text style={styles.subTitle}>{t("So entsteht dein Spielraum", "How your available money is calculated")}</Text>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}</View>}
       {open && (
-        <FormSection style={styles.form} onSave={p.save} saveLabel={t("Guthaben bestätigen & berechnen", "Confirm balance & calculate")}>
+        <FormSection style={styles.form} onSave={p.save} saveLabel={t("Spielraum berechnen", "Calculate available money")}>
           <Text style={styles.note}>
             {t(
-              "Guthaben nach bereits bezahlten Rechnungen eintragen. Hake bezahlte Rechnungen in deiner Monatscheckliste ab. Offene Zahlungen mit Termin werden abgezogen, auch frühere Zahlungen dieses Monats, die noch nicht abgehakt sind. Das nächste Gehalt wird noch nicht dazugezählt.",
-              "Enter your balance after bills already paid. Mark paid bills in your monthly checklist; unchecked dated payments count as pending, including earlier payments this month. Your next salary is not added yet.",
+              "Kontostand → offene Rechnungen abziehen → Alltag und Reserve abziehen → zusätzlicher Spielraum. Bereits bezahlte Rechnungen in der Monatscheckliste abhaken, damit sie nicht doppelt abgezogen werden. Das nächste Gehalt zählt noch nicht dazu.",
+              "Account balance → subtract unpaid bills → subtract everyday spending and reserve → extra money available. Check off bills already paid in the monthly checklist so they are not deducted twice. Your next salary is not added yet.",
             )}
           </Text>
           <FormInput
-            label={t("Heute verfügbares Guthaben", "Balance available today")}
+            label={t("Aktueller Kontostand", "Current account balance")}
             keyboardType="numbers-and-punctuation"
             value={p.balance}
             onChangeText={p.setBalance}
           />
           <Text style={styles.note}>
             {t(
-              "Geld auf den Konten, aus denen du die nächsten Ausgaben bezahlst. Ein negativer Kontostand ist möglich.",
-              "Money in the accounts used to pay upcoming expenses. A negative balance is allowed.",
+              "So wie heute in deiner Banking-App. Offene Rechnungen noch nicht abziehen – das machen wir. Bei mehreren verwendeten Konten die Kontostände addieren; ein Minus ist möglich.",
+              "Use the balance shown in your banking app today. Do not subtract unpaid bills – we do that. If you use several accounts, add their balances; negative balances are allowed.",
             )}
           </Text>
           <FormInput
@@ -166,8 +175,8 @@ export function PaydayScreen({
           </View>
           <FormInput
             label={t(
-              "Davon unberührt lassen",
-              "Keep untouched from this balance",
+              "Reserve, die übrig bleiben soll (optional)",
+              "Money to keep in reserve (optional)",
             )}
             keyboardType="decimal-pad"
             value={p.protectedAmount}
@@ -175,14 +184,14 @@ export function PaydayScreen({
           />
           <Text style={styles.note}>
             {t(
-              "Zum Beispiel Notgroschen. Geld für unten aufgeführte Rechnungen nicht erneut eintragen. Sparziele und Rücklagen werden nicht automatisch abgezogen.",
-              "For example emergency savings. Do not include money for bills below again. Goals and reserves are not automatically deducted.",
+              "Ein Teil dieses Kontostands, den du behalten möchtest. Rechnungen und Alltagsausgaben hier nicht nochmals eintragen. 0 ist möglich. Gespeicherte Sparziele werden nicht automatisch abgezogen.",
+              "Part of this account balance you want to keep. Do not include bills or everyday spending again. 0 is allowed. Saved goals are not automatically deducted.",
             )}
           </Text>
           <FormInput
             label={t(
-              "Alltag bis zum Gehalt (optional)",
-              "Everyday spending until payday (optional)",
+              "Alltagsausgaben bis zum Gehalt",
+              "Everyday spending until payday",
             )}
             value={p.everyday}
             onChangeText={p.setEveryday}
@@ -192,7 +201,8 @@ export function PaydayScreen({
               "Blank = use monthly estimate",
             )}
           />
-          <FormSubmitButton label={t("Guthaben bestätigen & berechnen", "Confirm balance & calculate")} style={styles.button} textStyle={styles.buttonText}/>
+          <Text style={styles.note}>{t("Für Lebensmittel, Freizeit und andere Ausgaben bis zum Gehalt. Gespeicherte Rechnungen nicht nochmals eintragen. Leer = vorhandene Monatsschätzung verwenden; ohne Schätzung ist ein Betrag nötig, auch 0.", "For groceries, leisure and other spending until payday. Do not include saved bills again. Blank = use your existing monthly estimate; without one, enter an amount, including 0.")}</Text>
+          <FormSubmitButton label={t("Spielraum berechnen", "Calculate available money")} style={styles.button} textStyle={styles.buttonText}/>
           {p.error && (
             <Text accessibilityRole="alert" style={styles.error}>
               {p.error}
@@ -200,29 +210,7 @@ export function PaydayScreen({
           )}
           {p.forecast && (
             <View style={styles.box}>
-              {[
-                [t("Heutiges Guthaben", "Today’s balance"), p.cash!.balance],
-                [
-                  t("− Zahlungen bis zum Gehalt", "− Payments until payday"),
-                  p.forecast.fixed,
-                ],
-                [
-                  p.forecast.estimated
-                    ? t(
-                        "− Alltag (anteilig geschätzt)",
-                        "− Everyday spending (estimated share)",
-                      )
-                    : t(
-                        "− Alltag (deine Eingabe)",
-                        "− Everyday spending (your entry)",
-                      ),
-                  p.forecast.everyday,
-                ],
-                [
-                  t("− Unberührt lassen", "− Keep untouched"),
-                  p.cash!.protected,
-                ],
-              ].map(([label, n]) => (
+              {calculationRows.map(([label, n]) => (
                 <Text key={String(label)} style={styles.note}>
                   {label}: {n === null ? "—" : money(Number(n))}
                 </Text>

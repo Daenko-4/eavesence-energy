@@ -39,6 +39,14 @@ export default function PaydayPanel({
       !!p.forecast &&
       p.forecast.missingDates === 0 &&
       p.forecast.remaining !== null;
+  const calculationRows = p.forecast ? [
+    [t("Aktueller Kontostand", "Current account balance"), p.cash!.balance],
+    [t("− Noch offene Rechnungen", "− Unpaid bills"), p.forecast.fixed],
+    [p.forecast.estimated
+      ? t("− Alltag (anteilig geschätzt)", "− Everyday spending (estimated share)")
+      : t("− Alltag (deine Eingabe)", "− Everyday spending (your entry)"), p.forecast.everyday],
+    [t("− Reserve", "− Money kept in reserve"), p.cash!.protected],
+  ] : [];
   return (
     <section
       className="mt-5 min-w-0 overflow-hidden rounded-[1.45rem] border border-[#32363b]"
@@ -66,12 +74,12 @@ export default function PaydayPanel({
         <p className="mt-2 max-w-2xl text-[12px] leading-5 text-[#d1d7d4]">
           {complete
             ? t(
-                "Voraussichtlich nach anstehenden Zahlungen, Alltag und dem Geld, das unberührt bleiben soll.",
-                "Estimated after upcoming payments, everyday spending and money you want to keep untouched.",
+                "Zusätzlich verfügbar, nachdem offene Rechnungen, eingeplante Alltagsausgaben und deine Reserve abgezogen sind.",
+                "Extra money available after unpaid bills, planned everyday spending and your reserve have been deducted.",
               )
             : t(
-                p.forecast ? `Dein Guthaben ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben für einen vollständigen Spielraum.` : "Trage dein heutiges Guthaben, den nächsten Gehaltstermin und deine erwarteten Alltagsausgaben ein. Bestehende Angaben kannst du aktualisieren.",
-                p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter today’s balance, your next payday and expected everyday spending. You can update existing entries.",
+                p.forecast ? `Dein Kontostand ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben für einen vollständigen Spielraum.` : "Kontostand eintragen, nächsten Gehaltstag wählen und Alltag bis dahin schätzen. Offene Rechnungen aus My Home berücksichtigen wir automatisch.",
+                p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter your account balance, choose your next payday and estimate everyday spending until then. We include unpaid bills from My Home automatically.",
               )}
         </p>
         {complete && p.forecast!.remaining! >= 0 && <p className="mt-2 text-[12px] leading-5 text-[#d1d7d4]">{t(`Zusätzlich etwa ${money(p.forecast!.remaining! / p.forecast!.days)} pro Tag für ${p.forecast!.days} Tage. Deine eingeplanten Alltagsausgaben sind bereits abgezogen.`, `About ${money(p.forecast!.remaining! / p.forecast!.days)} extra per day for ${p.forecast!.days} days. Your planned everyday spending is already deducted.`)}</p>}
@@ -82,8 +90,8 @@ export default function PaydayPanel({
         {p.stale && (
           <p className="mt-2 text-[12px] text-[#ffe1a8]">
             {t(
-              "Bitte bestätige dein aktuelles Guthaben. Es kann sich seit einer abgehakten Zahlung oder dem letzten Tag geändert haben.",
-              "Please confirm your current balance. It may have changed since a payment was checked off or since the last day.",
+              "Bitte aktualisiere deinen Kontostand. Seit dem letzten Tag oder einer abgehakten Zahlung kann er sich geändert haben.",
+              "Please update your account balance. It may have changed since the last day or a payment was checked off.",
             )}
           </p>
         )}
@@ -97,18 +105,19 @@ export default function PaydayPanel({
             ? t("Einklappen", "Collapse")
             : p.cash
               ? t(
-                  "Guthaben aktualisieren / Rechnung ansehen",
-                  "Update balance / see calculation",
+                  "Kontostand aktualisieren",
+                  "Update account balance",
                 )
-              : t("Bis zum nächsten Gehalt planen", "Plan until next payday")}
+              : t("Spielraum berechnen", "Calculate available money")}
         </button>
       </div>
+      {!open && complete && <div className="bg-white p-4 sm:p-5"><p className="mb-2 text-[12px] font-semibold">{t("So entsteht dein Spielraum", "How your available money is calculated")}</p><dl className="space-y-2 text-[12px]">{calculationRows.map(([label, value]) => <div key={String(label)} className="flex justify-between gap-3"><dt>{label}</dt><dd className="shrink-0 font-semibold">{value === null ? "—" : money(Number(value))}</dd></div>)}</dl></div>}
       {open && (
         <div className="space-y-3 bg-white p-4 sm:p-5">
           <p className="text-[12px] text-[#52605b]">
             {t(
-              "Guthaben nach bereits bezahlten Rechnungen eintragen. Hake bezahlte Rechnungen in deiner Monatscheckliste ab. Offene Zahlungen mit Termin werden abgezogen, auch frühere Zahlungen dieses Monats, die noch nicht abgehakt sind. Das nächste Gehalt wird hier noch nicht dazugezählt.",
-              "Enter your balance after bills already paid. Mark paid bills in your monthly checklist; unchecked dated payments count as pending, including earlier payments this month. Your next salary is not added yet.",
+              "Kontostand → offene Rechnungen abziehen → Alltag und Reserve abziehen → zusätzlicher Spielraum. Bereits bezahlte Rechnungen in der Monatscheckliste abhaken, damit sie nicht doppelt abgezogen werden. Das nächste Gehalt zählt noch nicht dazu.",
+              "Account balance → subtract unpaid bills → subtract everyday spending and reserve → extra money available. Check off bills already paid in the monthly checklist so they are not deducted twice. Your next salary is not added yet.",
             )}
           </p>
           <form
@@ -119,13 +128,13 @@ export default function PaydayPanel({
             className="grid gap-3 sm:grid-cols-2"
           >
             <label className="row-span-3 grid grid-rows-subgrid gap-1 text-[12px] leading-4">
-              <span>{t("Heute verfügbares Guthaben", "Balance available today")}</span>
+              <span>{t("Aktueller Kontostand", "Current account balance")}</span>
               <input
                 className={field}
                 inputMode="decimal"
                 aria-label={t(
-                  "Heute verfügbares Guthaben",
-                  "Balance available today",
+                  "Aktueller Kontostand",
+                  "Current account balance",
                 )}
                 aria-describedby="payday-balance-help"
                 value={p.balance}
@@ -133,8 +142,8 @@ export default function PaydayPanel({
               />
               <span id="payday-balance-help" className="text-[#52605b]">
                 {t(
-                  "Geld auf den Konten, aus denen du die nächsten Ausgaben bezahlst. Ein negativer Kontostand ist möglich.",
-                  "Money in the accounts used to pay upcoming expenses. A negative balance is allowed.",
+                  "So wie heute in deiner Banking-App. Offene Rechnungen noch nicht abziehen – das machen wir. Bei mehreren verwendeten Konten die Kontostände addieren; ein Minus ist möglich.",
+                  "Use the balance shown in your banking app today. Do not subtract unpaid bills – we do that. If you use several accounts, add their balances; negative balances are allowed.",
                 )}
               </span>
             </label>
@@ -150,13 +159,13 @@ export default function PaydayPanel({
               <span aria-hidden="true" />
             </label>
             <label className="row-span-3 grid grid-rows-subgrid gap-1 text-[12px] leading-4">
-              <span>{t("Davon unberührt lassen", "Keep untouched from this balance")}</span>
+              <span>{t("Reserve, die übrig bleiben soll (optional)", "Money to keep in reserve (optional)")}</span>
               <input
                 className={field}
                 inputMode="decimal"
                 aria-label={t(
-                  "Davon unberührt lassen",
-                  "Keep untouched from this balance",
+                  "Reserve, die übrig bleiben soll (optional)",
+                  "Money to keep in reserve (optional)",
                 )}
                 aria-describedby="payday-protected-help"
                 value={p.protectedAmount}
@@ -164,19 +173,21 @@ export default function PaydayPanel({
               />
               <span id="payday-protected-help" className="text-[#52605b]">
                 {t(
-                  "Zum Beispiel Notgroschen oder Sparziele. Geld für unten aufgeführte Rechnungen hier nicht erneut eintragen.",
-                  "For example emergency savings or goals. Do not include money for bills listed below again.",
+                  "Ein Teil dieses Kontostands, den du behalten möchtest, z. B. ein Sicherheitspuffer. Rechnungen und Alltagsausgaben hier nicht nochmals eintragen. 0 ist möglich.",
+                  "Part of this account balance you want to keep, e.g. a safety cushion. Do not include bills or everyday spending again. 0 is allowed.",
                 )}
               </span>
             </label>
             <label className="row-span-3 grid grid-rows-subgrid gap-1 text-[12px] leading-4">
               <span>{t(
-                "Alltag bis zum Gehalt (optional)",
-                "Everyday spending until payday (optional)",
+                "Alltagsausgaben bis zum Gehalt",
+                "Everyday spending until payday",
               )}</span>
               <input
                 className={field}
                 inputMode="decimal"
+                aria-label={t("Alltagsausgaben bis zum Gehalt", "Everyday spending until payday")}
+                aria-describedby="payday-everyday-help"
                 value={p.everyday}
                 onChange={(e) => p.setEveryday(e.target.value)}
                 placeholder={t(
@@ -184,7 +195,7 @@ export default function PaydayPanel({
                   "Blank = use monthly estimate",
                 )}
               />
-              <span aria-hidden="true" />
+              <span id="payday-everyday-help" className="text-[#52605b]">{t("Für Lebensmittel, Freizeit und andere Ausgaben bis zum Gehalt. Gespeicherte Rechnungen nicht nochmals eintragen. Leer = vorhandene Monatsschätzung verwenden; ohne Schätzung ist ein Betrag nötig, auch 0.", "For groceries, leisure and other spending until payday. Do not include saved bills again. Blank = use your existing monthly estimate; without one, enter an amount, including 0.")}</span>
             </label>
             <button
               type="submit"
@@ -192,8 +203,8 @@ export default function PaydayPanel({
               className="eavesence-pill-button home-primary-action sm:justify-self-start"
             >
               {t(
-                "Guthaben bestätigen & berechnen",
-                "Confirm balance & calculate",
+                "Spielraum berechnen",
+                "Calculate available money",
               )}
             </button>
           </form>
@@ -208,29 +219,7 @@ export default function PaydayPanel({
               className="rounded-xl bg-[#f4f6f2] p-3 text-[13px]"
             >
               <dl className="space-y-2">
-                {[
-                  [t("Heutiges Guthaben", "Today’s balance"), p.cash!.balance],
-                  [
-                    t("− Zahlungen bis zum Gehalt", "− Payments until payday"),
-                    p.forecast.fixed,
-                  ],
-                  [
-                    p.forecast.estimated
-                      ? t(
-                          "− Alltag (anteilig geschätzt)",
-                          "− Everyday spending (estimated share)",
-                        )
-                      : t(
-                          "− Alltag (deine Eingabe)",
-                          "− Everyday spending (your entry)",
-                        ),
-                    p.forecast.everyday,
-                  ],
-                  [
-                    t("− Unberührt lassen", "− Keep untouched"),
-                    p.cash!.protected,
-                  ],
-                ].map(([label, n]) => (
+                {calculationRows.map(([label, n]) => (
                   <div
                     key={String(label)}
                     className="flex justify-between gap-3"
