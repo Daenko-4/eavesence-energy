@@ -1579,9 +1579,10 @@ for (const width of [320, 1365]) test(`home actions reveal their editor and keep
   await expect(page.locator('#household-cost-form')).toHaveCount(0);
   await expect(costs).toContainText('Test internet');
   await expect(page.locator('[data-home-tiles] button[aria-expanded="true"]').first()).toContainText('Household costs');
-  const style = await actions.getByRole('button', { name: 'Add cost', exact: true }).evaluate(el => ({ background: getComputedStyle(el).backgroundColor, border: getComputedStyle(el).borderTopWidth }));
-  expect(style.background).toBe('rgba(0, 0, 0, 0)');
-  expect(style.border).toBe('1px');
+  await page.mouse.move(10, 180);
+  const addCost = actions.getByRole('button', { name: 'Add cost', exact: true });
+  await expect(addCost).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(addCost).toHaveCSS('border-top-width', '1px');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
