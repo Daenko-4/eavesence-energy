@@ -315,14 +315,17 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     .getByRole("button", { name: "Rent or mortgage payment" })
     .click();
   await householdCosts.getByLabel("Amount").fill("900");
-  if (!await householdCosts.getByLabel("Next payment (optional)").isVisible()) await householdCosts.getByText("More details: category and dates", { exact: true }).click();
-  await householdCosts.getByLabel("Next payment (optional)").fill("2026-10-01");
+  if (!await householdCosts.getByLabel("When is payment due? (optional)").isVisible()) await householdCosts.getByText("More details: category and cancellation", { exact: true }).click();
+  await householdCosts.getByLabel("When is payment due? (optional)").fill("2026-10-01");
   await householdCosts.getByLabel("Amount").press("Enter");
   await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
   await page.locator("[data-home-review]").getByRole("button", {name:"Overview checked",exact:true}).click();
   const installCard = page.getByRole("region", {
     name: "Install EAVESENCE as an app",
   });
+  await expect(installCard).toHaveCount(0);
+  await expect(page.getByText("Your entries stay in this browser.", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "Later", exact: true }).click();
   await expect(installCard).toBeVisible();
   await expect(
     installCard.getByText("Open My home directly from your home screen"),
@@ -618,8 +621,8 @@ test("My home distinguishes annual monthly averages from dated payment forecasts
   await costs.getByLabel("Name", { exact: true }).fill("Insurance");
   await costs.getByLabel("Amount", { exact: true }).fill("600");
   await costs.getByLabel("How often?").selectOption("yearly");
-  await costs.getByText("More details: category and dates", { exact: true }).click();
-  await costs.getByLabel("Next payment (optional)").fill("2026-10-15");
+  await costs.getByText("More details: category and cancellation", { exact: true }).click();
+  await costs.getByLabel("When is payment due? (optional)").fill("2026-10-15");
   await costs.getByLabel("Cancellation deadline (optional, enter yourself)").fill("2026-09-28");
   await costs.getByRole("button", { name: "Save", exact: true }).click();
   const overview = page.getByRole("region", { name: "Your household at a glance" });

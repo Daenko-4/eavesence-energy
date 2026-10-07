@@ -1,3 +1,5 @@
+import { savingsActionKey } from "@eavesence/core/savingsPlan";
+import { nextSavingsPayment } from "@eavesence/core/proValue";
 import { DisclosureIcon } from "./BrandMotion";
 import { useState } from "react";
 import { costReviewTip } from "@eavesence/core/homeValue";
@@ -91,6 +93,7 @@ export function SavingsCoachScreen({
   }
   const [costPickerOpen, setCostPickerOpen] = useState(false);
   const [progressDetailsOpen,setProgressDetailsOpen] = useState(false), [taskOptionsOpen,setTaskOptionsOpen] = useState(false);
+  const nextSaving = nextSavingsPayment(actions,p.today);
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
     <View style={styles.card}>
@@ -131,6 +134,8 @@ export function SavingsCoachScreen({
           </Text>
         </View>
       )}
+      {mode === "progress" && p.confirmedMonthly > 0 && <Text style={styles.note}>{t("Bestätigt: laufende Kosten durchschnittlich", "Confirmed: recurring costs reduced by")} {money(p.confirmedMonthly)} {t("pro Monat weniger.", "per month on average.")}</Text>}
+      {mode === "progress" && nextSaving && <Text style={styles.note}>{t("Nächste berechnete Ersparnis", "Next calculated saving")}: {money(nextSaving.amount)} {t("am", "on")} {new Intl.DateTimeFormat(de?"de-AT":"en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${nextSaving.date}T00:00:00Z`))}. {t("Sie zählt erst ab diesem Zahlungstermin.", "It counts from that payment date.")}</Text>}
       {mode !== "progress" && !p.tasks.length && !actions.length && (
         <Text style={styles.note}>
           {t(
@@ -201,7 +206,7 @@ export function SavingsCoachScreen({
       {mode === "progress" && shownActions.length > 0 && <Pressable accessibilityRole="button" accessibilityState={{expanded:progressDetailsOpen}} onPress={()=>setProgressDetailsOpen(!progressDetailsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Bestätigte Änderungen & Schätzungen", "Confirmed changes & estimates")} · {shownActions.length}</Text><DisclosureIcon open={progressDetailsOpen}/></Pressable>}
       {(mode !== "progress" || progressDetailsOpen)&&<>
       {shownActions.map((a) => (
-        <View key={a.costId} style={styles.box}>
+        <View key={savingsActionKey(a)} style={styles.box}>
           <Text style={styles.title}>{a.name}</Text>
           <Text style={styles.note}>
             {money(a.originalAmount)} → {money(a.newAmount)} · {t("ab", "from")}{" "}
@@ -226,6 +231,7 @@ export function SavingsCoachScreen({
               const cost = input.costs.find((c) => c.id === a.costId);
               if (cost) onReview(cost);
             })}
+          {a.endedOn && <Text style={styles.note}>{t("Historie: bis", "History: until")} {a.endedOn}. {t("Spätere Kostenänderung; bisherige Ersparnis bleibt erhalten.", "Later cost change; earlier savings are preserved.")}</Text>}
           {a.status === "planned" &&
             button(
               t("Vorhaben verwerfen", "Discard plan"),
@@ -280,7 +286,7 @@ const styles = StyleSheet.create({
     borderColor: "#dfe5dd",
   },
   title: { fontSize: 14, fontWeight: "800", color: "#24272c" },
-  note: { fontSize: 12, lineHeight: 18, color: "#52605b" },
+  note: { fontSize: 13, lineHeight: 20, color: "#52605b" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   button: {
     minHeight: 44,
@@ -292,7 +298,7 @@ const styles = StyleSheet.create({
   buttonText: { fontSize: 12, fontWeight: "700", color: "#087a45" },
   box: { padding: 12, gap: 8, borderRadius: 12, backgroundColor: "#f4f6f2" },
   dark: { padding: 14, gap: 8, borderRadius: 12, backgroundColor: "#24272c" },
-  light: { fontSize: 12, lineHeight: 18, color: "#d1d7d4" },
+  light: { fontSize: 13, lineHeight: 20, color: "#d1d7d4" },
   amount: { fontSize: 22, fontWeight: "900", color: "#fff" },
   error: { fontSize: 12, color: "#b91c1c" },
 });

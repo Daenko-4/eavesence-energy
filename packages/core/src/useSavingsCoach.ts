@@ -3,6 +3,8 @@ import { localToday, parseMoney, savingsToDate } from "./homeValue.ts";
 import { readPlanningData, type PlanningData } from "./planning.ts";
 import {
   createSavingsAction,
+  upsertSavingsPlan,
+  savingsActionKey,
   compareSavingsActions,
   savingsReviewCandidates,
   type SavingsAction,
@@ -30,7 +32,7 @@ export function useSavingsCoach(
   const tasks = savingsReviewCandidates(input.costs, today)
     .filter(
       (c) =>
-        !actions.some((a) => a.costId === c.id) &&
+        !actions.some((a) => a.costId === c.id && a.status === "planned") &&
         !p.reviews?.some(
           (r) =>
             r.costId === c.id &&
@@ -39,21 +41,8 @@ export function useSavingsCoach(
         ),
     )
     .slice(0, 3);
-  const outdated = actions.filter(
-    (a) =>
-      a.status === "planned" ? !input.costs.some(c => c.id === a.costId && c.amount === a.originalAmount && c.frequency === a.frequency) :
-      !input.costs.some(
-        (c) =>
-          c.id === a.costId &&
-          c.amount === a.newAmount &&
-          c.frequency === a.frequency,
-      ) &&
-      !(a.newAmount === 0 && !input.costs.some((c) => c.id === a.costId)),
-  );
-  const totals = savingsToDate(
-    actions.filter((a) => !outdated.includes(a)),
-    today,
-  );
+  const outdated = actions.filter(a => a.status === "planned" && !input.costs.some(c => c.id === a.costId && c.amount === a.originalAmount && c.frequency === a.frequency));
+  const totals = savingsToDate(actions, today);
   async function run(work: () => void | Promise<void>) {
     if (saving.current) return false;
     saving.current = true;
@@ -89,19 +78,16 @@ export function useSavingsCoach(
     const action = selected
       ? createSavingsAction(selected, parseMoney(amount, de ? "de" : "en"), effective)
       : null;
-    if (!action) {
+    if (!action || actions.some(a=>a.costId===action.costId && a.status==="confirmed" && a.effectiveMonth>action.effectiveMonth)) {
       setError(
         de
-          ? "Neuen Betrag ab 0, kleiner als bisher, und gültigen Monat eingeben."
-          : "Enter a non-negative amount lower than before and a valid month.",
+          ? "Neuen Betrag ab 0, kleiner als bisher, und einen Monat ab der letzten bestätigten Änderung eingeben."
+          : "Enter a non-negative amount lower than before and a month from the last confirmed change onwards.",
       );
       return;
     }
     return run(async () => {
-      await onActions([
-        action,
-        ...actions.filter((a) => a.costId !== action.costId),
-      ]);
+      await onActions(upsertSavingsPlan(actions, action));
       setSelected(null);
       setNotice(de ? "Änderung vorgemerkt. Deine Kosten bleiben bis zur Bestätigung unverändert." : "Change planned. Your costs stay unchanged until you confirm it happened.");
     });
@@ -125,7 +111,7 @@ export function useSavingsCoach(
   return {
     notice,
     plannedMonthly: actions.filter(a => a.status === "planned" && !outdated.includes(a)).reduce((sum,a) => sum + monthlyCost(a.originalAmount-a.newAmount,a.frequency),0),
-    confirmedMonthly: actions.filter(a => a.status === "confirmed" && !outdated.includes(a)).reduce((sum,a) => sum + monthlyCost(a.originalAmount-a.newAmount,a.frequency),0),
+    confirmedMonthly: actions.filter(a => a.status === "confirmed" && (!a.endedOn || a.endedOn > today)).reduce((sum,a) => sum + monthlyCost(a.originalAmount-a.newAmount,a.frequency),0),
     preview,
     tasks,
     totals,
@@ -144,6 +130,6 @@ export function useSavingsCoach(
     cancel: () => setSelected(null),
     confirm: (a: SavingsAction) => run(async () => { await onConfirm(a); setNotice(de ? "Umsetzung bestätigt und laufende Kosten aktualisiert. Die Ersparnis findest du unter Erspart." : "Change confirmed and recurring costs updated. Find the savings under Saved."); }),
     discard: (a: SavingsAction) =>
-      run(() => onActions(actions.filter((item) => item.costId !== a.costId))),
+      run(() => onActions(actions.filter((item) => savingsActionKey(item) !== savingsActionKey(a)))),
   };
 }

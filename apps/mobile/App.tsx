@@ -1,3 +1,5 @@
+import { ProToolsScreen } from "./src/ProToolsScreen";
+import { closeSavingsHistory } from "@eavesence/core/savingsPlan";
 import { TileSymbol, TileSymbolPicker } from "./src/TileSymbol";
 import { iconForTile, type TileSymbol as SymbolKey } from "@eavesence/core/tileSymbols";
 import { BrandMotion, DisclosureIcon } from "./src/BrandMotion";
@@ -360,7 +362,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
   async function importCosts(nextCosts: HouseholdCost[]) {
     const next=nextCosts.map(c=>({...c,tileId:c.tileId??'default-costs'}));
-    await writeJson(COSTS_KEY,next);setCosts(next);
+    await persistCosts(next);
   }
 
   async function saveSavingsActions(actions: SavingsAction[]) {
@@ -636,19 +638,18 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     ]);
   }
 
-  async function saveCost(cost: HouseholdCost) {
-    const next = upsertHouseholdCost(costs, cost);
-    if (profile?.setupStep === "cost") {
-      const nextProfile = {...profile, setupStep:"review" as const};
-      await writeAll([[COSTS_KEY,next],[PROFILE_KEY,nextProfile]]); setProfile(nextProfile);
-    } else await writeJson(COSTS_KEY, next);
+  async function persistCosts(next: HouseholdCost[], setupProfile=profile) {
+    if(setupProfile) {
+      const nextProfile={...setupProfile,savingsActions:closeSavingsHistory(setupProfile.savingsActions??[],costs,next,localToday())};
+      await writeAll([[COSTS_KEY,next],[PROFILE_KEY,nextProfile]]);setProfile(nextProfile);
+    } else await writeJson(COSTS_KEY,next);
     setCosts(next);
   }
-
+  async function saveCost(cost: HouseholdCost) {
+    await persistCosts(upsertHouseholdCost(costs,cost), profile?.setupStep === "cost" ? {...profile,setupStep:"review" as const} : profile);
+  }
   async function deleteCost(id: string) {
-    const next = removeHouseholdCost(costs, id);
-    await writeJson(COSTS_KEY, next);
-    setCosts(next);
+    await persistCosts(removeHouseholdCost(costs,id));
     try { await cancelCostReview(id); } catch { showLocalizedAlert(locale, "Erinnerung fehlgeschlagen", "Bitte versuche es erneut."); }
   }
 
@@ -943,7 +944,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           <View accessibilityRole="tablist" accessibilityLabel={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} style={styles.planTabs}>
             {(["payday", "savings", "progress"] as const).map((question, index) => <Pressable key={question} accessibilityRole="tab" accessibilityState={{ selected: planQuestion === question }} accessibilityLabel={question === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : question === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"} onPress={() => { Keyboard.dismiss(); setPlanQuestion(question); }} style={[styles.planTab, planQuestion === question && styles.planTabSelected]}><Text style={styles.planTabText}>{index + 1} · {question === "payday" ? locale === "de" ? "Bis zum Gehalt" : "To payday" : question === "savings" ? locale === "de" ? "Sparen" : "Save" : locale === "de" ? "Erspart" : "Saved"}</Text></Pressable>)}
           </View>
-          {planQuestion === "payday" && <PaydayScreen onReviewCost={reviewCost} key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??"EUR"}/> }
+          {planQuestion === "payday" && <PaydayScreen onSavings={()=>setPlanQuestion("savings")} onReviewCost={reviewCost} key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??"EUR"}/> }
           {planQuestion === "savings" && <View style={styles.formSurface}>
           <Pressable accessibilityRole="button" accessibilityState={{expanded:budgetOpen}} style={styles.financePill} onPress={() => setBudgetOpen(!budgetOpen)}><Text style={styles.financePillText}>{locale === "de" ? "Monatsbudget ergänzen (optional)" : "Add a monthly budget (optional)"}</Text></Pressable>
           {budgetOpen && <><Text style={styles.dataTitle}>{locale === "de" ? "Deine monatliche Planungsbasis" : "Your monthly planning basics"}</Text>
@@ -959,6 +960,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             {budgetOpen && <SavingsBudgetSummary input={{ incomeMonthly: monthlyIncome, incomeExtras: incomeSummary.extras, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} currency={profile.currency ?? "EUR"} />}
 
             <SavingsCoachScreen onNavigate={question => {Keyboard.dismiss();setPlanQuestion(question);scrollRef.current?.scrollTo({y:0,animated:true});}} mode="opportunities" input={{incomeMonthly:monthlyIncome,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} actions={readSavingsActions(profile.savingsActions)} onActions={saveSavingsActions} onConfirm={confirmSaving} onReview={reviewCost} currency={profile.currency??'EUR'}/>
+
+            <ProToolsScreen input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} onReview={reviewCost} currency={profile.currency??'EUR'}/>
 
             {homeRelease.advancedPlanning && <Pressable accessibilityRole="button" accessibilityState={{ expanded: scenarioOpen }} style={styles.financePill} onPress={() => setScenarioOpen(!scenarioOpen)}><Text style={styles.financePillText}>{locale === "de" ? "Eine Kostenänderung durchspielen" : "Try a cost change"}</Text></Pressable>}
             {homeRelease.advancedPlanning && scenarioOpen && <SavingsActionsScreen input={{ incomeMonthly: monthlyIncome, incomeExtras: incomeSummary.extras, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} actions={readSavingsActions(profile.savingsActions)} currency={profile.currency ?? "EUR"} onChange={saveSavingsActions} onConfirm={confirmSaving} />}

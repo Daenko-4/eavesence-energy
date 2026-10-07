@@ -268,10 +268,11 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <FormInput label="Bezeichnung" value={name} onChangeText={setName} onBlur={() => { if (!editingId && category === "housing") { const text = name.toLowerCase(); if (/internet|abo|stream|telefon/.test(text)) setCategory("subscriptions"); else if (/strom|heiz|electric|gas/.test(text)) setCategory("energy"); else if (/versicherung|insurance/.test(text)) setCategory("insurance"); } }} placeholder="z. B. Internet" />
       <FormInput label="Betrag" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="0,00" />
       <Text style={styles.label}>WIE OFT?</Text><Choice options={frequencies.filter(([key]) => moreOpen || key === "monthly" || key === "yearly" || key === frequency)} value={frequency} onChange={setFrequency} />
-      <Pressable accessibilityRole="button" accessibilityState={{ expanded: moreOpen }} onPress={() => setMoreOpen(!moreOpen)} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Weitere Intervalle, Kategorie und Termine" : "More intervals, category and dates"}</Text></Pressable>
+      <DateField label={locale === "de" ? "Wann wird abgebucht? (optional)" : "When is payment due? (optional)"} value={dueDate} onChangeText={setDueDate} />
+      <Text style={styles.help}>{locale === "de" ? "Mit Datum erscheint die Zahlung im richtigen Monat und im Plan bis zum Gehalt." : "A date puts this payment in the correct month and in your plan until payday."}</Text>
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: moreOpen }} onPress={() => setMoreOpen(!moreOpen)} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Weitere Intervalle, Kategorie und Kündigung" : "More intervals, category and cancellation"}</Text></Pressable>
       {moreOpen && <>
       <Text style={styles.label}>KATEGORIE</Text><Choice options={categories} value={category} onChange={setCategory} />
-      <DateField label="Nächste Zahlung (optional)" value={dueDate} onChangeText={setDueDate} />
       <DateField label="Kündigungsfrist (optional)" value={deadline} onChangeText={setDeadline} />
       <Text style={styles.help}>Mit Zahlungstermin können wir den nächsten Monat genau berechnen. Ohne Termin fließt der Posten nur in den Monatsdurchschnitt ein.</Text>
       </>}
@@ -308,10 +309,10 @@ const styles = StyleSheet.create({
   metrics: { flexDirection: "row", gap: 10, marginTop: 18, padding: 10, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22, backgroundColor: "#f4f6f2" },
   metric: { flex: 1, minWidth: 0, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 12 },
   value: { marginTop: 8, fontSize: 18, fontWeight: "900", letterSpacing: -0.4, color: "#17211f" },
-  label: { marginTop: 12, fontSize: 11, fontWeight: "800", color: "#52605b" },
+  label: { marginTop: 12, fontSize: 13, fontWeight: "700", color: "#52605b" },
   panel: { marginTop: 18, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22, backgroundColor: "#f6f6f0", padding: 16, gap: 12 },
   panelTitle: { fontSize: 17, fontWeight: "900", color: "#17211f" },
-  help: { fontSize: 12, lineHeight: 18, color: "#65716d" },
+  help: { fontSize: 13, lineHeight: 20, color: "#65716d" },
   dateSuggestions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
   dateSuggestion: { borderRadius: 16, backgroundColor: "#eef1ed", paddingHorizontal: 11, paddingVertical: 7 },
   dateSuggestionText: { fontSize: 12, fontWeight: "700", color: "#087a45" },
@@ -332,7 +333,7 @@ const styles = StyleSheet.create({
   costRow: { marginTop: 10, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 14 },
   costName: { fontSize: 14, fontWeight: "900", color: "#17211f" },
   costArea: { marginTop: 5, fontSize: 11, fontWeight: "800", color: "#087a45" },
-  costDetail: { marginTop: 5, fontSize: 12, lineHeight: 18, color: "#65716d" },
+  costDetail: { marginTop: 5, fontSize: 13, lineHeight: 20, color: "#65716d" },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
   deleteText: { fontSize: 12, fontWeight: "800", color: "#b42318" },
 });

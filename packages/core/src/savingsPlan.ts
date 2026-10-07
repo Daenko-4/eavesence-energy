@@ -12,6 +12,8 @@ export type SavingsPlanInput = {
 };
 
 export type SavingsAction = {
+  id?: string;
+  endedOn?: string;
   costId: string;
   name: string;
   frequency: HouseholdCostFrequency;
@@ -27,12 +29,14 @@ const validMonth = (value: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
 
 export function createSavingsAction(cost: HouseholdCost, newAmount: number, effectiveMonth: string): SavingsAction | null {
   if (!validMonth(effectiveMonth) || !Number.isFinite(newAmount) || newAmount < 0 || newAmount >= cost.amount) return null;
-  return { costId: cost.id, name: cost.name, frequency: cost.frequency, originalAmount: cost.amount, newAmount, effectiveMonth, nextDueDate: cost.nextDueDate, status: "planned" };
+  return { id: `saving-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`, costId: cost.id, name: cost.name, frequency: cost.frequency, originalAmount: cost.amount, newAmount, effectiveMonth, nextDueDate: cost.nextDueDate, status: "planned" };
 }
 
 export function readSavingsActions(value: unknown): SavingsAction[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is SavingsAction => item && typeof item === "object" &&
+    (item.id === undefined || (typeof item.id === "string" && item.id.length > 0)) &&
+    (item.endedOn === undefined || (typeof item.endedOn === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.endedOn) && Number.isFinite(Date.parse(item.endedOn)) && new Date(`${item.endedOn}T00:00:00Z`).toISOString().slice(0,10) === item.endedOn)) &&
     typeof item.costId === "string" && item.costId.length > 0 &&
     typeof item.name === "string" && item.name.trim().length > 0 &&
     ["weekly", "monthly", "quarterly", "half-yearly", "yearly"].includes(item.frequency) &&
@@ -114,4 +118,21 @@ export function createSavingsPlan(input: SavingsPlanInput) {
     months,
     tightMonths: months.filter((month) => month.afterGoal < 0),
   };
+}
+
+/** Legacy backups gain a stable identity without discarding past confirmations. */
+export function savingsActionKey(a: SavingsAction) {
+  return a.id ?? JSON.stringify([a.costId,a.effectiveMonth,a.originalAmount,a.newAmount,a.frequency,a.confirmedAt??a.status]);
+}
+export function upsertSavingsPlan(actions: SavingsAction[], draft: SavingsAction) {
+  return [draft,...actions.filter(a=>a.costId!==draft.costId || a.status==="confirmed")];
+}
+/** Manual changes end accrual after the edit date; already accrued savings remain in history. */
+export function closeSavingsHistory(actions: SavingsAction[], before: HouseholdCost[], after: HouseholdCost[], today: string) {
+  return actions.map(a=> {
+    if(a.status!=="confirmed" || a.endedOn) return a;
+    const old=before.find(c=>c.id===a.costId), next=after.find(c=>c.id===a.costId);
+    const changed=old && (!next || old.amount!==next.amount || old.frequency!==next.frequency || old.nextDueDate!==next.nextDueDate);
+    return changed ? {...a,endedOn:today} : a;
+  });
 }

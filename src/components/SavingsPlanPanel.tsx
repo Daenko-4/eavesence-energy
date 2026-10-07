@@ -1,4 +1,5 @@
 "use client";
+import ProTools from "./ProTools";
 
 import SavingsCoach from '@/components/SavingsCoach';
 import PlanningWorkbench from "@/components/PlanningWorkbench";
@@ -102,6 +103,7 @@ export default function SavingsPlanPanel({ section, onNavigate, advanced = true,
     </div>
     {result && <>
       <SavingsCoach onNavigate={onNavigate} mode="opportunities" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>
+      <ProTools locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/>
       {!section && <SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>}
       {advanced && section === "savings" && <SavingsActionsPanel embedded locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />}
       {advanced && <PlanningWorkbench input={{ incomeMonthly, incomeExtras, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} costChange={<SavingsActionsPanel embedded locale={locale} currency={currency} input={{ incomeMonthly, incomeExtras, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />} />}

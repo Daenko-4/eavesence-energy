@@ -1,4 +1,5 @@
 "use client";
+import { closeSavingsHistory } from "@eavesence/core/savingsPlan";
 
 import TileSymbol from "@/components/TileSymbol";
 import TileSymbolPicker from "@/components/TileSymbolPicker";
@@ -1036,23 +1037,25 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
   }
 
-  function persistHouseholdCosts(nextCosts: HouseholdCost[]) {
+  function persistHouseholdCosts(nextCosts: HouseholdCost[], confirmedProfile?: HouseholdProfile) {
     const changes = changesInCosts(householdCosts, nextCosts);
-    if (changes.length) {
-      const nextEvents = [...changes, ...costEvents].slice(0, 100);
-      window.localStorage.setItem(COST_EVENTS_STORAGE_KEY, JSON.stringify(nextEvents));
-      setCostEvents(nextEvents);
+    const nextEvents = changes.length ? [...changes, ...costEvents].slice(0, 100) : costEvents;
+    const actions = closeSavingsHistory(profile?.savingsActions ?? [], householdCosts, nextCosts, localToday());
+    const nextProfile = confirmedProfile ?? (profile ? {...profile,savingsActions:actions} : null);
+    const keys = [HOUSEHOLD_COSTS_STORAGE_KEY,COST_EVENTS_STORAGE_KEY,HOUSEHOLD_PROFILE_STORAGE_KEY];
+    const previous = keys.map(key=>window.localStorage.getItem(key));
+    try {
+      window.localStorage.setItem(HOUSEHOLD_COSTS_STORAGE_KEY,JSON.stringify(nextCosts));
+      window.localStorage.setItem(COST_EVENTS_STORAGE_KEY,JSON.stringify(nextEvents));
+      if(nextProfile) window.localStorage.setItem(HOUSEHOLD_PROFILE_STORAGE_KEY,JSON.stringify(nextProfile));
+    } catch(error) {
+      keys.forEach((key,i)=>{if(previous[i]===null)window.localStorage.removeItem(key);else window.localStorage.setItem(key,previous[i]!);});
+      throw error;
     }
-    window.localStorage.setItem(
-      HOUSEHOLD_COSTS_STORAGE_KEY,
-      JSON.stringify(nextCosts),
-    );
-    setHouseholdCosts(nextCosts);
+    if(nextProfile)setProfile(nextProfile);
+    setCostEvents(nextEvents);setHouseholdCosts(nextCosts);
     window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
-    track("Home Household Costs Updated", {
-      locale,
-      cost_count: nextCosts.length,
-    });
+    track("Home Household Costs Updated", {locale,cost_count:nextCosts.length});
   }
 
   function persistHomeTiles(nextTiles: HomeTile[]) {
@@ -1698,8 +1701,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   function confirmSaving(action: SavingsAction) {
     const next=confirmSavingsChange(householdCosts,profile?.savingsActions??[],action,localToday());
     if(!profile)return;
-    persistHouseholdCosts(next.costs);
-    persistProfile({...profile,savingsActions:next.actions,updatedAt:new Date().toISOString()});
+    persistHouseholdCosts(next.costs,{...profile,savingsActions:next.actions,updatedAt:new Date().toISOString()});
   }
 
   function openIncomeForm() {
@@ -1763,8 +1765,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           {settingsOpen && (
             <section id="home-settings" data-home-settings className={`mt-6 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
               <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }} className="grid gap-4 sm:grid-cols-4">
-              <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
-              <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
+              <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
+              <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
               <details className="home-disclosure sm:col-span-4"><summary className="cursor-pointer text-[12px] font-semibold">{locale === "de" ? "Stromrechner · optionales Verbrauchsziel" : "Energy calculator · optional consumption goal"}</summary><label className="mt-2 grid max-w-sm gap-1.5 text-[12px]"><span>{locale === "de" ? "Stromverbrauch reduzieren um" : "Reduce electricity use by"}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="accent-[var(--brand-green)]" /></label><p className="mt-2 text-[12px] text-[#65716d]">{locale === "de" ? "Nur für die Stromauswertung. Dein Sparbetrag in Planen & sparen wird separat festgelegt." : "Only for electricity analysis. Set your savings amount separately in Plan & save."}</p></details>
               <button type="submit" className={`${homeDashboardActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
               </form>
@@ -2063,15 +2065,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             )}
             {electricityInputMode === "annual-bill" && (
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.annualBill}</span><input type="text" inputMode="decimal" value={annualElectricityBill} onChange={(event) => setAnnualElectricityBill(event.target.value)} className={homeFieldClass} /></label>
-                <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.annualKwh}</span><input type="text" inputMode="decimal" value={annualElectricityKwh} onChange={(event) => setAnnualElectricityKwh(event.target.value)} className={homeFieldClass} /></label>
+                <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.annualBill}</span><input type="text" inputMode="decimal" value={annualElectricityBill} onChange={(event) => setAnnualElectricityBill(event.target.value)} className={homeFieldClass} /></label>
+                <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.annualKwh}</span><input type="text" inputMode="decimal" value={annualElectricityKwh} onChange={(event) => setAnnualElectricityKwh(event.target.value)} className={homeFieldClass} /></label>
                 {positiveNumber(annualElectricityBill) && positiveNumber(annualElectricityKwh) ? <p className="text-[13px] font-bold text-[var(--brand-green)] sm:col-span-2">{text.effectivePrice.replace("{price}", formatMoneyPrecise((positiveNumber(annualElectricityBill) ?? 0) / (positiveNumber(annualElectricityKwh) ?? 1), locale, currency))}</p> : null}
                 <label className="flex items-start gap-2 text-[11px] font-semibold leading-5 text-[#52605b] sm:col-span-2"><input type="checkbox" checked={electricityBillIncludesBonus} onChange={(event) => setElectricityBillIncludesBonus(event.target.checked)} className="mt-1 accent-[var(--brand-green)]" /><span>{text.bonusQuestion}{electricityBillIncludesBonus ? <span className="mt-1 block font-normal text-[#65716d]">{text.bonusHint}</span> : null}</span></label>
               </div>
             )}
             {electricityInputMode === "monthly-payment" && (
               <div className="mt-4 grid max-w-lg gap-2">
-                <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]"><span>{text.monthlyPayment}</span><input type="text" inputMode="decimal" value={monthlyElectricityPayment} onChange={(event) => setMonthlyElectricityPayment(event.target.value)} className={homeFieldClass} /></label>
+                <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.monthlyPayment}</span><input type="text" inputMode="decimal" value={monthlyElectricityPayment} onChange={(event) => setMonthlyElectricityPayment(event.target.value)} className={homeFieldClass} /></label>
                 <p className="text-[11px] leading-5 text-[#65716d]">{text.monthlyBudgetOnly}</p>
               </div>
             )}
@@ -2179,15 +2181,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
               <form onSubmit={(event) => { event.preventDefault(); saveMonthlyCheckIn(); }}>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setEditingMonth(null); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
+                <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b] sm:col-span-2">{text.month}<input type="month" value={month} onChange={(event) => { setMonth(event.target.value); setEditingMonth(null); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                 {checkInMode === "consumption" ? (
                   <>
-                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.kwh}<input id="monthly-consumption-input" type="text" inputMode="decimal" value={monthKwh} onChange={(event) => { setMonthKwh(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
+                    <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">{text.kwh}<input id="monthly-consumption-input" type="text" inputMode="decimal" value={monthKwh} onChange={(event) => { setMonthKwh(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                     <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedCost}</p><p className="mt-1 font-bold">{formatMoneyPrecise((positiveNumber(monthKwh) ?? 0) * profile.electricityPrice, locale, profile.currency)}</p></div>
                   </>
                 ) : (
                   <>
-                    <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">{text.cost}<input type="text" inputMode="decimal" value={monthCost} onChange={(event) => { setMonthCost(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
+                    <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">{text.cost}<input type="text" inputMode="decimal" value={monthCost} onChange={(event) => { setMonthCost(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
                     <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.estimatedConsumption}</p><p className="mt-1 font-bold">{formatNumber(profile.electricityPrice > 0 ? (positiveNumber(monthCost) ?? 0) / profile.electricityPrice : 0, locale, 1)} kWh</p></div>
                   </>
                 )}
@@ -2281,7 +2283,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           </details>
 
-          {activeTile && profile.overviewReviewed !== false && <PwaInstallCard locale={locale} />}
+          {activeTile && profile.overviewReviewed === true && profile.backupReminderDismissed === true && <PwaInstallCard locale={locale} />}
 
           </div>
           <div id="home-plan" hidden={view !== "plan"} data-home-plan-content className="scroll-mt-24">
@@ -2293,7 +2295,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               {(["payday", "savings", "progress"] as const).map((item, index) => <button type="button" key={item} aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"} aria-pressed={planQuestion === item} onClick={() => setPlanQuestion(item)} className={`min-h-12 rounded-xl border px-3 py-3 text-left text-[12px] font-semibold ${planQuestion === item ? "border-[#087a45] bg-[#ddf8e9] text-[#087a45]" : "border-[#dfe5dd] bg-white text-[#52605b]"}`}>{index+1} · {item === "payday" ? locale === "de" ? "Bis Gehalt" : "To payday" : item === "savings" ? locale === "de" ? "Sparen" : "Save" : locale === "de" ? "Erspart" : "Saved"}</button>)}
             </div>
             <div hidden={planQuestion !== "payday"}>
-          <PaydayPanel onReviewCost={cost=>openCostForm(cost)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+          <PaydayPanel onSavings={()=>setPlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
             </div>
             <div hidden={planQuestion === "payday"}>
           <SavingsPlanPanel

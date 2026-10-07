@@ -1,3 +1,4 @@
+import { QuickCheck } from "./QuickCheck";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { usePaymentChecklist } from "@eavesence/core/usePaymentChecklist";
@@ -17,10 +18,12 @@ export function PaydayScreen({
   onSave,
   currency,
   onReviewCost,
+  onSavings,
 }: {
   input: SavingsPlanInput;
   data?: PlanningData;
   onSave: (p: PlanningData) => Promise<void>;
+  onSavings?: () => void;
   onReviewCost?: (cost: SavingsPlanInput["costs"][number]) => void;
   currency: string;
 }) {
@@ -30,6 +33,7 @@ export function PaydayScreen({
     [open, setOpen] = useState(false);
   const checklist = usePaymentChecklist(input.costs,data,onSave,de);
   const [billsOpen,setBillsOpen] = useState(false);
+  const [focusBalance,setFocusBalance] = useState(false);
   const money = (n: number) =>
       new Intl.NumberFormat(de ? "de-AT" : "en-GB", {
         style: "currency",
@@ -83,8 +87,8 @@ export function PaydayScreen({
         <Text style={styles.title}>
           {complete
             ? t(
-                `Was bleibt bis ${day(p.cash!.payday)}?`,
-                `What is left until ${day(p.cash!.payday)}?`,
+                `Zusätzlicher Spielraum bis ${day(p.cash!.payday)}`,
+                `Extra available until ${day(p.cash!.payday)}`,
               )
             : t("Was kann ich bis zum nächsten Gehalt ausgeben?", "What can I spend until my next payday?")}
         </Text>
@@ -104,7 +108,7 @@ export function PaydayScreen({
                 p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter your account balance, choose your next payday and estimate everyday spending until then. We include unpaid bills from My Home automatically.",
               )}
         </Text>
-        {complete && p.forecast!.remaining! >= 0 && <Text style={styles.light}>{t(`Zusätzlich etwa ${money(p.forecast!.remaining! / p.forecast!.days)} pro Tag für ${p.forecast!.days} Tage. Deine eingeplanten Alltagsausgaben sind bereits abgezogen.`, `About ${money(p.forecast!.remaining! / p.forecast!.days)} extra per day for ${p.forecast!.days} days. Your planned everyday spending is already deducted.`)}</Text>}
+
         {complete && p.forecast!.remaining! < 0 && <Text style={styles.warning}>{t(`Es fehlen voraussichtlich ${money(-p.forecast!.remaining!)}. Prüfe offene Zahlungen und deine Alltagsschätzung.`, `Estimated shortfall: ${money(-p.forecast!.remaining!)}. Review pending payments and your everyday estimate.`)}</Text>}
         {p.forecast && p.forecast.overdue > 0 && <Text style={styles.warning}>{t(`${p.forecast.overdue} frühere Zahlungen dieses Monats sind noch nicht abgehakt und deshalb enthalten. Bereits bezahlt? In der Monatscheckliste abhaken und Guthaben erneut bestätigen.`, `${p.forecast.overdue} earlier payments this month are still unchecked and included. Already paid? Check them off in the monthly checklist, then confirm your balance again.`)}</Text>}
         {p.forecast && input.costs.filter(c => !c.nextDueDate).map(c => <Pressable key={c.id} accessibilityRole="button" style={styles.mintButton} onPress={() => onReviewCost?.(c)}><Text style={styles.mintText}>{c.name} · {t("Termin ergänzen", "Add date")}</Text></Pressable>)}
@@ -135,7 +139,8 @@ export function PaydayScreen({
           </Text>
         </Pressable>
       </View>
-      {!open && complete && <View style={styles.form}><Text style={styles.subTitle}>{t("So entsteht dein Spielraum", "How your available money is calculated")}</Text>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}</View>}
+      {!open && complete && <View style={styles.form}><Text style={styles.subTitle}>{t("So entsteht dein Spielraum", "How your available money is calculated")}</Text>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}<Text style={styles.note}>{p.forecast!.remaining!>=0?t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`):""}</Text></View>}
+      <QuickCheck input={input} data={data} onSave={onSave} onBalance={()=>{setFocusBalance(true);setOpen(true);}} onPayments={()=>setBillsOpen(true)} onSavings={onSavings} onReview={onReviewCost}/>
       {p.bills.length > 0 && <View style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:billsOpen}} onPress={()=>setBillsOpen(!billsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Zahlungen bis zum Gehalt abhaken", "Check off payments until payday")} · {p.bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</Text><DisclosureIcon open={billsOpen}/></Pressable>{billsOpen&&<><Text style={styles.note}>{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</Text>{p.bills.map(b=>{const paid=checklist.isPaid(b);return <Pressable key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})} accessibilityRole="checkbox" accessibilityState={{checked:paid,disabled:checklist.busy}} accessibilityLabel={`${b.cost.name} · ${day(b.date)} · ${money(b.cost.amount)} · ${t("Bezahlt", "Paid")}`} disabled={checklist.busy} onPress={()=>void checklist.toggle(b)} style={styles.payment}><Text style={styles.check}>{paid?"✓":"○"}</Text><Text style={[styles.paymentName,paid&&styles.paid]}>{b.cost.name} · {day(b.date)}</Text><Text style={styles.note}>{money(b.cost.amount)}</Text></Pressable>})}{checklist.error&&<Text accessibilityRole="alert" style={styles.error}>{checklist.error}</Text>}</>}</View>}
       {open && (
         <FormSection style={styles.form} onSave={p.save} saveLabel={t("Spielraum berechnen", "Calculate available money")}>
@@ -146,6 +151,7 @@ export function PaydayScreen({
             )}
           </Text>
           <FormInput
+            autoFocus={focusBalance}
             label={t("Aktueller Kontostand", "Current account balance")}
             keyboardType="numbers-and-punctuation"
             value={p.balance}
@@ -234,22 +240,7 @@ export function PaydayScreen({
                   {t("Alltagsschätzung fehlt.", "Everyday estimate missing.")}
                 </Text>
               )}
-              <Text style={styles.subTitle}>
-                {t("Anstehende Zahlungen", "Upcoming payments")}
-              </Text>
-              {p.forecast.payments.map((pay, i) => (
-                <Text key={i} style={styles.note}>
-                  {day(pay.date)} · {pay.cost.name} · {money(pay.cost.amount)}
-                </Text>
-              ))}
-              {!p.forecast.payments.length && (
-                <Text style={styles.note}>
-                  {t(
-                    "Keine datierten Zahlungen im Zeitraum.",
-                    "No dated payments in this period.",
-                  )}
-                </Text>
-              )}
+
             </View>
           )}
         </FormSection>
@@ -279,7 +270,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 20, fontWeight: "800", color: "#fff" },
   amount: { fontSize: 28, fontWeight: "900", color: "#fff" },
-  light: { fontSize: 12, lineHeight: 18, color: "#d1d7d4" },
+  light: { fontSize: 13, lineHeight: 20, color: "#d1d7d4" },
   warning: { fontSize: 12, color: "#ffe1a8" },
   mintButton: {
     alignSelf: "flex-start",
@@ -289,7 +280,7 @@ const styles = StyleSheet.create({
   },
   mintText: { fontSize: 12, fontWeight: "800", color: "#17211f" },
   form: { padding: 14, gap: 12, backgroundColor: "#fff" },
-  note: { fontSize: 12, lineHeight: 18, color: "#52605b" },
+  note: { fontSize: 13, lineHeight: 20, color: "#52605b" },
   subTitle: { fontSize: 14, fontWeight: "800", color: "#24272c" },
   button: {
     minHeight: 44,
@@ -300,6 +291,6 @@ const styles = StyleSheet.create({
   },
   buttonText: { fontSize: 12, fontWeight: "700", color: "#087a45" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  error: { fontSize: 12, lineHeight: 18, color: "#b91c1c" },
+  error: { fontSize: 13, lineHeight: 20, color: "#b91c1c" },
   box: { padding: 12, gap: 8, borderRadius: 12, backgroundColor: "#f4f6f2" },
 });

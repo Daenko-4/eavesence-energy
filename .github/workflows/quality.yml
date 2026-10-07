@@ -16,7 +16,7 @@ permissions:
 jobs:
   quality:
     name: Lint, tests, build and browser flows
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     steps:
@@ -45,7 +45,8 @@ jobs:
         run: npx expo export --platform ios --output-dir /tmp/eavesence-ios-beta
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        # The pinned runner supplies the system libraries; avoid unrelated apt upgrades.
+        run: npx playwright install chromium
 
       - name: Run browser tests
         run: npm run test:e2e
