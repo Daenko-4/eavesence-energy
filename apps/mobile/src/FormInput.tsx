@@ -44,7 +44,7 @@ export function FormInput({ label, ...props }: { label: string } & React.Compone
 const styles = StyleSheet.create({
   accessory: { alignItems: "flex-end", padding: 8, borderTopWidth: 1, borderColor: "#dfe5dd" },
   field: { gap: 7 },
-  label: { fontSize: 12, fontWeight: "800", color: "#52605b" },
+  label: { fontSize: 13, fontWeight: "700", color: "#52605b" },
   inputRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   input: { flex: 1, minWidth: 0, minHeight: 50, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 12, backgroundColor: "#ffffff", paddingHorizontal: 14, fontSize: 16, color: "#17211f" },
   inputFocused: { borderColor: "#72dca3" },

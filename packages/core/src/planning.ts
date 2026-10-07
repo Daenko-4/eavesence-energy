@@ -5,9 +5,9 @@ import { createSavingsPlan, savingsReviewCandidates, type SavingsPlanInput } fro
 import { paymentsForMonth } from './householdCosts.ts';
 
 export type NamedGoal = { id: string; name: string; target: number; saved: number; targetMonth: string };
-export type BillReserve = { costId: string; saved: number };
+export type BillReserve = { costId: string; saved: number; dueDate?: string };
 export type MonthlyCheck = { month: string; checkedAt: string; incomeMonthly: number; variableMonthly: number; fixedMonthly: number; fingerprint: string };
-export type PlanningData = { memos?:HomeMemo[]; goals: NamedGoal[]; reserves: BillReserve[]; checks: MonthlyCheck[]; cash?: CashWindow; paidPayments?: PaidPayment[]; reviews?: Array<{costId:string;updatedAt:string;until:string}> };
+export type PlanningData = { memos?:HomeMemo[]; goals: NamedGoal[]; reserves: BillReserve[]; checks: MonthlyCheck[]; cash?: CashWindow; paidPayments?: PaidPayment[]; quickCheck?: {day:string;checkedAt:string;fingerprint:string}; reviews?: Array<{costId:string;updatedAt:string;until:string}> };
 const monthOK = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(v);
 const nonnegative = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 export function readPlanningData(value: unknown): PlanningData {
@@ -17,9 +17,10 @@ export function readPlanningData(value: unknown): PlanningData {
     ...(data.memos !== undefined ? {memos:readMemos(data.memos)} : {}),
     ...(data.paidPayments !== undefined ? {paidPayments:readPaidPayments(data.paidPayments)} : {}),
     ...(readCashWindow(data.cash) ? {cash:readCashWindow(data.cash)} : {}),
+    ...(data.quickCheck && typeof data.quickCheck.day==='string' && /^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(data.quickCheck.day) && typeof data.quickCheck.checkedAt==='string' && Number.isFinite(Date.parse(data.quickCheck.checkedAt)) && typeof data.quickCheck.fingerprint==='string' ? {quickCheck:data.quickCheck} : {}),
     reviews:(Array.isArray(data.reviews)?data.reviews:[]).filter(r=>r&&typeof r.costId==='string'&&typeof r.updatedAt==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(r.until)),
     goals: unique((Array.isArray(data.goals) ? data.goals : []).filter((g): g is NamedGoal => !!g && typeof g.id === 'string' && !!g.id && typeof g.name === 'string' && !!g.name.trim() && nonnegative(g.target) && g.target > 0 && nonnegative(g.saved) && monthOK(g.targetMonth)), g => g.id),
-    reserves: unique((Array.isArray(data.reserves) ? data.reserves : []).filter((r): r is BillReserve => !!r && typeof r.costId === 'string' && !!r.costId && nonnegative(r.saved)), r => r.costId),
+    reserves: unique((Array.isArray(data.reserves) ? data.reserves : []).filter((r): r is BillReserve => !!r && typeof r.costId === 'string' && !!r.costId && nonnegative(r.saved) && (r.dueDate === undefined || (typeof r.dueDate==='string' && /^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(r.dueDate) && Number.isFinite(Date.parse(r.dueDate)) && new Date(r.dueDate).toISOString().slice(0,10)===r.dueDate))), r => r.costId),
     checks: unique((Array.isArray(data.checks) ? data.checks : []).filter((c): c is MonthlyCheck => !!c && monthOK(c.month) && typeof c.checkedAt === 'string' && !Number.isNaN(Date.parse(c.checkedAt)) && nonnegative(c.incomeMonthly) && nonnegative(c.variableMonthly) && nonnegative(c.fixedMonthly) && typeof c.fingerprint === 'string'), c => c.month).sort((a,b) => b.month.localeCompare(a.month)).slice(0,24),
   };
 }

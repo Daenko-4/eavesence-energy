@@ -315,8 +315,8 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     .getByRole("button", { name: "Rent or mortgage payment" })
     .click();
   await householdCosts.getByLabel("Amount").fill("900");
-  if (!await householdCosts.getByLabel("Next payment (optional)").isVisible()) await householdCosts.getByText("More details: category and dates", { exact: true }).click();
-  await householdCosts.getByLabel("Next payment (optional)").fill("2026-10-01");
+  if (!await householdCosts.getByLabel("When is payment due? (optional)").isVisible()) await householdCosts.getByText("More details: category and cancellation", { exact: true }).click();
+  await householdCosts.getByLabel("When is payment due? (optional)").fill("2026-10-01");
   await householdCosts.getByLabel("Amount").press("Enter");
   await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
   await page.locator("[data-home-review]").getByRole("button", {name:"Overview checked",exact:true}).click();
@@ -618,8 +618,8 @@ test("My home distinguishes annual monthly averages from dated payment forecasts
   await costs.getByLabel("Name", { exact: true }).fill("Insurance");
   await costs.getByLabel("Amount", { exact: true }).fill("600");
   await costs.getByLabel("How often?").selectOption("yearly");
-  await costs.getByText("More details: category and dates", { exact: true }).click();
-  await costs.getByLabel("Next payment (optional)").fill("2026-10-15");
+  await costs.getByText("More details: category and cancellation", { exact: true }).click();
+  await costs.getByLabel("When is payment due? (optional)").fill("2026-10-15");
   await costs.getByLabel("Cancellation deadline (optional, enter yourself)").fill("2026-09-28");
   await costs.getByRole("button", { name: "Save", exact: true }).click();
   const overview = page.getByRole("region", { name: "Your household at a glance" });
@@ -1504,7 +1504,7 @@ test('photo recognition runs locally and proposes the labelled invoice total',as
  await panel.getByLabel('Choose files').setInputFiles({name:'invoice.svg',mimeType:'image/svg+xml',buffer:Buffer.from(svg)});
  await expect(panel.getByLabel('Amount',{exact:true})).toHaveValue('39.90',{timeout:90000});
  await expect(panel.getByLabel('Frequency — confirm')).toHaveValue('monthly');
- await expect(panel.getByLabel('Next payment (optional)')).toHaveValue('2026-11-05');
+ await expect(panel.getByLabel('When is payment due? (optional)')).toHaveValue('2026-11-05');
 });
 
 for(const width of [320,1365])test(`payday overview stays readable and recalculates at ${width}px`,async({page})=>{

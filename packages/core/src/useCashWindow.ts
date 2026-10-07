@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   localToday,
   parseMoney,
@@ -32,7 +32,9 @@ export function useCashWindow(
     today,
     p.paidPayments,
   );
+  const saving=useRef(false);
   async function save() {
+    if(saving.current)return false;
     const next = readCashWindow({
       balance: parseMoney(balance, de ? "de" : "en"),
       asOf: today,
@@ -51,6 +53,7 @@ export function useCashWindow(
       );
       return false;
     }
+    saving.current=true;
     setBusy(true);
     setError("");
     try {
@@ -60,6 +63,7 @@ export function useCashWindow(
       setError(de ? "Speichern fehlgeschlagen." : "Could not save.");
       return false;
     } finally {
+      saving.current=false;
       setBusy(false);
     }
   }

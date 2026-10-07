@@ -8,7 +8,7 @@ import {
   type HouseholdCostCategory,
   type HouseholdCostFrequency,
 } from "./householdCosts.ts";
-import type { SavingsAction } from "./savingsPlan.ts";
+import { savingsActionKey, type SavingsAction } from "./savingsPlan.ts";
 
 export const validDay = (v: unknown): v is string =>
   typeof v === "string" &&
@@ -351,7 +351,7 @@ export function savingsToDate(actions: SavingsAction[], today: string) {
       let cursor = a.effectiveMonth;
       while (cursor <= today.slice(0, 7)) {
         scheduled += paymentsForMonth([c], cursor)
-          .payments.filter((p) => p.date <= today)
+          .payments.filter((p) => p.date <= today && (!a.endedOn || p.date <= a.endedOn))
           .reduce((sum, p) => sum + p.cost.amount, 0);
         const [y, m] = cursor.split("-").map(Number);
         cursor = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 7);
@@ -361,7 +361,7 @@ export function savingsToDate(actions: SavingsAction[], today: string) {
       estimated +=
         ((monthlyCost(a.originalAmount - a.newAmount, a.frequency) * 12) /
           365.25) *
-        ((Date.parse(today) - start) / 86400000 + 1);
+        Math.max(0, (Date.parse(a.endedOn && a.endedOn <= today ? a.endedOn : today) - start) / 86400000 + 1);
     }
   }
   return { scheduled, estimated, total: scheduled + estimated };
@@ -372,6 +372,7 @@ export function confirmSavingsChange(
   action: SavingsAction,
   today: string,
 ) {
+  if (!actions.some(a=>savingsActionKey(a)===savingsActionKey(action))) throw new Error("ACTION_STALE");
   if (action.status !== "planned" || action.effectiveMonth > today.slice(0, 7))
     throw new Error("ACTION_NOT_DUE");
   const cost = costs.find((c) => c.id === action.costId);
@@ -403,7 +404,7 @@ export function confirmSavingsChange(
                 }
               : c,
           ),
-    actions: actions.map((a) => (a.costId === action.costId ? confirmed : a)),
+    actions: actions.map((a) => (savingsActionKey(a) === savingsActionKey(action) ? confirmed : a)),
   };
 }
 export function calendarReview(name: string, date: string, de: boolean) {

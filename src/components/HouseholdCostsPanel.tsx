@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { parseMoney } from "@eavesence/core/homeValue";
 import type { Locale } from "@/i18n/config";
 import {
   createHouseholdCost,
@@ -46,7 +47,7 @@ const copy = {
     amount: "Betrag",
     category: "Kategorie",
     frequency: "Wie oft?",
-    due: "Nächste Zahlung (optional)",
+    due: "Wann wird abgebucht? (optional)",
     deadline: "Kündigungsfrist (optional, selbst eintragen)",
     save: "Speichern",
     update: "Aktualisieren",
@@ -108,7 +109,7 @@ const copy = {
     amount: "Amount",
     category: "Category",
     frequency: "How often?",
-    due: "Next payment (optional)",
+    due: "When is payment due? (optional)",
     deadline: "Cancellation deadline (optional, enter yourself)",
     save: "Save",
     update: "Update",
@@ -200,10 +201,6 @@ function localDate(value: string, locale: Locale) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-function parseAmount(value: string) {
-  const amount = Number(value.replace(",", "."));
-  return Number.isFinite(amount) ? amount : 0;
-}
 
 export default function HouseholdCostsPanel({
   locale,
@@ -282,7 +279,7 @@ export default function HouseholdCostsPanel({
       id: editingId ?? undefined,
       name,
       category,
-      amount: parseAmount(amount),
+      amount: parseMoney(amount, locale),
       frequency,
       nextDueDate,
       cancellationDeadline,
@@ -291,7 +288,7 @@ export default function HouseholdCostsPanel({
       setFeedback(text.invalid);
       return;
     }
-    onChange(upsertHouseholdCost(costs, next));
+    try { onChange(upsertHouseholdCost(costs, next)); } catch { setFeedback(locale === "de" ? "Speichern fehlgeschlagen. Deine Eingaben bleiben erhalten." : "Could not save. Your entries have been kept."); return; }
     setFeedback(editingId ? text.updated : text.saved);
     resetForm();
     setFormOpen(false);
@@ -315,7 +312,7 @@ export default function HouseholdCostsPanel({
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
-          <p hidden={compact} className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
+          <p hidden={compact} className="text-[13px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
             {tileTitle ? (locale === "de" ? "Gewählter Kostenbereich" : "Selected cost area") : text.eyebrow}
           </p>
           <h2 className="mt-1 site-section-title">
@@ -350,7 +347,7 @@ export default function HouseholdCostsPanel({
                 : "border-[#d8ded8] bg-[#fbfcf8]"
             }`}
           >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">
               {label}
             </p>
             <p className="mt-2 text-xl font-extrabold tracking-[-0.035em]">
@@ -372,16 +369,16 @@ export default function HouseholdCostsPanel({
             {editingId ? text.formEdit : text.formNew}
           </h3>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] lg:col-span-2">
+            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b] lg:col-span-2">
               {text.name}
               <input id="household-cost-name" value={name} onChange={(event) => setName(event.target.value)} onBlur={() => { if (!editingId && category === "housing") { const value = name.toLowerCase(); if (/internet|abo|stream|telefon/.test(value)) setCategory("subscriptions"); else if (/strom|heiz|electric|gas/.test(value)) setCategory("energy"); else if (/versicherung|insurance/.test(value)) setCategory("insurance"); } }} className={fieldClass} />
             </label>
-            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">
+            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
               {text.amount}
               <input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" className={fieldClass} />
             </label>
 
-            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">
+            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
               {text.frequency}
               <select value={frequency} onChange={(event) => setFrequency(event.target.value as HouseholdCostFrequency)} className={fieldClass}>
                 {frequencies.map((item) => <option key={item} value={item}>{text.frequencies[item]}</option>)}
@@ -389,18 +386,21 @@ export default function HouseholdCostsPanel({
             </label>
 
           </div>
-          <details open={Boolean(editingId)} className="home-disclosure mt-3 text-[12px]"><summary className="cursor-pointer font-semibold">{locale === "de" ? "Weitere Angaben: Kategorie und Termine" : "More details: category and dates"}</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b]">
+          <div className="mt-3 grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
+            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
+              {text.due}
+              <input type="date" value={nextDueDate} onChange={(event) => setNextDueDate(event.target.value)} className={fieldClass} />
+            </label>            <p className="text-[13px] font-normal leading-5">{locale === "de" ? "Mit Datum erscheint die Zahlung im richtigen Monat und im Plan bis zum Gehalt." : "A date puts this payment in the correct month and in your plan until payday."}</p>
+          </div>
+          <details open={Boolean(editingId)} className="home-disclosure mt-3 text-[13px]"><summary className="cursor-pointer font-semibold">{locale === "de" ? "Weitere Angaben: Kategorie und Kündigung" : "More details: category and cancellation"}</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
               {text.category}
               <select value={category} onChange={(event) => setCategory(event.target.value as HouseholdCostCategory)} className={fieldClass}>
                 {categories.map((item) => <option key={item} value={item}>{text.categories[item]}</option>)}
               </select>
             </label>
-            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">
-              {text.due}
-              <input type="date" value={nextDueDate} onChange={(event) => setNextDueDate(event.target.value)} className={fieldClass} />
-            </label>
-            <label className="grid gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">
+
+            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b] sm:col-span-2">
               {text.deadline}
               <input type="date" value={cancellationDeadline} onChange={(event) => setCancellationDeadline(event.target.value)} className={fieldClass} />
             </label>
@@ -419,7 +419,7 @@ export default function HouseholdCostsPanel({
       {costs.length === 0 && !formOpen ? (
         <div className="mt-5 rounded-xl border border-dashed border-[#cdd6cf] bg-white/60 p-4">
           <h3 className="text-[14px] font-bold">{text.suggestions}</h3>
-          <p className="mt-1 text-[12px] leading-5 text-[#65716d]">{text.suggestionsText}</p>
+          <p className="mt-1 text-[13px] leading-5 text-[#65716d]">{text.suggestionsText}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {templateCategories.map((item) => (
               <button key={item} type="button" onClick={() => openNewCost(item)} className={pillClass}>
@@ -436,11 +436,11 @@ export default function HouseholdCostsPanel({
             {summary.categoryTotals.map((item) => (
               <article key={item.category} className="rounded-xl border border-[#d8ded8] bg-[#fbfcf8] px-3 py-2.5">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-[12px] font-semibold text-[#52605b]">{text.categories[item.category]}</p>
+                  <p className="text-[13px] font-semibold text-[#52605b]">{text.categories[item.category]}</p>
                   <span className="h-2 w-2 rounded-full bg-[var(--brand-green-mint)]" />
                 </div>
                 <p className="mt-1 text-[15px] font-bold tracking-[-0.02em]">{money(item.monthlyTotal, locale, currency)}</p>
-                <p className="text-[11px] text-[#65716d]">
+                <p className="text-[13px] text-[#65716d]">
                   {item.entryCount === 1 ? text.categoryCountOne : text.categoryCount.replace("{count}", String(item.entryCount))}
                 </p>
               </article>
@@ -486,14 +486,14 @@ export default function HouseholdCostsPanel({
                   <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-bold">{cost.name}</p>
-                      <p className="mt-0.5 text-[11px] text-[#65716d]">
+                      <p className="mt-0.5 text-[13px] text-[#65716d]">
                         {text.categories[cost.category]} · {text.frequencies[cost.frequency]}
                         {cost.nextDueDate ? ` · ${localDate(cost.nextDueDate, locale)}` : ""}
                       </p>
                     </div>
                     <div className="sm:text-right">
                       <p className="text-[13px] font-bold">{money(cost.amount, locale, currency)}</p>
-                      <p className="text-[11px] text-[#65716d]">
+                      <p className="text-[13px] text-[#65716d]">
                         {text.monthlyEquivalent.replace("{amount}", money(monthlyCost(cost.amount, cost.frequency), locale, currency))}
                       </p>
                     </div>

@@ -19,6 +19,9 @@
     "./tileSymbols": "./src/tileSymbols.ts",
     "./income": "./src/income.ts",
     "./memos": "./src/memos.ts",
-    "./useMemos": "./src/useMemos.ts"
+    "./useMemos": "./src/useMemos.ts",
+    "./proValue": "./src/proValue.ts",
+    "./useProTools": "./src/useProTools.ts",
+    "./useQuickCheck": "./src/useQuickCheck.ts"
   }
 }
