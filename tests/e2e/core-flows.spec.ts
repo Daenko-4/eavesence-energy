@@ -1507,7 +1507,7 @@ test('photo recognition runs locally and proposes the labelled invoice total',as
  await panel.getByLabel('Choose files').setInputFiles({name:'invoice.svg',mimeType:'image/svg+xml',buffer:Buffer.from(svg)});
  await expect(panel.getByLabel('Amount',{exact:true})).toHaveValue('39.90',{timeout:90000});
  await expect(panel.getByLabel('Frequency — confirm')).toHaveValue('monthly');
- await expect(panel.getByLabel('Next payment date (optional)')).toHaveValue('2026-11-05');
+ await expect(panel.getByLabel('Next payment (optional)')).toHaveValue('2026-11-05');
 });
 
 for(const width of [320,1365])test(`payday overview stays readable and recalculates at ${width}px`,async({page})=>{
