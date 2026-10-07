@@ -323,6 +323,9 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   const installCard = page.getByRole("region", {
     name: "Install EAVESENCE as an app",
   });
+  await expect(installCard).toHaveCount(0);
+  await expect(page.getByText("Your entries stay in this browser.", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "Later", exact: true }).click();
   await expect(installCard).toBeVisible();
   await expect(
     installCard.getByText("Open My home directly from your home screen"),
@@ -1504,7 +1507,7 @@ test('photo recognition runs locally and proposes the labelled invoice total',as
  await panel.getByLabel('Choose files').setInputFiles({name:'invoice.svg',mimeType:'image/svg+xml',buffer:Buffer.from(svg)});
  await expect(panel.getByLabel('Amount',{exact:true})).toHaveValue('39.90',{timeout:90000});
  await expect(panel.getByLabel('Frequency — confirm')).toHaveValue('monthly');
- await expect(panel.getByLabel('When is payment due? (optional)')).toHaveValue('2026-11-05');
+ await expect(panel.getByLabel('Next payment date (optional)')).toHaveValue('2026-11-05');
 });
 
 for(const width of [320,1365])test(`payday overview stays readable and recalculates at ${width}px`,async({page})=>{
