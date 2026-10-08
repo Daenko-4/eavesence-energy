@@ -124,8 +124,7 @@ export default function SavingsCoach({
           >
             <h4 className="font-bold">{c.name}</h4>
             <p className="mt-1">
-              {money(c.amount)} {cadence(c.frequency)} · {money(monthlyCost(c.amount, c.frequency))}{" "}
-              {t("im Monatsdurchschnitt", "monthly average")}
+              {money(c.amount)} {cadence(c.frequency)}{c.frequency !== "monthly" && ` · ${money(monthlyCost(c.amount,c.frequency))} ${t("im Monatsdurchschnitt", "monthly average")}`}
             </p>
             <p className="mt-2 text-[#52605b]">
               {c.cancellationDeadline && <span className="block">{t("Frist", "Deadline")}: {c.cancellationDeadline}</span>}

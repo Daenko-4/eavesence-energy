@@ -151,8 +151,7 @@ export function SavingsCoachScreen({
         <View key={c.id} style={styles.box}>
           <Text style={styles.title}>{c.name}</Text>
           <Text style={styles.note}>
-            {money(c.amount)} {cadence(c.frequency)} · {money(monthlyCost(c.amount, c.frequency))}{" "}
-            {t("im Monatsdurchschnitt", "monthly average")}
+            {money(c.amount)} {cadence(c.frequency)}{c.frequency !== "monthly" && ` · ${money(monthlyCost(c.amount,c.frequency))} ${t("im Monatsdurchschnitt", "monthly average")}`}
           </Text>
           <Text style={styles.note}>
             {c.cancellationDeadline ? `${t("Frist", "Deadline")}: ${c.cancellationDeadline}. ` : ""}{costReviewTip(c.category, de, c.frequency)}
