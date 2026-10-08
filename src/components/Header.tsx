@@ -39,7 +39,7 @@ const navigation = {
   },
   en: {
     calculator: "Electricity Calculator",
-    household: "My home",
+    household: "My Home",
     faq: "FAQ",
     homeLabel: "EAVESENCE home",
     openNavigation: "Open navigation",
