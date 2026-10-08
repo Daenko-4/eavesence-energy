@@ -70,7 +70,7 @@ function NavigationLink({
       onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
-      className="group relative flex h-full items-center whitespace-nowrap px-1 text-[16px] !font-[650] tracking-normal !text-[#24272c] transition duration-150 hover:!text-[var(--brand-green)]"
+      className="header-navigation-link"
     >
       {children}
     </a>
@@ -113,7 +113,7 @@ function HeaderContent({
   const introCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suppressPointerOpenRef = useRef(false);
   const headerRef = useRef<HTMLElement>(null);
-  const desktopNavigationRef = useRef<HTMLElement>(null);
+  const desktopNavigationRef = useRef<HTMLDivElement>(null);
   const activeIndicatorRef = useRef<HTMLSpanElement>(null);
   const text = navigation[locale];
 
@@ -292,7 +292,10 @@ function HeaderContent({
   }, [isCalculatorPage]);
 
   useEffect(() => {
+    let disposed = false;
+
     function positionActiveIndicator() {
+      if (disposed) return;
       const navigationElement = desktopNavigationRef.current;
       const indicatorElement = activeIndicatorRef.current;
 
@@ -315,16 +318,21 @@ function HeaderContent({
 
       const navigationRect = navigationElement.getBoundingClientRect();
       const linkRect = activeLink.getBoundingClientRect();
-      indicatorElement.style.width = `${linkRect.width - 8}px`;
-      indicatorElement.style.transform = `translateX(${linkRect.left - navigationRect.left + 4}px)`;
+      indicatorElement.style.width = `${linkRect.width}px`;
+      indicatorElement.style.transform = `translateX(${linkRect.left - navigationRect.left}px)`;
       indicatorElement.style.opacity = "1";
     }
 
     const frame = window.requestAnimationFrame(positionActiveIndicator);
     window.addEventListener("resize", positionActiveIndicator);
+    const resizeObserver = new ResizeObserver(positionActiveIndicator);
+    if (desktopNavigationRef.current) resizeObserver.observe(desktopNavigationRef.current);
+    void document.fonts.ready.then(positionActiveIndicator);
 
     return () => {
+      disposed = true;
       window.cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
       window.removeEventListener("resize", positionActiveIndicator);
     };
   }, [indicatedNavigation, desktopNavigationOpen]);
@@ -511,7 +519,6 @@ function HeaderContent({
             </Link>
 
             <nav
-              ref={desktopNavigationRef}
               onMouseLeave={() => setPreviewNavigation(null)}
               onBlurCapture={(event) => {
                 if (
@@ -523,32 +530,34 @@ function HeaderContent({
                 setPreviewNavigation(null);
               }}
               aria-label={text.openNavigation}
-              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center gap-5 transition-[opacity,visibility] duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
+              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center transition-[opacity,visibility] duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                 desktopNavigationOpen
                   ? "visible opacity-100 delay-[650ms]"
                   : "invisible pointer-events-none opacity-0 delay-0"
               }`}
             >
-              <NavigationLink href={householdHref} active={activeNavigation === "household"} navigationKey="household" onPreview={setPreviewNavigation}>
-                {text.household}
-              </NavigationLink>
-              <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator" onPreview={setPreviewNavigation}>
-                {text.calculator}
-              </NavigationLink>
-              <NavigationLink
-                href={faqHref}
-                active={activeNavigation === "faq"}
-                navigationKey="faq"
-                onPreview={setPreviewNavigation}
-                onActivate={handleFaqActivate}
-              >
-                {text.faq}
-              </NavigationLink>
-              <span
-                ref={activeIndicatorRef}
-                aria-hidden="true"
-                className="pointer-events-none absolute bottom-[18px] left-0 h-[3px] rounded-full bg-[var(--brand-green-mint)] opacity-0 transition-[width,transform,opacity] duration-[360ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none"
-              />
+              <div ref={desktopNavigationRef} className="header-navigation-dock">
+                <NavigationLink href={householdHref} active={activeNavigation === "household"} navigationKey="household" onPreview={setPreviewNavigation}>
+                  {text.household}
+                </NavigationLink>
+                <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator" onPreview={setPreviewNavigation}>
+                  {text.calculator}
+                </NavigationLink>
+                <NavigationLink
+                  href={faqHref}
+                  active={activeNavigation === "faq"}
+                  navigationKey="faq"
+                  onPreview={setPreviewNavigation}
+                  onActivate={handleFaqActivate}
+                >
+                  {text.faq}
+                </NavigationLink>
+                <span
+                  ref={activeIndicatorRef}
+                  aria-hidden="true"
+                  className="header-navigation-highlight"
+                />
+              </div>
             </nav>
           </div>
 
@@ -579,23 +588,24 @@ function HeaderContent({
         </div>
 
         {menuOpen && (
-          <nav className="absolute inset-x-0 top-full border-y border-slate-200 bg-white/98 px-5 py-3 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl sm:px-6 lg:hidden">
-            <div className="grid gap-1">
+          <nav className="absolute inset-x-0 top-full px-5 py-3 sm:px-6 lg:hidden">
+            <div className="header-navigation-dock header-navigation-dock-mobile">
               {([
-                [householdHref, text.household],
-                [calculatorHref, text.calculator],
-                [faqHref, text.faq],
-              ] as const).map(([href, label]) => (
+                [householdHref, text.household, "household"],
+                [calculatorHref, text.calculator, "calculator"],
+                [faqHref, text.faq, "faq"],
+              ] as const).map(([href, label, navigationKey]) => (
                 <a
                   key={href}
                   href={href}
+                  aria-current={activeNavigation === navigationKey ? "location" : undefined}
                   onClick={(event) => {
                     closeMenu();
                     if (href === faqHref) {
                       handleFaqActivate(event);
                     }
                   }}
-                  className="rounded-xl px-3 py-2.5 text-[16px] font-[650] tracking-normal text-[#24272c] transition hover:bg-green-50 hover:text-[var(--brand-green-dark)]"
+                  className="header-navigation-link"
                 >
                   {label}
                 </a>
