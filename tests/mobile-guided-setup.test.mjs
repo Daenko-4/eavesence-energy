@@ -12,7 +12,7 @@ const require=createRequire(import.meta.url);
 const alerts=[];
 let submit;
 const primitive=tag=>function Primitive({children,accessibilityRole,accessibilityLabel,accessibilityState,value,onChangeText}) {
-  return React.createElement(tag,{role:accessibilityRole==='header'?'heading':accessibilityRole, 'aria-label':accessibilityLabel,'aria-checked':accessibilityState?.checked,'aria-selected':accessibilityState?.selected,...(tag==='input'?{value:value??'',readOnly:true,onChange:onChangeText}: {})},children);
+  return React.createElement(tag,{role:accessibilityRole==='header'?'heading':accessibilityRole, 'aria-label':accessibilityLabel,'aria-checked':accessibilityState?.checked,'aria-selected':accessibilityState?.selected,'aria-expanded':accessibilityState?.expanded,...(tag==='input'?{value:value??'',readOnly:true,onChange:onChangeText}: {})},children);
 };
 const native={View:primitive('div'),Text:primitive('span'),Pressable:primitive('button'),TextInput:primitive('input'),InputAccessoryView:()=>null,StyleSheet:{create:s=>s},Platform:{OS:'ios'},Keyboard:{dismiss:()=>{}},Alert:{alert:(...a)=>alerts.push(a)}};
 const cache=new Map();
@@ -74,14 +74,14 @@ test('failed income persistence keeps the form from reporting completion',async(
  await assert.rejects(submit(),/Storage unavailable/);
 });
 
-for (const locale of ['de','en']) test(`native payday explains the calculation without opening a form in ${locale}`,()=>{
+for (const locale of ['de','en']) test(`native payday keeps the result visible with calculation and form collapsed in ${locale}`,()=>{
  const {PaydayScreen}=production('PaydayScreen.tsx');
  const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
  const payday=new Date(Date.parse(today)+14*86400000).toISOString().slice(0,10);
  const html=render(PaydayScreen,{currency:'EUR',input:{incomeMonthly:2400,costs:[],variableMonthly:500,bufferMonthly:0,goalMonthly:0,startMonth:today.slice(0,7)},data:{cash:{balance:1000,asOf:today,payday,protected:200,everydayRemaining:150}},onSave:noop},locale);
  assert.match(html,locale==='de'?/So entsteht dein Spielraum/:/How your available money is calculated/);
- assert.match(html,locale==='de'?/Aktueller Kontostand/:/Current account balance/);
- assert.match(html,locale==='de'?/Noch offene Rechnungen/:/Unpaid bills/);
+ assert.ok(!html.includes(locale==='de'?'Aktueller Kontostand':'Current account balance'));
+ assert.match(html,/aria-expanded="false"/);
  assert.match(html,locale==='de'?/650,00/:/650.00/);
  assert.ok(!html.includes('<input'));
 });

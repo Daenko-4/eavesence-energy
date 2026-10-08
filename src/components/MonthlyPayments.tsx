@@ -7,7 +7,7 @@ import type { PlanningData } from '@eavesence/core/planning';
 
 type Props = { costs:HouseholdCost[]; data?:PlanningData; onSave:(data:PlanningData)=>void|Promise<void>; locale:'de'|'en'; currency:string; onEdit:(cost:HouseholdCost)=>void; onAdd:()=>void };
 export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdit,onAdd}:Props) {
-  const [open,setOpen]=useState(true),bodyId=useId();
+  const [open,setOpen]=useState(false),bodyId=useId();
   const de = locale === 'de', t=(a:string,b:string)=>de?a:b;
   const c=usePaymentChecklist(costs,data,onSave,de);
   const money=(n:number)=>new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency}).format(n);

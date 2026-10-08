@@ -33,6 +33,7 @@ export function PaydayScreen({
     [open, setOpen] = useState(false);
   const checklist = usePaymentChecklist(input.costs,data,onSave,de);
   const [billsOpen,setBillsOpen] = useState(false);
+  const [calculationOpen,setCalculationOpen] = useState(false);
   const [focusBalance,setFocusBalance] = useState(false);
   const money = (n: number) =>
       new Intl.NumberFormat(de ? "de-AT" : "en-GB", {
@@ -140,7 +141,7 @@ export function PaydayScreen({
           </Text>
         </Pressable>
       </View>
-      {!open && p.forecast && <View style={styles.form}><Text style={styles.subTitle}>{t("So entsteht dein Spielraum", "How your available money is calculated")}</Text>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}<Text style={styles.subTitle}>{complete ? t("= Zusätzlicher Spielraum", "= Extra available") : t("= Angaben fehlen noch", "= Entries still missing")}: {complete ? money(p.forecast!.remaining!) : "—"}</Text><Text style={styles.note}>{complete&&p.forecast!.remaining!>=0?t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`):""}</Text></View>}
+      {!open && p.forecast && <View style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:calculationOpen}} onPress={()=>setCalculationOpen(!calculationOpen)} style={styles.disclosure}><Text style={styles.subTitle}>{t("So entsteht dein Spielraum", "How your available money is calculated")}</Text><DisclosureIcon open={calculationOpen}/></Pressable>{calculationOpen&&<>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}<Text style={styles.subTitle}>{complete ? t("= Zusätzlicher Spielraum", "= Extra available") : t("= Angaben fehlen noch", "= Entries still missing")}: {complete ? money(p.forecast!.remaining!) : "—"}</Text><Text style={styles.note}>{complete&&p.forecast!.remaining!>=0?t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`):""}</Text></>}</View>}
       {open && (
         <FormSection style={styles.form} onSave={p.save} saveLabel={t("Spielraum berechnen", "Calculate available money")}>
           <Text style={styles.note}>

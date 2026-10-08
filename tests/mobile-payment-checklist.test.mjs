@@ -9,17 +9,17 @@ import ts from 'typescript';
 import { localToday } from '../packages/core/src/homeValue.ts';
 import { monthChecklist,togglePayment } from '../packages/core/src/paymentChecklist.ts';
 const require=createRequire(import.meta.url);
-const primitive=tag=>function Native({children,accessibilityRole,accessibilityState,accessibilityLabel}){return React.createElement(tag,{role:accessibilityRole,'aria-checked':accessibilityState?.checked,'aria-label':accessibilityLabel},children);};
+const primitive=tag=>function Native({children,accessibilityRole,accessibilityState,accessibilityLabel}){return React.createElement(tag,{role:accessibilityRole,'aria-checked':accessibilityState?.checked,'aria-expanded':accessibilityState?.expanded,'aria-label':accessibilityLabel},children);};
 const native={Text:primitive('span'),View:primitive('div'),Pressable:primitive('button'),StyleSheet:{create:s=>s}};
 const compiled=ts.transpileModule(readFileSync(new URL('../apps/mobile/src/MonthlyPayments.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
 const appModule={exports:{}};runInNewContext(compiled,{module:appModule,exports:appModule.exports,require:name=>name==='react-native'?native:name==='./BrandMotion'?{DisclosureIcon:()=>null}:require(name)});
 const month=localToday().slice(0,7),costs=[{id:'rent',name:'Rent',category:'housing',frequency:'monthly',amount:900,nextDueDate:'',updatedAt:localToday()}];
-for(const locale of ['de','en'])test(`native month checklist uses accessible checkboxes and separates paid from open in ${locale}`,()=>{
+for(const locale of ['de','en'])test(`native month checklist starts collapsed and preserves paid/open summaries in ${locale}`,()=>{
  const paid=togglePayment([],monthChecklist(costs,month).payments[0],new Date().toISOString());
  const html=renderToStaticMarkup(React.createElement(appModule.exports.MonthlyPayments,{costs,data:{goals:[],reserves:[],checks:[],paidPayments:paid},onSave:()=>{},onEdit:()=>{},onAdd:()=>{},locale,currency:'EUR'}));
- assert.match(html,/role="checkbox" aria-checked="true"/);
+ assert.ok(!html.includes('role="checkbox"'));assert.match(html,/aria-expanded="false"/);
  assert.ok(html.includes(locale==='de'?'1 von 1 bezahlt':'1 of 1 paid'));
- assert.ok(html.includes(locale==='de'?'Monatlich · Termin fehlt':'Monthly · date missing'));
+
  assert.ok(html.includes(locale==='de'?'Noch offen':'Still unpaid'));
  assert.ok(html.includes(locale==='de'?'Bereits bezahlt':'Already paid'));
  assert.ok(html.includes(locale==='de'?'Als Nächstes fällig':'Next due'));

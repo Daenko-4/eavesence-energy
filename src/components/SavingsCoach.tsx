@@ -192,7 +192,6 @@ export default function SavingsCoach({
       {shownActions.length > 0 && (
         <details
           className="home-disclosure mt-3 rounded-xl border border-[#dfe5dd] p-3"
-          open={mode !== "progress"}
         >
           <summary className="cursor-pointer text-[13px] font-bold">
             {mode === "progress" ? t("Bestätigte Änderungen & Schätzungen", "Confirmed changes & estimates") : t("Vorgemerkte Änderungen", "Planned changes")}{" "}

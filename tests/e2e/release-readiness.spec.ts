@@ -17,7 +17,7 @@ async function pro(page:Page){await page.getByRole('navigation',{name:/Choose wo
 for(const de of [false,true])for(const width of [390,1365])test(`free overview to useful Pro answers ${de?'de':'en'} ${width}`,async({page},info)=>{
  await page.setViewportSize({width,height:900});await seed(page,de);await pro(page);
  const payday=page.getByRole('region',{name:de?'Dein verfügbarer Spielraum':'Your available budget'});
- await expect(payday).toContainText(de?'182,00':'182.00');await expect(payday).toContainText(de?'frühere Zahlungen':'earlier payments');await expect(payday).toContainText(de?'pro Tag':'per day');
+ await expect(payday).toContainText(de?'182,00':'182.00');await expect(payday).toContainText(de?'frühere Zahlungen':'earlier payments');await expect(payday.locator('[data-payday-calculation]')).not.toHaveAttribute('open','');await payday.locator('[data-payday-calculation] > summary').click();await expect(payday).toContainText(de?'pro Tag':'per day');
  await expect(payday.getByText(de?'So entsteht dein Spielraum':'How your available money is calculated',{exact:true})).toBeVisible();await expect(payday.getByText(de?'Aktueller Kontostand':'Current account balance',{exact:true})).toBeVisible();await expect(payday).toContainText(de?'− Noch offene Rechnungen':'− Unpaid bills');
  const questions=page.getByRole('group',{name:/Planungsfrage wählen|Choose planning question/});
  await questions.getByRole('button',{name:/Realistisch sparen|Find realistic savings/}).click();
@@ -31,7 +31,7 @@ for(const de of [false,true])for(const width of [390,1365])test(`free overview t
  const progress=page.getByRole('region',{name:de?'03 · Was habe ich tatsächlich eingespart?':'03 · What have I actually saved?'});
  await expect(progress).toContainText(de?'Noch keine bestätigte Ersparnis':'No confirmed savings yet');
  await progress.getByRole('button',{name:de?'Eine Sparmöglichkeit prüfen':'Review a savings opportunity'}).click();
- page.once('dialog',d=>void d.accept());await coach.getByRole('button',{name:de?'Umgesetzt – Kosten aktualisieren':'Done — update costs'}).click();
+ await coach.getByText(de?/Vorgemerkte Änderungen/:/Planned changes/).click();page.once('dialog',d=>void d.accept());await coach.getByRole('button',{name:de?'Umgesetzt – Kosten aktualisieren':'Done — update costs'}).click();
  await expect(coach).toContainText(de?'Umsetzung bestätigt':'Change confirmed');
  await coach.getByRole('button',{name:de?'Erreichte Ersparnis ansehen':'View achieved savings',exact:true}).click();
  await expect(progress).toContainText(de?'18,00':'18.00');await expect(progress).toContainText(de?'Zahlungstermine':'payment dates');
