@@ -336,6 +336,84 @@ textarea {
   opacity: 0.58;
 }
 
+/* Floating navigation only: the logo and language switch keep their existing styles. */
+.header-navigation-dock {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 9999px;
+  background: #f7faf7;
+  box-shadow: 0 3px 14px rgba(16, 40, 58, 0.08), inset 0 0 0 1px #e7ede8;
+}
+
+.header-navigation-link {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  padding: 0 16px;
+  border-radius: 9999px;
+  color: #24272c !important;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: normal;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 180ms ease;
+}
+
+.header-navigation-link:hover {
+  color: var(--brand-green-dark) !important;
+}
+
+.header-navigation-link:focus-visible {
+  outline: 2px solid var(--brand-green);
+  outline-offset: 2px;
+}
+
+.header-navigation-highlight {
+  position: absolute;
+  z-index: 0;
+  top: 5px;
+  bottom: 5px;
+  left: 0;
+  border-radius: 9999px;
+  background: var(--brand-green-soft);
+  opacity: 0;
+  pointer-events: none;
+  transition: width 360ms cubic-bezier(.2,.8,.2,1), transform 360ms cubic-bezier(.2,.8,.2,1), opacity 180ms ease;
+}
+
+.header-navigation-dock-mobile {
+  display: grid;
+  gap: 3px;
+  padding: 6px;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(16, 40, 58, 0.1), inset 0 0 0 1px #e7ede8;
+}
+
+.header-navigation-dock-mobile .header-navigation-link {
+  min-height: 44px;
+}
+
+.header-navigation-dock-mobile .header-navigation-link[aria-current],
+.header-navigation-dock-mobile .header-navigation-link:hover {
+  background: var(--brand-green-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-navigation-highlight,
+  .header-navigation-link {
+    transition: none;
+  }
+}
+
 .pwa-mobile-navigation {
   position: fixed;
   right: 0.75rem;
