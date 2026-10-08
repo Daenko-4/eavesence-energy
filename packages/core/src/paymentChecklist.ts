@@ -26,7 +26,7 @@ export function monthChecklist(costs: HouseholdCost[], month: string, paid: Paid
   const monthly = costs.filter(c => !c.nextDueDate && c.frequency === 'monthly').map(cost => ({cost,month,date:null}));
   const payments: MonthPayment[] = [...scheduled,...monthly].sort((a,b) => (a.date ?? `${month}-99`).localeCompare(b.date ?? `${month}-99`) || a.cost.name.localeCompare(b.cost.name));
   const open = payments.filter(p => !paymentIsPaid(p,paid));
-  return { payments, open, openTotal:open.reduce((sum,p)=>sum+p.cost.amount,0), paidTotal:payments.filter(p=>paymentIsPaid(p,paid)).reduce((sum,p)=>sum+p.cost.amount,0), missing:costs.filter(c=>!c.nextDueDate && c.frequency !== 'monthly') };
+  return { payments, open, nextDue:open.find(p=>p.date !== null) ?? null, openTotal:open.reduce((sum,p)=>sum+p.cost.amount,0), paidTotal:payments.filter(p=>paymentIsPaid(p,paid)).reduce((sum,p)=>sum+p.cost.amount,0), missing:costs.filter(c=>!c.nextDueDate && c.frequency !== 'monthly') };
 }
 export function togglePayment(paid: PaidPayment[], payment: MonthPayment, paidAt: string): PaidPayment[] {
   const key = paymentKey({costId:payment.cost.id,month:payment.month,date:payment.date});

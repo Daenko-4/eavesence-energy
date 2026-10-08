@@ -1,5 +1,5 @@
 "use client";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { Locale } from "@/i18n/config";
 import type { paymentsNextMonth } from "@/lib/householdCosts";
 
@@ -14,6 +14,7 @@ type Props = {
   upcomingOpen: boolean; onUpcoming: () => void; incomeForm: ReactNode;
 };
 export default function HomeCoreOverview({ incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, undatedCosts = [], onReviewCost, incomeIsAverage = false, locale, currency, income, fixed, count, upcoming, incomeOpen, onIncome, onCost, upcomingOpen, onUpcoming, incomeForm }: Props) {
+  const [budgetOpen,setBudgetOpen] = useState(false);
   const de = locale === "de";
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
   const needsIncome = income <= 0 && !incomeDeferred;
@@ -30,15 +31,17 @@ export default function HomeCoreOverview({ incomeDeferred = false, onSkipIncome,
       <button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={needsIncome ? onIncome : onCost} aria-expanded={needsIncome ? incomeOpen : undefined}>{needsIncome ? de ? "Einkommen eintragen" : "Add income" : de ? "Erste Kosten hinzufügen" : "Add first cost"}</button>
       {needsReview && needsIncome && <button type="button" onClick={onSkipIncome} className="ml-2 min-h-11 px-2 text-[13px] font-semibold">{de ? "Einkommen später ergänzen" : "Add income later"}</button>}
     </div>}
-    <h2 className="site-section-title">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
+    <details data-home-monthly-budget open={budgetOpen || needsReview || !count} onToggle={event=>setBudgetOpen(event.currentTarget.open)} className="home-disclosure mt-4">
+    <summary className="home-single-line-summary min-h-11 cursor-pointer rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] px-4 text-[13px] font-semibold"><span>{de ? "Dein Monatsbudget" : "Your monthly budget"}<span className="ml-2 font-normal text-[#65716d]">{de ? "Einkommen & Fixkosten" : "Income & fixed costs"}</span></span></summary>
     <div className="mt-3 grid items-start gap-3 md:grid-cols-3">
       {cards.map(card => <article key={card.label} className={`min-w-0 rounded-2xl border p-4 ${card.emphasis ? "border-[#32363b] bg-[#24272c] text-white" : "border-[#dfe5dd] bg-white text-[#17211f]"}`}>
         <p className={`text-[13px] font-semibold ${card.emphasis ? "text-[#d1d7d4]" : "text-[#65716d]"}`}>{card.label}</p>
-        <p className={`mt-2 text-[24px] font-extrabold tracking-[-.035em] ${card.emphasis ? deficit ? "text-[#ffd28c]" : "text-[#72dca3]" : ""}`}>{card.value}</p>
+        <p className={`mt-2 text-[20px] font-extrabold tracking-[-.035em] ${card.emphasis ? deficit ? "text-[#ffd28c]" : "text-[#72dca3]" : ""}`}>{card.value}</p>
       </article>)}
     </div>
     <p className="mt-3 max-w-3xl text-[13px] leading-5 text-[#65716d]">{de ? "Monatsdurchschnitte deiner erfassten Kosten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen vom Rest noch ab. Er ist kein Kontostand und noch kein Sparbetrag." : "Monthly averages of the costs you have entered. Groceries, leisure and other everyday spending still come out of the remainder. It is not your account balance or a savings amount."}</p>
     {deficit && <p role="status" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[13px] text-amber-900">{de ? "Deine erfassten Fixkosten übersteigen dein Einkommen. Alltagsausgaben sind dabei noch nicht berücksichtigt. Prüfe zuerst deine Beträge und Zahlungsrhythmen." : "Your entered fixed costs exceed your income, before everyday spending. Check your amounts and payment frequencies first."}</p>}
+    </details>
     {needsReview && !needsIncome && count > 0 && <div data-home-review className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
       <h3 className="site-card-title">{de ? "3 · Deinen Überblick prüfen" : "3 · Check your overview"}</h3>
       <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{de ? "Sind Miete, Energie, Versicherungen und Abos schon enthalten? Ergänze zuerst deine größten regelmäßigen Kosten. Du musst nicht alles heute erfassen." : "Have you included rent, energy, insurance and subscriptions? Add your largest recurring costs first. You do not have to enter everything today."}</p>

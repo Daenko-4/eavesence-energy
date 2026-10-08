@@ -20,7 +20,10 @@ for(const locale of ['de','en'])test(`native month checklist uses accessible che
  assert.match(html,/role="checkbox" aria-checked="true"/);
  assert.ok(html.includes(locale==='de'?'1 von 1 bezahlt':'1 of 1 paid'));
  assert.ok(html.includes(locale==='de'?'Monatlich · Termin fehlt':'Monthly · date missing'));
- assert.ok(html.includes(locale==='de'?'Noch zu bezahlen':'Still to pay'));
+ assert.ok(html.includes(locale==='de'?'Noch offen':'Still unpaid'));
+ assert.ok(html.includes(locale==='de'?'Bereits bezahlt':'Already paid'));
+ assert.ok(html.includes(locale==='de'?'Als Nächstes fällig':'Next due'));
+ assert.ok(html.includes(locale==='de'?'Alles erledigt':'All done'));
  assert.ok(html.includes(locale==='de'?'Nächster Monat':'Next month'));
- assert.ok(!html.includes(locale==='de'?'Still to pay':'Noch zu bezahlen'));
+ assert.ok(!html.includes(locale==='de'?'Still unpaid':'Noch offen'));
 });

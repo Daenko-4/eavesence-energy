@@ -60,6 +60,7 @@ export default function SavingsCoach({
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+  const cadence = (frequency: HouseholdCost["frequency"]) => (de ? {weekly:"pro Woche",monthly:"pro Monat",quarterly:"alle 3 Monate","half-yearly":"alle 6 Monate",yearly:"pro Jahr"} : {weekly:"per week",monthly:"per month",quarterly:"every 3 months","half-yearly":"every 6 months",yearly:"per year"})[frequency];
   const nextSaving = nextSavingsPayment(actions,p.today);
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
@@ -72,8 +73,8 @@ export default function SavingsCoach({
       </h3>
       <p className="mt-1 text-[13px] text-[#52605b]">
         {mode === "progress" ? t("Nur umgesetzte und bestätigte Änderungen zählen. Der Betrag ist aus deinen Angaben berechnet, nicht über ein Bankkonto nachgewiesen.", "Only completed, confirmed changes count. The amount is calculated from your entries, not verified against a bank account.") : t(
-          "Wähle einen Kostenposten, prüfe einen günstigeren Betrag und merke die Änderung vor. Erst nach der Umsetzung bestätigen.",
-          "Choose one cost, check a lower amount and save the plan. Confirm it only after the change happens.",
+          "Prüfe zuerst diesen Kostenposten. Mit einem echten günstigeren Angebot berechnen wir dein Sparpotenzial. Bestätigte Änderungen findest du unter Erspart.",
+          "Start by reviewing this cost. Enter a real lower-priced offer to calculate your savings potential. Find confirmed changes under Savings achieved.",
         )}
       </p>
       {mode !== "progress" && p.plannedMonthly > 0 && <div className="mt-3 rounded-xl bg-[#eefbf3] p-3 text-[13px]"><p className="font-semibold">{t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: {money(p.plannedMonthly)} {t("pro Monat", "per month")}</p><p className="mt-1">{t("Noch nicht erreicht. Bestätige jede Änderung erst nach der Umsetzung.", "Not achieved yet. Confirm each change only after it happens.")}</p></div>}
@@ -87,19 +88,19 @@ export default function SavingsCoach({
           )}
         </p>
       )}
-      {mode !== "opportunities" && actions.some((a) => a.status === "confirmed") && (
+      {(mode === "progress" || mode !== "opportunities" && actions.some((a) => a.status === "confirmed")) && (
         <div className="mt-3 rounded-xl bg-[#24272c] p-3 text-white">
           <p className="text-[13px] text-[#d1d7d4]">
             {t(
-              "Bis heute anhand bestätigter Änderungen und Zahlungstermine eingespart",
-              "Saved to date from confirmed changes and payment dates",
+              "Bis heute eingespart",
+              "Saved so far",
             )}
           </p>
           <p className="mt-1 text-xl font-extrabold">{money(p.totals.scheduled)}</p>
           <p className="mt-1 text-[13px] text-[#d1d7d4]">
             {t(
-              "Aus deinen Bestätigungen und Zahlungsterminen berechnet, nicht anhand von Kontobuchungen geprüft.",
-              "Calculated from your confirmations and payment dates, not verified against bank transactions.",
+              "Nur bestätigte Änderungen mit bereits erreichten Zahlungsterminen zählen hier. Zukünftiges Sparpotenzial bleibt getrennt. Kein Bankabgleich.",
+              "Only confirmed changes with payment dates already reached count here. Future potential stays separate. No bank verification.",
             )}
           </p>
         </div>
@@ -115,7 +116,6 @@ export default function SavingsCoach({
         </p>
       )}
       {mode !== "progress" && input.costs.length > 0 && <p className="mt-4 text-[13px] font-semibold">{t("1 · Kostenposten auswählen", "1 · Choose one cost")}</p>}
-      {mode !== "progress" && input.costs.length > 0 && <label className="mt-4 grid max-w-lg gap-1 text-[13px] font-semibold">{t("Kostenänderung testen · Kosten auswählen", "Test a cost change · choose a cost")}<select className={field} value={p.selected?.id ?? ""} onChange={e => {const cost=input.costs.find(c=>c.id===e.target.value);if(cost)p.choose(cost);else p.cancel();}}><option value="">{t("Kosten auswählen", "Choose a cost")}</option>{input.costs.map(c=><option key={c.id} value={c.id}>{c.name} · {money(c.amount)}</option>)}</select></label>}
       <div className="mt-3 grid max-w-lg items-start gap-3">
         {(mode === "progress" || p.selected ? [] : p.tasks.slice(0,1)).map((c) => (
           <article
@@ -124,7 +124,7 @@ export default function SavingsCoach({
           >
             <h4 className="font-bold">{c.name}</h4>
             <p className="mt-1">
-              {money(monthlyCost(c.amount, c.frequency))}{" "}
+              {money(c.amount)} {cadence(c.frequency)} · {money(monthlyCost(c.amount, c.frequency))}{" "}
               {t("im Monatsdurchschnitt", "monthly average")}
             </p>
             <p className="mt-2 text-[#52605b]">
@@ -137,6 +137,7 @@ export default function SavingsCoach({
           </article>
         ))}
       </div>
+      {mode !== "progress" && input.costs.length > 0 && <label className="mt-4 grid max-w-lg gap-1 text-[13px] font-semibold">{t("Kostenänderung testen · Kosten auswählen", "Test a cost change · choose a cost")}<select className={field} value={p.selected?.id ?? ""} onChange={e => {const cost=input.costs.find(c=>c.id===e.target.value);if(cost)p.choose(cost);else p.cancel();}}><option value="">{t("Kosten auswählen", "Choose a cost")}</option>{input.costs.map(c=><option key={c.id} value={c.id}>{c.name} · {money(c.amount)}</option>)}</select></label>}
       {mode !== "progress" && p.selected && <p className="mt-4 text-[13px] font-semibold">{t("2 · Neuen Betrag prüfen und vormerken", "2 · Check a new amount and save the plan")}</p>}
       {mode !== "progress" && p.selected && (
         <form
@@ -148,7 +149,7 @@ export default function SavingsCoach({
         >
           <h4 className="font-bold text-[13px] sm:col-span-2">
             {p.selected.name} · {t("Bisher", "Current")}:{" "}
-            {money(p.selected.amount)}
+            {money(p.selected.amount)} {cadence(p.selected.frequency)}
           </h4>
           <label className="grid gap-1 text-[13px]">
             {t(
