@@ -276,6 +276,66 @@ textarea {
   white-space: nowrap;
 }
 
+/* Compact visible pills with a full-size touch target for note actions. */
+.home-memo-pill {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  padding: 0 0.75rem;
+  color: var(--brand-green);
+  font-size: 0.6875rem;
+  font-weight: 650;
+  line-height: 1rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.home-memo-pill::before {
+  position: absolute;
+  z-index: -1;
+  inset: 10px 0;
+  border-radius: inherit;
+  background: #ddf8e9;
+  content: "";
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.home-memo-pill:hover::before {
+  background: #c9f7d9;
+}
+
+.home-memo-date {
+  padding-inline: 0.625rem;
+  color: #52605b;
+  font-weight: 600;
+}
+
+.home-memo-date::before {
+  border: 1px solid #dfe5dd;
+  background: transparent;
+}
+
+.home-memo-date[aria-pressed="true"]::before {
+  border-color: #a3d6b8;
+  background: #eefbf3;
+}
+
+.home-memo-pill:focus-visible {
+  outline: 2px solid var(--brand-green-mint);
+  outline-offset: 2px;
+}
+
+.home-memo-pill:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
 .pwa-mobile-navigation {
   position: fixed;
   right: 0.75rem;
