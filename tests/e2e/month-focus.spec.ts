@@ -9,6 +9,7 @@ for(const de of [false,true])for(const width of [320,1365])test(`monthly focus a
  });await page.reload();
  const month=page.getByRole('region',{name:t('Monatscheckliste','Monthly checklist')});await expect(month.locator('[data-checklist-next]')).toContainText('Rent');await expect(page.locator('[data-home-monthly-budget]')).not.toHaveAttribute('open','');
  await month.getByRole('checkbox',{name:/^Rent ·/}).check();await expect(month.locator('[data-checklist-next]')).toContainText('Internet');await expect(month.locator('[data-checklist-paid]')).toContainText(t('900,00','900.00'));await expect(month.locator('[data-checklist-open]')).toContainText(t('40,00','40.00'));
+ await expect(month).toContainText(t('1 Zahlung','1 payment'));
  await month.screenshot({path:info.outputPath(`month-focus-${de?'de':'en'}-${width}.png`)});
  await page.getByRole('navigation',{name:t('Bereich wählen','Choose workspace')}).getByRole('button',{name:/Planen & sparen|Plan & save/}).click();
  const payday=page.getByRole('region',{name:t('Dein verfügbarer Spielraum','Your available budget'),exact:true});await expect(payday.locator('[data-payday-result]')).toHaveText('—');
