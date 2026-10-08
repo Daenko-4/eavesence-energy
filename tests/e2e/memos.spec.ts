@@ -7,6 +7,7 @@ async function seed(page:Page,de=false){
 for(const de of [false,true])for(const width of [320,390,1365])test(`memos and collapsible checklist in ${de?'de':'en'} at ${width}px`,async({page},info)=>{
  await page.setViewportSize({width,height:844});await seed(page,de);
  const list=page.getByRole('region',{name:de?'Monatscheckliste':'Monthly checklist'}),toggle=list.getByRole('button',{name:de?'Zahlungen abhaken':'Check off payments',exact:true});
+ await expect(toggle).toHaveAttribute('aria-expanded','false');await toggle.click();
  const payment=list.getByRole('checkbox',{name:/^Rent ·/});await payment.check();await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','false');await expect(payment).toBeHidden();await expect(list.locator('[data-checklist-open]')).toBeVisible();await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 1 bezahlt':'1 of 1 paid');
  await list.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`checklist-collapsed-${de?'de':'en'}-${width}.png`)});
  await toggle.click();await expect(payment).toBeChecked();expect(await toggle.locator('span').last().evaluate(el=>getComputedStyle(el).rotate)).toBe('-45deg');

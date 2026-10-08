@@ -203,8 +203,8 @@ export function SavingsCoachScreen({
         </FormSection>
       )}
       {mode !== "progress" && shownActions.length > 0 && <Text style={styles.title}>{t("3 · Erst nach der Umsetzung bestätigen", "3 · Confirm only after it happens")}</Text>}
-      {mode === "progress" && shownActions.length > 0 && <Pressable accessibilityRole="button" accessibilityState={{expanded:progressDetailsOpen}} onPress={()=>setProgressDetailsOpen(!progressDetailsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Bestätigte Änderungen & Schätzungen", "Confirmed changes & estimates")} · {shownActions.length}</Text><DisclosureIcon open={progressDetailsOpen}/></Pressable>}
-      {(mode !== "progress" || progressDetailsOpen)&&<>
+      {shownActions.length > 0 && <Pressable accessibilityRole="button" accessibilityState={{expanded:progressDetailsOpen}} onPress={()=>setProgressDetailsOpen(!progressDetailsOpen)} style={styles.disclosure}><Text style={styles.note}>{mode === "progress" ? t("Bestätigte Änderungen & Schätzungen", "Confirmed changes & estimates") : t("Vorgemerkte Änderungen", "Planned changes")} · {shownActions.length}</Text><DisclosureIcon open={progressDetailsOpen}/></Pressable>}
+      {progressDetailsOpen&&<>
       {shownActions.map((a) => (
         <View key={savingsActionKey(a)} style={styles.box}>
           <Text style={styles.title}>{a.name}</Text>

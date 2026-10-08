@@ -251,6 +251,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   await expect(panel).toContainText("Planned changes");
 
   page.once("dialog", dialog=>void dialog.accept());
+  await panel.getByText(/Planned changes/).click();
   await panel.getByRole("button", { name: "Done — update costs" }).click();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("eavesence-home-costs-v1")!)[0].amount)).toBe(25);
   await openPlan(page, "progress");
@@ -1528,7 +1529,7 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
 test('savings assistant plans a cancellation, confirms it and updates recurring costs',async({page})=>{
  await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
  await page.evaluate(()=>{const today=new Date(),day=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'streaming',name:'Streaming',amount:18,category:'subscriptions',frequency:'monthly',nextDueDate:day,updatedAt:today.toISOString()}]));});await page.reload();
- await openPlan(page);const coach=page.getByRole('region',{name:'02 · Where can I realistically save?',exact:true});const progress=page.getByRole('region',{name:'03 · What have I actually saved?',exact:true});await coach.getByRole('button',{name:'Plan change',exact:true}).click();await coach.getByLabel('New amount per payment (0 = ends)').fill('0');await coach.getByRole('button',{name:'Save this plan',exact:true}).click();await expect(coach).toContainText('Planned, no confirmed saving yet');
+ await openPlan(page);const coach=page.getByRole('region',{name:'02 · Where can I realistically save?',exact:true});const progress=page.getByRole('region',{name:'03 · What have I actually saved?',exact:true});await coach.getByRole('button',{name:'Plan change',exact:true}).click();await coach.getByLabel('New amount per payment (0 = ends)').fill('0');await coach.getByRole('button',{name:'Save this plan',exact:true}).click();await coach.getByText(/Planned changes/, {exact:false}).click();await expect(coach).toContainText('Planned, no confirmed saving yet');
  page.once('dialog',dialog=>void dialog.accept());await coach.getByRole('button',{name:'Done — update costs'}).click();await openPlan(page,'progress');await expect(progress).toContainText('€18.00');await expect(progress).toContainText('Confirmed, costs updated');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!))).toHaveLength(0);await page.reload();await openPlan(page,'progress');await expect(progress).toContainText('Confirmed, costs updated');
 });
