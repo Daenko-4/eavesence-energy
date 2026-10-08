@@ -75,3 +75,13 @@ test('website, mobile and website-to-app backup imports preserve payment confirm
  assert.deepEqual(readMobileBackup(JSON.stringify(mobile)).profile.planning.paidPayments,paid);
  assert.equal(monthChecklist(costs,'2026-10',restoredWeb.profile.planning.paidPayments).openTotal,0);
 });
+
+test('next due follows the earliest unpaid dated payment and never assigns a date to an undated cost',()=>{
+ const costs=[cost(),cost({id:'internet',name:'Internet',amount:40,nextDueDate:'2026-10-10'}),cost({id:'undated',nextDueDate:'',amount:25})];
+ const initial=monthChecklist(costs,'2026-10');assert.equal(initial.nextDue.cost.id,'rent');
+ const paid=togglePayment([],initial.nextDue,stamp),next=monthChecklist(costs,'2026-10',paid);
+ assert.equal(next.nextDue.cost.id,'internet');assert.equal(next.openTotal,65);assert.equal(next.paidTotal,900);
+ const both=togglePayment(paid,next.nextDue,stamp),undated=monthChecklist(costs,'2026-10',both);
+ assert.equal(undated.nextDue,null);assert.equal(undated.openTotal,25);
+ assert.equal(monthChecklist(costs,'2026-11',both).nextDue.cost.id,'rent');
+});

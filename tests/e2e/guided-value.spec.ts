@@ -57,6 +57,7 @@ test('income can be deferred without inventing a remainder or blocking setup', a
   await page.locator('#household-costs').getByLabel('Amount',{exact:true}).fill('800');
   await page.locator('#household-costs').getByRole('button',{name:'Save',exact:true}).click();
   await page.locator('[data-home-review]').getByRole('button',{name:'Overview checked',exact:true}).click();
+  await expect(page.locator('[data-home-monthly-budget]')).not.toHaveAttribute('open','');
   await page.reload();
   await expect(page.locator('[data-home-setup]')).toHaveCount(0);
   await expect(page.getByRole('region',{name:'Your household at a glance'}).locator('article').nth(2)).toContainText('—');

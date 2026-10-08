@@ -92,3 +92,15 @@ for(const locale of ['de','en']) test(`native savings progress keeps secondary d
  const html=render(SavingsCoachScreen,{currency:'EUR',mode:'progress',input:{incomeMonthly:2400,costs:[],variableMonthly:500,bufferMonthly:0,goalMonthly:0,startMonth:today.slice(0,7)},actions:[action],onSave:noop,onActions:noop,onConfirm:noop,onReview:()=>{}},locale);
  assert.match(html,locale==='de'?/18,00/:/18.00/);assert.match(html,locale==='de'?/Bestätigte Änderungen &amp; Schätzungen/:/Confirmed changes &amp; estimates/);assert.ok(!html.includes('Hidden subscription'));assert.ok(!html.includes('reduce recurring costs'));
 });
+
+for(const locale of ['de','en'])test(`native payday calls a deficit a shortfall and hides stale results in ${locale}`,()=>{
+ const {PaydayScreen}=production('PaydayScreen.tsx');const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+ const payday=new Date(Date.parse(today)+14*86400000).toISOString().slice(0,10);
+ const props={currency:'EUR',input:{incomeMonthly:2400,costs:[],variableMonthly:500,bufferMonthly:0,goalMonthly:0,startMonth:today.slice(0,7)},data:{cash:{balance:100,asOf:today,payday,protected:200,everydayRemaining:150}},onSave:noop};
+ const html=render(PaydayScreen,props,locale);
+ assert.match(html,locale==='de'?/fehlen dir voraussichtlich/:/Estimated shortfall until/);
+ assert.match(html,locale==='de'?/250,00/:/250.00/);
+ assert.ok(!html.includes(locale==='de'?'kannst du zusätzlich ausgeben':'You can spend this extra'));
+ const stale=render(PaydayScreen,{...props,data:{cash:{...props.data.cash,needsRefresh:true}}},locale);
+ assert.ok(!stale.includes(locale==='de'?'250,00':'250.00'));assert.match(stale,locale==='de'?/aktualisiere deinen Kontostand/:/update your account balance/);
+});

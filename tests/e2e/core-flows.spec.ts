@@ -335,6 +335,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
 
   await householdOverview.getByRole("button", { name: /Payments next month/ }).click();
   await expect(householdOverview).toContainText("All recorded costs have a payment date.");
+  await page.locator('[data-home-monthly-budget] > summary').click();
   await expect(page.getByText("Recurring costs / month")).toBeVisible();
   await openCostManager(page);
   await expect(householdCosts.getByText("€900.00", { exact: true }).filter({ visible: true }).first()).toBeVisible();
@@ -1519,7 +1520,7 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
  if(width>=640){expect(Math.abs(fields[0].top-fields[1].top)).toBeLessThan(1);expect(Math.abs(fields[2].top-fields[3].top)).toBeLessThan(1);}
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
  await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await panel.getByLabel('Next payday',{exact:true}).fill(day);await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await panel.getByLabel('Everyday spending until payday',{exact:true}).fill('150');await panel.getByRole('button',{name:'Calculate available money'}).click();
- await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel).toContainText('UNTIL YOUR NEXT PAYDAY');
+ await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel).toContainText('You can spend this extra until');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.reload();await openPlan(page, 'payday');await expect(panel).toContainText('€650.00');
 });

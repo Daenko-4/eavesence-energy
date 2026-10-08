@@ -93,6 +93,7 @@ export function SavingsCoachScreen({
   }
   const [costPickerOpen, setCostPickerOpen] = useState(false);
   const [progressDetailsOpen,setProgressDetailsOpen] = useState(false), [taskOptionsOpen,setTaskOptionsOpen] = useState(false);
+  const cadence = (frequency: HouseholdCost["frequency"]) => (de ? {weekly:"pro Woche",monthly:"pro Monat",quarterly:"alle 3 Monate","half-yearly":"alle 6 Monate",yearly:"pro Jahr"} : {weekly:"per week",monthly:"per month",quarterly:"every 3 months","half-yearly":"every 6 months",yearly:"per year"})[frequency];
   const nextSaving = nextSavingsPayment(actions,p.today);
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
@@ -102,8 +103,8 @@ export function SavingsCoachScreen({
       </Text>
       <Text style={styles.note}>
         {mode === "progress" ? t("Nur umgesetzte und bestätigte Änderungen zählen. Der Betrag ist aus deinen Angaben berechnet, nicht über ein Bankkonto nachgewiesen.", "Only completed, confirmed changes count. The amount is calculated from your entries, not verified against a bank account.") : t(
-          "Wähle einen Kostenposten, prüfe einen günstigeren Betrag und merke die Änderung vor. Erst nach der Umsetzung bestätigen.",
-          "Choose one cost, check a lower amount and save the plan. Confirm it only after the change happens.",
+          "Prüfe zuerst diesen Kostenposten. Mit einem echten günstigeren Angebot berechnen wir dein Sparpotenzial. Bestätigte Änderungen findest du unter Erspart.",
+          "Start by reviewing this cost. Enter a real lower-priced offer to calculate your savings potential. Find confirmed changes under Savings achieved.",
         )}
       </Text>
       {mode !== "progress" && p.plannedMonthly > 0 && <View style={styles.box}><Text style={styles.title}>{t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: {money(p.plannedMonthly)} {t("pro Monat", "per month")}</Text><Text style={styles.note}>{t("Noch nicht erreicht. Bestätige jede Änderung erst nach der Umsetzung.", "Not achieved yet. Confirm each change only after it happens.")}</Text></View>}
@@ -117,19 +118,19 @@ export function SavingsCoachScreen({
           )}
         </Text>
       )}
-      {mode !== "opportunities" && actions.some((a) => a.status === "confirmed") && (
+      {(mode === "progress" || mode !== "opportunities" && actions.some((a) => a.status === "confirmed")) && (
         <View style={styles.dark}>
           <Text style={styles.light}>
             {t(
-              "Bis heute anhand bestätigter Änderungen und Zahlungstermine eingespart",
-              "Saved to date from confirmed changes and payment dates",
+              "Bis heute eingespart",
+              "Saved so far",
             )}
           </Text>
           <Text style={styles.amount}>{money(p.totals.scheduled)}</Text>
           <Text style={styles.light}>
             {t(
-              "Aus Bestätigungen und Zahlungsterminen berechnet. Nicht anhand von Kontobuchungen geprüft.",
-              "Calculated from confirmations and payment dates. Not verified against bank transactions.",
+              "Nur bestätigte Änderungen mit bereits erreichten Zahlungsterminen zählen hier. Zukünftiges Sparpotenzial bleibt getrennt. Kein Bankabgleich.",
+              "Only confirmed changes with payment dates already reached count here. Future potential stays separate. No bank verification.",
             )}
           </Text>
         </View>
@@ -150,8 +151,7 @@ export function SavingsCoachScreen({
         <View key={c.id} style={styles.box}>
           <Text style={styles.title}>{c.name}</Text>
           <Text style={styles.note}>
-            {money(monthlyCost(c.amount, c.frequency))}{" "}
-            {t("im Monatsdurchschnitt", "monthly average")}
+            {money(c.amount)} {cadence(c.frequency)}{c.frequency !== "monthly" && ` · ${money(monthlyCost(c.amount,c.frequency))} ${t("im Monatsdurchschnitt", "monthly average")}`}
           </Text>
           <Text style={styles.note}>
             {c.cancellationDeadline ? `${t("Frist", "Deadline")}: ${c.cancellationDeadline}. ` : ""}{costReviewTip(c.category, de, c.frequency)}
@@ -167,7 +167,7 @@ export function SavingsCoachScreen({
         <FormSection style={styles.box} onSave={p.plan} saveLabel={t("Änderung vormerken", "Save this plan")}>
           <Text style={styles.title}>
             {p.selected.name} · {t("Bisher", "Current")}:{" "}
-            {money(p.selected.amount)}
+            {money(p.selected.amount)} {cadence(p.selected.frequency)}
           </Text>
           <FormInput
             label={t(
