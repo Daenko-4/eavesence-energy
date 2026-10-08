@@ -93,7 +93,7 @@ export function PaydayScreen({
               )
             : t("Was kann ich bis zum nächsten Gehalt ausgeben?", "What can I spend until my next payday?")}
         </Text>
-        <Text style={[styles.amount, shortfall ? styles.warning : styles.positive]} accessibilityLiveRegion="polite">
+        <Text style={[styles.amount, shortfall ? styles.shortfallAmount : styles.positive]} accessibilityLiveRegion="polite">
           {complete
             ? money(Math.abs(p.forecast!.remaining!))
             : "—"}
@@ -272,6 +272,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: "800", color: "#fff" },
   amount: { fontSize: 28, fontWeight: "900", color: "#fff" },
   positive: {color:"#72dca3"},
+  shortfallAmount: {color:"#ffd28c"},
   light: { fontSize: 13, lineHeight: 20, color: "#d1d7d4" },
   warning: { fontSize: 12, color: "#ffe1a8" },
   mintButton: {
