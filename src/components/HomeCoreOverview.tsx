@@ -31,7 +31,7 @@ export default function HomeCoreOverview({ incomeDeferred = false, onSkipIncome,
       <button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={needsIncome ? onIncome : onCost} aria-expanded={needsIncome ? incomeOpen : undefined}>{needsIncome ? de ? "Einkommen eintragen" : "Add income" : de ? "Erste Kosten hinzufügen" : "Add first cost"}</button>
       {needsReview && needsIncome && <button type="button" onClick={onSkipIncome} className="ml-2 min-h-11 px-2 text-[13px] font-semibold">{de ? "Einkommen später ergänzen" : "Add income later"}</button>}
     </div>}
-    <details data-home-monthly-budget open={budgetOpen || needsReview || !count} onToggle={event=>setBudgetOpen(event.currentTarget.open)} className="home-disclosure mt-4">
+    <details data-home-monthly-budget open={budgetOpen || needsReview || !count} onToggle={event=>{if(!needsReview && count > 0)setBudgetOpen(event.currentTarget.open);}} className="home-disclosure mt-4">
     <summary className="home-single-line-summary min-h-11 cursor-pointer rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] px-4 text-[13px] font-semibold"><span>{de ? "Dein Monatsbudget" : "Your monthly budget"}<span className="ml-2 font-normal text-[#65716d]">{de ? "Einkommen & Fixkosten" : "Income & fixed costs"}</span></span></summary>
     <div className="mt-3 grid items-start gap-3 md:grid-cols-3">
       {cards.map(card => <article key={card.label} className={`min-w-0 rounded-2xl border p-4 ${card.emphasis ? "border-[#32363b] bg-[#24272c] text-white" : "border-[#dfe5dd] bg-white text-[#17211f]"}`}>
