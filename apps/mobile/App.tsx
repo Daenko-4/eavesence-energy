@@ -1,3 +1,4 @@
+import {NavIcon} from "./src/NavIcon";
 import {SafeAreaProvider,SafeAreaView} from "react-native-safe-area-context";
 import { ProToolsScreen } from "./src/ProToolsScreen";
 import { closeSavingsHistory } from "@eavesence/core/savingsPlan";
@@ -96,22 +97,11 @@ Notifications.setNotificationHandler({
 // Metro resolves bundled images through a static require call.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const brandIcon = require("./assets/brand-icon-safe.png");
-// Monochrome icons are tinted to match the website's mint navigation states.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const tabHomeIcon = require("./assets/tab-home.png");
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const tabCostsIcon = require("./assets/tab-costs.png");
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const tabProIcon = require("./assets/tab-pro.png");
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const tabEnergyIcon = require("./assets/tab-history.png");
-
-const navigationTabs: Array<{ key: Tab; label: string; icon: number }> = [
-  { key: "home", label: "Monat", icon: tabHomeIcon },
-  { key: "costs", label: "Kosten", icon: tabCostsIcon },
-  { key: "pro", label: "Plan", icon: tabProIcon },
-  { key: "energy", label: "Rechner", icon: tabEnergyIcon },
+const navigationTabs: Array<{key:Tab;label:string;icon:'month'|'costs'|'plan'|'calculator'}> = [
+ {key:'home',label:'Monat',icon:'month'},
+ {key:'costs',label:'Kosten',icon:'costs'},
+ {key:'pro',label:'Plan',icon:'plan'},
+ {key:'energy',label:'Rechner',icon:'calculator'},
 ];
 
 function parseLocalNumber(value: string) {
@@ -978,7 +968,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
         const active = tab === key || (key === "energy" && (tab === "add" || tab === "history"));
         const primary = key === "add";
         return <Pressable key={key} accessibilityRole="tab" accessibilityLabel={label==="Monat"?(locale==="de"?"Monat":"Month"):label==="Rechner"?(locale==="de"?"Rechner":"Calculator"):localize(locale,label)} accessibilityState={{ selected: active }} onPress={() => selectTab(key)} style={styles.tab}>
-          <View style={[styles.tabIconSurface, active && styles.tabIconActive, primary && styles.tabIconPrimary]}><Image source={icon} alt="" style={[styles.tabIcon, { tintColor: primary ? "#ffffff" : active ? "#087a45" : "#65716d" }]} /></View>
+          <View style={[styles.tabIconSurface, active && styles.tabIconActive, primary && styles.tabIconPrimary]}><NavIcon name={icon} color={active ? "#087a45" : "#65716d"}/></View>
           <Text numberOfLines={1} style={[styles.tabText, active && styles.tabTextActive]}>{label==="Monat"?(locale==="de"?"Monat":"Month"):label==="Rechner"?(locale==="de"?"Rechner":"Calculator"):localize(locale,label)}</Text>
         </Pressable>;
       })}</View>}
