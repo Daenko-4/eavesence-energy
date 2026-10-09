@@ -1,3 +1,5 @@
+import {NavIcon} from "./src/NavIcon";
+import {SafeAreaProvider,SafeAreaView} from "react-native-safe-area-context";
 import { ProToolsScreen } from "./src/ProToolsScreen";
 import { closeSavingsHistory } from "@eavesence/core/savingsPlan";
 import { TileSymbol, TileSymbolPicker } from "./src/TileSymbol";
@@ -30,12 +32,12 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
+  Modal,
   Keyboard,
   Linking,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   View,
@@ -95,22 +97,11 @@ Notifications.setNotificationHandler({
 // Metro resolves bundled images through a static require call.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const brandIcon = require("./assets/brand-icon-safe.png");
-// Monochrome icons are tinted to match the website's mint navigation states.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const tabHomeIcon = require("./assets/tab-home.png");
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const tabCostsIcon = require("./assets/tab-costs.png");
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const tabProIcon = require("./assets/tab-pro.png");
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const tabEnergyIcon = require("./assets/tab-history.png");
-
-const navigationTabs: Array<{ key: Tab; label: string; icon: number }> = [
-  { key: "home", label: "Übersicht", icon: tabHomeIcon },
-  { key: "costs", label: "Kosten", icon: tabCostsIcon },
-  { key: "pro", label: "Plan · Pro", icon: tabProIcon },
-  { key: "energy", label: "Stromrechner", icon: tabEnergyIcon },
+const navigationTabs: Array<{key:Tab;label:string;icon:'month'|'costs'|'plan'|'calculator'}> = [
+ {key:'home',label:'Monat',icon:'month'},
+ {key:'costs',label:'Kosten',icon:'costs'},
+ {key:'pro',label:'Plan',icon:'plan'},
+ {key:'energy',label:'Rechner',icon:'calculator'},
 ];
 
 function parseLocalNumber(value: string) {
@@ -146,7 +137,7 @@ const initialForm = {
 
 export default function App() {
   const [locale, setLocale] = useState<MobileLocale>(() => Intl.DateTimeFormat().resolvedOptions().locale.toLowerCase().startsWith("de") ? "de" : "en");
-  return <LocaleContext.Provider value={locale}><AppContent locale={locale} setLocale={setLocale} /></LocaleContext.Provider>;
+  return <SafeAreaProvider><LocaleContext.Provider value={locale}><AppContent locale={locale} setLocale={setLocale} /></LocaleContext.Provider></SafeAreaProvider>;
 }
 
 function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (value: MobileLocale) => void }) {
@@ -337,6 +328,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
   const [homeDetailsOpen, setHomeDetailsOpen] = useState(false);
   const [memosOpen,setMemosOpen]=useState(false);
+  const [addMenuOpen,setAddMenuOpen]=useState(false),[memoDraftRequest,setMemoDraftRequest]=useState(0);
   useEffect(()=>{
     const handle=(response:Notifications.NotificationResponse|null)=>{
       if(response?.notification.request.content.data?.eavesenceMemo===true){setTab("home");setMemosOpen(true);void Notifications.clearLastNotificationResponseAsync().catch(()=>{});}
@@ -524,6 +516,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   }
 
   function startWith(action: "income" | "cost") {
+    setMemoDraftRequest(0);
     setCostReviewId(undefined);
     setCostStartAction(action);
     setSelectedCostTileId("default-costs");
@@ -531,6 +524,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   }
 
   function selectTab(key: Tab) {
+    setMemoDraftRequest(0);
     Keyboard.dismiss();
     if (key === "add" && tab !== "add") startNewDevice();
     else {
@@ -800,25 +794,19 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       <View style={styles.appHeader}>
         <BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} />
         <View style={styles.headerCopy}><Text style={styles.headerBrand}>EAVESENCE</Text></View>
-        <Pressable accessibilityRole="button" accessibilityLabel={localize(locale, "Einstellungen")} onPress={openSettings} style={[styles.headerSettings, styles.outlinedAction]}><Text style={styles.outlinedText}>⚙ {localize(locale, "Einstellungen")}</Text></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={localize(locale, "Einstellungen")} onPress={openSettings} style={styles.headerSettings}><Text style={styles.settingsGear}>⚙</Text></Pressable>
       </View>
       <KeyboardScrollContext.Provider value={(input) => scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input, 72, true)}><ScrollView ref={scrollRef} style={styles.scrollSurface} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         {tab === "home" && <>
-          <Text style={styles.eyebrow}>EAVESENCE</Text>
-          <Text style={styles.homeTitle}>{profile.name === "Mein Zuhause" || profile.name === "My home" ? localize(locale, "Mein Zuhause") : profile.name}</Text>
-          <Text style={styles.homeSubtitle}>{locale === "de" ? "Was steht diesen Monat noch an? Hake bezahlte Kosten ab." : "What is still due this month? Check off paid costs."}</Text>
-          <View style={styles.presetRow}>
-            <Pressable accessibilityRole="button" style={[styles.financePill, styles.outlinedAction]} onPress={() => startWith("cost")}><Text style={styles.outlinedText}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</Text></Pressable>
-            <Pressable accessibilityRole="button" style={[styles.financePill, styles.outlinedAction]} onPress={() => startWith("income")}><Text style={styles.outlinedText}>{hasIncome ? locale === "de" ? "Einkommen ändern" : "Edit income" : locale === "de" ? "Einkommen eintragen" : "Add income"}</Text></Pressable>
-          </View>
-          <MonthlyPayments costs={costs} data={profile.planning} onSave={savePlanning} locale={locale} currency={profile.currency ?? "EUR"} onEdit={reviewCost} onAdd={() => startWith("cost")} />
-          <HomeMemos data={profile.planning} onSave={savePlanning} locale={locale} open={memosOpen} onToggle={()=>setMemosOpen(!memosOpen)}/>
+          <MonthlyPayments costs={costs} data={profile.planning} onSave={savePlanning} locale={locale} currency={profile.currency ?? "EUR"} onEdit={reviewCost} onAdd={() => startWith("cost")} onPlan={()=>{setMemoDraftRequest(0);setPlanQuestion("payday");setTab("pro");}} />
+          <HomeMemos key={memoDraftRequest} initialAdd={memoDraftRequest>0} data={profile.planning} onSave={savePlanning} locale={locale} open={memosOpen} onToggle={()=>setMemosOpen(!memosOpen)}/>
           {costs.length > 0 && !profile.backupReminderDismissed && <View style={styles.backupHint}>
             <Text style={styles.financeNote}>{locale === "de" ? "Deine Daten bleiben auf diesem Gerät. Speichere eine Sicherung in Dateien, bevor du die App entfernst oder das Gerät wechselst." : "Your data stays on this device. Save a backup to Files before deleting the app or changing devices."}</Text>
             <View style={styles.presetRow}><Pressable accessibilityRole="button" style={[styles.financePill,styles.outlinedAction]} onPress={() => void exportData()}><Text style={styles.outlinedText}>{locale === "de" ? "Daten sichern" : "Back up data"}</Text></Pressable><Pressable accessibilityRole="button" style={styles.financePill} onPress={() => void dismissBackupHint()}><Text style={styles.financePillText}>{locale === "de" ? "Später" : "Later"}</Text></Pressable></View>
           </View>}
           <Pressable accessibilityRole="button" accessibilityState={{expanded:homeDetailsOpen}} onPress={() => setHomeDetailsOpen(!homeDetailsOpen)} style={styles.areaDisclosure}><Text style={styles.areaDisclosureText}>{locale === "de" ? "Monatsbudget & Kostenbereiche" : "Monthly budget & cost areas"}</Text><DisclosureIcon open={homeDetailsOpen}/></Pressable>
           {homeDetailsOpen && <>
+          <Pressable accessibilityRole="button" onPress={()=>startWith("income")} style={styles.incomeAction}><Text style={styles.outlinedText}>{hasIncome ? locale === "de" ? "Einkommen ändern" : "Edit income" : locale === "de" ? "Einkommen eintragen" : "Add income"}</Text><Text style={styles.outlinedText}>›</Text></Pressable>
           <HomeCoreOverview incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency ?? "EUR"} income={monthlyIncome} costs={costs} forecast={forecast} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} onIncome={() => startWith("income")} onCost={() => startWith("cost")} onCosts={openMainCosts} onReview={reviewCost} />
           {!incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency ?? "EUR"} />}
           <View style={styles.areaNavigation}>
@@ -974,12 +962,14 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           {packages.length > 0 && <Pressable onPress={() => void restorePro().then(setIsPro).catch(() => showLocalizedAlert(locale,"Wiederherstellung fehlgeschlagen", "Bitte versuche es erneut."))}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable>}
         </>}
       </ScrollView></KeyboardScrollContext.Provider>
-      {!keyboardVisible && <View style={styles.tabBar} accessibilityRole="tablist" accessibilityLabel={localize(locale, "App-Navigation")}>{navigationTabs.map(({ key, label, icon }) => {
+      {tab === "home" && !keyboardVisible && <Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? "Hinzufügen" : "Add"} accessibilityState={{expanded:addMenuOpen}} onPress={()=>setAddMenuOpen(true)} style={styles.floatingAdd}><Text style={styles.floatingAddText}>+</Text></Pressable>}
+      <Modal visible={addMenuOpen} transparent animationType="fade" onRequestClose={()=>setAddMenuOpen(false)}><View style={styles.addOverlay}><Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? "Menü schließen" : "Close menu"} style={StyleSheet.absoluteFill} onPress={()=>setAddMenuOpen(false)}/><View style={styles.addSheet}><Text style={styles.dataTitle}>{locale === "de" ? "Hinzufügen" : "Add"}</Text><Pressable accessibilityRole="button" onPress={()=>{setAddMenuOpen(false);startWith("cost");}} style={styles.addOption}><Text style={styles.addOptionText}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</Text><Text style={styles.addOptionText}>›</Text></Pressable><Pressable accessibilityRole="button" onPress={()=>{setAddMenuOpen(false);setMemosOpen(true);setMemoDraftRequest(n=>n+1);scrollRef.current?.scrollToEnd({animated:true});}} style={styles.addOption}><Text style={styles.addOptionText}>{locale === "de" ? "Notiz hinzufügen" : "Add note"}</Text><Text style={styles.addOptionText}>›</Text></Pressable></View></View></Modal>
+      {!keyboardVisible && !costEditorOpen && <View style={styles.tabBar} accessibilityRole="tablist" accessibilityLabel={localize(locale, "App-Navigation")}>{navigationTabs.map(({ key, label, icon }) => {
         const active = tab === key || (key === "energy" && (tab === "add" || tab === "history"));
         const primary = key === "add";
-        return <Pressable key={key} accessibilityRole="tab" accessibilityLabel={localize(locale, label)} accessibilityState={{ selected: active }} onPress={() => selectTab(key)} style={styles.tab}>
-          <View style={[styles.tabIconSurface, active && styles.tabIconActive, key === "pro" && !active && styles.tabProPreview, primary && styles.tabIconPrimary]}><Image source={icon} alt="" style={[styles.tabIcon, { tintColor: primary ? "#ffffff" : active ? "#087a45" : "#65716d" }]} /></View>
-          <Text numberOfLines={1} style={[styles.tabText, active && styles.tabTextActive]}>{localize(locale, label)}</Text>
+        return <Pressable key={key} accessibilityRole="tab" accessibilityLabel={label==="Monat"?(locale==="de"?"Monat":"Month"):label==="Rechner"?(locale==="de"?"Rechner":"Calculator"):localize(locale,label)} accessibilityState={{ selected: active }} onPress={() => selectTab(key)} style={styles.tab}>
+          <View style={[styles.tabIconSurface, active && styles.tabIconActive, primary && styles.tabIconPrimary]}><NavIcon name={icon} color={active ? "#087a45" : "#65716d"}/></View>
+          <Text numberOfLines={1} style={[styles.tabText, active && styles.tabTextActive]}>{label==="Monat"?(locale==="de"?"Monat":"Month"):label==="Rechner"?(locale==="de"?"Rechner":"Calculator"):localize(locale,label)}</Text>
         </Pressable>;
       })}</View>}
     </SafeAreaView>
@@ -1028,7 +1018,7 @@ const styles = StyleSheet.create({
   planTab: { flex: 1, minHeight: 52, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 12, backgroundColor: "#ffffff", padding: 10, justifyContent: "center" },
   planTabSelected: { backgroundColor: "#ddf8e9", borderColor: "#087a45" },
   planTabText: { fontSize: 12, fontWeight: "700", color: "#52605b" },
-  headerSettings: { minHeight: 44, justifyContent: "center", paddingHorizontal: 10, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22 },
+  headerSettings: { minHeight: 44, minWidth:44, alignItems:"center",justifyContent: "center" },
   languageRow: { flexDirection: "row", justifyContent: "center", gap: 10, marginTop: 12 },
   choiceSelected: { borderWidth: 1, borderColor: "#087a45" },
   chartRow: { flexDirection: "row", gap: 8, alignItems: "center" },
@@ -1115,7 +1105,10 @@ const styles = StyleSheet.create({
   scrollSurface: { backgroundColor: "#f6f7f2" },
   loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#f6f7f2" },
   onboarding: { flexGrow: 1, justifyContent: "center", padding: 24, gap: 18 },
-  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 34 },
+  settingsGear: {fontSize:24,color:"#17211f"},
+  floatingAdd:{position:"absolute",right:20,bottom:80,width:56,height:56,borderRadius:28,backgroundColor:"#087a45",alignItems:"center",justifyContent:"center",elevation:4,shadowColor:"#17211f",shadowOpacity:.12,shadowRadius:8,shadowOffset:{width:0,height:3}},floatingAddText:{fontSize:34,lineHeight:40,fontWeight:"400",color:"#fff"},
+  addOverlay:{flex:1,backgroundColor:"#0007",justifyContent:"flex-end"},addSheet:{padding:24,paddingBottom:36,borderTopLeftRadius:24,borderTopRightRadius:24,backgroundColor:"#f7f8f4",gap:12},addOption:{minHeight:56,flexDirection:"row",alignItems:"center",justifyContent:"space-between",borderBottomWidth:1,borderColor:"#dfe5dd"},addOptionText:{fontSize:16,fontWeight:"600",color:"#17211f"},incomeAction:{minHeight:48,flexDirection:"row",justifyContent:"space-between",alignItems:"center"},
+  content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 90 },
   appHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 13, borderBottomWidth: 1, borderColor: "#e2e8e4", backgroundColor: "#ffffff" },
   eyebrow: { fontSize: 11, fontWeight: "900", letterSpacing: 1.6, color: "#087a45" },
   eyebrowMint: { fontSize: 11, fontWeight: "900", letterSpacing: 1.6, color: "#72dca3" },
@@ -1129,9 +1122,9 @@ const styles = StyleSheet.create({
   pulseCard: { marginBottom: 16, borderWidth: 1, borderRadius: 18, padding: 15 }, pulseCardOpen: { borderColor: "#f4cf73", backgroundColor: "#fff9e9" }, pulseCardComplete: { borderColor: "#b8efcc", backgroundColor: "#eefbf3" }, pulseLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 1 }, pulseLabelOpen: { color: "#a85d00" }, pulseLabelComplete: { color: "#087a45" }, pulseTitle: { marginTop: 5, fontSize: 15, fontWeight: "900", color: "#07111f" }, pulseBody: { marginTop: 4, fontSize: 13, lineHeight: 19, color: "#52605b" }, pulseAction: { alignSelf: "flex-start", minHeight: 30, marginTop: 12, borderRadius: 15, justifyContent: "center", backgroundColor: "#dcf8e8", paddingHorizontal: 12 }, pulseActionText: { fontSize: 12, fontWeight: "900", color: "#087a45" }, metricGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 }, metric: { width: "48%", minHeight: 94, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 14 }, metricLabel: { fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.7, color: "#64748b" }, metricValue: { marginTop: 12, fontSize: 19, fontWeight: "900", color: "#07111f" }, insightCard: { marginTop: 16, borderRadius: 16, backgroundColor: "#e7f7ed", padding: 15 }, insightLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 0.8, color: "#087a45" }, insightTitle: { marginTop: 5, fontSize: 15, fontWeight: "900", color: "#07111f" }, historyHint: { marginTop: -12, marginBottom: 18, fontSize: 13, lineHeight: 19, color: "#64748b" }, sectionTitle: { marginTop: 28, marginBottom: 10, fontSize: 20, fontWeight: "900", color: "#07111f" }, deviceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 9, padding: 14, borderWidth: 1, borderRadius: 14, borderColor: "#dfe5dd", backgroundColor: "#fbfcf8" }, deviceName: { fontSize: 15, fontWeight: "800", color: "#07111f" }, muted: { marginTop: 3, fontSize: 12, color: "#64748b" }, delete: { padding: 8, fontSize: 24, color: "#94a3b8" }, empty: { borderWidth: 1, borderStyle: "dashed", borderColor: "#cbd5e1", borderRadius: 16, padding: 20, backgroundColor: "#ffffff" }, secondaryButton: { minHeight: 48, marginTop: 10, borderWidth: 1, borderColor: "#b9d9c7", borderRadius: 24, alignItems: "center", justifyContent: "center" }, secondaryButtonText: { fontSize: 14, fontWeight: "800", color: "#087a45" }, proCard: { borderRadius: 26, backgroundColor: "#17211f", padding: 24 }, proTitle: { marginTop: 12, fontSize: 32, lineHeight: 35, fontWeight: "900", letterSpacing: -1.2, color: "#ffffff" }, proBody: { marginTop: 15, fontSize: 15, lineHeight: 23, color: "#cbd5d1" }, proButton: { minHeight: 52, marginTop: 24, borderRadius: 26, alignItems: "center", justifyContent: "center", backgroundColor: "#72dca3", paddingHorizontal: 16 }, proButtonDisabled: { backgroundColor: "#43514c" }, proButtonText: { fontSize: 14, fontWeight: "900", color: "#10231b" }, proActive: { marginTop: 24, fontSize: 17, fontWeight: "900", color: "#72dca3" }, restore: { marginTop: 18, textAlign: "center", fontSize: 13, fontWeight: "800", color: "#ffffff" }, proHint: { marginTop: 10, textAlign: "center", fontSize: 11, lineHeight: 17, color: "#94a3a0" }, tabBar: { flexDirection: "row", borderTopWidth: 1, borderColor: "#e2e8e4", backgroundColor: "#ffffff", paddingHorizontal: 12, paddingTop: 7, paddingBottom: 3 },
   tab: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 58, gap: 2 },
   tabIconSurface: { width: 37, height: 32, alignItems: "center", justifyContent: "center", borderRadius: 13 },
-  tabIconActive: { backgroundColor: "#ddf8e9" },
+  tabIconActive: { backgroundColor: "transparent" },
   tabIconPrimary: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#087a45" },
   tabIcon: { width: 21, height: 21 },
   tabText: { fontSize: 11, fontWeight: "700", color: "#65716d" },
-  tabTextActive: { color: "#087a45", fontWeight: "900" },
+  tabTextActive: { color: "#087a45", fontWeight: "600" },
 });

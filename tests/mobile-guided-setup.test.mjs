@@ -14,7 +14,7 @@ let submit;
 const primitive=tag=>function Primitive({children,accessibilityRole,accessibilityLabel,accessibilityState,value,onChangeText}) {
   return React.createElement(tag,{role:accessibilityRole==='header'?'heading':accessibilityRole, 'aria-label':accessibilityLabel,'aria-checked':accessibilityState?.checked,'aria-selected':accessibilityState?.selected,'aria-expanded':accessibilityState?.expanded,...(tag==='input'?{value:value??'',readOnly:true,onChange:onChangeText}: {})},children);
 };
-const native={View:primitive('div'),Text:primitive('span'),Pressable:primitive('button'),TextInput:primitive('input'),InputAccessoryView:()=>null,StyleSheet:{create:s=>s},Platform:{OS:'ios'},Keyboard:{dismiss:()=>{}},Alert:{alert:(...a)=>alerts.push(a)}};
+const native={Modal:primitive('div'),SafeAreaView:primitive('div'),ScrollView:primitive('div'),KeyboardAvoidingView:primitive('div'),View:primitive('div'),Text:primitive('span'),Pressable:primitive('button'),TextInput:primitive('input'),InputAccessoryView:()=>null,StyleSheet:{create:s=>s},Platform:{OS:'ios'},Keyboard:{dismiss:()=>{}},Alert:{alert:(...a)=>alerts.push(a)}};
 const cache=new Map();
 function production(file) {
  const path=resolve('apps/mobile/src',file);if(cache.has(path))return cache.get(path).exports;
@@ -22,6 +22,8 @@ function production(file) {
  const code=ts.transpileModule(readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
  runInNewContext(code,{module:appModule,exports:appModule.exports,require:name=>{
   if(name==='react-native')return native;
+  if(name==='@react-native-community/datetimepicker')return ()=>null;
+  if(name==='react-native-safe-area-context')return {SafeAreaView:primitive('div')};
   if(name==='./BrandMotion')return {DisclosureIcon:()=>null};
   if(name==='./reminders')return {scheduleCostReview:async()=>true};
   if(name==='./deadlineFile')return {shareDeadline:async()=>{}};
@@ -103,4 +105,13 @@ for(const locale of ['de','en'])test(`native payday calls a deficit a shortfall 
  assert.ok(!html.includes(locale==='de'?'kannst du zusätzlich ausgeben':'You can spend this extra'));
  const stale=render(PaydayScreen,{...props,data:{cash:{...props.data.cash,needsRefresh:true}}},locale);
  assert.ok(!stale.includes(locale==='de'?'250,00':'250.00'));assert.match(stale,locale==='de'?/aktualisiere deinen Kontostand/:/update your account balance/);
+});
+
+test('dedicated cost editor validates and saves through the same production action',async()=>{
+ let saved;render(CostsScreen,{...costsProps,initialCostId:'rent',onSaveCost:async cost=>{saved=cost;}});
+ assert.equal(typeof submit,'function');await submit();assert.equal(saved.name,'Saved rent');assert.equal(saved.amount,800);assert.equal(saved.id,'rent');
+});
+test('failed dedicated cost save does not report success',async()=>{
+ const html=render(CostsScreen,{...costsProps,initialCostId:'rent',onSaveCost:async()=>{throw new Error('Storage unavailable');}});
+ assert.ok(!html.includes('Cost saved.'));await assert.rejects(submit(),/Storage unavailable/);
 });

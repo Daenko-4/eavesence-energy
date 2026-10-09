@@ -8,13 +8,13 @@ import {FormSection,FormSubmitButton} from './FormSection';
 import {FormInput} from './FormInput';
 import {reconcileMemoReminders} from './reminders';
 
-export function HomeMemos({data,onSave,locale,open,onToggle}:{data?:PlanningData;onSave:(data:PlanningData)=>void|Promise<void>;open:boolean;onToggle:()=>void;locale:'de'|'en'}) {
+export function HomeMemos({data,onSave,locale,open,onToggle,initialAdd=false}:{initialAdd?:boolean;data?:PlanningData;onSave:(data:PlanningData)=>void|Promise<void>;open:boolean;onToggle:()=>void;locale:'de'|'en'}) {
   const de=locale==='de',t=(a:string,b:string)=>de?a:b;
   const c=useMemos(data,onSave,de,async(memos,request)=>{
     const status=await reconcileMemoReminders(memos,locale,request);
     return status==='denied'?t('Notiz gespeichert. Benachrichtigungen sind nicht erlaubt. Fällige Notizen stehen weiterhin hier; du kannst Benachrichtigungen in den iPhone-Einstellungen erlauben.','Note saved. Notifications are not allowed. Due notes still appear here; you can allow notifications in iPhone Settings.'):status==='scheduled'?t('Notiz gespeichert. Die nächste Geräte-Erinnerung ist eingerichtet.','Note saved. The next device reminder is scheduled.'):t('Notizen gespeichert.','Notes saved.');
   });
-  const [later,setLater]=useState(false),[done,setDone]=useState(false),[form,setForm]=useState(false),[text,setText]=useState(''),[date,setDate]=useState(''),[editing,setEditing]=useState<string>();
+  const [later,setLater]=useState(false),[done,setDone]=useState(false),[form,setForm]=useState(initialAdd),[text,setText]=useState(''),[date,setDate]=useState(''),[editing,setEditing]=useState<string>();
   const display=(iso:string)=>iso?`${iso.slice(8,10)}.${iso.slice(5,7)}.${iso.slice(0,4)}`:'';
   const iso=(value:string)=>{const m=value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);return value?m?`${m[3]}-${m[2]}-${m[1]}`:'invalid':'';};
   const dateLabel=(value:string)=>new Intl.DateTimeFormat(de?'de-AT':'en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(`${value}T12:00:00Z`));

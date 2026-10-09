@@ -12,6 +12,7 @@
   "dependencies": {
     "@eavesence/core": "*",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/datetimepicker": "^9.1.0",
     "expo": "^57.0.23",
     "expo-document-picker": "57.0.2",
     "expo-file-system": "57.0.7",
@@ -21,6 +22,7 @@
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-purchases": "^10.9.1",
+    "react-native-safe-area-context": "~5.7.0",
     "react-native-webview": "13.16.1"
   },
   "devDependencies": {
