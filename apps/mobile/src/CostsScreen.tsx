@@ -1,3 +1,4 @@
+import {CostEditor} from "./CostEditor";
 import { incomeExtraDrafts, incomeExtrasFromDraft, parseIncomeAmount, type IncomeExtra } from "@eavesence/core/income";
 import { IncomeExtrasSummary } from "./IncomeExtrasSummary";
 import { IncomeExtrasEditor } from "./IncomeExtrasEditor";
@@ -249,8 +250,8 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   </FormSection>;
 
   return <>
-    <Text style={styles.title}>{tileId === "default-costs" ? localize(locale, "Haushaltskosten") : tileTitle}</Text>
-    <Text style={styles.explanation}>{localize(locale, tileId === "default-costs" ? "Alle regelmäßigen Kosten aus deinen Kacheln an einem Ort. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um." : "Die regelmäßigen Kosten in dieser Kachel. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um.")}</Text>
+    {!formOpen&&<><Text style={styles.title}>{tileId === "default-costs" ? localize(locale, "Haushaltskosten") : tileTitle}</Text>
+    <Text style={styles.explanation}>{localize(locale, tileId === "default-costs" ? "Alle regelmäßigen Kosten aus deinen Kacheln an einem Ort. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um." : "Die regelmäßigen Kosten in dieser Kachel. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um.")}</Text></>}
     {!formOpen && <View style={styles.metrics}>
       <View style={styles.metric}><Text style={styles.label}>PRO MONAT</Text><Text style={styles.value}>{money.format(summary.monthlyTotal)}</Text></View>
     </View>}
@@ -263,22 +264,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <View style={styles.choices}>{suggestions.map((suggestion) => <Pressable key={suggestion[0]} onPress={() => openNew(suggestion)} style={styles.choice}><Text style={styles.choiceText}>{suggestion[1]}</Text></Pressable>)}</View>
     </View>}
 
-    {formOpen ? <FormSection style={styles.panel} onSave={save} saveLabel={editingId ? "Aktualisieren" : "Speichern"}>
-      <Text style={styles.panelTitle}>{editingId ? "Kosten bearbeiten" : "Neue Kosten"}</Text>
-      <FormInput label="Bezeichnung" value={name} onChangeText={setName} onBlur={() => { if (!editingId && category === "housing") { const text = name.toLowerCase(); if (/internet|abo|stream|telefon/.test(text)) setCategory("subscriptions"); else if (/strom|heiz|electric|gas/.test(text)) setCategory("energy"); else if (/versicherung|insurance/.test(text)) setCategory("insurance"); } }} placeholder="z. B. Internet" />
-      <FormInput label="Betrag" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="0,00" />
-      <Text style={styles.label}>WIE OFT?</Text><Choice options={frequencies.filter(([key]) => moreOpen || key === "monthly" || key === "yearly" || key === frequency)} value={frequency} onChange={setFrequency} />
-      <DateField label={locale === "de" ? "Wann wird abgebucht? (optional)" : "When is payment due? (optional)"} value={dueDate} onChangeText={setDueDate} />
-      <Text style={styles.help}>{locale === "de" ? "Mit Datum erscheint die Zahlung im richtigen Monat und im Plan bis zum Gehalt." : "A date puts this payment in the correct month and in your plan until payday."}</Text>
-      <Pressable accessibilityRole="button" accessibilityState={{ expanded: moreOpen }} onPress={() => setMoreOpen(!moreOpen)} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Weitere Intervalle, Kategorie und Kündigung" : "More intervals, category and cancellation"}</Text></Pressable>
-      {moreOpen && <>
-      <Text style={styles.label}>KATEGORIE</Text><Choice options={categories} value={category} onChange={setCategory} />
-      <DateField label="Kündigungsfrist (optional)" value={deadline} onChangeText={setDeadline} />
-      <Text style={styles.help}>Mit Zahlungstermin können wir den nächsten Monat genau berechnen. Ohne Termin fließt der Posten nur in den Monatsdurchschnitt ein.</Text>
-      </>}
-      <FormSubmitButton label={editingId ? "Aktualisieren" : "Speichern"} style={styles.primary} textStyle={styles.primaryText} />
-      <Pressable onPress={() => setFormOpen(false)} style={styles.secondary}><Text style={styles.secondaryText}>Abbrechen</Text></Pressable>
-    </FormSection> : <Pressable onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
+    {formOpen ? <CostEditor name={name} amount={amount} frequency={frequency} date={dueDate} deadline={deadline} category={category} editing={!!editingId} onName={value=>{setName(value);if(!editingId)setCategory(inferSetupCategory(value));}} onAmount={setAmount} onFrequency={setFrequency} onDate={setDueDate} onDeadline={setDeadline} onCategory={setCategory} onSave={save} onClose={()=>setFormOpen(false)}/> : <Pressable accessibilityRole="button" onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
 
     {homeRelease.detailedInsights && visibleCosts.length > 0 && !formOpen && <>
       <Text style={styles.sectionTitle}>Kosten nach Kategorie</Text>

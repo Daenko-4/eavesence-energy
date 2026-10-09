@@ -1,0 +1,9 @@
+import {test,expect} from '@playwright/test';
+import {execFileSync} from 'node:child_process';
+for(const locale of ['de','en'])for(const width of [320,390])test(`native design review ${locale} ${width}`,async({page},info)=>{
+ const views=JSON.parse(execFileSync('node',['scripts/mobile-design-render.mjs',locale],{encoding:'utf8'}));
+ await page.setViewportSize({width,height:852});
+ await page.setContent(views.month);await expect(page.getByRole('checkbox')).toHaveCount(3);await expect(page.getByText(locale==='de'?'178,00':'178.00',{exact:false}).first()).toBeVisible();await expect(page.getByText(locale==='de'?'Bezahlte Zahlungen':'Paid payments',{exact:false})).toBeVisible();await expect(page.getByText(locale==='de'?'Miete':'Rent',{exact:true})).toHaveCount(0);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({fullPage:true,path:info.outputPath(`native-month-${locale}-${width}.png`)});
+ await page.setContent(views.cost);await expect(page.getByRole('button',{name:locale==='de'?'Kosten speichern':'Save cost',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:/Wie oft|How often/})).toBeVisible();await expect(page.getByRole('button',{name:/Nächste Zahlung|Next payment/})).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({fullPage:true,path:info.outputPath(`native-cost-${locale}-${width}.png`)});
+});
