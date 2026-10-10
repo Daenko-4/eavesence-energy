@@ -7,7 +7,7 @@ const primitive=(tag,text=false)=>React.forwardRef(function Native({children,sty
  const dom=React.useRef();
  React.useImperativeHandle(ref,()=>({focus:()=>dom.current.focus(),isFocused:()=>document.activeElement===dom.current,measureLayout:(_inner,success)=>success(0,dom.current.offsetTop),scrollResponderScrollNativeHandleToKeyboard:()=>{},getInnerViewNode:()=>dom.current,scrollTo:({y})=>dom.current.scrollTo(0,y)}));
  React.useEffect(()=>{onLayout?.();},[onLayout]);
- const attrs={ref:dom,style:{...(text?{}:{display:'flex',flexDirection:'column',minWidth:0}),...css(style)},role:accessibilityRole==='header'?'heading':accessibilityRole,'aria-label':accessibilityLabel,'aria-checked':accessibilityState?.checked,'aria-expanded':accessibilityState?.expanded,disabled:disabled||editable===false,onClick:onPress};
+ const attrs={ref:dom,style:{...(text?{}:{display:'flex',flexDirection:'column',position:'relative',minWidth:0}),...css(style)},role:accessibilityRole==='header'?'heading':accessibilityRole,'aria-label':accessibilityLabel,'aria-checked':accessibilityState?.checked,'aria-expanded':accessibilityState?.expanded,disabled:disabled||editable===false,onClick:onPress};
  if(tag==='input')Object.assign(attrs,{value:value??'',placeholder,autoFocus,'data-keyboard':keyboardType,onChange:e=>onChangeText?.(e.target.value),onFocus:e=>{if(selectTextOnFocus)e.target.select();onFocus?.(e);},onBlur,onKeyDown:e=>{if(e.key==='Enter'){e.preventDefault();onSubmitEditing?.({nativeEvent:{text:e.target.value}});}}});
  if(contentContainerStyle)return React.createElement(tag,attrs,React.createElement('div',{style:css(contentContainerStyle)},children));
  return React.createElement(tag,attrs,tag==='input'?undefined:children);
