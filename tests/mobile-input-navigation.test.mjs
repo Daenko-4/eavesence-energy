@@ -18,7 +18,7 @@ test('keyboard reveal leaves room for the save toolbar and section links use the
  const exports={};const code=ts.transpileModule(readFileSync('apps/mobile/src/ScrollNavigation.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
  runInNewContext(code,{exports,require:name=>name==='react'?{createContext:()=>({})}:{}});
  const input={},calls=[],scroll={scrollResponderScrollNativeHandleToKeyboard:(...args)=>calls.push(args),getInnerViewNode:()=>19,scrollTo:args=>calls.push(args)};
- exports.revealInput(scroll,input);assert.equal(calls[0][0],input);assert.equal(calls[0][1],100);assert.equal(calls[0][2],true);
+ exports.revealInput(scroll,input);assert.equal(calls[0][0],input);assert.equal(calls[0][1],160);assert.equal(calls[0][2],true);
  exports.revealSection(scroll,{measureLayout:(node,success)=>{assert.equal(node,19);success(0,300);}});assert.equal(calls[1].y,284);assert.equal(calls[1].animated,true);
  exports.revealSection(null,null);
 });

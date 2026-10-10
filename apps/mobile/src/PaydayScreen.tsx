@@ -164,7 +164,8 @@ export function PaydayScreen({
             autoFocus={focusBalance}
             focusRequest={balanceFocusRequest}
             label={t("Aktueller Kontostand", "Current account balance")}
-            keyboardType="numbers-and-punctuation"
+            keyboardType="decimal-pad"
+            signedAmount
             value={p.balance}
             onChangeText={p.setBalance}
           />
