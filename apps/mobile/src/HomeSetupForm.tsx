@@ -15,7 +15,7 @@ export function HomeSetupForm({ name, onName, currency, onCurrency, onSave }: {
     <Text style={styles.eyebrow}>{de ? "ZUERST · DEIN ZUHAUSE EINRICHTEN" : "FIRST · SET UP YOUR HOME"}</Text>
     <Text accessibilityRole="header" style={styles.title}>{de ? "Dein Zuhause einrichten" : "Set up your home"}</Text>
     <Text style={styles.help}>{de ? "Gib deinem Zuhause einen Namen und wähle die Währung. Danach tragen wir gemeinsam dein Einkommen und deine ersten Kosten ein." : "Name your home and choose a currency. Next, we will add your income and first cost, one step at a time."}</Text>
-    <FormInput label={de ? "Name deines Zuhauses" : "Home name"} value={name} onChangeText={onName} autoCapitalize="sentences" maxLength={60} />
+    <FormInput label={de ? "Name deines Zuhauses" : "Home name"} placeholder={de ? "Mein Zuhause" : "My home"} value={name === "Mein Zuhause" || name === "My home" ? "" : name} onChangeText={onName} autoCapitalize="sentences" maxLength={60} />
     <Text style={styles.label}>{de ? "Währung" : "Currency"}</Text>
     <View style={styles.row}>{(["EUR", "CHF"] as const).map(value => <Pressable key={value} accessibilityRole="button" accessibilityState={{selected: currency === value}} onPress={() => onCurrency(value)} style={[styles.choice, currency === value && styles.selected]}><Text style={styles.choiceText}>{value}</Text></Pressable>)}</View>
     <FormSubmitButton label={saveLabel} style={styles.save} textStyle={styles.saveText} />
