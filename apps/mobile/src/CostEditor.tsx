@@ -4,6 +4,7 @@ import {Keyboard,KeyboardAvoidingView,Modal,Platform,Pressable,ScrollView,StyleS
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type {HouseholdCostFrequency,HouseholdCostCategory} from '@eavesence/core/householdCosts';
 import {DisclosureIcon} from './BrandMotion';
+import {revealInput} from './ScrollNavigation';
 import {FormInput,KeyboardScrollContext} from './FormInput';
 import {FormSection,FormSubmitButton,useFormAction} from './FormSection';
 import {LocalizedText as Text,useMobileLocale} from './i18n';
@@ -27,7 +28,7 @@ export function CostEditor(p:Props){
  function selectRow(label:string,value:string,action:()=>void){return <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${value}`} onPress={()=>{Keyboard.dismiss();action();}} style={s.select}><View style={s.flex}><Text style={s.label}>{label}</Text><Text style={s.selected}>{value}</Text></View><Text style={s.chevron}>›</Text></Pressable>;}
  return <Modal visible animationType="slide" onRequestClose={p.onClose}><SafeAreaView style={s.safe}><KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={s.safe}><FormSection style={s.safe} onSave={p.onSave} saveLabel={t('Kosten speichern','Save cost')}>
   <View style={s.header}><Close onClose={p.onClose}/><Text accessibilityRole="header" style={s.title}>{p.editing?t('Kosten bearbeiten','Edit cost'):t('Kosten hinzufügen','Add cost')}</Text><View style={s.back}/></View>
-  <KeyboardScrollContext.Provider value={input=>scroll.current?.scrollResponderScrollNativeHandleToKeyboard(input,80,true)}><ScrollView ref={scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" contentContainerStyle={s.body}>
+  <KeyboardScrollContext.Provider value={input=>revealInput(scroll.current,input)}><ScrollView ref={scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" contentContainerStyle={s.body}>
    <View style={s.group}><View style={s.input}><FormInput label={t('Name','Name')} value={p.name} onChangeText={p.onName} placeholder={t('z. B. Internet','e.g. Internet')} style={s.inputStyle}/></View><View style={s.input}><FormInput label={t('Betrag','Amount')} value={p.amount} onChangeText={p.onAmount} keyboardType="decimal-pad" placeholder="0,00" style={s.inputStyle}/></View>
     {selectRow(t('Wie oft?','How often?'),cadence(p.frequency),()=>setChoice('frequency'))}
     {selectRow(t('Nächste Zahlung (optional)','Next payment (optional)'),labelDate(p.date),()=>openDate('date'))}

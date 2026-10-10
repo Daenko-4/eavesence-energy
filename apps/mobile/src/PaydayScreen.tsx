@@ -1,5 +1,6 @@
+import { ScrollTargetContext } from "./ScrollNavigation";
 import { QuickCheck } from "./QuickCheck";
-import { useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { usePaymentChecklist } from "@eavesence/core/usePaymentChecklist";
 import { paymentKey } from "@eavesence/core/paymentChecklist";
@@ -19,11 +20,13 @@ export function PaydayScreen({
   currency,
   onReviewCost,
   onSavings,
+  onPayments,
 }: {
   input: SavingsPlanInput;
   data?: PlanningData;
   onSave: (p: PlanningData) => Promise<void>;
   onSavings?: () => void;
+  onPayments?: () => void;
   onReviewCost?: (cost: SavingsPlanInput["costs"][number]) => void;
   currency: string;
 }) {
@@ -35,6 +38,13 @@ export function PaydayScreen({
   const [billsOpen,setBillsOpen] = useState(false);
   const [calculationOpen,setCalculationOpen] = useState(false);
   const [focusBalance,setFocusBalance] = useState(false);
+  const [balanceFocusRequest,setBalanceFocusRequest]=useState(0);
+  const formTarget=useRef<View>(null),billsTarget=useRef<View>(null),scrollTarget=useContext(ScrollTargetContext);
+  const pendingBalanceScroll=useRef(false),pendingBillsScroll=useRef(false);
+  function revealBalance(){if(pendingBalanceScroll.current&&formTarget.current){scrollTarget(formTarget.current);pendingBalanceScroll.current=false;}}
+  function revealBills(){if(pendingBillsScroll.current&&billsTarget.current){scrollTarget(billsTarget.current);pendingBillsScroll.current=false;}}
+  function reviewBalance(){pendingBalanceScroll.current=true;setOpen(true);setFocusBalance(true);setBalanceFocusRequest(n=>n+1);requestAnimationFrame(revealBalance);}
+  function reviewPayments(){if(onPayments){onPayments();return;}pendingBillsScroll.current=true;setBillsOpen(true);requestAnimationFrame(revealBills);}
   const money = (n: number) =>
       new Intl.NumberFormat(de ? "de-AT" : "en-GB", {
         style: "currency",
@@ -106,7 +116,7 @@ export function PaydayScreen({
                 shortfall ? "Your balance does not cover unpaid bills, planned everyday spending and your reserve yet." : "Unpaid bills, planned everyday spending and your reserve are already deducted. This amount is left on top.",
               )
             : t(
-                p.cash && p.cash.payday <= p.today ? "Dein Gehaltstermin ist erreicht. Trage den aktuellen Kontostand und den nächsten Gehaltstag ein." : p.forecast ? `Dein Kontostand ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben für einen vollständigen Spielraum.` : "Kontostand eintragen, nächsten Gehaltstag wählen und Alltag bis dahin schätzen. Offene Rechnungen aus My Home berücksichtigen wir automatisch.",
+                p.cash && p.cash.payday <= p.today ? "Dein Gehaltstermin ist erreicht. Trage den aktuellen Kontostand und den nächsten Gehaltstag ein." : p.forecast ? `Dein Kontostand ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben, um dein verfügbares Geld vollständig zu berechnen.` : "Kontostand eintragen, nächsten Gehaltstag wählen und Alltag bis dahin schätzen. Offene Rechnungen aus My Home berücksichtigen wir automatisch.",
                 p.cash && p.cash.payday <= p.today ? "Your payday has arrived. Enter your current balance and your next payday." : p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter your account balance, choose your next payday and estimate everyday spending until then. We include unpaid bills from My Home automatically.",
               )}
         </Text>
@@ -137,21 +147,22 @@ export function PaydayScreen({
                     "Kontostand aktualisieren",
                     "Update account balance",
                   )
-                : t("Spielraum berechnen", "Calculate available money")}
+                : t("Verfügbares Geld berechnen", "Calculate available money")}
           </Text>
         </Pressable>
       </View>
-      {!open && p.forecast && <View style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:calculationOpen}} onPress={()=>setCalculationOpen(!calculationOpen)} style={styles.disclosure}><Text style={styles.subTitle}>{t("So entsteht dein Spielraum", "How your available money is calculated")}</Text><DisclosureIcon open={calculationOpen}/></Pressable>{calculationOpen&&<>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}<Text style={styles.subTitle}>{complete ? t("= Zusätzlicher Spielraum", "= Extra available") : t("= Angaben fehlen noch", "= Entries still missing")}: {complete ? money(p.forecast!.remaining!) : "—"}</Text><Text style={styles.note}>{complete&&p.forecast!.remaining!>=0?t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`):""}</Text></>}</View>}
+      {!open && p.forecast && <View style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:calculationOpen}} onPress={()=>setCalculationOpen(!calculationOpen)} style={styles.disclosure}><Text style={styles.subTitle}>{t("So berechnen wir dein verfügbares Geld", "How your available money is calculated")}</Text><DisclosureIcon open={calculationOpen}/></Pressable>{calculationOpen&&<>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}<Text style={styles.subTitle}>{complete ? t("= Zusätzlich verfügbares Geld", "= Extra available") : t("= Angaben fehlen noch", "= Entries still missing")}: {complete ? money(p.forecast!.remaining!) : "—"}</Text><Text style={styles.note}>{complete&&p.forecast!.remaining!>=0?t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`):""}</Text></>}</View>}
       {open && (
-        <FormSection style={styles.form} onSave={p.save} saveLabel={t("Spielraum berechnen", "Calculate available money")}>
+        <View ref={formTarget} onLayout={revealBalance}><FormSection style={styles.form} onSave={p.save} keyboardSaveLabel={t("Berechnen","Calculate")} saveLabel={t("Verfügbares Geld berechnen", "Calculate available money")}>
           <Text style={styles.note}>
             {t(
-              "Kontostand → offene Rechnungen abziehen → Alltag und Reserve abziehen → zusätzlicher Spielraum. Bereits bezahlte Rechnungen in der Monatscheckliste abhaken, damit sie nicht doppelt abgezogen werden. Das nächste Gehalt zählt noch nicht dazu.",
+              "Kontostand → offene Rechnungen abziehen → Alltag und Reserve abziehen → zusätzlich verfügbares Geld. Bereits bezahlte Rechnungen in der Monatscheckliste abhaken, damit sie nicht doppelt abgezogen werden. Das nächste Gehalt zählt noch nicht dazu.",
               "Account balance → subtract unpaid bills → subtract everyday spending and reserve → extra money available. Check off bills already paid in the monthly checklist so they are not deducted twice. Your next salary is not added yet.",
             )}
           </Text>
           <FormInput
             autoFocus={focusBalance}
+            focusRequest={balanceFocusRequest}
             label={t("Aktueller Kontostand", "Current account balance")}
             keyboardType="numbers-and-punctuation"
             value={p.balance}
@@ -214,7 +225,7 @@ export function PaydayScreen({
             )}
           />
           <Text style={styles.note}>{t("Für Lebensmittel, Freizeit und andere Ausgaben bis zum Gehalt. Gespeicherte Rechnungen nicht nochmals eintragen. Leer = vorhandene Monatsschätzung verwenden; ohne Schätzung ist ein Betrag nötig, auch 0.", "For groceries, leisure and other spending until payday. Do not include saved bills again. Blank = use your existing monthly estimate; without one, enter an amount, including 0.")}</Text>
-          <FormSubmitButton label={t("Spielraum berechnen", "Calculate available money")} style={styles.button} textStyle={styles.buttonText}/>
+          <FormSubmitButton label={t("Verfügbares Geld berechnen", "Calculate available money")} style={styles.button} textStyle={styles.buttonText}/>
           {p.error && (
             <Text accessibilityRole="alert" style={styles.error}>
               {p.error}
@@ -230,7 +241,7 @@ export function PaydayScreen({
               {p.forecast.missingDates > 0 && (
                 <Text style={styles.error}>
                   {t(
-                    `${p.forecast.missingDates} Kosten ohne Zahlungstermin fehlen. Noch kein vollständiger Spielraum.`,
+                    `${p.forecast.missingDates} Kosten ohne Zahlungstermin fehlen. Der verfügbare Betrag ist noch unvollständig.`,
                     `${p.forecast.missingDates} undated costs are missing. Available budget is incomplete.`,
                   )}
                 </Text>
@@ -243,10 +254,10 @@ export function PaydayScreen({
 
             </View>
           )}
-        </FormSection>
+        </FormSection></View>
       )}
-      <QuickCheck input={input} data={data} onSave={onSave} onBalance={()=>{setFocusBalance(true);setOpen(true);}} onPayments={()=>setBillsOpen(true)} onSavings={onSavings} onReview={onReviewCost}/>
-      {p.bills.length > 0 && <View style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:billsOpen}} onPress={()=>setBillsOpen(!billsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Zahlungen bis zum Gehalt abhaken", "Check off payments until payday")} · {p.bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</Text><DisclosureIcon open={billsOpen}/></Pressable>{billsOpen&&<><Text style={styles.note}>{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</Text>{p.bills.map(b=>{const paid=checklist.isPaid(b);return <Pressable key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})} accessibilityRole="checkbox" accessibilityState={{checked:paid,disabled:checklist.busy}} accessibilityLabel={`${b.cost.name} · ${day(b.date)} · ${money(b.cost.amount)} · ${t("Bezahlt", "Paid")}`} disabled={checklist.busy} onPress={()=>void checklist.toggle(b)} style={styles.payment}><Text style={styles.check}>{paid?"✓":"○"}</Text><Text style={[styles.paymentName,paid&&styles.paid]}>{b.cost.name} · {day(b.date)}</Text><Text style={styles.note}>{money(b.cost.amount)}</Text></Pressable>})}{checklist.error&&<Text accessibilityRole="alert" style={styles.error}>{checklist.error}</Text>}</>}</View>}
+      <QuickCheck input={input} data={data} onSave={onSave} onBalance={reviewBalance} onPayments={reviewPayments} onSavings={onSavings} onReview={onReviewCost}/>
+      {p.bills.length > 0 && <View ref={billsTarget} onLayout={revealBills} style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:billsOpen}} onPress={()=>setBillsOpen(!billsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Zahlungen bis zum Gehalt abhaken", "Check off payments until payday")} · {p.bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</Text><DisclosureIcon open={billsOpen}/></Pressable>{billsOpen&&<><Text style={styles.note}>{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</Text>{p.bills.map(b=>{const paid=checklist.isPaid(b);return <Pressable key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})} accessibilityRole="checkbox" accessibilityState={{checked:paid,disabled:checklist.busy}} accessibilityLabel={`${b.cost.name} · ${day(b.date)} · ${money(b.cost.amount)} · ${t("Bezahlt", "Paid")}`} disabled={checklist.busy} onPress={()=>void checklist.toggle(b)} style={styles.payment}><Text style={styles.check}>{paid?"✓":"○"}</Text><Text style={[styles.paymentName,paid&&styles.paid]}>{b.cost.name} · {day(b.date)}</Text><Text style={styles.note}>{money(b.cost.amount)}</Text></Pressable>})}{checklist.error&&<Text accessibilityRole="alert" style={styles.error}>{checklist.error}</Text>}</>}</View>}
     </View>
   );
 }

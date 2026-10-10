@@ -128,7 +128,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   const [incomeOpen, setIncomeOpen] = useState(initialAction === "income");
   const [feedback, setFeedback] = useState("");
   const [formOpen, setFormOpen] = useState(initialAction === "cost"||!!initialCost);
-  useEffect(() => { onEditingChange?.(formOpen || incomeOpen || !!setup); }, [formOpen, incomeOpen, setup, onEditingChange]);
+  useEffect(() => { onEditingChange?.(formOpen || incomeOpen || !!setup); return () => onEditingChange?.(false); }, [formOpen, incomeOpen, setup, onEditingChange]);
   const [name, setName] = useState(initialCost?.name??"");
   const [amount, setAmount] = useState(initialCost?String(initialCost.amount):"");
   const [category, setCategory] = useState<HouseholdCostCategory>(initialCost?.category??"housing");

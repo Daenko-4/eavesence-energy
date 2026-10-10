@@ -5,18 +5,24 @@ import { LocalizedText as Text, localize, useMobileLocale } from "./i18n";
 
 export const KeyboardScrollContext = createContext<(input: TextInput) => void>(() => {});
 
-export function FormInput({ label, ...props }: { label: string } & React.ComponentProps<typeof TextInput>) {
+export function FormInput({ label, focusRequest=0, ...props }: { label: string;focusRequest?:number } & React.ComponentProps<typeof TextInput>) {
   const [focused, setFocused] = useState(false);
   const locale = useMobileLocale();
   const action = useFormAction();
   const id = useId();
   const input = useRef<TextInput>(null);
   const scrollToInput = useContext(KeyboardScrollContext);
+  useEffect(()=>{if(focusRequest>0)input.current?.focus();},[focusRequest]);
+  const register=action?.registerInput;
+  useEffect(()=>props.editable===false?undefined:register?.(id,()=>input.current),[register,id,props.editable]);
   useEffect(() => {
     if (!focused) return;
-    const shown = Keyboard.addListener("keyboardDidShow", () => { if (input.current) scrollToInput(input.current); });
-    return () => shown.remove();
+    const reveal=()=>{if(input.current?.isFocused())scrollToInput(input.current);};
+    const immediate=setTimeout(reveal,80),settled=setTimeout(reveal,350);
+    const shown=Keyboard.addListener("keyboardDidShow",reveal),changed=Keyboard.addListener("keyboardDidChangeFrame",reveal);
+    return ()=>{clearTimeout(immediate);clearTimeout(settled);shown.remove();changed.remove();};
   }, [focused, scrollToInput]);
+  const hasNext=!!action&&action.inputIds.indexOf(id)>=0&&action.inputIds.indexOf(id)<action.inputIds.length-1;
   return <View style={styles.field}>
     <Text style={styles.label}>{localize(locale, label)}</Text>
     <View style={styles.inputRow}>
@@ -24,12 +30,15 @@ export function FormInput({ label, ...props }: { label: string } & React.Compone
         {...props}
         ref={input}
         accessibilityLabel={localize(locale, label)}
-        placeholder={props.placeholder ? localize(locale, props.placeholder) : undefined}
+        keyboardType={props.keyboardType ?? "default"}
+        selectTextOnFocus={props.selectTextOnFocus ?? (!!props.keyboardType && props.keyboardType!=="default")}
+        placeholder={!focused && props.placeholder ? localize(locale, props.placeholder) : undefined}
         inputAccessoryViewID={Platform.OS === "ios" ? action?.id ?? id : undefined}
-        returnKeyType={action ? "default" : "done"}
-        onSubmitEditing={(event) => { props.onSubmitEditing?.(event); if (action) action.submit(); else Keyboard.dismiss(); }}
-        onFocus={(event) => { setFocused(true); props.onFocus?.(event); requestAnimationFrame(() => { if (input.current) scrollToInput(input.current); }); }}
-        onBlur={(event) => { setFocused(false); props.onBlur?.(event); }}
+        returnKeyType={props.returnKeyType ?? (hasNext ? "next" : "done")}
+        submitBehavior={props.submitBehavior ?? (props.multiline ? "newline" : "submit")}
+        onSubmitEditing={(event) => { props.onSubmitEditing?.(event); if(props.submitBehavior==="newline")return; if(action?.nextInput(id))return; if (action) action.submit(); else Keyboard.dismiss(); }}
+        onFocus={(event) => { setFocused(true); action?.setActiveId(id); props.onFocus?.(event); requestAnimationFrame(() => { if (input.current) scrollToInput(input.current); }); }}
+        onBlur={(event) => { setFocused(false); if(action?.activeId===id)action.setActiveId(null); props.onBlur?.(event); }}
         placeholderTextColor="#8a9591"
         style={[styles.input, focused && styles.inputFocused, props.style]}
       />

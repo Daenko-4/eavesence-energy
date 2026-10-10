@@ -50,6 +50,8 @@ import { createMobileBackup, readMobileBackup, type MobileBackup } from "./src/b
 import { pickBackup, shareBackup } from "./src/backupFiles";
 import { FormSection, useFormAction } from "./src/FormSection";
 import { getLocalizedDevice } from "../../src/i18n/devices";
+import {ScrollTargetContext,revealInput,revealSection} from "./src/ScrollNavigation";
+import {memoGroups,readMemos} from "@eavesence/core/memos";
 import { KeyboardScrollContext, FormInput } from "./src/FormInput";
 import { SavingsActionsScreen } from "./src/SavingsActionsScreen";
 import { PlanningScreen } from "./src/PlanningScreen";
@@ -126,9 +128,9 @@ function localMonth() {
 
 const initialForm = {
   name: "",
-  watts: "1000",
-  minutes: "30",
-  uses: "3",
+  watts: "",
+  minutes: "",
+  uses: "",
   kwh: "",
   type: "power" as "power" | "consumption",
   mode: "estimate" as "estimate" | "exact",
@@ -327,11 +329,11 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   }
 
   const [homeDetailsOpen, setHomeDetailsOpen] = useState(false);
-  const [memosOpen,setMemosOpen]=useState(false);
+  const [costsSection,setCostsSection]=useState<"costs"|"notes">("costs");
   const [addMenuOpen,setAddMenuOpen]=useState(false),[memoDraftRequest,setMemoDraftRequest]=useState(0);
   useEffect(()=>{
     const handle=(response:Notifications.NotificationResponse|null)=>{
-      if(response?.notification.request.content.data?.eavesenceMemo===true){setTab("home");setMemosOpen(true);void Notifications.clearLastNotificationResponseAsync().catch(()=>{});}
+      if(response?.notification.request.content.data?.eavesenceMemo===true){setCostsSection("notes");setTab("costs");void Notifications.clearLastNotificationResponseAsync().catch(()=>{});}
     };
     const subscription=Notifications.addNotificationResponseReceivedListener(handle);
     void Notifications.getLastNotificationResponseAsync().then(handle).catch(()=>{});
@@ -445,7 +447,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           setCurrency("EUR"); setVariableBudget(""); setBufferBudget("0"); setSavingsGoal("0");
           if (!reminderRemovalFailed) setReminderActive(false);
           setSelectedCostTileId("default-costs"); setTab("home");
-          setMemosOpen(false); setAreasOpen(false); setUpcomingOpen(false); setBudgetOpen(false); setPlanQuestion("payday");
+          setCostsSection("costs"); setAreasOpen(false); setUpcomingOpen(false); setBudgetOpen(false); setPlanQuestion("payday");
           if (reminderRemovalFailed) showLocalizedAlert(locale,"Daten gelöscht", "Die Erinnerung konnte nicht ausgeschaltet werden. Deaktiviere sie später in der App.");
         } catch { showLocalizedAlert(locale,"Zurücksetzen fehlgeschlagen", "Bitte versuche es erneut."); }
       })(); } },
@@ -500,7 +502,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       setCostReviewId(undefined);
       setCostStartAction("none");
       setSelectedCostTileId(tile.id);
-      setTab("costs");
+      setCostsSection("costs");
+    setTab("costs");
     }
   }
 
@@ -508,11 +511,12 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     setCostReviewId(undefined);
     setCostStartAction("none");
     setSelectedCostTileId("default-costs");
+    setCostsSection("costs");
     setTab("costs");
   }
 
   function reviewCost(cost: HouseholdCost) {
-    setCostReviewId(cost.id);setSelectedCostTileId(cost.tileId??"default-costs");setCostStartAction("none");setTab("costs");
+    setCostReviewId(cost.id);setSelectedCostTileId(cost.tileId??"default-costs");setCostStartAction("none");setCostsSection("costs");setTab("costs");
   }
 
   function startWith(action: "income" | "cost") {
@@ -520,6 +524,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     setCostReviewId(undefined);
     setCostStartAction(action);
     setSelectedCostTileId("default-costs");
+    setCostsSection("costs");
     setTab("costs");
   }
 
@@ -528,9 +533,14 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     Keyboard.dismiss();
     if (key === "add" && tab !== "add") startNewDevice();
     else {
-      if (key === "costs") { setSelectedCostTileId("default-costs"); setCostStartAction("none"); setCostReviewId(undefined); }
+      if (key === "costs") { setCostsSection("costs"); setSelectedCostTileId("default-costs"); setCostStartAction("none"); setCostReviewId(undefined); }
       setTab(key);
     }
+  }
+
+  function openNotes(add=false) {
+    Keyboard.dismiss();setCostEditorOpen(false);setCostsSection("notes");setMemoDraftRequest(add?n=>n+1:0);setTab("costs");
+    requestAnimationFrame(()=>scrollRef.current?.scrollTo({y:0,animated:true}));
   }
 
   function openSettings() {
@@ -753,7 +763,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   if (!profile && homeSetupOpen) {
     return <SafeAreaView style={styles.safe}><StatusBar style="dark" />
       <View style={styles.appHeader}><BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
-      <KeyboardScrollContext.Provider value={input => scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input,72,true)}><ScrollView ref={scrollRef} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
+      <KeyboardScrollContext.Provider value={input => revealInput(scrollRef.current,input)}><ScrollView ref={scrollRef} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         <HomeSetupForm name={homeName} onName={setHomeName} currency={currency} onCurrency={setCurrency} onSave={createHome} />
       </ScrollView></KeyboardScrollContext.Provider>
     </SafeAreaView>;
@@ -781,7 +791,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     const step = profile.setupStep;
     return <SafeAreaView style={styles.safe}><StatusBar style="dark" />
       <View style={styles.appHeader}><BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
-      <KeyboardScrollContext.Provider value={input => scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input,72,true)}><ScrollView ref={scrollRef} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
+      <KeyboardScrollContext.Provider value={input => revealInput(scrollRef.current,input)}><ScrollView ref={scrollRef} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         <Text style={styles.eyebrow}>{locale === "de" ? `SCHRITT ${step === "income" ? 1 : step === "cost" ? 2 : 3} VON 3` : `STEP ${step === "income" ? 1 : step === "cost" ? 2 : 3} OF 3`}</Text>
         {step === "review" ? <><Text style={styles.heroSmall}>{locale === "de" ? "Dein erster Überblick ist bereit." : "Your first overview is ready."}</Text><Text style={styles.financeNote}>{locale === "de" ? "Deine Angaben sind gespeichert. Weitere Kosten, Einstellungen und den Stromrechner findest du anschließend in deiner Übersicht." : "Your entries are saved. Find more costs, settings and the electricity calculator in your overview."}</Text><View style={styles.formSurface}><Metric full label={incomeSummary.annualAverage ? locale === "de" ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : locale === "de" ? "Nettoeinkommen pro Monat" : "Net income per month"} value={hasIncome ? euro.format(monthlyIncome) : locale === "de" ? "Später ergänzen" : "Add later"} /><Metric full label={locale === "de" ? "Fixkosten pro Monat" : "Recurring costs per month"} value={euro.format(costSummary.monthlyTotal)} /><Metric full label={locale === "de" ? "Rest nach Fixkosten" : "Left after fixed costs"} value={hasIncome && hasCosts ? euro.format(monthlyIncome-costSummary.monthlyTotal) : "—"} /><Text style={styles.financeNote}>{locale === "de" ? "Monatsdurchschnitte. Alltagsausgaben gehen davon noch ab; fehlende Zahlungstermine kannst du später ergänzen." : "Monthly averages. Everyday spending still comes out of this amount; add missing payment dates later."}</Text></View><Text style={styles.financeNote}>{locale === "de" ? "Weitere Kosten kannst du anschließend ergänzen. Prüfe kurz diese Angaben und öffne dann deine Übersicht." : "You can add more costs afterwards. Check these entries, then open your overview."}</Text><PrimaryButton label={locale === "de" ? "Meine Übersicht öffnen" : "Open my overview"} onPress={() => setSetupStep("complete")} /></> : <CostsScreen key={`setup-${step}`} setup={step} profile={profile} costs={costs} tiles={tiles} tileId="default-costs" tileTitle="Haushaltskosten" onSaveIncome={saveIncome} onSaveCost={saveCost} onDeleteCost={deleteCost} />}
       </ScrollView></KeyboardScrollContext.Provider>
@@ -794,12 +804,12 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       <View style={styles.appHeader}>
         <BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} />
         <View style={styles.headerCopy}><Text style={styles.headerBrand}>EAVESENCE</Text></View>
-        <Pressable accessibilityRole="button" accessibilityLabel={localize(locale, "Einstellungen")} onPress={openSettings} style={styles.headerSettings}><Text style={styles.settingsGear}>⚙</Text></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={localize(locale, "Einstellungen")} onPress={openSettings} style={styles.headerSettings}><NavIcon name="settings" color="#65716d"/></Pressable>
       </View>
-      <KeyboardScrollContext.Provider value={(input) => scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input, 72, true)}><ScrollView ref={scrollRef} style={styles.scrollSurface} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
+      <ScrollTargetContext.Provider value={target=>revealSection(scrollRef.current,target)}><KeyboardScrollContext.Provider value={(input) => revealInput(scrollRef.current,input)}><ScrollView ref={scrollRef} style={styles.scrollSurface} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         {tab === "home" && <>
           <MonthlyPayments costs={costs} data={profile.planning} onSave={savePlanning} locale={locale} currency={profile.currency ?? "EUR"} onEdit={reviewCost} onAdd={() => startWith("cost")} onPlan={()=>{setMemoDraftRequest(0);setPlanQuestion("payday");setTab("pro");}} />
-          <HomeMemos key={memoDraftRequest} initialAdd={memoDraftRequest>0} data={profile.planning} onSave={savePlanning} locale={locale} open={memosOpen} onToggle={()=>setMemosOpen(!memosOpen)}/>
+          {readMemos(profile.planning?.memos).some(m=>!m.done)&&<Pressable accessibilityRole="button" onPress={()=>openNotes()} style={styles.incomeAction}><View style={{flex:1,gap:4}}><Text style={styles.outlinedText}>{locale === "de" ? "Notizen & Erinnerungen" : "Notes & reminders"}</Text><Text style={styles.financeNote}>{(()=>{const group=memoGroups(readMemos(profile.planning?.memos),new Date().toLocaleDateString("sv-SE"));return group.due.length?`${group.due.length} ${locale==="de"?"Erinnerungen fällig":"reminders due"}`:locale==="de"?"Deine Notizen findest du unter Kosten.":"Find your notes under Costs.";})()}</Text></View><Text style={styles.outlinedText}>›</Text></Pressable>}
           {costs.length > 0 && !profile.backupReminderDismissed && <View style={styles.backupHint}>
             <Text style={styles.financeNote}>{locale === "de" ? "Deine Daten bleiben auf diesem Gerät. Speichere eine Sicherung in Dateien, bevor du die App entfernst oder das Gerät wechselst." : "Your data stays on this device. Save a backup to Files before deleting the app or changing devices."}</Text>
             <View style={styles.presetRow}><Pressable accessibilityRole="button" style={[styles.financePill,styles.outlinedAction]} onPress={() => void exportData()}><Text style={styles.outlinedText}>{locale === "de" ? "Daten sichern" : "Back up data"}</Text></Pressable><Pressable accessibilityRole="button" style={styles.financePill} onPress={() => void dismissBackupHint()}><Text style={styles.financePillText}>{locale === "de" ? "Später" : "Later"}</Text></Pressable></View>
@@ -879,7 +889,11 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           {devices.length === 0 ? <Empty text="Noch keine Geräte. Füge dein erstes Gerät hinzu." /> : devices.map((device) => <View key={device.id} style={styles.deviceRow}><View style={styles.flex}><Text style={styles.deviceName}>{device.name}</Text><Text style={styles.muted}>{euro.format(device.yearlyKwh * profile.electricityPrice)} pro Jahr</Text></View><View style={styles.rowActions}><Pressable accessibilityRole="button" accessibilityLabel={`${device.name} bearbeiten`} onPress={() => editDevice(device)} style={styles.financePill}><Text style={styles.financePillText}>Ändern</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`${device.name} entfernen`} onPress={() => confirmRemoveDevice(device)}><Text style={styles.delete}>×</Text></Pressable></View></View>)}
           <PrimaryButton label="Gerät hinzufügen" onPress={startNewDevice} />
         </>}
-        {tab === "costs" && <><CostsScreen key={`${selectedCostTileId}-${costStartAction}-${costReviewId??""}`} profile={profile} costs={costs} tiles={tiles} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} initialAction={costStartAction} initialCostId={costReviewId} onEditingChange={setCostEditorOpen} onOverview={() => setTab("home")} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />{!costEditorOpen && <CostImportScreen costs={costs} currency={profile.currency??"EUR"} locale={locale} onSave={importCosts}/>}</>}
+        {tab === "costs" && <>
+          {!costEditorOpen&&<View style={styles.planTabs}>{(["costs","notes"] as const).map(section=><Pressable key={section} accessibilityRole="tab" accessibilityState={{selected:costsSection===section}} onPress={()=>{Keyboard.dismiss();setCostsSection(section);setMemoDraftRequest(0);setCostStartAction("none");setCostReviewId(undefined);scrollRef.current?.scrollTo({y:0,animated:true});}} style={[styles.planTab,costsSection===section&&styles.planTabSelected]}><Text style={styles.planTabText}>{section==="costs"?locale==="de"?"Kosten":"Costs":locale==="de"?"Notizen & Erinnerungen":"Notes & reminders"}</Text></Pressable>)}</View>}
+          {costsSection==="notes"?<HomeMemos embedded key={memoDraftRequest} initialAdd={memoDraftRequest>0} data={profile.planning} onSave={savePlanning} locale={locale} open onToggle={()=>{}}/>:<>
+<CostsScreen key={`${selectedCostTileId}-${costStartAction}-${costReviewId??""}`} profile={profile} costs={costs} tiles={tiles} tileId={selectedCostTileId} tileTitle={tiles.find((tile) => tile.id === selectedCostTileId)?.title ?? "Haushaltskosten"} initialAction={costStartAction} initialCostId={costReviewId} onEditingChange={setCostEditorOpen} onOverview={() => setTab("home")} onSaveCost={saveCost} onDeleteCost={deleteCost} onSaveIncome={saveIncome} />{!costEditorOpen && <CostImportScreen costs={costs} currency={profile.currency??"EUR"} locale={locale} onSave={importCosts}/>}</>}
+        </>}
 
         {tab === "add" && <>
           <Pressable style={styles.financePill} onPress={() => setTab("history")}><Text style={styles.financePillText}>Stromverlauf öffnen</Text></Pressable>
@@ -889,8 +903,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             <Field label="Gerätename" value={form.name} onChangeText={(value) => setForm({ ...form, name: value })} />
             <View style={styles.presetRow}><Pressable onPress={() => setForm({ ...form, mode: "estimate" })} style={styles.financePill}><Text style={styles.financePillText}>{form.mode === "estimate" ? "✓ " : ""}Schätzen</Text></Pressable><Pressable onPress={() => setForm({ ...form, mode: "exact" })} style={styles.financePill}><Text style={styles.financePillText}>{form.mode === "exact" ? "✓ " : ""}Gemessen</Text></Pressable></View>
             {form.mode === "estimate" && <View style={styles.presetRow}><Pressable onPress={() => setForm({ ...form, type: "power" })} style={styles.financePill}><Text style={styles.financePillText}>{form.type === "power" ? "✓ " : ""}Watt & Dauer</Text></Pressable><Pressable onPress={() => setForm({ ...form, type: "consumption" })} style={styles.financePill}><Text style={styles.financePillText}>{form.type === "consumption" ? "✓ " : ""}kWh je Nutzung</Text></Pressable></View>}
-            {form.mode === "estimate" && form.type === "power" ? <><Field label="Leistung in Watt" value={form.watts} onChangeText={(value) => setForm({ ...form, watts: value })} keyboardType="number-pad" /><Field label="Minuten pro Nutzung" value={form.minutes} onChangeText={(value) => setForm({ ...form, minutes: value })} keyboardType="number-pad" /></> : <Field label={form.mode === "exact" ? "Gemessene kWh je Nutzung" : "kWh je Nutzung (Energielabel: kWh/Jahr)"} value={form.kwh} onChangeText={(value) => setForm({ ...form, kwh: value })} keyboardType="decimal-pad" />}
-            <Field label="Nutzungen pro Woche" value={form.uses} onChangeText={(value) => setForm({ ...form, uses: value })} keyboardType="decimal-pad" />
+            {form.mode === "estimate" && form.type === "power" ? <><Field label="Leistung in Watt" placeholder="1000" value={form.watts} onChangeText={(value) => setForm({ ...form, watts: value })} keyboardType="number-pad" /><Field label="Minuten pro Nutzung" placeholder="30" value={form.minutes} onChangeText={(value) => setForm({ ...form, minutes: value })} keyboardType="number-pad" /></> : <Field label={form.mode === "exact" ? "Gemessene kWh je Nutzung" : "kWh je Nutzung (Energielabel: kWh/Jahr)"} value={form.kwh} onChangeText={(value) => setForm({ ...form, kwh: value })} keyboardType="decimal-pad" />}
+            <Field label="Nutzungen pro Woche" placeholder="3" value={form.uses} onChangeText={(value) => setForm({ ...form, uses: value })} keyboardType="decimal-pad" />
             {form.type === "consumption" && form.uses === String(1 / 52) && <Text style={styles.financeNote}>Beim Jahresverbrauch des Energielabels ist die Nutzung auf ein Jahr eingestellt.</Text>}
             <PrimaryButton label={editingDeviceId ? "Änderungen speichern" : "Berechnen und speichern"} onPress={() => void saveDevice()} />
             {editingDeviceId && <Pressable onPress={() => { setEditingDeviceId(null); setForm(initialForm); setTab("energy"); }} style={styles.financePill}><Text style={styles.financePillText}>Abbrechen</Text></Pressable>}
@@ -932,7 +946,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           <View accessibilityRole="tablist" accessibilityLabel={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} style={styles.planTabs}>
             {(["payday", "savings", "progress"] as const).map((question, index) => <Pressable key={question} accessibilityRole="tab" accessibilityState={{ selected: planQuestion === question }} accessibilityLabel={question === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : question === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"} onPress={() => { Keyboard.dismiss(); setPlanQuestion(question); }} style={[styles.planTab, planQuestion === question && styles.planTabSelected]}><Text style={styles.planTabText}>{index + 1} · {question === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : question === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</Text></Pressable>)}
           </View>
-          {planQuestion === "payday" && <PaydayScreen onSavings={()=>setPlanQuestion("savings")} onReviewCost={reviewCost} key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??"EUR"}/> }
+          {planQuestion === "payday" && <PaydayScreen onPayments={()=>selectTab("home")} onSavings={()=>setPlanQuestion("savings")} onReviewCost={reviewCost} key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??"EUR"}/> }
           {planQuestion === "savings" && <View style={styles.formSurface}>
           <Pressable accessibilityRole="button" accessibilityState={{expanded:budgetOpen}} style={styles.financePill} onPress={() => setBudgetOpen(!budgetOpen)}><Text style={styles.financePillText}>{locale === "de" ? "Monatsbudget ergänzen (optional)" : "Add a monthly budget (optional)"}</Text></Pressable>
           {budgetOpen && <><Text style={styles.dataTitle}>{locale === "de" ? "Deine monatliche Planungsbasis" : "Your monthly planning basics"}</Text>
@@ -961,9 +975,9 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           {isPro ? <Text style={styles.proActive}>Pro aktiv</Text> : packages.length > 0 ? packages.map((item) => <Pressable key={item.identifier} style={styles.proButton} onPress={() => void buy(item)}><Text style={styles.proButtonText}>{item.product.title} · {item.product.priceString}</Text></Pressable>) : <Text style={styles.financeNote}>{locale === "de" ? "Pro-Vorschau: Diese Planungsfunktionen sind in der Beta kostenlos. Es wird kein Abo abgeschlossen." : "Pro preview: these planning tools are free in this beta. No subscription is started."}</Text>}
           {packages.length > 0 && <Pressable onPress={() => void restorePro().then(setIsPro).catch(() => showLocalizedAlert(locale,"Wiederherstellung fehlgeschlagen", "Bitte versuche es erneut."))}><Text style={styles.restore}>Käufe wiederherstellen</Text></Pressable>}
         </>}
-      </ScrollView></KeyboardScrollContext.Provider>
+      </ScrollView></KeyboardScrollContext.Provider></ScrollTargetContext.Provider>
       {tab === "home" && !keyboardVisible && <Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? "Hinzufügen" : "Add"} accessibilityState={{expanded:addMenuOpen}} onPress={()=>setAddMenuOpen(true)} style={styles.floatingAdd}><Text style={styles.floatingAddText}>+</Text></Pressable>}
-      <Modal visible={addMenuOpen} transparent animationType="fade" onRequestClose={()=>setAddMenuOpen(false)}><View style={styles.addOverlay}><Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? "Menü schließen" : "Close menu"} style={StyleSheet.absoluteFill} onPress={()=>setAddMenuOpen(false)}/><View style={styles.addSheet}><Text style={styles.dataTitle}>{locale === "de" ? "Hinzufügen" : "Add"}</Text><Pressable accessibilityRole="button" onPress={()=>{setAddMenuOpen(false);startWith("cost");}} style={styles.addOption}><Text style={styles.addOptionText}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</Text><Text style={styles.addOptionText}>›</Text></Pressable><Pressable accessibilityRole="button" onPress={()=>{setAddMenuOpen(false);setMemosOpen(true);setMemoDraftRequest(n=>n+1);scrollRef.current?.scrollToEnd({animated:true});}} style={styles.addOption}><Text style={styles.addOptionText}>{locale === "de" ? "Notiz hinzufügen" : "Add note"}</Text><Text style={styles.addOptionText}>›</Text></Pressable></View></View></Modal>
+      <Modal visible={addMenuOpen} transparent animationType="fade" onRequestClose={()=>setAddMenuOpen(false)}><View style={styles.addOverlay}><Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? "Menü schließen" : "Close menu"} style={StyleSheet.absoluteFill} onPress={()=>setAddMenuOpen(false)}/><View style={styles.addSheet}><Text style={styles.dataTitle}>{locale === "de" ? "Hinzufügen" : "Add"}</Text><Pressable accessibilityRole="button" onPress={()=>{setAddMenuOpen(false);startWith("cost");}} style={styles.addOption}><Text style={styles.addOptionText}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</Text><Text style={styles.addOptionText}>›</Text></Pressable><Pressable accessibilityRole="button" onPress={()=>{setAddMenuOpen(false);openNotes(true);}} style={styles.addOption}><Text style={styles.addOptionText}>{locale === "de" ? "Notiz / Erinnerung" : "Note / reminder"}</Text><Text style={styles.addOptionText}>›</Text></Pressable></View></View></Modal>
       {!keyboardVisible && !costEditorOpen && <View style={styles.tabBar} accessibilityRole="tablist" accessibilityLabel={localize(locale, "App-Navigation")}>{navigationTabs.map(({ key, label, icon }) => {
         const active = tab === key || (key === "energy" && (tab === "add" || tab === "history"));
         const primary = key === "add";
@@ -1105,7 +1119,6 @@ const styles = StyleSheet.create({
   scrollSurface: { backgroundColor: "#f6f7f2" },
   loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#f6f7f2" },
   onboarding: { flexGrow: 1, justifyContent: "center", padding: 24, gap: 18 },
-  settingsGear: {fontSize:24,color:"#17211f"},
   floatingAdd:{position:"absolute",right:20,bottom:80,width:56,height:56,borderRadius:28,backgroundColor:"#087a45",alignItems:"center",justifyContent:"center",elevation:4,shadowColor:"#17211f",shadowOpacity:.12,shadowRadius:8,shadowOffset:{width:0,height:3}},floatingAddText:{fontSize:34,lineHeight:40,fontWeight:"400",color:"#fff"},
   addOverlay:{flex:1,backgroundColor:"#0007",justifyContent:"flex-end"},addSheet:{padding:24,paddingBottom:36,borderTopLeftRadius:24,borderTopRightRadius:24,backgroundColor:"#f7f8f4",gap:12},addOption:{minHeight:56,flexDirection:"row",alignItems:"center",justifyContent:"space-between",borderBottomWidth:1,borderColor:"#dfe5dd"},addOptionText:{fontSize:16,fontWeight:"600",color:"#17211f"},incomeAction:{minHeight:48,flexDirection:"row",justifyContent:"space-between",alignItems:"center"},
   content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 90 },

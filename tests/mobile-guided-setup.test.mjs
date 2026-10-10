@@ -81,7 +81,7 @@ for (const locale of ['de','en']) test(`native payday keeps the result visible w
  const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
  const payday=new Date(Date.parse(today)+14*86400000).toISOString().slice(0,10);
  const html=render(PaydayScreen,{currency:'EUR',input:{incomeMonthly:2400,costs:[],variableMonthly:500,bufferMonthly:0,goalMonthly:0,startMonth:today.slice(0,7)},data:{cash:{balance:1000,asOf:today,payday,protected:200,everydayRemaining:150}},onSave:noop},locale);
- assert.match(html,locale==='de'?/So entsteht dein Spielraum/:/How your available money is calculated/);
+ assert.match(html,locale==='de'?/So berechnen wir dein verfügbares Geld/:/How your available money is calculated/);
  assert.ok(!html.includes(locale==='de'?'Aktueller Kontostand':'Current account balance'));
  assert.match(html,/aria-expanded="false"/);
  assert.match(html,locale==='de'?/650,00/:/650.00/);
