@@ -7,7 +7,7 @@ const FormActionContext = createContext<{ id: string; busy: boolean; submit: () 
 export const useFormAction = () => useContext(FormActionContext);
 
 /** The keyboard action uses exactly the same validation and persistence as the form button. */
-export function FormSection({ onSave, saveLabel = "Speichern", children, ...props }: ComponentProps<typeof View> & { onSave: () => unknown | Promise<unknown>; saveLabel?: string }) {
+export function FormSection({ onSave, saveLabel = "Speichern", keyboardSaveLabel, children, ...props }: ComponentProps<typeof View> & { onSave: () => unknown | Promise<unknown>; saveLabel?: string; keyboardSaveLabel?:string }) {
   const id = useId();
   const locale = useMobileLocale();
   const [busy, setBusy] = useState(false);
@@ -28,7 +28,7 @@ export function FormSection({ onSave, saveLabel = "Speichern", children, ...prop
       <View style={styles.bar}>
         <Pressable accessibilityRole="button" accessibilityLabel={locale==="de"?"Tastatur schließen":"Dismiss keyboard"} onPress={Keyboard.dismiss} style={styles.dismiss}><Text style={styles.dismissText}>{locale==="de"?"Schließen":"Close"}</Text></Pressable>
         {activeId&&inputIds.indexOf(activeId)<inputIds.length-1&&<Pressable accessibilityRole="button" accessibilityLabel={locale==="de"?"Nächstes Feld":"Next field"} onPress={()=>navigation.next(activeId)} style={styles.dismiss}><Text style={styles.dismissText}>{locale==="de"?"Weiter":"Next"}</Text></Pressable>}
-        <Pressable accessibilityRole="button" disabled={busy} onPress={() => void save()} style={[styles.save, busy && styles.busy]}><Text style={styles.saveText}>{saveLabel}</Text></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={saveLabel} disabled={busy} onPress={() => void save()} style={[styles.save, busy && styles.busy]}><Text style={styles.saveText}>{keyboardSaveLabel ?? (locale==="de"?"Speichern":"Save")}</Text></Pressable>
       </View>
     </InputAccessoryView>}
   </FormActionContext.Provider>;
