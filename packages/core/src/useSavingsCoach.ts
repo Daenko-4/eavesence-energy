@@ -41,7 +41,7 @@ export function useSavingsCoach(
         ),
     )
     .slice(0, 3);
-  const outdated = actions.filter(a => a.status === "planned" && !input.costs.some(c => c.id === a.costId && c.amount === a.originalAmount && c.frequency === a.frequency));
+  const outdated = actions.filter(a => a.status === "planned" && !input.costs.some(c => !c.variableAmount && c.id === a.costId && c.amount === a.originalAmount && c.frequency === a.frequency));
   const totals = savingsToDate(actions, today);
   async function run(work: () => void | Promise<void>) {
     if (saving.current) return false;

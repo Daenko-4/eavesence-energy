@@ -17,13 +17,14 @@ export default function SavingsActionsPanel({ locale, currency, input, actions, 
   const de = locale === "de";
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const fixedCosts=input.costs.filter(c=>!c.variableAmount);
   const suggested = savingsReviewCandidates(input.costs, today)[0];
-  const [costId, setCostId] = useState(suggested?.id ?? input.costs[0]?.id ?? "");
+  const [costId, setCostId] = useState(suggested?.id ?? fixedCosts[0]?.id ?? "");
   const [mode, setMode] = useState<"reduce" | "stop">("reduce");
   const [amount, setAmount] = useState("");
   const [effectiveMonth, setEffectiveMonth] = useState(input.startMonth);
   const [error, setError] = useState("");
-  const selected = input.costs.find((cost) => cost.id === costId) ?? input.costs[0];
+  const selected = fixedCosts.find((cost) => cost.id === costId) ?? fixedCosts[0];
   const cadence = (frequency: HouseholdCostFrequency) => (de ? { weekly: "pro Woche", monthly: "pro Monat", quarterly: "alle 3 Monate", "half-yearly": "alle 6 Monate", yearly: "pro Jahr" } : { weekly: "per week", monthly: "per month", quarterly: "every 3 months", "half-yearly": "every 6 months", yearly: "per year" })[frequency];
   const target = mode === "stop" ? 0 : Number(amount.trim().replace(",", "."));
   const draft = selected && (mode === "stop" || amount.trim()) ? createSavingsAction(selected, target, effectiveMonth) : null;
@@ -52,8 +53,8 @@ export default function SavingsActionsPanel({ locale, currency, input, actions, 
     <h3 className="mt-1 site-card-title">{de ? "Was wäre, wenn du weniger zahlst?" : "What if you paid less?"}</h3>
     <p className="mt-1 text-[12px] leading-5 text-[#52605b]">{de ? "Teste eine günstigere Ausgabe oder eine Kündigung. Wir zeigen dir die mögliche Ersparnis. Deine eingetragenen Kosten werden dabei nicht geändert." : "Try a lower cost or a cancellation to see the possible saving. Your recorded costs stay the same."}</p>
     {suggested && <p className="mt-3 text-[12px] text-[#52605b]">{de ? "Vorschlag zum Start" : "Suggested starting point"}: <strong>{suggested.name}</strong>.</p>}
-    {input.costs.length > 0 ? <>
-      <label className="mt-4 grid gap-1 text-[12px] font-semibold text-[#52605b]">{de ? "1. Welche Ausgabe?" : "1. Which cost?"}<select value={selected?.id ?? ""} onChange={(event) => { setCostId(event.target.value); setAmount(""); }} className="home-planning-field min-h-11 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[15px] text-[#17211f]">{input.costs.map((cost) => <option key={cost.id} value={cost.id}>{cost.name} · {money(cost.amount)} {cadence(cost.frequency)}</option>)}</select></label>
+    {fixedCosts.length > 0 ? <>
+      <label className="mt-4 grid gap-1 text-[12px] font-semibold text-[#52605b]">{de ? "1. Welche Ausgabe?" : "1. Which cost?"}<select value={selected?.id ?? ""} onChange={(event) => { setCostId(event.target.value); setAmount(""); }} className="home-planning-field min-h-11 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[15px] text-[#17211f]">{fixedCosts.map((cost) => <option key={cost.id} value={cost.id}>{cost.name} · {money(cost.amount)} {cadence(cost.frequency)}</option>)}</select></label>
       <p className="mt-3 text-[12px] font-semibold text-[#52605b]">{de ? "2. Wie möchtest du sparen?" : "2. How would you save?"}</p>
       <div className="mt-2 flex flex-wrap gap-2">{(["reduce", "stop"] as const).map((value) => <button type="button" key={value} onClick={() => setMode(value)} aria-pressed={mode === value} className={`home-scenario-option rounded-full ${mode === value ? "bg-[#087a45] text-white" : "bg-[#eefbf3] text-[#087a45]"}`}>{value === "reduce" ? de ? "Betrag reduzieren" : "Reduce amount" : de ? "Ausgabe streichen" : "Remove expense"}</button>)}</div>
       <p className="mt-2 text-[12px] text-[#52605b]">{mode === "reduce" ? de ? "Die Ausgabe bleibt bestehen, aber du planst einen niedrigeren Betrag ein." : "Keep this expense, but plan a lower payment." : de ? "Diese Ausgabe fällt künftig weg, zum Beispiel nach einer Kündigung. Wir rechnen ab dem gewählten Monat mit 0." : "This expense will end, for example after cancellation. We use 0 from the selected month."}</p>
@@ -68,7 +69,7 @@ export default function SavingsActionsPanel({ locale, currency, input, actions, 
       </div>}
       <button type="button" onClick={save} className="eavesence-pill-button home-primary-action mt-3">{de ? "Änderung vormerken" : "Save this plan"}</button>
       {error && <p role="alert" className="mt-2 text-[12px] text-red-700">{error}</p>}
-    </> : <p className="mt-3 text-[12px] text-[#52605b]">{de ? "Erfasse zuerst eine regelmäßige Ausgabe." : "Add a recurring cost first."}</p>}
+    </> : <p className="mt-3 text-[12px] text-[#52605b]">{de ? "Erfasse zuerst eine Ausgabe mit festem Betrag. Variable Rechnungen vergleichst du im Monatsrückblick." : "Add a fixed recurring cost first. Compare variable invoices in the monthly review."}</p>}
     {actions.length > 0 && <div className="mt-5 border-t border-[#dfe5dd] pt-4"><h4 className="text-[14px] font-extrabold">{de ? "Deine Vorhaben" : "Your plans"}</h4><div className="mt-2 grid gap-2">{actions.map((action) => {
       const cost = input.costs.find((item) => item.id === action.costId);
       const impact = compareSavingsActions(input, [action]);

@@ -85,3 +85,14 @@ test('website, mobile and website-to-app backups preserve invoices, closed revie
  assert.deepEqual(readMobileBackup(JSON.stringify(mobile)).profile.planning,planning);
  assert.equal(readMobileBackup(JSON.stringify(mobile)).costs[0].variableAmount,true);
 });
+
+test('a lower variable planning amount never becomes a confirmed recurring saving',async()=>{
+ const {createSavingsAction,savingsReviewCandidates,closeSavingsHistory}=await import('../packages/core/src/savingsPlan.ts');
+ const {confirmSavingsChange}=await import('../packages/core/src/homeValue.ts');
+ assert.equal(createSavingsAction(cost(),70,'2026-10'),null);
+ assert.equal(savingsReviewCandidates([cost()],'2026-10-11').length,0);
+ const fixed=cost({variableAmount:false}),action=createSavingsAction(fixed,70,'2026-10');
+ assert.throws(()=>confirmSavingsChange([cost()],[action],action,'2026-10-11'),/ACTION_STALE/);
+ const confirmed={...action,status:'confirmed',confirmedAt:stamp};
+ assert.equal(closeSavingsHistory([confirmed],[fixed],[cost()],'2026-10-11')[0].endedOn,'2026-10-11');
+});

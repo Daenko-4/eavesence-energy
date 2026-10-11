@@ -378,6 +378,7 @@ export function confirmSavingsChange(
   if (action.status !== "planned" || action.effectiveMonth > today.slice(0, 7))
     throw new Error("ACTION_NOT_DUE");
   const cost = costs.find((c) => c.id === action.costId);
+  if(cost?.variableAmount)throw new Error("ACTION_STALE");
   const applied =
     (cost?.amount === action.newAmount && cost.frequency === action.frequency) || (!cost && action.newAmount === 0);
   if (

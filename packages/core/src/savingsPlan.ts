@@ -28,7 +28,7 @@ export type SavingsAction = {
 const validMonth = (value: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
 
 export function createSavingsAction(cost: HouseholdCost, newAmount: number, effectiveMonth: string): SavingsAction | null {
-  if (!validMonth(effectiveMonth) || !Number.isFinite(newAmount) || newAmount < 0 || newAmount >= cost.amount) return null;
+  if (cost.variableAmount || !validMonth(effectiveMonth) || !Number.isFinite(newAmount) || newAmount < 0 || newAmount >= cost.amount) return null;
   return { id: `saving-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`, costId: cost.id, name: cost.name, frequency: cost.frequency, originalAmount: cost.amount, newAmount, effectiveMonth, nextDueDate: cost.nextDueDate, status: "planned" };
 }
 
@@ -50,7 +50,7 @@ export function readSavingsActions(value: unknown): SavingsAction[] {
 
 /** Favor an upcoming contract deadline, then the largest recurring review opportunity. */
 export function savingsReviewCandidates(costs: HouseholdCost[], today: string) {
-  const reviewable = costs.filter((cost) => cost.category === "subscriptions" || cost.category === "insurance" || cost.category === "energy" || cost.cancellationDeadline);
+  const reviewable = costs.filter((cost) => !cost.variableAmount && (cost.category === "subscriptions" || cost.category === "insurance" || cost.category === "energy" || cost.cancellationDeadline));
   return [...reviewable].sort((a, b) => {
     const aUpcoming = Boolean(a.cancellationDeadline && a.cancellationDeadline >= today);
     const bUpcoming = Boolean(b.cancellationDeadline && b.cancellationDeadline >= today);
@@ -65,7 +65,7 @@ export function compareSavingsActions(input: SavingsPlanInput, actions: SavingsA
   const baseline = createSavingsPlan(input);
   if (!baseline) return null;
   const valid = readSavingsActions(actions).filter((action) =>
-    input.costs.some((cost) => cost.id === action.costId && cost.amount === action.originalAmount));
+    input.costs.some((cost) => !cost.variableAmount && cost.id === action.costId && cost.amount === action.originalAmount));
   const unique = valid.filter((action, index) => valid.findIndex((item) => item.costId === action.costId) === index);
   const months = baseline.months.map((month) => {
     const changed = input.costs.map((cost) => {
@@ -132,7 +132,7 @@ export function closeSavingsHistory(actions: SavingsAction[], before: HouseholdC
   return actions.map(a=> {
     if(a.status!=="confirmed" || a.endedOn) return a;
     const old=before.find(c=>c.id===a.costId), next=after.find(c=>c.id===a.costId);
-    const changed=old && (!next || old.amount!==next.amount || old.frequency!==next.frequency || old.nextDueDate!==next.nextDueDate);
+    const changed=old && (!next || old.amount!==next.amount || old.frequency!==next.frequency || old.nextDueDate!==next.nextDueDate || !!old.variableAmount!==!!next.variableAmount);
     return changed ? {...a,endedOn:today} : a;
   });
 }
