@@ -10,6 +10,9 @@
   --brand-green-soft: #dcf5e6;
   --brand-off-white: #f6f6f0;
 
+  --disclosure-duration: 360ms;
+  --disclosure-ease: cubic-bezier(0.2, 0.75, 0.25, 1);
+
   --surface: #ffffff;
   --surface-soft: #f7faf7;
 
@@ -548,7 +551,7 @@ a {
   font-weight: 300;
   line-height: 1;
   transform: rotate(0deg);
-  transition: transform 180ms ease;
+  transition: transform var(--disclosure-duration) var(--disclosure-ease);
 }
 .home-disclosure[open] > summary::after { transform: rotate(-45deg); }
 .home-disclosure > summary:focus-visible {
@@ -645,4 +648,17 @@ a {
 }
 @media (prefers-reduced-motion: reduce) {
   .home-cost-area-control { transition: none; }
+}
+
+/* Keep the same visible counterclockwise opening and clockwise closing everywhere.
+   Rotation classes express state; this shared rule owns timing, including rotate. */
+.site-disclosure-icon {
+  display: inline-block;
+  transform-origin: center;
+  transition-property: transform, rotate, color !important;
+  transition-duration: var(--disclosure-duration) !important;
+  transition-timing-function: var(--disclosure-ease) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-disclosure-icon { transition: none !important; }
 }
