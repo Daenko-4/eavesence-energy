@@ -130,6 +130,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   const [formOpen, setFormOpen] = useState(initialAction === "cost"||!!initialCost);
   useEffect(() => { onEditingChange?.(formOpen || incomeOpen || !!setup); return () => onEditingChange?.(false); }, [formOpen, incomeOpen, setup, onEditingChange]);
   const [name, setName] = useState(initialCost?.name??"");
+  const [variableAmount,setVariableAmount]=useState(initialCost?.variableAmount??false);
   const [amount, setAmount] = useState(initialCost?String(initialCost.amount):"");
   const [category, setCategory] = useState<HouseholdCostCategory>(initialCost?.category??"housing");
   const [frequency, setFrequency] = useState<HouseholdCostFrequency>(initialCost?.frequency??"monthly");
@@ -147,7 +148,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
     setEditingId(null);
     setMoreOpen(false);
     setName(suggestion ? localize(locale, suggestion[1]) : "");
-    setAmount("");
+    setAmount("");setVariableAmount(false);
     setCategory(suggestion?.[0] ?? "housing");
     setFrequency(suggestion?.[2] ?? "monthly");
     setDueDate("");
@@ -159,7 +160,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
     setEditingId(cost.id);
     setMoreOpen(false);
     setName(cost.name);
-    setAmount(String(cost.amount));
+    setAmount(String(cost.amount));setVariableAmount(cost.variableAmount??false);
     setCategory(cost.category);
     setFrequency(cost.frequency);
     setDueDate(displayDate(cost.nextDueDate));
@@ -168,7 +169,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   }
 
   async function save() {
-    const cost = createHouseholdCost({ id: editingId ?? undefined, name, amount: parseIncomeAmount(amount, locale), category: setup ? inferSetupCategory(name) : category, frequency, tileId: destinationTileId(costs, editingId, tileId), nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
+    const cost = createHouseholdCost({ id: editingId ?? undefined, name, variableAmount, amount: parseIncomeAmount(amount, locale), category: setup ? inferSetupCategory(name) : category, frequency, tileId: destinationTileId(costs, editingId, tileId), nextDueDate: isoDate(dueDate), cancellationDeadline: isoDate(deadline) });
     if (!cost) {
       Alert.alert((locale === "de" ? "Angaben prüfen" : "Check your entries"), (locale === "de" ? "Gib eine Bezeichnung, einen Betrag über 0 und gültige Termine im Format TT.MM.JJJJ ein." : "Enter a name, a positive amount and valid dates in DD.MM.YYYY format."));
       return;
@@ -230,6 +231,8 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
     <Text style={styles.help}>{locale === "de" ? "Beginne mit einer regelmäßigen Ausgabe, etwa Miete oder Internet. Weitere Kosten ergänzt du danach in deiner Übersicht." : "Start with one recurring expense, such as rent or internet. Add more later in your overview."}</Text>
     <FormInput label="Bezeichnung" value={name} onChangeText={setName} placeholder={locale === "de" ? "z. B. Miete" : "e.g. Rent"} />
     <FormInput label="Betrag" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="0,00" />
+    <Pressable accessibilityRole="checkbox" accessibilityState={{checked:variableAmount}} onPress={()=>setVariableAmount(!variableAmount)} style={styles.dateSuggestion}><Text>{variableAmount?'☑':'☐'} {locale==='de'?'Betrag variiert':'Amount varies'}</Text></Pressable>
+    {variableAmount&&<Text style={styles.help}>{locale==='de'?'Üblicher Planbetrag. Den Rechnungsbetrag ergänzen wir später in der Monatscheckliste.':'Usual planning amount. Add the invoice amount later in the monthly checklist.'}</Text>}
     <Text style={styles.label}>WIE OFT?</Text><Choice options={moreOpen ? frequencies : [["monthly", "Monatlich"], ["yearly", "Jährlich"]]} value={frequency} onChange={setFrequency} />
     <Pressable accessibilityRole="button" accessibilityState={{expanded:moreOpen}} style={styles.secondary} onPress={() => setMoreOpen(!moreOpen)}><Text style={styles.secondaryText}>{locale === "de" ? "Optional: Zahlungstermin & weitere Intervalle" : "Optional: payment date & more intervals"}</Text></Pressable>
     {moreOpen && <><DateField label="Nächste Zahlung (optional)" value={dueDate} onChangeText={setDueDate} /><Text style={styles.help}>Mit Zahlungstermin können wir den nächsten Monat genau berechnen. Ohne Termin fließt der Posten nur in den Monatsdurchschnitt ein.</Text></>}
@@ -264,7 +267,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <View style={styles.choices}>{suggestions.map((suggestion) => <Pressable key={suggestion[0]} onPress={() => openNew(suggestion)} style={styles.choice}><Text style={styles.choiceText}>{suggestion[1]}</Text></Pressable>)}</View>
     </View>}
 
-    {formOpen ? <CostEditor name={name} amount={amount} frequency={frequency} date={dueDate} deadline={deadline} category={category} editing={!!editingId} onName={value=>{setName(value);if(!editingId)setCategory(inferSetupCategory(value));}} onAmount={setAmount} onFrequency={setFrequency} onDate={setDueDate} onDeadline={setDeadline} onCategory={setCategory} onSave={save} onClose={()=>setFormOpen(false)}/> : <Pressable accessibilityRole="button" onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
+    {formOpen ? <CostEditor variableAmount={variableAmount} onVariableAmount={setVariableAmount} name={name} amount={amount} frequency={frequency} date={dueDate} deadline={deadline} category={category} editing={!!editingId} onName={value=>{setName(value);if(!editingId)setCategory(inferSetupCategory(value));}} onAmount={setAmount} onFrequency={setFrequency} onDate={setDueDate} onDeadline={setDeadline} onCategory={setCategory} onSave={save} onClose={()=>setFormOpen(false)}/> : <Pressable accessibilityRole="button" onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
 
     {homeRelease.detailedInsights && visibleCosts.length > 0 && !formOpen && <>
       <Text style={styles.sectionTitle}>Kosten nach Kategorie</Text>

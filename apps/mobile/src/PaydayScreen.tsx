@@ -1,3 +1,4 @@
+import {PaymentAmountEditor} from "./MonthlyPayments";
 import { ScrollTargetContext } from "./ScrollNavigation";
 import { QuickCheck } from "./QuickCheck";
 import { useContext, useRef, useState } from "react";
@@ -82,7 +83,7 @@ export function PaydayScreen({
   const shortfall = complete && p.forecast!.remaining! < 0;
   const calculationRows = p.forecast ? [
     [t("Aktueller Kontostand", "Current account balance"), p.cash!.balance],
-    [t("− Noch offene Rechnungen", "− Unpaid bills"), p.forecast.fixed],
+    [t(p.forecast.estimatedBills ? "− Offene Rechnungen (mit Schätzungen)" : "− Noch offene Rechnungen", p.forecast.estimatedBills ? "− Unpaid bills (includes estimates)" : "− Unpaid bills"), p.forecast.fixed],
     [p.forecast.estimated
       ? t("− Alltag (anteilig geschätzt)", "− Everyday spending (estimated share)")
       : t("− Alltag (deine Eingabe)", "− Everyday spending (your entry)"), p.forecast.everyday],
@@ -121,6 +122,7 @@ export function PaydayScreen({
               )}
         </Text>
 
+        {complete&&p.forecast!.estimatedBills>0&&<Text style={styles.light}>{t(`${p.forecast!.estimatedBills} Rechnungsbeträge noch geschätzt. Ergänze die tatsächlichen Beträge unter Monat.`,`${p.forecast!.estimatedBills} invoice amounts are still estimated. Add actual amounts under Month.`)}</Text>}
         {complete && p.forecast!.remaining! < 0 && <Text style={styles.warning}>{t(`Es fehlen voraussichtlich ${money(-p.forecast!.remaining!)}. Prüfe offene Zahlungen und deine Alltagsschätzung.`, `Estimated shortfall: ${money(-p.forecast!.remaining!)}. Review pending payments and your everyday estimate.`)}</Text>}
         {p.forecast && p.forecast.overdue > 0 && <Text style={styles.warning}>{t(`${p.forecast.overdue} frühere Zahlungen dieses Monats sind noch nicht abgehakt und deshalb enthalten. Bereits bezahlt? In der Monatscheckliste abhaken und Guthaben erneut bestätigen.`, `${p.forecast.overdue} earlier payments this month are still unchecked and included. Already paid? Check them off in the monthly checklist, then confirm your balance again.`)}</Text>}
         {p.forecast && input.costs.filter(c => !c.nextDueDate).map(c => <Pressable key={c.id} accessibilityRole="button" style={styles.mintButton} onPress={() => onReviewCost?.(c)}><Text style={styles.mintText}>{c.name} · {t("Termin ergänzen", "Add date")}</Text></Pressable>)}
@@ -258,7 +260,7 @@ export function PaydayScreen({
         </FormSection></View>
       )}
       <QuickCheck input={input} data={data} onSave={onSave} onBalance={reviewBalance} onPayments={reviewPayments} onSavings={onSavings} onReview={onReviewCost}/>
-      {p.bills.length > 0 && <View ref={billsTarget} onLayout={revealBills} style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:billsOpen}} onPress={()=>setBillsOpen(!billsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Zahlungen bis zum Gehalt abhaken", "Check off payments until payday")} · {p.bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</Text><DisclosureIcon open={billsOpen}/></Pressable>{billsOpen&&<><Text style={styles.note}>{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</Text>{p.bills.map(b=>{const paid=checklist.isPaid(b);return <Pressable key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})} accessibilityRole="checkbox" accessibilityState={{checked:paid,disabled:checklist.busy}} accessibilityLabel={`${b.cost.name} · ${day(b.date)} · ${money(b.cost.amount)} · ${t("Bezahlt", "Paid")}`} disabled={checklist.busy} onPress={()=>void checklist.toggle(b)} style={styles.payment}><Text style={styles.check}>{paid?"✓":"○"}</Text><Text style={[styles.paymentName,paid&&styles.paid]}>{b.cost.name} · {day(b.date)}</Text><Text style={styles.note}>{money(b.cost.amount)}</Text></Pressable>})}{checklist.error&&<Text accessibilityRole="alert" style={styles.error}>{checklist.error}</Text>}</>}</View>}
+      {p.bills.length > 0 && <View ref={billsTarget} onLayout={revealBills} style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:billsOpen}} onPress={()=>setBillsOpen(!billsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Zahlungen bis zum Gehalt abhaken", "Check off payments until payday")} · {p.bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</Text><DisclosureIcon open={billsOpen}/></Pressable>{billsOpen&&<><Text style={styles.note}>{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</Text>{p.bills.map(b=>{const paid=checklist.isPaid(b);return <Pressable key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})} accessibilityRole="checkbox" accessibilityState={{checked:paid,disabled:checklist.busy}} accessibilityLabel={`${b.cost.name} · ${day(b.date)} · ${money(b.cost.amount)} · ${t("Bezahlt", "Paid")}`} disabled={checklist.busy} onPress={()=>void checklist.toggle(b)} style={styles.payment}><Text style={styles.check}>{paid?"✓":"○"}</Text><Text style={[styles.paymentName,paid&&styles.paid]}>{b.cost.name} · {day(b.date)}</Text><Text style={styles.note}>{b.estimated?t("ca. ","approx. "):""}{money(b.cost.amount)}</Text></Pressable>})}<PaymentAmountEditor c={checklist} locale={de?"de":"en"}/>{checklist.error&&<Text accessibilityRole="alert" style={styles.error}>{checklist.error}</Text>}</>}</View>}
     </View>
   );
 }

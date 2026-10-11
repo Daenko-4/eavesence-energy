@@ -45,7 +45,7 @@ for (const de of [false, true]) for (const width of [390, 1365]) {
     await tools.getByLabel(t('Jahreszahlung am', 'Annual payment on')).fill('2026-10-07');
     await expect(tools).toContainText(t('Pro Jahr günstiger um', 'Costs less per year by'));
     await expect(tools).toContainText(t('120,00', '120.00'));
-    await tools.getByRole('button', { name: t('Vergleich in My Home merken', 'Save comparison to My Home') }).click();
+    await tools.getByRole('button', { name: t('Prüfung vormerken', 'Save review reminder') }).click();
     await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning.memos?.length)).toBe(1);
     await tools.screenshot({ path: info.outputPath(`pro-tools-${de ? 'de' : 'en'}-${width}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

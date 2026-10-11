@@ -107,3 +107,22 @@ Prepare the white-label/embed layer only when one of these conditions occurs:
 
 The B2B offer should expose the shared core as an embeddable branded calculator,
 PDF report and lead form. It must not introduce per-customer code forks.
+
+
+## Confirmed scope for the next PR (11 October 2026)
+
+Variable recurring payments, approved by Danko for the next PR:
+
+- Optional “Betrag variiert” / “Amount varies” on a cost, with a usual planning amount.
+- Show the planning amount as an estimate until the actual invoice amount is entered.
+- Allow an actual amount for the individual monthly payment before marking it paid.
+- Preserve the recurring planning amount and all historical payment amounts.
+- Use the actual amount where known in monthly totals and payday planning; otherwise label the estimate.
+- Share the behaviour between website and app. Key overrides by payment occurrence so multiple payments in one month remain independent.
+- Keep fixed instalments unchanged. Average suggestions and one-off credits/settlements are follow-ups, not part of this approved first step.
+
+Additional approved scope implemented in this PR:
+
+- Optional monthly review: planned versus actually paid, incomplete-data guidance, explicit close/reopen and preserved closed totals.
+- Pro fixed-price change comparisons for manually entered changes in the last 90 days; variable invoices excluded.
+- Annual-plan review memos and persisted decisions: confirmation only after matching cost details; paid-year comparison only after manual payment confirmation. Also visible under savings progress; no duplicate savings-plan credit.

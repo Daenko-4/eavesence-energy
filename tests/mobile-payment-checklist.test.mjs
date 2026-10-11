@@ -12,7 +12,7 @@ const require=createRequire(import.meta.url);
 const primitive=tag=>function Native({children,accessibilityRole,accessibilityState,accessibilityLabel}){return React.createElement(tag,{role:accessibilityRole,'aria-checked':accessibilityState?.checked,'aria-expanded':accessibilityState?.expanded,'aria-label':accessibilityLabel},children);};
 const native={Text:primitive('span'),View:primitive('div'),Pressable:primitive('button'),StyleSheet:{create:s=>s}};
 const compiled=ts.transpileModule(readFileSync(new URL('../apps/mobile/src/MonthlyPayments.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
-const appModule={exports:{}};runInNewContext(compiled,{module:appModule,exports:appModule.exports,require:name=>name==='react-native'?native:name==='./BrandMotion'?{DisclosureIcon:()=>null}:require(name)});
+const appModule={exports:{}};runInNewContext(compiled,{module:appModule,exports:appModule.exports,require:name=>name==='react-native'?native:name==='./BrandMotion'?{DisclosureIcon:()=>null}:name==='./FormInput'?{FormInput:()=>null}:name==='./FormSection'?{FormSection:({children})=>children,FormSubmitButton:()=>null}:require(name)});
 const month=localToday().slice(0,7),costs=[{id:'rent',name:'Rent',category:'housing',frequency:'monthly',amount:900,nextDueDate:'',updatedAt:localToday()}];
 for(const locale of ['de','en'])test(`native month view keeps paid entries collapsed and shows clear totals in ${locale}`,()=>{
  const paid=togglePayment([],monthChecklist(costs,month).payments[0],new Date().toISOString());
