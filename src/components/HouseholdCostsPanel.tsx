@@ -384,7 +384,7 @@ export default function HouseholdCostsPanel({
 
             <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
               {text.frequency}
-              <select value={frequency} onChange={(event) => setFrequency(event.target.value as HouseholdCostFrequency)} className={fieldClass}>
+              <select aria-label={text.frequency} value={frequency} onChange={(event) => setFrequency(event.target.value as HouseholdCostFrequency)} className={fieldClass}>
                 {frequencies.map((item) => <option key={item} value={item}>{text.frequencies[item]}</option>)}
               </select>
             </label>
@@ -491,12 +491,12 @@ export default function HouseholdCostsPanel({
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-bold">{cost.name}</p>
                       <p className="mt-0.5 text-[13px] text-[#65716d]">
-                        {text.categories[cost.category]} · {text.frequencies[cost.frequency]}
+                        {text.categories[cost.category]} · {text.frequencies[cost.frequency]}{cost.variableAmount?` · ${locale==='de'?'Planbetrag':'Planning amount'}`:''}
                         {cost.nextDueDate ? ` · ${localDate(cost.nextDueDate, locale)}` : ""}
                       </p>
                     </div>
                     <div className="sm:text-right">
-                      <p className="text-[13px] font-bold">{money(cost.amount, locale, currency)}</p>
+                      <p className="text-[13px] font-bold">{cost.variableAmount?(locale==='de'?'ca. ':'approx. '):''}{money(cost.amount, locale, currency)}</p>
                       <p className="text-[13px] text-[#65716d]">
                         {text.monthlyEquivalent.replace("{amount}", money(monthlyCost(cost.amount, cost.frequency), locale, currency))}
                       </p>

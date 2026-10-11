@@ -70,3 +70,18 @@ test('annual decisions record no realised benefit until the switch is confirmed 
  assert.equal(subscriptionOutcome({...plan,confirmedAt:stamp},[switched],[{...paid[0],amount:200}]).actualSaving,16);
  assert.equal(subscriptionOutcome({...plan,confirmedAt:stamp},[switched],[{...paid[0],anchor:'2026-10-13'}]).actualSaving,null);
 });
+
+test('website, mobile and website-to-app backups preserve invoices, closed reviews and saved decisions',async()=>{
+ const {createHouseholdProfile,createHouseholdBackup,readHouseholdBackup}=await import('../src/lib/household.ts');
+ const {createMobileBackup,readMobileBackup}=await import('../apps/mobile/src/backup.ts');
+ const {convertWebBackup}=await import('../apps/mobile/src/webBackup.ts');
+ const costs=[cost()],actualPayments=saveActualPayment([],monthChecklist(costs,'2026-10').payments[0],76.4,stamp);
+ const planning=readPlanningData({actualPayments,monthReviews:[{month:'2026-10',planned:80,paid:76.4,count:1,closedAt:stamp}],subscriptionPlans:[{id:'annual',costId:'internet',name:'Internet',monthly:18,annual:180,start:'2026-10-12',remindAt:'2026-10-11',memoId:'annual-note'}]});
+ const profile={...createHouseholdProfile({name:'Test',currency:'EUR',electricityPrice:.3,savingsGoalPercent:1,roomNames:[]}),planning};
+ const web=createHouseholdBackup({profile,costs,devices:[],history:[],tiles:[{id:'default-costs',kind:'costs',title:'Costs'}]});
+ assert.deepEqual(readHouseholdBackup(JSON.stringify(web)).profile.planning,planning);
+ assert.deepEqual(convertWebBackup(JSON.stringify(web)).profile.planning,planning);
+ const mobile=createMobileBackup({profile:{name:'Test',electricityPrice:.3,savingsGoalPercent:1,createdAt:stamp,planning},costs,devices:[],history:[],tiles:[{id:'default-costs',kind:'costs',title:'Costs'}],betaInterested:false});
+ assert.deepEqual(readMobileBackup(JSON.stringify(mobile)).profile.planning,planning);
+ assert.equal(readMobileBackup(JSON.stringify(mobile)).costs[0].variableAmount,true);
+});

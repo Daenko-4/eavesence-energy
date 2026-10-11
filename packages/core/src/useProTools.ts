@@ -38,14 +38,15 @@ export function useProTools(input:SavingsPlanInput,value:PlanningData|undefined,
   }
   async function rememberComparison(money:(n:number)=>string) {
     if(!comparison||!selected||!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(remindAt)||!Number.isFinite(Date.parse(remindAt))||new Date(remindAt).toISOString().slice(0,10)!==remindAt){setError(de?'Vergleich und Erinnerungsdatum prüfen.':'Review the comparison and reminder date.');return false;}
-    if((data.memos?.length??0)>=50){setError(de?'Maximal 50 Notizen. Erledigte Notizen zuerst entfernen.':'Maximum 50 notes. Remove completed notes first.');return false;}
     const text=(de?`${selected.name}: Jahresabo prüfen. ${money(comparison.upfront)} im Voraus ab ${start}; ${money(comparison.annualSaving)} Unterschied pro Jahr. Bindung und Kündigung prüfen.`:`${selected.name}: review annual plan. ${money(comparison.upfront)} upfront from ${start}; ${money(comparison.annualSaving)} difference per year. Check commitment and cancellation.`).slice(0,300);
     const id=JSON.stringify([selected.id,start]);
     const existing=(data.subscriptionPlans??[]).find(p=>p.id===id);
+    const memoId=existing?.memoId??createMemoId();
+    if(!(data.memos??[]).some(m=>m.id===memoId)&&(data.memos?.length??0)>=50){setError(de?'Maximal 50 Notizen. Erledigte Notizen zuerst entfernen.':'Maximum 50 notes. Remove completed notes first.');return false;}
     if(!existing&&(data.subscriptionPlans?.length??0)>=50){setError(de?'Maximal 50 Jahresabo-Entscheidungen.':'Maximum 50 annual-plan decisions.');return false;}
     if(existing?.confirmedAt){setError(de?'Diese Umstellung ist bereits bestätigt. Für ein neues Angebot ein anderes Startdatum wählen.':'This switch is already confirmed. Choose a different start date for a new offer.');return false;}
-    const subscriptionPlans=[...(data.subscriptionPlans??[]).filter(p=>p.id!==id),{id,costId:selected.id,name:selected.name,monthly:selected.amount,annual:comparison.upfront,start,remindAt}];
-    return persist({...data,subscriptionPlans,memos:[...(data.memos??[]),{id:createMemoId(),text,date:remindAt,done:false,updatedAt:new Date().toISOString()}]});
+    const subscriptionPlans=[...(data.subscriptionPlans??[]).filter(p=>p.id!==id),{id,costId:selected.id,name:selected.name,monthly:selected.amount,annual:comparison.upfront,start,remindAt,memoId}];
+    return persist({...data,subscriptionPlans,memos:[...(data.memos??[]).filter(m=>m.id!==memoId),{id:memoId,text,date:remindAt,done:false,updatedAt:new Date().toISOString()}]});
   }
   return {today,data,priceChanges,decisions,confirmDecision,reserves,reserveValue,setReserveValue,saveReserve,subscriptions,costId,setCostId,selected,annual,setAnnual,start,setStart,remindAt,setRemindAt,comparison,rememberComparison,error,notice,busy};
 }

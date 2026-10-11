@@ -48,5 +48,5 @@ export function usePaymentChecklist(costs: HouseholdCost[], data: PlanningData |
     } catch { setError(de ? 'Das Häkchen konnte nicht gespeichert werden. Bitte erneut versuchen.' : 'Could not save this checkmark. Please try again.'); }
     finally { saving.current = false; setBusy(false); }
   }
-  return {...list,closed,review,editing,amount,setAmount,editAmount,saveAmount,cancelAmount:()=>setEditing(null),closeMonth,reopenMonth,today:localToday(),month,current,busy,error,isPaid:(p:MonthPayment)=>paymentIsPaid(p,paid),toggle,previous:()=>choose(shiftPlanningMonth(month,-1)),next:()=>choose(shiftPlanningMonth(month,1)),reset:()=>choose(null)};
+  return {...list,closed,review,editing,amount,setAmount,editAmount,saveAmount,cancelAmount:()=>setEditing(null),closeMonth,reopenMonth,today:localToday(),month,current,busy,error,isClosed:(p:MonthPayment)=>!!planning.monthReviews?.some(r=>r.month===p.month),isPaid:(p:MonthPayment)=>paymentIsPaid(p,paid),toggle,previous:()=>choose(shiftPlanningMonth(month,-1)),next:()=>choose(shiftPlanningMonth(month,1)),reset:()=>choose(null)};
 }

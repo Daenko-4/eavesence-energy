@@ -315,10 +315,10 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdCosts
     .getByRole("button", { name: "Rent or mortgage payment" })
     .click();
-  await householdCosts.getByLabel("Amount").fill("900");
+  await householdCosts.getByRole("textbox", { name: "Amount", exact: true }).fill("900");
   if (!await householdCosts.getByLabel("When is payment due? (optional)").isVisible()) await householdCosts.getByText("More details: category and cancellation", { exact: true }).click();
   await householdCosts.getByLabel("When is payment due? (optional)").fill("2026-10-01");
-  await householdCosts.getByLabel("Amount").press("Enter");
+  await householdCosts.getByRole("textbox", { name: "Amount", exact: true }).press("Enter");
   await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
   await page.locator("[data-home-review]").getByRole("button", {name:"Overview checked",exact:true}).click();
   const installCard = page.getByRole("region", {

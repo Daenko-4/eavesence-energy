@@ -21,12 +21,13 @@ export function HomeCoreOverview({ incomeIsAverage = false, locale, currency, in
   const de = locale === "de";
   const t = (a: string, b: string) => de ? a : b;
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
+  const hasVariableCosts=costs.some(c=>c.variableAmount);
   const fixed = forecast.summary.monthlyTotal;
   const deficit = income > 0 && fixed > income;
   const cards = [
     { label: incomeIsAverage ? t("Nettoeinkommen · Monatsdurchschnitt", "Net income · monthly average") : t("Reguläres Monatsnetto", "Regular monthly net income"), value: income > 0 ? money(income) : "—" },
-    { label: t("Fixkosten pro Monat", "Recurring costs / month"), value: money(fixed) },
-    { label: incomeIsAverage ? t("Rest nach Fixkosten · Durchschnitt", "Left after fixed costs · average") : t("Rest nach Fixkosten", "Left after fixed costs"), value: income > 0 && costs.length > 0 ? money(income - fixed) : "—", emphasis: true },
+    { label: t("Fixkosten pro Monat", "Recurring costs / month"), value: `${hasVariableCosts?t("ca. ","approx. "):""}${money(fixed)}` },
+    { label: incomeIsAverage ? t("Rest nach Fixkosten · Durchschnitt", "Left after fixed costs · average") : t("Rest nach Fixkosten", "Left after fixed costs"), value: income > 0 && costs.length > 0 ? `${hasVariableCosts?t("ca. ","approx. "):""}${money(income-fixed)}` : "—", emphasis: true },
   ];
   return <View style={styles.section}>
     <Text accessibilityRole="header" style={styles.heading}>{t("Dein Monatsbudget", "Your monthly budget")}</Text>
@@ -35,6 +36,7 @@ export function HomeCoreOverview({ incomeIsAverage = false, locale, currency, in
       <Text style={[styles.amount, card.emphasis && styles.darkAmount, card.emphasis && deficit && styles.warningAmount]}>{card.value}</Text>
     </View>)}
     <Text style={styles.note}>{t("Monatsdurchschnitte deiner erfassten Kosten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen vom Rest noch ab. Er ist kein Kontostand und noch kein Sparbetrag.", "Monthly averages of your entered costs. Groceries, leisure and other everyday spending still come out of the remainder. It is not your account balance or a savings amount.")}</Text>
+    {hasVariableCosts&&<Text style={styles.note}>{t("Variable Kosten sind hier mit ihrem üblichen Planbetrag enthalten. Die tatsächlichen Rechnungen stehen in der Monatscheckliste.","Variable costs use their usual planning amounts here. Find actual invoices in the monthly checklist.")}</Text>}
     {deficit && <Text accessibilityRole="alert" style={styles.warning}>{t("Deine erfassten Fixkosten übersteigen dein Einkommen. Alltagsausgaben sind noch nicht berücksichtigt. Prüfe deine Beträge und Zahlungsrhythmen.", "Your entered fixed costs exceed your income, before everyday spending. Check your amounts and payment frequencies.")}</Text>}
     {(income <= 0 || costs.length === 0) && <View style={styles.setup}>
       <Text style={styles.setupTitle}>{income <= 0 ? t("1 · Einkommen eintragen", "1 · Add your income") : t("2 · Erste Kosten hinzufügen", "2 · Add your first cost")}</Text>
@@ -48,7 +50,7 @@ export function HomeCoreOverview({ incomeIsAverage = false, locale, currency, in
       </Pressable>
       {upcomingOpen && <View style={styles.expanded}>
         <Text style={styles.note}>{forecast.next.undatedCount > 0 ? t(`${forecast.next.undatedCount} Kosten ohne Zahlungstermin fehlen in dieser Vorschau. Der Monatsdurchschnitt oben berücksichtigt sie trotzdem.`, `${forecast.next.undatedCount} costs without a payment date are excluded from this forecast. The monthly average above still includes them.`) : t("Alle erfassten Kosten haben einen Zahlungstermin.", "All recorded costs have a payment date.")}</Text>
-        {forecast.next.payments.length === 0 ? <Text style={styles.note}>{t("Keine terminierten Zahlungen im nächsten Monat.", "No scheduled payments next month.")}</Text> : forecast.next.payments.map(({ cost, date }) => <View key={`${cost.id}-${date}`} style={styles.row}><Text style={[styles.note, styles.flex]}>{new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`))} · {cost.name}</Text><Text style={styles.rowTitle}>{money(cost.amount)}</Text></View>)}
+        {forecast.next.payments.length === 0 ? <Text style={styles.note}>{t("Keine terminierten Zahlungen im nächsten Monat.", "No scheduled payments next month.")}</Text> : forecast.next.payments.map(({ cost, date }) => <View key={`${cost.id}-${date}`} style={styles.row}><Text style={[styles.note, styles.flex]}>{new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`))} · {cost.name}</Text><Text style={styles.rowTitle}>{cost.variableAmount?t("ca. ","approx. "):""}{money(cost.amount)}</Text></View>)}
         {costs.filter(c => !c.nextDueDate).map(c => <Pressable key={c.id} accessibilityRole="button" onPress={() => onReview(c)} style={styles.action}><Text style={styles.actionText}>{c.name} · {t("Termin ergänzen", "Add date")}</Text></Pressable>)}
         <Pressable accessibilityRole="button" onPress={onCosts} style={styles.action}><Text style={styles.actionText}>{t("Kosten bearbeiten", "Edit costs")}</Text></Pressable>
       </View>}
