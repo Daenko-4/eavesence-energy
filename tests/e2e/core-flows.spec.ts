@@ -164,11 +164,11 @@ test("PWA metadata, service worker and offline fallback are available", async ({
     expect.arrayContaining([
       expect.objectContaining({
         sizes: "192x192",
-        src: "/brand/eavesence-icon-approved-final-192.png",
+        src: "/brand/eavesence-mark-192.png",
       }),
       expect.objectContaining({
         sizes: "512x512",
-        src: "/brand/eavesence-icon-approved-final-512.png",
+        src: "/brand/eavesence-mark-512.png",
       }),
     ]),
   );
@@ -1065,9 +1065,10 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
         return { color: style.color, fontWeight: style.fontWeight };
       }),
     );
-  expect(
-    new Set(navigationStyles.slice(1).map(({ color }) => color)).size,
-  ).toBe(1);
+  // One active green pill, with the other primary links using the same color.
+  expect(navigationStyles).toHaveLength(3);
+  expect(navigationStyles[0].color).toBe(navigationStyles[1].color);
+  await expect(calculatorLink).toHaveCSS("color", "rgb(8, 122, 69)");
   expect(
     new Set(navigationStyles.map(({ fontWeight }) => fontWeight)).size,
   ).toBe(1);
@@ -1515,12 +1516,13 @@ test('photo recognition runs locally and proposes the labelled invoice total',as
 for(const width of [320,1365])test(`payday overview stays readable and recalculates at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
  await openPlan(page, 'payday');const panel=page.getByRole('region',{name:'Your available budget',exact:true});await panel.getByRole('button',{name:'Calculate available money'}).click();
- const fields=await panel.locator('form input').evaluateAll(inputs=>inputs.map(input=>{const box=input.getBoundingClientRect();return {top:box.top,height:box.height,fontSize:getComputedStyle(input).fontSize};}));
- expect(fields).toHaveLength(4);
+ const fields=await panel.locator('form input:visible').evaluateAll(inputs=>inputs.map(input=>{const box=input.getBoundingClientRect();return {top:box.top,height:box.height,fontSize:getComputedStyle(input).fontSize};}));
+ expect(fields).toHaveLength(3);
+ await expect(panel.getByLabel('Money to keep in reserve (optional)',{exact:true})).toBeHidden();
  for(const field of fields){expect(field.height).toBe(44);expect(field.fontSize).toBe(width<768?'16px':'13px');}
- if(width>=640){expect(Math.abs(fields[0].top-fields[1].top)).toBeLessThan(1);expect(Math.abs(fields[2].top-fields[3].top)).toBeLessThan(1);}
+ if(width>=640){expect(Math.abs(fields[0].top-fields[1].top)).toBeLessThan(1);}
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
- await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await panel.getByLabel('Next payday',{exact:true}).fill(day);await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await panel.getByLabel('Everyday spending until payday',{exact:true}).fill('150');await panel.getByRole('button',{name:'Calculate available money'}).click();
+ await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await panel.getByLabel('Next payday',{exact:true}).fill(day);await panel.getByText('Keep some money in reserve (optional)',{exact:true}).click();await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await panel.getByLabel('Everyday spending until payday',{exact:true}).fill('150');await panel.getByRole('button',{name:'Show available money'}).click();
  await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel).toContainText('You can spend this extra until');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.reload();await openPlan(page, 'payday');await expect(panel).toContainText('€650.00');

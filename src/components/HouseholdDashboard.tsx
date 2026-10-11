@@ -780,6 +780,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [incomeError, setIncomeError] = useState("");
   const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [view, setView] = useState<"overview" | "plan">("overview");
+  useEffect(() => { window.dispatchEvent(new CustomEvent("eavesence:home-view", { detail: view })); }, [view]);
+  function changeWorkspace(next: "overview" | "plan") {
+    // Keep header deep links aligned with the selected workspace.
+    if (["#home-plan", "#payday-plan", "#savings-plan", "#home-overview"].includes(window.location.hash)) {
+      const hash = next === "plan" ? "#home-plan" : "#home-overview";
+      lastRequestedHash.current = hash;
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
+    }
+    setView(next);
+  }
   const [planQuestion, setPlanQuestion] = useState<"payday" | "savings" | "progress">("payday");
   const [name, setName] = useState(locale === "de" ? "Mein Zuhause" : "My home");
   const [currency, setCurrency] = useState<SavedDeviceCurrency>("EUR");
@@ -1181,7 +1191,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function completeOnboarding() {
-    setView("overview");
+    changeWorkspace("overview");
     const nextProfile = createHouseholdProfile({
       name,
       currency,
@@ -1301,7 +1311,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setHouseholdCosts(backup.costs);
     setCostEvents(backup.costEvents ?? []);
     setHomeTiles(backup.tiles);
-    setView("overview");
+    changeWorkspace("overview");
     setActiveTileId(backup.tiles.find(tile => tile.kind === "costs")?.id ?? null);
     setName(localizeDefaultHouseholdName(backup.profile.name, locale));
     setCurrency(backup.profile.currency);
@@ -1345,7 +1355,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     window.localStorage.removeItem(HOUSEHOLD_VISIT_STORAGE_KEY);
     window.localStorage.removeItem(BETA_INTEREST_STORAGE_KEY);
     window.localStorage.removeItem(HOME_TILES_STORAGE_KEY);
-    setView("overview");
+    changeWorkspace("overview");
     setProfile(null);
     setHistory([]);
     setHouseholdCosts([]);
@@ -1461,7 +1471,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function openAppSettings() {
-    setView("overview");
+    changeWorkspace("overview");
     setSettingsOpen(true);
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
       const section = document.getElementById("home-settings");
@@ -1705,7 +1715,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function openIncomeForm() {
-    setView("overview");
+    changeWorkspace("overview");
     setIncomeOpen(true);
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
       const form = document.getElementById("home-income-form");
@@ -1715,7 +1725,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function openCostForm(cost?: HouseholdCost, template?: HouseholdCostCategory) {
-    setView("overview");
+    changeWorkspace("overview");
     setCostManagerOpen(true);
     const tile = cost?.tileId
       ? homeTiles.find((item) => item.id === cost.tileId)
@@ -1852,8 +1862,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
 
           <nav aria-label={locale === "de" ? "Bereich wählen" : "Choose workspace"} className="mt-6 flex flex-wrap gap-2 border-b border-[#dfe5dd] pb-3">
-            <button type="button" aria-pressed={view === "overview"} onClick={() => setView("overview")} className={`${homeDashboardActionClass} home-workspace-pill ${view === "overview" ? "home-workspace-selected" : ""}`}>{locale === "de" ? "Übersicht" : "Overview"}</button>
-            {homeRelease.proPreview && <button type="button" aria-pressed={view === "plan"} onClick={() => { setView("plan"); setSettingsOpen(false); }} className={`${homeDashboardActionClass} home-workspace-pill home-pro-pill ${view === "plan" ? "home-workspace-selected" : ""}`}>{locale === "de" ? "Planen & sparen" : "Plan & save"}<span className="ml-2 text-[10px] font-semibold opacity-75">Pro</span></button>}
+            <button type="button" aria-pressed={view === "overview"} onClick={() => changeWorkspace("overview")} className={`${homeDashboardActionClass} home-workspace-pill ${view === "overview" ? "home-workspace-selected" : ""}`}>{locale === "de" ? "Übersicht" : "Overview"}</button>
+            {homeRelease.proPreview && <button type="button" aria-pressed={view === "plan"} onClick={() => { changeWorkspace("plan"); setSettingsOpen(false); }} className={`${homeDashboardActionClass} home-workspace-pill home-pro-pill ${view === "plan" ? "home-workspace-selected" : ""}`}>{locale === "de" ? "Planen & sparen" : "Plan & save"}<span className="ml-2 text-[10px] font-semibold opacity-75">Pro</span></button>}
           </nav>
           <div hidden={view !== "overview"} data-home-overview-content>
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
@@ -2315,7 +2325,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             planning={profile.planning}
             onSavePlanning={(planning) => persistProfile({ ...profile, planning, updatedAt: new Date().toISOString() })}
             onEditIncome={openIncomeForm}
-            onEditCosts={() => { setView("overview"); setCostRequest(null); activateTileKind("costs"); window.setTimeout(() => document.getElementById("household-costs")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
+            onEditCosts={() => { changeWorkspace("overview"); setCostRequest(null); activateTileKind("costs"); window.setTimeout(() => document.getElementById("household-costs")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
             onSave={(values) => persistProfile({ ...profile, ...values, updatedAt: new Date().toISOString() })}
             onConfirmAction={confirmSaving}
             onReviewCost={(cost)=>openCostForm(cost)}
@@ -2343,7 +2353,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         locale={locale}
 
         view={view}
-        onNavigate={(destination) => { setView(destination === "plan" ? "plan" : "overview"); }}
+        onNavigate={(destination) => { changeWorkspace(destination === "plan" ? "plan" : "overview"); }}
         settingsOpen={settingsOpen}
               />
       <ConnectivityStatus locale={locale} />

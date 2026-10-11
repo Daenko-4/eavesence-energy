@@ -34,9 +34,17 @@ export function useCashWindow(
     p.paidPayments,
     p.actualPayments,
   );
+  // Preview dated bills before saving, so the deductions are visible during setup.
+  const draftCash = readCashWindow({ balance: 0, asOf: today, payday, protected: 0, everydayRemaining: null });
+  const preview = paydayForecast(input.costs, draftCash, input.variableMonthly, today, p.paidPayments, p.actualPayments);
+  const suggestedEveryday = preview?.everyday == null ? null : Math.round(preview.everyday * 100) / 100;
   const saving=useRef(false);
   async function save() {
     if(saving.current)return false;
+    if (!everyday.trim()) {
+      setError(de ? "Trage dein Alltagsbudget bis zum Gehalt ein oder übernimm den Vorschlag. 0 ist möglich." : "Enter your everyday budget until payday or use the suggestion. 0 is allowed.");
+      return false;
+    }
     const next = readCashWindow({
       balance: parseMoney(balance, de ? "de" : "en"),
       asOf: today,
@@ -71,14 +79,18 @@ export function useCashWindow(
   }
   return {
     bills: paydayPayments(input.costs,cash,today).map(b=>({...resolvePayment(b,p.actualPayments??[]),date:b.date})),
+    previewBills: paydayPayments(input.costs,draftCash,today).map(b=>({...resolvePayment(b,p.actualPayments??[]),date:b.date})),
+    preview,
+    suggestedEveryday,
     balance,
-    setBalance,
+    setBalance: (value: string) => { setBalance(value); setError(""); },
     payday,
-    setPayday,
+    setPayday: (value: string) => { setPayday(value); setError(""); },
     protectedAmount,
-    setProtected,
+    reserved: parseMoney(protectedAmount, de ? "de" : "en"),
+    setProtected: (value: string) => { setProtected(value); setError(""); },
     everyday,
-    setEveryday,
+    setEveryday: (value: string) => { setEveryday(value); setError(""); },
     busy,
     error,
     save,

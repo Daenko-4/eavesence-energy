@@ -339,39 +339,57 @@ textarea {
   opacity: 0.58;
 }
 
-/* Floating navigation only: the logo and language switch keep their existing styles. */
+/* Icon navigation: compact outlined pills, with the existing animated brand mark. */
 .header-navigation-dock {
   position: relative;
   isolation: isolate;
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
   padding: 5px;
   border-radius: 9999px;
-  background: #f7faf7;
-  box-shadow: 0 3px 14px rgba(16, 40, 58, 0.08), inset 0 0 0 1px #e7ede8;
+  background: transparent;
 }
 
 .header-navigation-link {
   position: relative;
   z-index: 1;
   display: flex;
-  min-height: 34px;
+  min-height: 38px;
   align-items: center;
-  padding: 0 16px;
+  gap: 7px;
+  padding: 0 13px;
+  border: 1px solid #d4e5d9;
   border-radius: 9999px;
   color: #24272c !important;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 20px;
   letter-spacing: normal;
   text-decoration: none;
   white-space: nowrap;
-  transition: color 180ms ease;
+  transition: color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .header-navigation-link:hover {
   color: var(--brand-green-dark) !important;
+  border-color: #78bb93;
+  transform: translateY(-1px);
+}
+
+.header-navigation-link[aria-current] { color: #087a45 !important; border-color: #78bb93; }
+.header-navigation-icon { width: 17px; height: 17px; flex-shrink: 0; color: #087a45; }
+.header-pro-badge { padding: 2px 5px; border-radius: 5px; background: #e0f2e5; color: #087a45; font-size: 10px; line-height: 14px; font-weight: 700; }
+.header-help-link { display: inline-flex; align-items: center; min-height: 38px; padding: 0 9px; font-size: 12px; font-weight: 600; color: #65716d !important; }
+.header-help-link:hover { color: #087a45 !important; }
+.header-language-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 10px; border: 1px solid #bdd7c5; border-radius: 9999px; color: #087a45 !important; background: #f4faf5; font-size: 12px; font-weight: 700; transition: background 180ms ease; }
+.header-language-link:hover { background: #e0f2e5; }
+.header-language-link:focus-visible, .header-help-link:focus-visible { outline: 2px solid #087a45; outline-offset: 3px; }
+@media (min-width: 1024px) { .header-language-link { min-height: 38px; } }
+@media (max-width: 359px) { .header-language-link { gap: 4px; padding: 0 7px; } .header-language-link .header-navigation-icon { width: 14px; height: 14px; } }
+@media (max-width: 359px) {
+  [data-header-mobile-logo] svg { width: 26px; height: 26px; }
+  [data-header-mobile-logo] > span > span { font-size: .82rem; }
 }
 
 .header-navigation-link:focus-visible {

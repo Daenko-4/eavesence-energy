@@ -84,7 +84,7 @@ for (const locale of ['en', 'de'] as const) for (const width of [320, 390, 1365]
 test('language switches keep the current overview or legal page', async ({ page }) => {
   for (const [from, to] of [['/en/devices', '/geraete'], ['/geraete', '/en/devices'], ['/en/privacy', '/datenschutz'], ['/datenschutz', '/en/privacy'], ['/en/imprint', '/impressum'], ['/impressum', '/en/imprint']]) {
     await page.goto(from);
-    const switcher = page.locator('header a').filter({ hasText: 'DE' }).filter({ hasText: 'EN' });
+    const switcher = page.locator('[data-header-language]');
     await expect(switcher).toHaveAttribute('href', to);
     await switcher.click();
     await expect(page).toHaveURL(new RegExp(`${to}$`));

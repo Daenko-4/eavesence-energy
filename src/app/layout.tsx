@@ -89,17 +89,17 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/icon.png",
+        url: "/brand/eavesence-mark-96.png",
         type: "image/png",
-        sizes: "512x512",
+        sizes: "96x96",
       },
     ],
-    shortcut: "/icon.png",
+    shortcut: "/favicon.ico",
     apple: [
       {
-        url: "/brand/eavesence-icon-approved-final-192.png",
+        url: "/brand/eavesence-mark-180.png",
         type: "image/png",
-        sizes: "192x192",
+        sizes: "180x180",
       },
     ],
   },
