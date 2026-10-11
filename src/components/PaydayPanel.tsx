@@ -80,12 +80,12 @@ export default function PaydayPanel({
               )
             : t("Was kann ich bis zum nächsten Gehalt ausgeben?", "What can I spend until my next payday?")}
         </h2>
-        <p className={`mt-2 text-[28px] font-extrabold tracking-tight ${shortfall ? "text-[#ffd28c]" : "text-[#72dca3]"}`} data-payday-result aria-live="polite">
+        <p hidden={open && !p.forecast} className={`mt-2 text-[28px] font-extrabold tracking-tight ${shortfall ? "text-[#ffd28c]" : "text-[#72dca3]"}`} data-payday-result aria-live="polite">
           {complete
             ? money(Math.abs(p.forecast!.remaining!))
             : "—"}
         </p>
-        <p className="mt-2 max-w-2xl text-[13px] leading-5 text-[#d1d7d4]">
+        <p hidden={open && !p.forecast} className="mt-2 max-w-2xl text-[13px] leading-5 text-[#d1d7d4]">
           {complete
             ? t(
                 shortfall ? "Dein Kontostand reicht für die offenen Rechnungen, geplanten Alltagsausgaben und deine Reserve noch nicht aus." : `Für deinen Alltag sind ${money(p.forecast!.everyday!)} eingeplant. Rechnungen und Reserve sind ebenfalls abgezogen. Dieser Betrag bleibt zusätzlich übrig.`,
@@ -145,7 +145,7 @@ export default function PaydayPanel({
                   <input className={field} type="date" min={new Date(Date.parse(p.today) + 86400000).toISOString().slice(0,10)} max={new Date(Date.parse(p.today) + 90 * 86400000).toISOString().slice(0,10)} value={p.payday} onChange={e => p.setPayday(e.target.value)}/>
                 </label>
               </div>
-              <p id="payday-balance-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Übernimm den Kontostand von heute aus deiner Banking-App. Ziehe selbst noch nichts ab. Dein nächstes Gehalt zählt erst ab dem gewählten Tag.", "Copy today's balance from your banking app. Do not deduct anything yourself. Your next salary only counts from the date you choose.")}</p>
+              <p id="payday-balance-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Übernimm den Kontostand von heute aus deiner Banking-App. Ziehe selbst noch nichts ab. Das nächste Gehalt ist hier noch nicht eingerechnet.", "Copy today's balance from your banking app. Do not deduct anything yourself. Your next salary is not included yet.")}</p>
             </fieldset>
             <fieldset className="min-w-0 rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-4">
               <legend className="px-1 text-[14px] font-semibold">{t("2 · Offene Rechnungen", "2 · Unpaid bills")}</legend>

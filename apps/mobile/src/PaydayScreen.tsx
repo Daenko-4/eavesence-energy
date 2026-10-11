@@ -107,11 +107,11 @@ export function PaydayScreen({
               )
             : t("Was kann ich bis zum nächsten Gehalt ausgeben?", "What can I spend until my next payday?")}
         </Text>
-        <Text style={[styles.amount, shortfall ? styles.shortfallAmount : styles.positive]} accessibilityLiveRegion="polite">
+        {(!open || p.forecast) && <Text style={[styles.amount, shortfall ? styles.shortfallAmount : styles.positive]} accessibilityLiveRegion="polite">
           {complete
             ? money(Math.abs(p.forecast!.remaining!))
             : "—"}
-        </Text>
+        </Text>}
         <Text style={styles.light}>
           {complete
             ? t(
@@ -221,7 +221,7 @@ export function PaydayScreen({
             <FormInput label={t("Reserve, die übrig bleiben soll (optional)", "Money to keep in reserve (optional)")} keyboardType="decimal-pad" value={p.protectedAmount} onChangeText={p.setProtected}/>
             <Text style={styles.note}>{t("Dieser Teil deines Kontostands soll unangetastet bleiben. Rechnungen und Alltag sind bereits berücksichtigt. Sparziele werden nicht automatisch abgezogen.", "This part of your balance stays untouched. Bills and everyday spending are already accounted for. Savings goals are not deducted automatically.")}</Text>
           </>}
-          <Text style={styles.note}>{t("Dein nächstes Gehalt zählt erst ab dem gewählten Tag.", "Your next salary only counts from the date you choose.")}</Text>
+          <Text style={styles.note}>{t("Das nächste Gehalt ist hier noch nicht eingerechnet.", "Your next salary is not included yet.")}</Text>
           <FormSubmitButton label={t("Verfügbares Geld anzeigen", "Show available money")} style={styles.button} textStyle={styles.buttonText}/>
           {p.error && <Text accessibilityRole="alert" style={styles.error}>{p.error}</Text>}
         </FormSection></View>

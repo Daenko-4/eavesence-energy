@@ -38,9 +38,11 @@ for (const de of [false, true]) for (const width of [320, 1365]) test(`icon head
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning?.cash)).toBeUndefined();
   await panel.getByRole('button', { name: t('Vorschlag übernehmen', 'Use suggestion'), exact: true }).click();
   await expect(panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true })).toHaveValue(t('229,98', '229.98'));
+  await expect(panel.getByRole('alert')).toHaveCount(0);
   await panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true }).fill('200');
   await panel.getByText(t('Geld als Reserve behalten (optional)', 'Keep some money in reserve (optional)'), { exact: true }).click();
   await panel.getByLabel(t('Reserve, die übrig bleiben soll (optional)', 'Money to keep in reserve (optional)'), { exact: true }).fill('100');
+  const screenshotStyle = await page.addStyleTag({ content: "header{position:static!important}" });
   await panel.screenshot({ path: info.outputPath(`payday-three-steps-${de ? 'de' : 'en'}-${width}.png`) });
   await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
   await expect(panel.locator('[data-payday-result]')).toContainText(t('280,00', '280.00'));
@@ -55,6 +57,7 @@ for (const de of [false, true]) for (const width of [320, 1365]) test(`icon head
   await panel.getByRole('button', { name: /Zahlungen bis zum Gehalt abhaken|Check off payments until payday/ }).click();
   await expect(panel.getByRole('checkbox', { name: /^Streaming ·/ })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await screenshotStyle.evaluate(el => { el.parentNode?.removeChild(el); });
   await header.locator('[data-header-language]').click();
   await expect(page).toHaveURL(new RegExp(`${de ? '/home' : '/de/zuhause'}#home-plan$`));
   await expect(page.locator('[data-home-plan-content]')).toBeVisible();

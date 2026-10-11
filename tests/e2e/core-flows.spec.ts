@@ -164,11 +164,11 @@ test("PWA metadata, service worker and offline fallback are available", async ({
     expect.arrayContaining([
       expect.objectContaining({
         sizes: "192x192",
-        src: "/brand/eavesence-icon-approved-final-192.png",
+        src: "/brand/eavesence-mark-192.png",
       }),
       expect.objectContaining({
         sizes: "512x512",
-        src: "/brand/eavesence-icon-approved-final-512.png",
+        src: "/brand/eavesence-mark-512.png",
       }),
     ]),
   );
@@ -1065,9 +1065,10 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
         return { color: style.color, fontWeight: style.fontWeight };
       }),
     );
-  expect(
-    new Set(navigationStyles.slice(1).map(({ color }) => color)).size,
-  ).toBe(1);
+  // One active green pill, with the other primary links using the same color.
+  expect(navigationStyles).toHaveLength(3);
+  expect(navigationStyles[0].color).toBe(navigationStyles[1].color);
+  await expect(calculatorLink).toHaveCSS("color", "rgb(8, 122, 69)");
   expect(
     new Set(navigationStyles.map(({ fontWeight }) => fontWeight)).size,
   ).toBe(1);

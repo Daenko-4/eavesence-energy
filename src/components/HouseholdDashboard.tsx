@@ -780,12 +780,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [incomeError, setIncomeError] = useState("");
   const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [view, setView] = useState<"overview" | "plan">("overview");
-  const handledDetailHash = useRef<string | null>(null);
   useEffect(() => { window.dispatchEvent(new CustomEvent("eavesence:home-view", { detail: view })); }, [view]);
   function changeWorkspace(next: "overview" | "plan") {
-    // Keep a header deep link from reopening Pro after a later profile save.
+    // Keep header deep links aligned with the selected workspace.
     if (["#home-plan", "#payday-plan", "#savings-plan", "#home-overview"].includes(window.location.hash)) {
-      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${next === "plan" ? "#home-plan" : "#home-overview"}`);
+      const hash = next === "plan" ? "#home-plan" : "#home-overview";
+      lastRequestedHash.current = hash;
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
     }
     setView(next);
   }
@@ -982,11 +983,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   useEffect(() => {
     if (!ready || !profile) return;
-    function openRequestedDetail(event?: Event) {
+    function openRequestedDetail() {
       const hash = window.location.hash;
-      // A data save is not a new navigation request. Keep the selected Pro tab.
-      if (!event && handledDetailHash.current === hash) return;
-      handledDetailHash.current = hash;
       if (!hash) { lastRequestedHash.current = null; return; }
       if (lastRequestedHash.current === hash) return;
       lastRequestedHash.current = hash;
