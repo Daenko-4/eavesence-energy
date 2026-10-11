@@ -539,7 +539,7 @@ function HeaderContent({
               <span
                 className={`shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                   desktopNavigationOpen
-                    ? "opacity-0"
+                    ? "opacity-0 pointer-events-none"
                     : "opacity-100 delay-[650ms]"
                 }`}
               >

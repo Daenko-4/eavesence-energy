@@ -22,6 +22,13 @@ for (const de of [false, true]) for (const width of [320, 1365]) test(`icon head
   await header.getByRole('link', { name: /Planen & sparen|Plan & save/ }).click();
   await expect(page.locator('[data-home-plan-content]')).toBeVisible();
   if (width >= 1024) await expect(header.getByRole('link', { name: /Planen & sparen|Plan & save/ })).toHaveAttribute('aria-current', 'location');
+  if (width >= 1024) {
+    // The hidden animated wordmark must not intercept the first navigation icon.
+    await header.locator('[data-navigation-key="household"]').click({ position: { x: 22, y: 19 } });
+    await expect(page.locator('[data-home-plan-content]')).toBeHidden();
+    await header.getByRole('link', { name: /Planen & sparen|Plan & save/ }).click();
+    await expect(page.locator('[data-home-plan-content]')).toBeVisible();
+  }
   await header.screenshot({ path: info.outputPath(`header-three-${de ? 'de' : 'en'}-${width}.png`) });
   if (width === 320) {
     const boxes = await header.evaluate(el => ['[data-header-menu-button]', '[data-header-mobile-logo]', '[data-header-language]'].map(s => { const r = el.querySelector(s)!.getBoundingClientRect(); return { left: r.left, right: r.right }; }));
