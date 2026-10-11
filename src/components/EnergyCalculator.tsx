@@ -248,7 +248,7 @@ const calculatorText = {
 
     accuracy: {
       title: "Einordnung",
-      note: "Realistische Schätzung auf Basis typischer Werte – dein tatsächlicher Verbrauch kann abweichen.",
+      note: "Geschätzte Werte – der Verbrauch kann abweichen.",
     },
 
     calculate: "In „Meine Geräte“ speichern",
@@ -418,7 +418,7 @@ const calculatorText = {
 
     accuracy: {
       title: "Context",
-      note: "Realistic estimate based on typical values – actual consumption may vary.",
+      note: "Estimated values – actual consumption may vary.",
     },
 
     calculate: "Save to My devices",
@@ -2130,7 +2130,7 @@ export default function EnergyCalculator({
             </div>
 
             <div className={`${homePresentation ? "mt-4 pt-4" : "mt-7 pt-6"} grid grid-cols-2 divide-x divide-[#dfe4da] border-t border-[#dfe4da]`}>
-              <div className="flex min-w-0 items-center gap-3 pr-4">
+              <div className="flex min-w-0 flex-col items-start gap-2 pr-3 sm:flex-row sm:items-center sm:gap-3 sm:pr-4">
                 <span className={`${homePresentation ? "h-9 w-9" : "h-11 w-11"} flex shrink-0 items-center justify-center rounded-full bg-[#dcf5e6] text-[var(--brand-green)]`} aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="4" y="5" width="16" height="15" rx="2" />
@@ -2145,7 +2145,7 @@ export default function EnergyCalculator({
                 </div>
               </div>
 
-              <div className="flex min-w-0 items-center gap-3 pl-4">
+              <div className="flex min-w-0 flex-col items-start gap-2 pl-3 sm:flex-row sm:items-center sm:gap-3 sm:pl-4">
                 <span className={`${homePresentation ? "h-9 w-9" : "h-11 w-11"} flex shrink-0 items-center justify-center rounded-full bg-[#dcf5e6] text-[var(--brand-green)]`} aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 20v-5M10 20V9M15 20v-8M20 20V4" />
@@ -2162,7 +2162,7 @@ export default function EnergyCalculator({
 
             {supportsUsageScenario && (
               <div className={`${homePresentation ? "mt-3 pt-3" : "mt-5 pt-4"} border-t border-[#dfe4da] pb-4`}>
-                <div className="flex items-start justify-between gap-3 text-xs">
+                <div className="flex flex-col items-start justify-between gap-2 text-xs sm:flex-row sm:gap-3">
                   <span className="font-semibold text-[#52605b]">{text.result.scenario}</span>
                   <span className="whitespace-nowrap font-bold text-[var(--brand-green)] tabular-nums">
                     {text.result.savings} {formatMoney(scenarioSavings, activeLocale, currency)} / {activeLocale === "de" ? "Jahr" : "year"}
