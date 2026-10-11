@@ -524,7 +524,7 @@ export default function DeviceDetailPage({
                   {text.dataBasis}
                   <span
                     aria-hidden="true"
-                    className="text-base font-light transition-transform duration-150 group-open:-rotate-45"
+                    className="site-disclosure-icon text-base font-light transition-transform duration-150 group-open:-rotate-45"
                   >
                     +
                   </span>
@@ -616,7 +616,7 @@ export default function DeviceDetailPage({
                 </span>
                 <span
                   aria-hidden="true"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center text-xl font-light text-slate-500 transition-[color,transform] duration-200 group-open/device-guide:-rotate-45 group-open/device-guide:text-[var(--brand-green)]"
+                  className="site-disclosure-icon flex h-8 w-8 shrink-0 items-center justify-center text-xl font-light text-slate-500 transition-[color,transform] duration-200 group-open/device-guide:-rotate-45 group-open/device-guide:text-[var(--brand-green)]"
                 >
                   +
                 </span>
@@ -750,7 +750,7 @@ export default function DeviceDetailPage({
                         {faq.question}
                         <span
                           aria-hidden="true"
-                          className="text-lg text-slate-400 transition group-open/faq-item:-rotate-45"
+                          className="site-disclosure-icon text-lg text-slate-400 transition group-open/faq-item:-rotate-45"
                         >
                           +
                         </span>

@@ -1929,7 +1929,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 })}
                 <button ref={newTileButtonRef} type="button" onClick={openNewTileForm} aria-expanded={tileFormOpen && !editingTileId} aria-controls="home-tile-form" className={`group flex min-h-[132px] items-center justify-center rounded-xl border px-4 py-3 text-center transition hover:border-[#72dca3] hover:bg-[#383e45] ${tileFormOpen && !editingTileId ? "border-[#72dca3] bg-[#383e45] ring-1 ring-[#72dca3]" : "border-dashed border-[#65716d] bg-transparent"}`}>
                   <span>
-                    <span aria-hidden="true" className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-[#dcfce8] text-[16px] text-[var(--brand-green)] transition group-hover:bg-[var(--brand-green)] group-hover:text-white">+</span>
+                    <span aria-hidden="true" className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-[#dcfce8] text-[16px] text-[var(--brand-green)] transition group-hover:bg-[var(--brand-green)] group-hover:text-white"><span className={`site-disclosure-icon inline-block ${tileFormOpen && !editingTileId ? "-rotate-45" : "rotate-0"}`}>+</span></span>
                     <span className="mt-2 block text-[13px] font-bold text-white">{text.addTile}</span>
                     <span className="mt-1 block text-[11px] text-[#c3cbc7]">{text.addTileHint}</span>
                   </span>
@@ -1961,7 +1961,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <span id="monthly-overview-title" className="block text-[14px] font-bold text-[#17211f]">{text.monthlyDetails}</span>
                 <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{text.monthlyDetailsHint} · {text.tileCountMonthly.replace("{count}", formatNumber(history.length, locale))}</span>
               </span>
-              <span className="text-[11px] font-bold text-[var(--brand-green)]">{text.openMonthly}</span>
+              <span className="flex items-center gap-2 text-[11px] font-bold text-[var(--brand-green)]">{text.openMonthly}<span aria-hidden="true" className={`site-disclosure-icon inline-block text-lg ${openEnergyDetail === "monthly" ? "-rotate-45" : "rotate-0"}`}>+</span></span>
             </button>
           </section>}
 
@@ -2048,7 +2048,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <span id="electricity-basis-title" className="block text-[14px] font-bold text-[#17211f]">{text.calculatorTitle}</span>
                 <span className="mt-1 block text-[13px] leading-5 text-[#65716d]">{text.calculatorText}</span>
               </span>
-              <span aria-hidden="true" className="text-[var(--brand-green)]">{calculatorOpen ? "−" : "+"}</span>
+              <span aria-hidden="true" className={`site-disclosure-icon inline-block shrink-0 text-lg text-[var(--brand-green)] ${calculatorOpen ? "-rotate-45" : "rotate-0"}`}>+</span>
             </button>
             {calculatorOpen && <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }}>
             <div className="mt-4 grid grid-cols-3 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
@@ -2154,7 +2154,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{hint}</span>
                     </span>
                     <span aria-hidden="true" className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[16px] font-medium transition ${active ? "bg-[var(--brand-green)] text-white" : "bg-[#e8eee9] text-[var(--brand-green)] group-hover:bg-[#dcfce8]"}`}>
-                      {active ? "−" : "+"}
+                      <span className={`site-disclosure-icon inline-block ${active ? "-rotate-45" : "rotate-0"}`}>+</span>
                     </span>
                   </button>
                 );

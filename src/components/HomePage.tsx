@@ -514,7 +514,7 @@ export default function HomePage({
                       className="eavesence-pill-button"
                     >
                       {text.howItWorks.label}
-                      <span aria-hidden="true" className={`ml-1 inline-block origin-center transition-transform duration-[180ms] ${howItWorksOpen ? "-rotate-45" : "rotate-0"}`}>+</span>
+                      <span aria-hidden="true" className={`site-disclosure-icon ml-1 inline-block origin-center transition-transform duration-[180ms] ${howItWorksOpen ? "-rotate-45" : "rotate-0"}`}>+</span>
                     </button>
                   </>
                 }
@@ -555,7 +555,7 @@ export default function HomePage({
               </h2>
               <span
                 aria-hidden="true"
-                className={`inline-block shrink-0 origin-center text-xl font-light text-slate-500 transition-[color,transform] duration-[180ms] ${
+                className={`site-disclosure-icon inline-block shrink-0 origin-center text-xl font-light text-slate-500 transition-[color,transform] duration-[180ms] ${
                   faqOpen
                     ? "-rotate-45 text-[var(--brand-green)]"
                     : "rotate-0"
@@ -585,7 +585,7 @@ export default function HomePage({
                           <details key={faq.question} className="group">
                             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 site-card-title text-[#07111f] transition hover:text-[var(--brand-green)] [&::-webkit-details-marker]:hidden">
                               {faq.question}
-                              <span aria-hidden="true" className="inline-block origin-center rotate-0 text-lg font-light text-slate-500 transition-[color,transform] duration-[180ms] group-open:-rotate-45 group-open:text-[var(--brand-green)]">+</span>
+                              <span aria-hidden="true" className="site-disclosure-icon inline-block origin-center rotate-0 text-lg font-light text-slate-500 transition-[color,transform] duration-[180ms] group-open:-rotate-45 group-open:text-[var(--brand-green)]">+</span>
                             </summary>
                             <p className="max-w-4xl pb-5 pr-10 text-sm leading-6 text-slate-600">{faq.answer}</p>
                           </details>

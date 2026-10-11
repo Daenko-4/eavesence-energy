@@ -1371,7 +1371,7 @@ export default function EnergyCalculator({
               className="relative flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--brand-green-mint)] transition-colors before:absolute before:-inset-2.5 before:content-[''] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-green-mint)]/50"
             >
               <span
-                className={`flex h-5 w-5 origin-center items-center justify-center text-lg leading-none transition-transform duration-[180ms] ${prefilledHelpOpen ? "-rotate-45" : "rotate-0"}`}
+                className={`site-disclosure-icon flex h-5 w-5 origin-center items-center justify-center text-lg leading-none transition-transform duration-[180ms] ${prefilledHelpOpen ? "-rotate-45" : "rotate-0"}`}
                 aria-hidden="true"
               >
                 +
@@ -1498,18 +1498,7 @@ export default function EnergyCalculator({
               <path d="m13 13 4 4" />
             </svg>
             {text.device.search}
-            <svg
-              viewBox="0 0 20 20"
-              fill="none"
-              className={`h-4 w-4 shrink-0 transition-transform duration-200 ${deviceSearchOpen ? "rotate-90" : ""}`}
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="m7.5 5 5 5-5 5" />
-            </svg>
+            <span aria-hidden="true" className={`site-disclosure-icon inline-block text-lg ${deviceSearchOpen ? "-rotate-45" : "rotate-0"}`}>+</span>
           </button>
           {deviceSearchOpen && <div id={`${fieldIds.search}-panel`} className="mt-1.5 w-full rounded-xl bg-[#202b28] p-3 ring-1 ring-white/[0.1]">
             <label htmlFor={fieldIds.search} className="sr-only">
@@ -2117,7 +2106,7 @@ export default function EnergyCalculator({
       <div
         ref={resultRef}
         data-calculator-result
-        className={`relative flex min-w-0 flex-col justify-center overflow-hidden rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] !pb-16 text-[#24302d] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] ${
+        className={`relative flex min-w-0 flex-col justify-center overflow-hidden rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] ${calculationIsValid ? "!pb-0" : ""} text-[#24302d] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] ${
           homePresentation
             ? "min-h-[280px] p-6 sm:p-7"
             : "min-h-[420px] p-6 sm:p-8 lg:p-10"
@@ -2125,6 +2114,7 @@ export default function EnergyCalculator({
       >
         {calculationIsValid ? (
           <>
+            <div className="flex flex-1 flex-col justify-center">
             <p className={`${homePresentation ? "text-[15px]" : "text-lg sm:text-xl"} font-semibold tracking-[-0.02em] text-[#44524d]`}>
               {activeLocale === "de" ? "Deine Jahreskosten" : "Your yearly cost"}
             </p>
@@ -2208,40 +2198,24 @@ export default function EnergyCalculator({
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={() => setCalculationDetailsOpen((open) => !open)}
-              aria-expanded={calculationDetailsOpen}
-              className="group absolute inset-x-0 bottom-0 z-10 flex h-16 w-full items-center gap-4 border-t border-[#dfe4da] bg-[#f6f6f0] px-6 text-left transition-colors hover:bg-[#f0f3eb] sm:px-7 lg:px-10"
-            >
-              <span className="min-w-0 flex-1">
-                {calculationDetailsOpen ? (
-                  <>
-                    <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--brand-green)]">
-                      {text.result.formula}
-                    </span>
-                    <span title={calculationFormula} className="mt-0.5 block truncate text-[11px] font-medium leading-4 text-[#52605b]">
-                      {calculationFormula}
-                    </span>
-                    <span title={accuracyText} className="block whitespace-normal text-[9px] leading-3 text-[#7a8580]">
-                      {text.accuracy.title}: {accuracyText}
-                    </span>
-                  </>
-                ) : (
-                  <span className="block text-[13px] font-semibold text-[var(--brand-green)] transition-colors group-hover:text-[var(--brand-green-dark)]">
-                    {text.result.details}
-                  </span>
-                )}
-              </span>
-              <span
-                aria-hidden="true"
-                className={`flex h-7 w-7 shrink-0 origin-center items-center justify-center text-lg leading-none text-[var(--brand-green)] transition-transform duration-[180ms] ${
-                  calculationDetailsOpen ? "-rotate-45" : "rotate-0"
-                }`}
+            </div>
+            <div data-calculation-details className={`mt-6 border-t border-[#dfe4da] bg-[#f6f6f0] ${homePresentation ? "-mx-6 sm:-mx-7" : "-mx-6 sm:-mx-8 lg:-mx-10"}`}>
+              <button
+                type="button"
+                onClick={() => setCalculationDetailsOpen((open) => !open)}
+                aria-expanded={calculationDetailsOpen}
+                aria-controls={`${fieldIdPrefix}-calculation-details`}
+                className={`group flex min-h-14 w-full items-center justify-between gap-4 text-left transition-colors hover:bg-[#f0f3eb] ${homePresentation ? "px-6 sm:px-7" : "px-6 sm:px-8 lg:px-10"}`}
               >
-                +
-              </span>
-            </button>
+                <span className="text-[13px] font-semibold text-[var(--brand-green)]">{text.result.details}</span>
+                <span aria-hidden="true" className={`site-disclosure-icon shrink-0 text-lg leading-none text-[var(--brand-green)] ${calculationDetailsOpen ? "-rotate-45" : "rotate-0"}`}>+</span>
+              </button>
+              <div id={`${fieldIdPrefix}-calculation-details`} hidden={!calculationDetailsOpen} className={`pb-5 ${homePresentation ? "px-6 sm:px-7" : "px-6 sm:px-8 lg:px-10"}`}>
+                <p className="text-[11px] font-semibold text-[var(--brand-green)]">{text.result.formula}</p>
+                <p data-calculation-formula className="mt-1 text-[12px] font-medium leading-5 text-[#52605b] [overflow-wrap:anywhere]">{calculationFormula}</p>
+                <p data-calculation-accuracy className="mt-2 text-[11px] leading-5 text-[#65716d]">{text.accuracy.title}: {accuracyText}</p>
+              </div>
+            </div>
           </>
         ) : (
           <>
@@ -2314,7 +2288,7 @@ export default function EnergyCalculator({
             </span>
             <span
               aria-hidden="true"
-              className={`flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none text-[var(--brand-green)] transition-transform duration-200 ${
+              className={`site-disclosure-icon flex h-7 w-7 shrink-0 items-center justify-center text-lg leading-none text-[var(--brand-green)] transition-transform duration-200 ${
                 comparisonOpen ? "-rotate-45" : ""
               }`}
             >

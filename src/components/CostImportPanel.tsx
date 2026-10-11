@@ -106,7 +106,7 @@ export default function CostImportPanel({
         </span>
         <span
           aria-hidden="true"
-          className={`flex h-7 w-7 shrink-0 origin-center items-center justify-center text-lg font-light leading-none text-[var(--brand-green)] transition-transform duration-[180ms] motion-reduce:transition-none ${open ? "-rotate-45" : "rotate-0"}`}
+          className={`site-disclosure-icon flex h-7 w-7 shrink-0 origin-center items-center justify-center text-lg font-light leading-none text-[var(--brand-green)] transition-transform duration-[180ms] motion-reduce:transition-none ${open ? "-rotate-45" : "rotate-0"}`}
         >
           +
         </span>
@@ -142,7 +142,7 @@ export default function CostImportPanel({
               "Processing runs on this device. Text recognition downloads language files on first use. Documents are not uploaded.",
             )}
           </p>
-          <details>
+          <details className="home-disclosure">
             <summary className="cursor-pointer text-[12px] font-semibold">
               {t("Text einfügen / CSV-Beispiel", "Paste text / CSV example")}
             </summary>
