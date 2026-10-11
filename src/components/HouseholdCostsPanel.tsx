@@ -226,6 +226,7 @@ export default function HouseholdCostsPanel({
   const [formOpen, setFormOpen] = useState(Boolean(request));
   const [editingId, setEditingId] = useState<string | null>(requestedCost?.id ?? null);
   const [name, setName] = useState(requestedCost?.name ?? (request?.template ? text.templates[request.template as keyof typeof text.templates] ?? "" : ""));
+  const [variableAmount,setVariableAmount]=useState(requestedCost?.variableAmount??false);
   const [amount, setAmount] = useState(requestedCost ? String(requestedCost.amount) : "");
   const [category, setCategory] =
     useState<HouseholdCostCategory>(requestedCost?.category ?? request?.template ?? "housing");
@@ -244,7 +245,7 @@ export default function HouseholdCostsPanel({
   function resetForm() {
     setEditingId(null);
     setName("");
-    setAmount("");
+    setAmount("");setVariableAmount(false);
     setCategory("housing");
     setFrequency("monthly");
     setNextDueDate("");
@@ -265,7 +266,7 @@ export default function HouseholdCostsPanel({
   function editCost(cost: HouseholdCost) {
     setEditingId(cost.id);
     setName(cost.name);
-    setAmount(String(cost.amount));
+    setAmount(String(cost.amount));setVariableAmount(cost.variableAmount??false);
     setCategory(cost.category);
     setFrequency(cost.frequency);
     setNextDueDate(cost.nextDueDate);
@@ -281,6 +282,7 @@ export default function HouseholdCostsPanel({
       category,
       amount: parseMoney(amount, locale),
       frequency,
+      variableAmount,
       nextDueDate,
       cancellationDeadline,
     });
@@ -373,14 +375,16 @@ export default function HouseholdCostsPanel({
               {text.name}
               <input id="household-cost-name" value={name} onChange={(event) => setName(event.target.value)} onBlur={() => { if (!editingId && category === "housing") { const value = name.toLowerCase(); if (/internet|abo|stream|telefon/.test(value)) setCategory("subscriptions"); else if (/strom|heiz|electric|gas/.test(value)) setCategory("energy"); else if (/versicherung|insurance/.test(value)) setCategory("insurance"); } }} className={fieldClass} />
             </label>
-            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
-              {text.amount}
-              <input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" className={fieldClass} />
-            </label>
+            <div className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
+              <label htmlFor="household-cost-amount">{text.amount}</label>
+              <input id="household-cost-amount" value={amount} onChange={event=>setAmount(event.target.value)} inputMode="decimal" className={fieldClass}/>
+              <label className="flex min-h-11 items-center gap-2 text-[13px] font-normal"><input type="checkbox" checked={variableAmount} onChange={e=>setVariableAmount(e.target.checked)} className="h-4 w-4 accent-[#28734d]"/>{locale==='de'?'Betrag variiert':'Amount varies'}</label>
+              {variableAmount&&<p className="text-[12px] font-normal leading-5 text-[#65716d]">{locale==='de'?'Üblicher Planbetrag. Die tatsächliche Rechnung trägst du in der Monatscheckliste ein.':'Usual planning amount. Enter the actual invoice in the monthly checklist.'}</p>}
+            </div>
 
             <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
               {text.frequency}
-              <select value={frequency} onChange={(event) => setFrequency(event.target.value as HouseholdCostFrequency)} className={fieldClass}>
+              <select aria-label={text.frequency} value={frequency} onChange={(event) => setFrequency(event.target.value as HouseholdCostFrequency)} className={fieldClass}>
                 {frequencies.map((item) => <option key={item} value={item}>{text.frequencies[item]}</option>)}
               </select>
             </label>
@@ -487,12 +491,12 @@ export default function HouseholdCostsPanel({
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-bold">{cost.name}</p>
                       <p className="mt-0.5 text-[13px] text-[#65716d]">
-                        {text.categories[cost.category]} · {text.frequencies[cost.frequency]}
+                        {text.categories[cost.category]} · {text.frequencies[cost.frequency]}{cost.variableAmount?` · ${locale==='de'?'Planbetrag':'Planning amount'}`:''}
                         {cost.nextDueDate ? ` · ${localDate(cost.nextDueDate, locale)}` : ""}
                       </p>
                     </div>
                     <div className="sm:text-right">
-                      <p className="text-[13px] font-bold">{money(cost.amount, locale, currency)}</p>
+                      <p className="text-[13px] font-bold">{cost.variableAmount?(locale==='de'?'ca. ':'approx. '):''}{money(cost.amount, locale, currency)}</p>
                       <p className="text-[13px] text-[#65716d]">
                         {text.monthlyEquivalent.replace("{amount}", money(monthlyCost(cost.amount, cost.frequency), locale, currency))}
                       </p>

@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/config";
 import type { paymentsNextMonth } from "@/lib/householdCosts";
 
 type Props = {
+  hasVariableCosts?: boolean;
   incomeIsAverage?: boolean;
   incomeDeferred?: boolean; onSkipIncome?: () => void;
   needsReview?: boolean; onFinishReview?: () => void;
@@ -13,7 +14,7 @@ type Props = {
   incomeOpen: boolean; onIncome: () => void; onCost: () => void;
   upcomingOpen: boolean; onUpcoming: () => void; incomeForm: ReactNode;
 };
-export default function HomeCoreOverview({ incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, undatedCosts = [], onReviewCost, incomeIsAverage = false, locale, currency, income, fixed, count, upcoming, incomeOpen, onIncome, onCost, upcomingOpen, onUpcoming, incomeForm }: Props) {
+export default function HomeCoreOverview({ incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, undatedCosts = [], onReviewCost, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, upcoming, incomeOpen, onIncome, onCost, upcomingOpen, onUpcoming, incomeForm }: Props) {
   const [budgetOpen,setBudgetOpen] = useState(false);
   const de = locale === "de";
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
@@ -21,8 +22,8 @@ export default function HomeCoreOverview({ incomeDeferred = false, onSkipIncome,
   const deficit = income > 0 && fixed > income;
   const cards = [
     { label: incomeIsAverage ? de ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : de ? "Reguläres Monatsnetto" : "Regular monthly net income", value: income > 0 ? money(income) : "—" },
-    { label: de ? "Fixkosten pro Monat" : "Recurring costs / month", value: money(fixed) },
-    { label: incomeIsAverage ? de ? "Rest nach Fixkosten · Durchschnitt" : "Left after fixed costs · average" : de ? "Rest nach Fixkosten" : "Left after fixed costs", value: income > 0 && count > 0 ? money(income - fixed) : "—", emphasis: true },
+    { label: de ? "Fixkosten pro Monat" : "Recurring costs / month", value: `${hasVariableCosts?(de?"ca. ":"approx. "):""}${money(fixed)}` },
+    { label: incomeIsAverage ? de ? "Rest nach Fixkosten · Durchschnitt" : "Left after fixed costs · average" : de ? "Rest nach Fixkosten" : "Left after fixed costs", value: income > 0 && count > 0 ? `${hasVariableCosts?(de?"ca. ":"approx. "):""}${money(income-fixed)}` : "—", emphasis: true },
   ];
   return <section className="mt-6" aria-label={de ? "Finanzen im Überblick" : "Your household at a glance"}>
     {(needsIncome || !count) && <div data-home-setup className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
@@ -40,6 +41,7 @@ export default function HomeCoreOverview({ incomeDeferred = false, onSkipIncome,
       </article>)}
     </div>
     <p className="mt-3 max-w-3xl text-[13px] leading-5 text-[#65716d]">{de ? "Monatsdurchschnitte deiner erfassten Kosten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen vom Rest noch ab. Er ist kein Kontostand und noch kein Sparbetrag." : "Monthly averages of the costs you have entered. Groceries, leisure and other everyday spending still come out of the remainder. It is not your account balance or a savings amount."}</p>
+    {hasVariableCosts&&<p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de?"Variable Kosten sind hier mit ihrem üblichen Planbetrag enthalten. Die tatsächlichen Rechnungen stehen in der Monatscheckliste.":"Variable costs use their usual planning amounts here. Find actual invoices in the monthly checklist."}</p>}
     {deficit && <p role="status" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[13px] text-amber-900">{de ? "Deine erfassten Fixkosten übersteigen dein Einkommen. Alltagsausgaben sind dabei noch nicht berücksichtigt. Prüfe zuerst deine Beträge und Zahlungsrhythmen." : "Your entered fixed costs exceed your income, before everyday spending. Check your amounts and payment frequencies first."}</p>}
     </details>
     {needsReview && !needsIncome && count > 0 && <div data-home-review className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
@@ -53,7 +55,7 @@ export default function HomeCoreOverview({ incomeDeferred = false, onSkipIncome,
       {upcomingOpen && <div className="border-t border-[#dfe5dd] pt-3 text-[13px] leading-5 text-[#52605b]">
         <p>{upcoming.undatedCount > 0 ? de ? `${upcoming.undatedCount} Kosten ohne Zahlungstermin fehlen in dieser Vorschau. Der Monatsdurchschnitt oben berücksichtigt sie trotzdem.` : `${upcoming.undatedCount} costs without a payment date are excluded from this forecast. The monthly average above still includes them.` : de ? "Alle erfassten Kosten haben einen Zahlungstermin." : "All recorded costs have a payment date."}</p>
         {!!undatedCosts.length && <ul className="mt-3 flex flex-wrap gap-2">{undatedCosts.map(cost => <li key={cost.id}><button type="button" className="eavesence-pill-button home-dashboard-action" onClick={() => onReviewCost?.(cost.id)}>{cost.name} · {de ? "Termin ergänzen" : "Add date"}</button></li>)}</ul>}
-        {upcoming.payments.length ? <ul className="mt-3 space-y-2">{upcoming.payments.map(({cost, date}) => <li key={`${cost.id}-${date}`} className="flex justify-between gap-3"><span>{new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", {day:"numeric",month:"short",timeZone:"UTC"}).format(new Date(`${date}T00:00:00Z`))} · {cost.name}</span><span className="shrink-0 font-semibold">{money(cost.amount)}</span></li>)}</ul> : <p className="mt-2">{de ? "Keine terminierten Zahlungen im nächsten Monat." : "No scheduled payments next month."}</p>}
+        {upcoming.payments.length ? <ul className="mt-3 space-y-2">{upcoming.payments.map(({cost, date}) => <li key={`${cost.id}-${date}`} className="flex justify-between gap-3"><span>{new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", {day:"numeric",month:"short",timeZone:"UTC"}).format(new Date(`${date}T00:00:00Z`))} · {cost.name}</span><span className="shrink-0 font-semibold">{cost.variableAmount?(de?"ca. ":"approx. "):""}{money(cost.amount)}</span></li>)}</ul> : <p className="mt-2">{de ? "Keine terminierten Zahlungen im nächsten Monat." : "No scheduled payments next month."}</p>}
       </div>}
     </div>}
   </section>;

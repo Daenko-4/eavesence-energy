@@ -22,6 +22,8 @@ export type HouseholdCost = {
   name: string;
   category: HouseholdCostCategory;
   amount: number;
+  variableAmount?: boolean;
+  priceChanges?: Array<{from:number;to:number;frequency:HouseholdCostFrequency;changedAt:string}>;
   frequency: HouseholdCostFrequency;
   tileId?: string;
   nextDueDate: string;
@@ -82,6 +84,7 @@ export function createHouseholdCost({
   category,
   amount,
   frequency,
+  variableAmount = false,
   tileId,
   nextDueDate = "",
   cancellationDeadline = "",
@@ -92,6 +95,7 @@ export function createHouseholdCost({
   category: HouseholdCostCategory;
   amount: number;
   frequency: HouseholdCostFrequency;
+  variableAmount?: boolean;
   tileId?: string;
   nextDueDate?: string;
   cancellationDeadline?: string;
@@ -117,6 +121,7 @@ export function createHouseholdCost({
     name: trimmedName,
     category,
     amount,
+    ...(variableAmount ? {variableAmount:true} : {}),
     frequency,
     ...(tileId ? { tileId } : {}),
     nextDueDate,
@@ -141,6 +146,8 @@ function isHouseholdCost(value: unknown): value is HouseholdCost {
     typeof candidate.nextDueDate === "string" &&
     (candidate.nextDueDate === "" || validDate(candidate.nextDueDate)) &&
     (candidate.cancellationDeadline === undefined || validDate(candidate.cancellationDeadline)) &&
+    (candidate.variableAmount === undefined || typeof candidate.variableAmount === "boolean") &&
+    (candidate.priceChanges === undefined || (Array.isArray(candidate.priceChanges) && candidate.priceChanges.length <= 24 && candidate.priceChanges.every(p=>p && Number.isFinite(p.from) && p.from > 0 && Number.isFinite(p.to) && p.to > 0 && frequencies.includes(p.frequency) && typeof p.changedAt === "string" && Number.isFinite(Date.parse(p.changedAt))))) &&
     typeof candidate.updatedAt === "string"
   );
 }
@@ -163,7 +170,10 @@ export function upsertHouseholdCost(
   const existingIndex = costs.findIndex((cost) => cost.id === nextCost.id);
   if (existingIndex < 0) return [nextCost, ...costs];
   const next = [...costs];
-  next[existingIndex] = nextCost;
+  const previous=costs[existingIndex];
+  const changed=previous.amount!==nextCost.amount && previous.frequency===nextCost.frequency && !previous.variableAmount && !nextCost.variableAmount;
+  const priceChanges=[...(previous.priceChanges??[]),...(changed?[{from:previous.amount,to:nextCost.amount,frequency:nextCost.frequency,changedAt:nextCost.updatedAt}]:[])].slice(-24);
+  next[existingIndex] = {...nextCost,...(priceChanges.length?{priceChanges}:{})};
   return next;
 }
 

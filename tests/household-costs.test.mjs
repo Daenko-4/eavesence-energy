@@ -50,7 +50,7 @@ test("creates, reads and updates a household cost", () => {
   );
 
   const updated = { ...cost, amount: 720 };
-  assert.deepEqual(upsertHouseholdCost([cost], updated), [updated]);
+  assert.deepEqual(upsertHouseholdCost([cost], updated), [{...updated,priceChanges:[{from:600,to:720,frequency:"yearly",changedAt:updated.updatedAt}]}]);
   assert.deepEqual(removeHouseholdCost([updated], "insurance"), []);
 });
 

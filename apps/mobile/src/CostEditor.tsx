@@ -8,7 +8,7 @@ import {revealInput} from './ScrollNavigation';
 import {FormInput,KeyboardScrollContext} from './FormInput';
 import {FormSection,FormSubmitButton,useFormAction} from './FormSection';
 import {LocalizedText as Text,useMobileLocale} from './i18n';
-type Props={name:string;amount:string;frequency:HouseholdCostFrequency;date:string;deadline:string;category:HouseholdCostCategory;editing:boolean;onName:(v:string)=>void;onAmount:(v:string)=>void;onFrequency:(v:HouseholdCostFrequency)=>void;onDate:(v:string)=>void;onDeadline:(v:string)=>void;onCategory:(v:HouseholdCostCategory)=>void;onSave:()=>Promise<unknown>;onClose:()=>void};
+type Props={variableAmount?:boolean;onVariableAmount?:(v:boolean)=>void;name:string;amount:string;frequency:HouseholdCostFrequency;date:string;deadline:string;category:HouseholdCostCategory;editing:boolean;onName:(v:string)=>void;onAmount:(v:string)=>void;onFrequency:(v:HouseholdCostFrequency)=>void;onDate:(v:string)=>void;onDeadline:(v:string)=>void;onCategory:(v:HouseholdCostCategory)=>void;onSave:()=>Promise<unknown>;onClose:()=>void};
 const intervals:HouseholdCostFrequency[]=['weekly','monthly','quarterly','half-yearly','yearly'];
 const cats:HouseholdCostCategory[]=['housing','energy','insurance','subscriptions','mobility','financing','leisure','other'];
 function Close({onClose}:{onClose:()=>void}){const action=useFormAction(),de=useMobileLocale()==='de';return <Pressable accessibilityRole="button" accessibilityLabel={de?'Abbrechen':'Cancel'} disabled={action?.busy} onPress={()=>{Keyboard.dismiss();onClose();}} style={s.back}><Text style={s.arrow}>‹</Text></Pressable>;}
@@ -30,6 +30,8 @@ export function CostEditor(p:Props){
   <View style={s.header}><Close onClose={p.onClose}/><Text accessibilityRole="header" style={s.title}>{p.editing?t('Kosten bearbeiten','Edit cost'):t('Kosten hinzufügen','Add cost')}</Text><View style={s.back}/></View>
   <KeyboardScrollContext.Provider value={input=>revealInput(scroll.current,input)}><ScrollView ref={scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" contentContainerStyle={s.body}>
    <View style={s.group}><View style={s.input}><FormInput label={t('Name','Name')} value={p.name} onChangeText={p.onName} placeholder={t('z. B. Internet','e.g. Internet')} style={s.inputStyle}/></View><View style={s.input}><FormInput label={t('Betrag','Amount')} value={p.amount} onChangeText={p.onAmount} keyboardType="decimal-pad" placeholder="0,00" style={s.inputStyle}/></View>
+    <Pressable accessibilityRole="checkbox" accessibilityLabel={t('Betrag variiert','Amount varies')} accessibilityState={{checked:!!p.variableAmount}} onPress={()=>p.onVariableAmount?.(!p.variableAmount)} style={[s.select,{minHeight:52}]}><Text style={s.label}>{t('Betrag variiert','Amount varies')}</Text><Text style={s.selected}>{p.variableAmount?'☑':'☐'}</Text></Pressable>
+    {p.variableAmount&&<Text style={[s.note,{paddingVertical:12}]}>{t('Üblicher Planbetrag. Trage die tatsächliche Rechnung in der Monatscheckliste ein.','Usual planning amount. Enter the actual invoice in the monthly checklist.')}</Text>}
     {selectRow(t('Wie oft?','How often?'),cadence(p.frequency),()=>setChoice('frequency'))}
     {selectRow(t('Nächste Zahlung (optional)','Next payment (optional)'),labelDate(p.date),()=>openDate('date'))}
     <Pressable accessibilityRole="button" accessibilityState={{expanded:more}} onPress={()=>setMore(!more)} style={s.select}><Text style={s.selected}>{t('Zusatzangaben','More details')}</Text><DisclosureIcon open={more}/></Pressable>

@@ -7,7 +7,7 @@ export function useQuickCheck(input:SavingsPlanInput,value:PlanningData|undefine
   const data=readPlanningData(value),today=localToday(),fingerprint=quickCheckFingerprint(input,data);
   const [open,setOpen]=useState(false),[review,setReview]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
   const saving=useRef(false);
-  const forecast=paydayForecast(input.costs,data.cash,input.variableMonthly,today,data.paidPayments);
+  const forecast=paydayForecast(input.costs,data.cash,input.variableMonthly,today,data.paidPayments,data.actualPayments);
   const current=!!forecast&&forecast.missingDates===0&&forecast.remaining!==null;
   const reviewed=review===fingerprint;
   const complete=data.quickCheck?.day===today&&data.quickCheck.fingerprint===fingerprint;

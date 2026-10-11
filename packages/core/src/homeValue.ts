@@ -1,5 +1,5 @@
 import { parseIncomeAmount } from "./income.ts";
-import { paymentIsPaid, type PaidPayment } from './paymentChecklist.ts';
+import { resolvePayment, paymentIsPaid, type ActualPayment, type PaidPayment } from './paymentChecklist.ts';
 import {
   createHouseholdCost,
   monthlyCost,
@@ -79,12 +79,13 @@ export function paydayForecast(
   variableMonthly: number | null,
   today: string,
   paid: PaidPayment[] = [],
+  actual: ActualPayment[] = [],
 ) {
   if (!cash || cash.needsRefresh || !validDay(today) || cash.asOf !== today || cash.payday <= today)
     return null;
   const days = (Date.parse(cash.payday) - Date.parse(today)) / 86400000;
   if (days > 90) return null;
-  const payments = paydayPayments(costs,cash,today).filter(p => !paymentIsPaid(p,paid));
+  const payments = paydayPayments(costs,cash,today).map(p=>({...resolvePayment(p,actual),date:p.date})).filter(p => !paymentIsPaid(p,paid));
   const fixed = payments.reduce((sum, p) => sum + p.cost.amount, 0);
   const everyday =
     cash.everydayRemaining ??
@@ -97,6 +98,7 @@ export function paydayForecast(
     overdue: payments.filter(p => p.date < today).length,
     payments,
     fixed,
+    estimatedBills:payments.filter(p=>p.estimated).length,
     everyday,
     missingDates,
     remaining:
@@ -376,6 +378,7 @@ export function confirmSavingsChange(
   if (action.status !== "planned" || action.effectiveMonth > today.slice(0, 7))
     throw new Error("ACTION_NOT_DUE");
   const cost = costs.find((c) => c.id === action.costId);
+  if(cost?.variableAmount)throw new Error("ACTION_STALE");
   const applied =
     (cost?.amount === action.newAmount && cost.frequency === action.frequency) || (!cost && action.newAmount === 0);
   if (

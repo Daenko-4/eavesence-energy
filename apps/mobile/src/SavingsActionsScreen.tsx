@@ -17,13 +17,14 @@ export function SavingsActionsScreen({ input, actions, currency, onChange, onCon
   const de = locale === "de";
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const fixedCosts=input.costs.filter(c=>!c.variableAmount);
   const suggested = savingsReviewCandidates(input.costs, today)[0];
   const [costId, setCostId] = useState(suggested?.id ?? "");
   const [mode, setMode] = useState<"reduce" | "stop">("reduce");
   const [amount, setAmount] = useState("");
   const [offset, setOffset] = useState(0);
   const money = (value: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(value);
-  const selected = input.costs.find((cost) => cost.id === costId) ?? input.costs[0];
+  const selected = fixedCosts.find((cost) => cost.id === costId) ?? fixedCosts[0];
   const cadence = (frequency: HouseholdCostFrequency) => (de ? { weekly: "pro Woche", monthly: "pro Monat", quarterly: "alle 3 Monate", "half-yearly": "alle 6 Monate", yearly: "pro Jahr" } : { weekly: "per week", monthly: "per month", quarterly: "every 3 months", "half-yearly": "every 6 months", yearly: "per year" })[frequency];
   const [year, number] = input.startMonth.split("-").map(Number);
   const effectiveMonth = new Date(Date.UTC(year, number - 1 + offset, 1)).toISOString().slice(0, 7);
@@ -52,9 +53,9 @@ export function SavingsActionsScreen({ input, actions, currency, onChange, onCon
     <Text style={styles.heading}>{de ? "Was wäre, wenn du weniger zahlst?" : "What if you paid less?"}</Text>
     <Text style={styles.note}>{de ? "Teste eine günstigere Ausgabe oder eine Kündigung. Wir zeigen dir die mögliche Ersparnis. Deine eingetragenen Kosten werden dabei nicht geändert." : "Try a lower cost or a cancellation to see the possible saving. Your recorded costs stay the same."}</Text>
     {suggested && <Text style={styles.note}>{de ? "Vorschlag zum Start" : "Suggested starting point"}: {suggested.name}.</Text>}
-    {input.costs.length > 0 ? <>
+    {fixedCosts.length > 0 ? <>
       <Text style={styles.label}>{de ? "1. Welche Ausgabe?" : "1. Which cost?"}</Text>
-      <View style={styles.options}>{input.costs.map((cost) => <Pressable key={cost.id} accessibilityRole="button" accessibilityState={{ selected: selected?.id === cost.id }} onPress={() => { setCostId(cost.id); setAmount(""); }} style={[styles.chip, selected?.id === cost.id && styles.chipActive]}><Text style={[styles.chipText, selected?.id === cost.id && styles.chipTextActive]}>{cost.name} · {money(cost.amount)} {cadence(cost.frequency)}</Text></Pressable>)}</View>
+      <View style={styles.options}>{fixedCosts.map((cost) => <Pressable key={cost.id} accessibilityRole="button" accessibilityState={{ selected: selected?.id === cost.id }} onPress={() => { setCostId(cost.id); setAmount(""); }} style={[styles.chip, selected?.id === cost.id && styles.chipActive]}><Text style={[styles.chipText, selected?.id === cost.id && styles.chipTextActive]}>{cost.name} · {money(cost.amount)} {cadence(cost.frequency)}</Text></Pressable>)}</View>
       <Text style={styles.label}>{de ? "2. Wie möchtest du sparen?" : "2. How would you save?"}</Text>
       <View style={styles.options}>{(["reduce", "stop"] as const).map((value) => <Pressable key={value} hitSlop={8} accessibilityRole="button" accessibilityState={{ selected: mode === value }} onPress={() => setMode(value)} style={[styles.modeChip, mode === value && styles.chipActive]}><Text style={[styles.modeChipText, mode === value && styles.chipTextActive]}>{value === "reduce" ? de ? "Betrag reduzieren" : "Reduce amount" : de ? "Ausgabe streichen" : "Remove expense"}</Text></Pressable>)}</View>
       <Text style={styles.note}>{mode === "reduce" ? de ? "Die Ausgabe bleibt bestehen, aber du planst einen niedrigeren Betrag ein." : "Keep this expense, but plan a lower payment." : de ? "Diese Ausgabe fällt künftig weg, zum Beispiel nach einer Kündigung. Wir rechnen ab dem gewählten Monat mit 0." : "This expense will end, for example after cancellation. We use 0 from the selected month."}</Text>
@@ -71,7 +72,7 @@ export function SavingsActionsScreen({ input, actions, currency, onChange, onCon
         <Text style={styles.note}>{preview.firstBenefitMonth ? `${de ? "Erste niedrigere Zahlung" : "First lower payment"}: ${monthLabel(preview.firstBenefitMonth)}.` : de ? "Im angezeigten Zeitraum wird noch keine Zahlung günstiger." : "No payment changes within the period shown."}</Text>
       </View>}
       <Pressable accessibilityRole="button" onPress={save} style={styles.save}><Text style={styles.saveText}>{de ? "Änderung vormerken" : "Save this plan"}</Text></Pressable>
-    </> : <Text style={styles.note}>{de ? "Erfasse zuerst eine regelmäßige Ausgabe." : "Add a recurring cost first."}</Text>}
+    </> : <Text style={styles.note}>{de ? "Erfasse zuerst eine Ausgabe mit festem Betrag. Variable Rechnungen vergleichst du im Monatsrückblick." : "Add a fixed recurring cost first. Compare variable invoices in the monthly review."}</Text>}
     {actions.length > 0 && <View style={styles.saved}><Text style={styles.heading}>{de ? "Deine Vorhaben" : "Your plans"}</Text>{actions.map((action) => {
       const cost = input.costs.find((item) => item.id === action.costId);
       const applied = cost?.amount === action.newAmount || (!cost && action.newAmount === 0);

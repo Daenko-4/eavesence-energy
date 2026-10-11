@@ -1,3 +1,4 @@
+import {resolvePayment} from './paymentChecklist.ts';
 import { useRef, useState } from "react";
 import {
   localToday,
@@ -31,6 +32,7 @@ export function useCashWindow(
     input.variableMonthly,
     today,
     p.paidPayments,
+    p.actualPayments,
   );
   const saving=useRef(false);
   async function save() {
@@ -44,7 +46,7 @@ export function useCashWindow(
     });
     if (
       !next ||
-      !paydayForecast(input.costs, next, input.variableMonthly, today, p.paidPayments)
+      !paydayForecast(input.costs, next, input.variableMonthly, today, p.paidPayments, p.actualPayments)
     ) {
       setError(
         de
@@ -68,7 +70,7 @@ export function useCashWindow(
     }
   }
   return {
-    bills: paydayPayments(input.costs,cash,today),
+    bills: paydayPayments(input.costs,cash,today).map(b=>({...resolvePayment(b,p.actualPayments??[]),date:b.date})),
     balance,
     setBalance,
     payday,
