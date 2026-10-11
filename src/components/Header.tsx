@@ -26,12 +26,13 @@ type HeaderProps = {
   onLanguageChange?: () => void;
 };
 
-type NavigationKey = "calculator" | "household" | "faq";
+type NavigationKey = "calculator" | "household" | "planning" | "faq";
 
 const navigation = {
   de: {
     calculator: "Stromkosten-Rechner",
     household: "Mein Zuhause",
+    planning: "Planen & sparen",
     faq: "FAQ",
     homeLabel: "EAVESENCE Startseite",
     openNavigation: "Navigation öffnen",
@@ -40,12 +41,24 @@ const navigation = {
   en: {
     calculator: "Electricity Calculator",
     household: "My Home",
+    planning: "Plan & save",
     faq: "FAQ",
     homeLabel: "EAVESENCE home",
     openNavigation: "Open navigation",
     closeNavigation: "Close navigation",
   },
 } as const;
+
+function NavigationIcon({ name }: { name: NavigationKey | "language" }) {
+  const paths = {
+    household: <><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></>,
+    planning: <><path d="M4 4v16h16"/><path d="m7 14 4-4 4 2 5-6"/><path d="M16 6h4v4"/></>,
+    calculator: <><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h1m3 0h1m3 0h1M8 15h1m3 0h1m3 0h1M8 18h1m3 0h1m3 0h1"/></>,
+    faq: <><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2-2.5 4m0 3h.01"/></>,
+    language: <><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c5 5 5 13 0 18-5-5-5-13 0-18Z"/></>,
+  };
+  return <svg className="header-navigation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
+}
 
 function NavigationLink({
   href,
@@ -72,6 +85,7 @@ function NavigationLink({
       data-navigation-key={navigationKey}
       className="header-navigation-link"
     >
+      <NavigationIcon name={navigationKey} />
       {children}
     </a>
   );
@@ -94,6 +108,7 @@ function HeaderContent({
   const homeHref = getHomeHref(locale);
   const isCalculatorPage = pathname === getCalculatorHref(locale);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [homeView, setHomeView] = useState<"overview" | "plan">("overview");
   const [languageIntro, setLanguageIntro] = useState(false);
   const languageIntroRef = useRef<string | null>(null);
   const [desktopNavigationOpen, setDesktopNavigationOpen] = useState(
@@ -119,23 +134,37 @@ function HeaderContent({
 
   const calculatorHref = calculatorHrefOverride ?? getCalculatorHref(locale);
   const householdHref = getHouseholdHref(locale);
+  const planningHref = `${householdHref}#home-plan`;
   const faqHref = getFaqHref(locale);
   const isHouseholdPage = pathname === householdHref;
   const activeNavigation: NavigationKey | null = isHouseholdPage
-      ? "household"
+      ? homeView === "plan" ? "planning" : "household"
       : isCalculatorPage
         ? activeHomeSection
         : null;
   const indicatedNavigation = previewNavigation ?? activeNavigation;
 
   const otherLocale: Locale = locale === "de" ? "en" : "de";
-  const languageHref =
+  const languageBaseHref =
     languageHrefOverride ??
     (isCalculatorPage ? getCalculatorHref(otherLocale) : getHomeHref(otherLocale));
+  const languageHref = isHouseholdPage && homeView === "plan" && !languageBaseHref.includes("#")
+    ? `${languageBaseHref}#home-plan` : languageBaseHref;
 
   useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
+
+  useEffect(() => {
+    const update = (event?: Event) => {
+      const detail = (event as CustomEvent<"overview" | "plan"> | undefined)?.detail;
+      setHomeView(detail ?? (["#home-plan", "#payday-plan", "#savings-plan"].includes(window.location.hash) ? "plan" : "overview"));
+    };
+    update();
+    window.addEventListener("eavesence:home-view", update);
+    window.addEventListener("hashchange", update);
+    return () => { window.removeEventListener("eavesence:home-view", update); window.removeEventListener("hashchange", update); };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -537,21 +566,24 @@ function HeaderContent({
               }`}
             >
               <div ref={desktopNavigationRef} className="header-navigation-dock">
-                <NavigationLink href={householdHref} active={activeNavigation === "household"} navigationKey="household" onPreview={setPreviewNavigation}>
+                <NavigationLink href={`${householdHref}#home-overview`} active={activeNavigation === "household"} navigationKey="household" onPreview={setPreviewNavigation}>
                   {text.household}
+                </NavigationLink>
+                <NavigationLink href={planningHref} active={activeNavigation === "planning"} navigationKey="planning" onPreview={setPreviewNavigation}>
+                  {text.planning}<span className="header-pro-badge">Pro</span>
                 </NavigationLink>
                 <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator" onPreview={setPreviewNavigation}>
                   {text.calculator}
                 </NavigationLink>
-                <NavigationLink
+                <a
                   href={faqHref}
-                  active={activeNavigation === "faq"}
-                  navigationKey="faq"
-                  onPreview={setPreviewNavigation}
-                  onActivate={handleFaqActivate}
+                  aria-current={activeNavigation === "faq" ? "location" : undefined}
+                  onClick={handleFaqActivate}
+                  className="header-help-link"
+                  title={locale === "de" ? "Hilfe & häufige Fragen" : "Help & frequently asked questions"}
                 >
                   {text.faq}
-                </NavigationLink>
+                </a>
                 <span
                   ref={activeIndicatorRef}
                   aria-hidden="true"
@@ -573,17 +605,14 @@ function HeaderContent({
               onLanguageChange?.();
               closeMenu();
             }}
-            className="group flex h-11 shrink-0 items-center gap-0.5 rounded-lg px-1 text-[11px] font-bold uppercase tracking-[0.04em] transition hover:bg-[#eaf8ef] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-green)] active:scale-[0.98] lg:h-8"
+            className="header-language-link"
             aria-label={
               locale === "de" ? "Aktuelle Sprache: Deutsch. Zu Englisch wechseln." : "Current language: English. Switch to German."
             }
           >
-            <span lang="de" aria-current={locale === "de" ? "true" : undefined} className={`rounded-full px-1.5 py-1 ${locale === "de" ? "bg-[#24272c] text-white" : "text-[#65716d] group-hover:text-[#17211f]"}`}>
-              DE
-            </span>
-            <span lang="en" aria-current={locale === "en" ? "true" : undefined} className={`rounded-full px-1.5 py-1 ${locale === "en" ? "bg-[#24272c] text-white" : "text-[#65716d] group-hover:text-[#17211f]"}`}>
-              EN
-            </span>
+            <NavigationIcon name="language" />
+            <span lang={locale}>{locale.toUpperCase()}</span>
+            <span aria-hidden="true" className="text-[13px] font-normal">↔</span>
           </Link>
         </div>
 
@@ -591,7 +620,8 @@ function HeaderContent({
           <nav className="absolute inset-x-0 top-full px-5 py-3 sm:px-6 lg:hidden">
             <div className="header-navigation-dock header-navigation-dock-mobile">
               {([
-                [householdHref, text.household, "household"],
+                [`${householdHref}#home-overview`, text.household, "household"],
+                [planningHref, text.planning, "planning"],
                 [calculatorHref, text.calculator, "calculator"],
                 [faqHref, text.faq, "faq"],
               ] as const).map(([href, label, navigationKey]) => (
@@ -607,7 +637,9 @@ function HeaderContent({
                   }}
                   className="header-navigation-link"
                 >
+                  <NavigationIcon name={navigationKey} />
                   {label}
+                  {navigationKey === "planning" && <span className="header-pro-badge">Pro</span>}
                 </a>
               ))}
             </div>

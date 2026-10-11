@@ -9,7 +9,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const germanDevicePages: MetadataRoute.Sitemap =
     devices.map((device) => ({
       url: `${siteUrl}/geraete/${device.slug}`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
 
@@ -31,7 +30,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
       return {
         url: `${siteUrl}/en/devices/${englishSlug}`,
-        lastModified: new Date(),
         changeFrequency: "monthly",
         priority: 0.8,
 
@@ -48,7 +46,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...["/calculator", "/de/rechner"].map(path => ({ url: `${siteUrl}${path}`, changeFrequency: "monthly" as const, priority: 0.8, alternates: { languages: { de: `${siteUrl}/de/rechner`, en: `${siteUrl}/calculator` } } })),
     {
       url: siteUrl,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
 
@@ -63,7 +60,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     {
       url: `${siteUrl}/de`,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
 
@@ -78,7 +74,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     {
       url: `${siteUrl}/geraete`,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
 
@@ -93,7 +88,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     {
       url: `${siteUrl}/en/devices`,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
 
@@ -108,7 +102,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     {
       url: `${siteUrl}/home`,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
       alternates: {
@@ -122,7 +115,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     {
       url: `${siteUrl}/de/zuhause`,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
       alternates: {
@@ -139,7 +131,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     {
       url: `${siteUrl}/impressum`,
-      lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.2,
 
@@ -154,7 +145,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     {
       url: `${siteUrl}/en/imprint`,
-      lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.2,
 
@@ -169,7 +159,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     {
       url: `${siteUrl}/datenschutz`,
-      lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.2,
 
@@ -184,7 +173,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     {
       url: `${siteUrl}/en/privacy`,
-      lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.2,
 

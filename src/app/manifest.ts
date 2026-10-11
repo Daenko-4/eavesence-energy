@@ -16,13 +16,13 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["utilities", "lifestyle"],
     icons: [
       {
-        src: "/brand/eavesence-icon-approved-final-192.png",
+        src: "/brand/eavesence-mark-192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/brand/eavesence-icon-approved-final-512.png",
+        src: "/brand/eavesence-mark-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
@@ -36,7 +36,7 @@ export default function manifest(): MetadataRoute.Manifest {
         url: "/home?source=pwa-shortcut",
         icons: [
           {
-            src: "/brand/eavesence-icon-approved-final-192.png",
+            src: "/brand/eavesence-mark-192.png",
             sizes: "192x192",
             type: "image/png",
           },
@@ -49,7 +49,7 @@ export default function manifest(): MetadataRoute.Manifest {
         url: "/calculator#rechner",
         icons: [
           {
-            src: "/brand/eavesence-icon-approved-final-192.png",
+            src: "/brand/eavesence-mark-192.png",
             sizes: "192x192",
             type: "image/png",
           },

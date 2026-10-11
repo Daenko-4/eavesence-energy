@@ -12,8 +12,8 @@ export default function BrandStructuredData() {
         logo: {
           "@type": "ImageObject",
           "@id": `${siteUrl}/#logo`,
-          url: `${siteUrl}/icon.png`,
-          contentUrl: `${siteUrl}/icon.png`,
+          url: `${siteUrl}/brand/eavesence-mark-512.png`,
+          contentUrl: `${siteUrl}/brand/eavesence-mark-512.png`,
           width: 512,
           height: 512,
           caption: "EAVESENCE",

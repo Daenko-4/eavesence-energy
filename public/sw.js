@@ -1,11 +1,14 @@
-const CACHE_NAME = "eavesence-pwa-v2";
+const CACHE_NAME = "eavesence-pwa-v3";
 const OFFLINE_URL = "/offline";
 const APP_ROUTES = ["/home", "/de/zuhause"];
 const PRECACHE_URLS = [
   OFFLINE_URL,
   "/manifest.webmanifest",
-  "/brand/eavesence-icon-approved-final-192.png",
-  "/brand/eavesence-icon-approved-final-512.png",
+  "/brand/eavesence-mark-180.png",
+  "/brand/eavesence-mark-96.png",
+  "/favicon.ico",
+  "/brand/eavesence-mark-192.png",
+  "/brand/eavesence-mark-512.png",
 ];
 
 async function precacheAppShell() {
