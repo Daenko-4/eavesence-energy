@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-for (const de of [false, true]) for (const width of [320, 1365]) test(`icon header and clear payday setup ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
+for (const de of [false, true]) for (const width of [320, 1365]) test(`modern header and clear payday setup ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
   const t = (a: string, b: string) => de ? a : b;
   await page.setViewportSize({ width, height: 940 });
   await page.clock.setFixedTime(new Date('2026-10-11T12:00:00Z'));
@@ -23,13 +23,22 @@ for (const de of [false, true]) for (const width of [320, 1365]) test(`icon head
   await expect(page.locator('[data-home-plan-content]')).toBeVisible();
   if (width >= 1024) await expect(header.getByRole('link', { name: /Planen & sparen|Plan & save/ })).toHaveAttribute('aria-current', 'location');
   if (width >= 1024) {
-    // The hidden animated wordmark must not intercept the first navigation icon.
+    // The hidden animated wordmark must not intercept the first navigation link.
     await header.locator('[data-navigation-key="household"]').click({ position: { x: 22, y: 19 } });
     await expect(page.locator('[data-home-plan-content]')).toBeHidden();
     await header.getByRole('link', { name: /Planen & sparen|Plan & save/ }).click();
     await expect(page.locator('[data-home-plan-content]')).toBeVisible();
   }
-  await header.screenshot({ path: info.outputPath(`header-three-${de ? 'de' : 'en'}-${width}.png`) });
+  const language = header.locator('[data-header-language]');
+  await expect(language).toHaveAttribute('data-active-language', de ? 'de' : 'en');
+  await expect(language.locator('[data-active="true"]')).toHaveText(de ? 'DE' : 'EN');
+  await expect(language.locator('svg')).toHaveCount(0);
+  if (width < 1024) {
+    await header.getByRole('button', { name: t('Navigation öffnen', 'Open navigation') }).click();
+    await page.screenshot({ path: info.outputPath(`header-menu-${de ? 'de' : 'en'}-${width}.png`) });
+    await header.getByRole('button', { name: t('Navigation schließen', 'Close navigation') }).click();
+  }
+  await header.screenshot({ path: info.outputPath(`header-modern-${de ? 'de' : 'en'}-${width}.png`) });
   if (width === 320) {
     const boxes = await header.evaluate(el => ['[data-header-menu-button]', '[data-header-mobile-logo]', '[data-header-language]'].map(s => { const r = el.querySelector(s)!.getBoundingClientRect(); return { left: r.left, right: r.right }; }));
     expect(boxes[0].right).toBeLessThan(boxes[1].left);
@@ -68,7 +77,8 @@ for (const de of [false, true]) for (const width of [320, 1365]) test(`icon head
   await header.locator('[data-header-language]').click();
   await expect(page).toHaveURL(new RegExp(`${de ? '/home' : '/de/zuhause'}#home-plan$`));
   await expect(page.locator('[data-home-plan-content]')).toBeVisible();
-  await expect(header.locator('[data-header-language]')).toContainText(de ? 'EN' : 'DE');
+  await expect(language).toHaveAttribute('data-active-language', de ? 'en' : 'de');
+  await expect(language.locator('[data-active="true"]')).toHaveText(de ? 'EN' : 'DE');
 });
 
 test('search and Apple icons use the current brand with crawlable canonical pages', async ({ page, request }) => {

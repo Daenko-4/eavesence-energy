@@ -38,7 +38,7 @@ test('language intro respects reduced motion and keeps navigation available', as
 
 for (const width of [1365, 390]) {
   for (const locale of ['de', 'en'] as const) {
-    test(`home disclosures and Pro pill align in ${locale} at ${width}px`, async ({ page }, info) => {
+    test(`home disclosures and workspace navigation align in ${locale} at ${width}px`, async ({ page }, info) => {
       const de = locale === 'de';
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -62,16 +62,19 @@ for (const width of [1365, 390]) {
       expect(Math.abs(textLeft.left - pillContent!.x)).toBeLessThanOrEqual(1);
       const summaryBox = await summary.locator('.home-cost-area-control').boundingBox();
       expect(Math.abs(textLeft.centerY - (summaryBox!.y + summaryBox!.height / 2))).toBeLessThanOrEqual(2);
-      const pro = page.getByRole('navigation', { name: de ? 'Bereich wählen' : 'Choose workspace' }).getByRole('button', { name: /Plan & save|Planen & sparen/ });
-      const action = page.getByRole('group', { name: de ? 'Aktionen für dein Zuhause' : 'Home actions' }).getByRole('button').first();
-      for (const property of ['borderRadius', 'fontSize']) {
-        const values = await Promise.all([pro, action].map(locator => locator.evaluate((el, prop) => getComputedStyle(el).getPropertyValue(prop === 'borderRadius' ? 'border-radius' : 'font-size'), property)));
-        expect(values[0]).toBe(values[1]);
-      }
-      expect((await pro.boundingBox())!.height).toBe((await action.boundingBox())!.height);
+      const workspace = page.getByRole('navigation', { name: de ? 'Bereich wählen' : 'Choose workspace' });
+      const pro = workspace.getByRole('button', { name: /Plan & save|Planen & sparen/ });
+      const overview = workspace.getByRole('button', { name: de ? 'Übersicht' : 'Overview', exact: true });
+      const proBox = (await pro.boundingBox())!, overviewBox = (await overview.boundingBox())!;
+      expect(proBox.height).toBe(overviewBox.height);
+      expect(proBox.y).toBe(overviewBox.y);
+      expect(await pro.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      expect(await workspace.evaluate(el => el.getBoundingClientRect().right <= innerWidth)).toBe(true);
+      await workspace.screenshot({ path: info.outputPath(`workspace-overview-${locale}-${width}.png`) });
       await pro.click();
       await expect(pro).toHaveAttribute('aria-pressed', 'true');
       await expect(page.locator('[data-home-plan-content]')).toBeVisible();
+      await workspace.screenshot({ path: info.outputPath(`workspace-plan-${locale}-${width}.png`) });
       await page.getByRole('navigation', { name: de ? 'Bereich wählen' : 'Choose workspace' }).getByRole('button', { name: de ? 'Übersicht' : 'Overview', exact: true }).click();
       await summary.scrollIntoViewIfNeeded();
       const areaBar = page.locator('[data-cost-area-overview]');
