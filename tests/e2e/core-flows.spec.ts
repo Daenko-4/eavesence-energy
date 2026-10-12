@@ -1496,7 +1496,10 @@ for (const width of [320, 390, 1365]) {
     await expect(page.getByRole("heading", { name: "What can I spend until my next payday?", exact: true })).toBeHidden();
     await openPlan(page, "payday");
     await expect(page.getByRole("heading", { name: "What can I spend until my next payday?", exact: true })).toBeVisible();
-    await openPlan(page, "savings");
+    const questions = page.getByRole("group", { name: "Choose planning question" });
+    await questions.screenshot({ path: info.outputPath(`pro-questions-${width}.png`) });
+    // The clear space above a compact pill remains part of its phone tap target.
+    await questions.getByRole("button", { name: "Find realistic savings" }).click({ position: { x: 20, y: 2 } });
     await expect(page.getByRole("region", { name: "02 · Where can I realistically save?", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "What can I spend until my next payday?", exact: true })).toBeHidden();
     await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toHaveCount(0);
