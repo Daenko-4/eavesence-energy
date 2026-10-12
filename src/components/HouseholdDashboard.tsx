@@ -2302,7 +2302,20 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <h2 className="mt-2 site-section-title">{locale === "de" ? "Dein Plan" : "Your plan"}</h2>
             <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{locale === "de" ? "Zuerst dein Spielraum bis zum Gehalt. Danach konkrete Kosten prüfen und bestätigte Ersparnisse verfolgen." : "Start with your budget until payday. Then review specific costs and track confirmed savings."}</p>
             <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="mt-4 flex flex-wrap gap-2">
-              {(["payday", "savings", "progress"] as const).map((item, index) => <button type="button" key={item} aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"} aria-pressed={planQuestion === item} onClick={() => setPlanQuestion(item)} className={`min-h-11 rounded-full border px-4 text-left text-[13px] font-semibold ${planQuestion === item ? "border-[#087a45] bg-[#ddf8e9] text-[#087a45]" : "border-[#dfe5dd] bg-white text-[#52605b]"}`}>{index+1} · {item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</button>)}
+              {(["payday", "savings", "progress"] as const).map((item, index) => (
+                <button
+                  type="button"
+                  key={item}
+                  aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
+                  aria-pressed={planQuestion === item}
+                  onClick={() => setPlanQuestion(item)}
+                  className="group inline-flex min-h-11 items-center rounded-full bg-transparent p-0 text-left focus-visible:outline-none"
+                >
+                  <span className={`inline-flex min-h-8 items-center rounded-full border px-2.5 text-[11px] font-semibold leading-4 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-[#24272c] ${planQuestion === item ? "border-[#087a45] bg-[#ddf8e9] text-[#087a45]" : "border-[#dfe5dd] bg-white text-[#52605b]"}`}>
+                    {index+1} · {item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}
+                  </span>
+                </button>
+              ))}
             </div>
             <div hidden={planQuestion !== "payday"}>
           <PaydayPanel onSavings={()=>setPlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
