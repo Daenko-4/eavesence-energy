@@ -1065,7 +1065,7 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
         return { color: style.color, fontWeight: style.fontWeight };
       }),
     );
-  // One active green pill, with the other primary links using the same color.
+  // One active green link, with consistent typography and no layout movement.
   expect(navigationStyles).toHaveLength(3);
   expect(navigationStyles[0].color).toBe(navigationStyles[1].color);
   await expect(calculatorLink).toHaveCSS("color", "rgb(8, 122, 69)");
@@ -1082,6 +1082,23 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
   );
 
   expect(Math.abs(xBefore - xAfterPointerLeave)).toBeLessThan(0.5);
+
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  const highlight = page.locator(".header-navigation-highlight");
+  const planLink = page.locator('[data-navigation-key="planning"]');
+  await planLink.hover();
+  await expect(highlight).toHaveCSS("transition-duration", "0.36s, 0.36s, 0.18s");
+  await expect.poll(async () => {
+    const indicator = (await highlight.boundingBox())!, link = (await planLink.boundingBox())!;
+    return Math.abs(indicator.x - link.x) + Math.abs(indicator.width - link.width);
+  }).toBeLessThan(1);
+  await calculatorLink.focus();
+  await expect.poll(async () => {
+    const indicator = (await highlight.boundingBox())!, link = (await calculatorLink.boundingBox())!;
+    return Math.abs(indicator.x - link.x) + Math.abs(indicator.width - link.width);
+  }).toBeLessThan(1);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(highlight).toHaveCSS("transition-duration", "0s");
 
   const logo = page.locator('a[aria-expanded]').first();
   await expect(logo).toHaveAttribute("aria-expanded", "true");

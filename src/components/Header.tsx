@@ -49,17 +49,6 @@ const navigation = {
   },
 } as const;
 
-function NavigationIcon({ name }: { name: NavigationKey | "language" }) {
-  const paths = {
-    household: <><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></>,
-    planning: <><path d="M4 4v16h16"/><path d="m7 14 4-4 4 2 5-6"/><path d="M16 6h4v4"/></>,
-    calculator: <><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h1m3 0h1m3 0h1M8 15h1m3 0h1m3 0h1M8 18h1m3 0h1m3 0h1"/></>,
-    faq: <><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2-2.5 4m0 3h.01"/></>,
-    language: <><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c5 5 5 13 0 18-5-5-5-13 0-18Z"/></>,
-  };
-  return <svg className="header-navigation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
-}
-
 function NavigationLink({
   href,
   active,
@@ -85,8 +74,7 @@ function NavigationLink({
       data-navigation-key={navigationKey}
       className="header-navigation-link"
     >
-      <NavigationIcon name={navigationKey} />
-      {children}
+      <span className="header-navigation-label">{children}</span>
     </a>
   );
 }
@@ -348,7 +336,7 @@ function HeaderContent({
       const navigationRect = navigationElement.getBoundingClientRect();
       const linkRect = activeLink.getBoundingClientRect();
       indicatorElement.style.width = `${linkRect.width}px`;
-      indicatorElement.style.transform = `translateX(${linkRect.left - navigationRect.left}px)`;
+      indicatorElement.style.transform = `translateX(${linkRect.left - navigationRect.left - navigationElement.clientLeft}px)`;
       indicatorElement.style.opacity = "1";
     }
 
@@ -570,7 +558,7 @@ function HeaderContent({
                   {text.household}
                 </NavigationLink>
                 <NavigationLink href={planningHref} active={activeNavigation === "planning"} navigationKey="planning" onPreview={setPreviewNavigation}>
-                  {text.planning}<span className="header-pro-badge">Pro</span>
+                  {text.planning}<span className="navigation-pro-label">Pro</span>
                 </NavigationLink>
                 <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator" onPreview={setPreviewNavigation}>
                   {text.calculator}
@@ -606,13 +594,18 @@ function HeaderContent({
               closeMenu();
             }}
             className="header-language-link"
+            data-active-language={locale}
+            title={locale === "de" ? "Zu Englisch wechseln" : "Switch to German"}
             aria-label={
               locale === "de" ? "Aktuelle Sprache: Deutsch. Zu Englisch wechseln." : "Current language: English. Switch to German."
             }
           >
-            <NavigationIcon name="language" />
-            <span lang={locale}>{locale.toUpperCase()}</span>
-            <span aria-hidden="true" className="text-[13px] font-normal">↔</span>
+            <span className="header-language-highlight" aria-hidden="true" />
+            {(["de", "en"] as const).map((option) => (
+              <span key={option} lang={option} data-active={option === locale} className="header-language-option">
+                {option.toUpperCase()}
+              </span>
+            ))}
           </Link>
         </div>
 
@@ -637,9 +630,10 @@ function HeaderContent({
                   }}
                   className="header-navigation-link"
                 >
-                  <NavigationIcon name={navigationKey} />
-                  {label}
-                  {navigationKey === "planning" && <span className="header-pro-badge">Pro</span>}
+                  <span className="header-navigation-label">
+                    {label}
+                    {navigationKey === "planning" && <span className="navigation-pro-label">Pro</span>}
+                  </span>
                 </a>
               ))}
             </div>
