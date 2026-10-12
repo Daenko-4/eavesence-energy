@@ -448,8 +448,8 @@ textarea {
 .header-navigation-highlight {
   position: absolute;
   z-index: 0;
-  top: 5px;
-  bottom: 5px;
+  top: 4px;
+  bottom: 4px;
   left: 0;
   border: 1px solid #bce2c8;
   border-radius: 11px;

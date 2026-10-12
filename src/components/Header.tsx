@@ -336,7 +336,7 @@ function HeaderContent({
       const navigationRect = navigationElement.getBoundingClientRect();
       const linkRect = activeLink.getBoundingClientRect();
       indicatorElement.style.width = `${linkRect.width}px`;
-      indicatorElement.style.transform = `translateX(${linkRect.left - navigationRect.left}px)`;
+      indicatorElement.style.transform = `translateX(${linkRect.left - navigationRect.left - navigationElement.clientLeft}px)`;
       indicatorElement.style.opacity = "1";
     }
 
