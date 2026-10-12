@@ -68,7 +68,7 @@ function NavigationLink({
       className="header-navigation-link"
     >
       <span className="header-navigation-label">{children}</span>
-      <span className="navigation-arrow" aria-hidden="true">↗</span>
+      <span className="navigation-indicator site-disclosure-icon" aria-hidden="true">+</span>
     </a>
   );
 }
@@ -93,9 +93,7 @@ function HeaderContent({
   const [homeView, setHomeView] = useState<"overview" | "plan">("overview");
   const [languageIntro, setLanguageIntro] = useState(false);
   const languageIntroRef = useRef<string | null>(null);
-  const [desktopNavigationOpen, setDesktopNavigationOpen] = useState(
-    !isCalculatorPage,
-  );
+  const [desktopNavigationOpen, setDesktopNavigationOpen] = useState(true);
   const [activeHomeSection, setActiveHomeSection] =
     useState<NavigationKey>("calculator");
   const closeNavigationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -169,7 +167,7 @@ function HeaderContent({
         window.sessionStorage.removeItem(LANGUAGE_INTRO_KEY);
       }
     } catch { /* Navigation still works when browser storage is unavailable. */ }
-    if (!isCalculatorPage && languageIntroRef.current !== pathname) return;
+    if (languageIntroRef.current !== pathname) return;
 
     const desktopQuery = window.matchMedia("(min-width: 1024px)");
     const reducedMotionQuery = window.matchMedia(
@@ -232,7 +230,7 @@ function HeaderContent({
         introCloseTimeoutRef.current = null;
       }
     };
-  }, [isCalculatorPage, pathname]);
+  }, [pathname]);
 
   useEffect(() => {
     if (!isCalculatorPage) return;
@@ -421,7 +419,7 @@ function HeaderContent({
             aria-label={text.homeLabel}
           >
             <BrandLogo
-              markClassName={`${isCalculatorPage || languageIntro ? "eavesence-logo-load-animation " : ""}h-8 w-8`}
+              markClassName={`${languageIntro ? "eavesence-logo-load-animation " : ""}h-8 w-8`}
               wordmarkClassName="text-[1.05rem]"
               className="inline-flex items-center gap-2"
             />
@@ -454,7 +452,7 @@ function HeaderContent({
               aria-label={text.homeLabel}
             >
               <BrandMark
-                className={`${isCalculatorPage || languageIntro ? "eavesence-logo-load-animation " : ""}h-8 w-8 shrink-0`}
+                className={`${languageIntro ? "eavesence-logo-load-animation " : ""}h-8 w-8 shrink-0`}
               />
               <span
                 className={`shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
@@ -547,7 +545,7 @@ function HeaderContent({
                     {label}
                     {navigationKey === "planning" && <span className="navigation-pro-label">Pro</span>}
                   </span>
-                  <span className="navigation-arrow" aria-hidden="true">↗</span>
+                  <span className="navigation-indicator site-disclosure-icon" aria-hidden="true">+</span>
                 </a>
               ))}
             </div>

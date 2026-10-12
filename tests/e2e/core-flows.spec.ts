@@ -976,24 +976,36 @@ test("legal-page footer links open and correctly position the FAQ", async ({
   }
 });
 
-test("desktop navigation opens after the logo intro and stays open", async ({
-  page,
-}) => {
-  await page.goto("/calculator");
+for (const width of [1365, 390]) {
+  for (const locale of ["en", "de"] as const) {
+    test(`calculator navigation stays available without replaying the logo in ${locale} at ${width}px`, async ({ page }, info) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      const calculator = locale === "de" ? "/de/rechner" : "/calculator";
+      const home = locale === "de" ? "/de/zuhause" : "/home";
+      const header = page.locator("header");
+      const logo = header.locator('a[aria-expanded]').first();
 
-  const logo = page.locator('a[aria-expanded]').first();
-  await expect(logo).toHaveAttribute("aria-expanded", "false");
-  await expect(logo).toHaveAttribute("aria-expanded", "true", {
-    timeout: 3_000,
-  });
-  await page.waitForTimeout(2_500);
-  await expect(logo).toHaveAttribute("aria-expanded", "true");
+      await page.goto(calculator);
+      await expect(logo).toHaveAttribute("aria-expanded", "true");
+      await expect(header.locator(".eavesence-logo-load-animation")).toHaveCount(0);
+      await page.reload();
+      await expect(logo).toHaveAttribute("aria-expanded", "true");
+      await expect(header.locator(".eavesence-logo-load-animation")).toHaveCount(0);
 
-  await page.reload();
-  await expect(logo).toHaveAttribute("aria-expanded", "true", {
-    timeout: 3_000,
-  });
-});
+      await page.goto(home);
+      if (width < 1024) {
+        await header.getByRole("button", { name: locale === "de" ? "Navigation öffnen" : "Open navigation" }).click();
+      }
+      await header.getByRole("link", { name: /Stromkosten-Rechner|Electricity Calculator/ }).click();
+      await expect(page).toHaveURL(calculator);
+      await expect(logo).toHaveAttribute("aria-expanded", "true");
+      await expect(header.locator(".eavesence-logo-load-animation")).toHaveCount(0);
+      if (width >= 1024) await expect(header.locator("nav").first()).toBeVisible();
+      await header.screenshot({ path: info.outputPath(`calculator-header-${locale}-${width}.png`) });
+    });
+  }
+}
 
 test("subpages show the open header immediately without replaying the logo intro", async ({
   page,
@@ -1085,21 +1097,24 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const planLink = page.locator('[data-navigation-key="planning"]');
-  const planArrow = planLink.locator(".navigation-arrow");
+  const planIndicator = planLink.locator(".navigation-indicator");
   const planBefore = (await planLink.boundingBox())!.x;
-  await expect(planArrow).toHaveCSS("opacity", "0");
+  await expect(planIndicator).toHaveText("+");
+  await expect(planIndicator).toHaveCSS("rotate", "0deg");
+  await expect(calculatorLink.locator(".navigation-indicator")).toHaveCSS("rotate", "-45deg");
   await planLink.hover();
-  await expect(planArrow).toHaveCSS("transition-duration", "0.18s, 0.24s");
-  await expect(planArrow).toHaveCSS("opacity", "1");
-  await expect(planArrow).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
+  await expect(planIndicator).toHaveCSS("transition-duration", "0.36s");
+  await expect(planIndicator).toHaveCSS("rotate", "-45deg");
   expect(Math.abs((await planLink.boundingBox())!.x - planBefore)).toBeLessThan(0.5);
   await page.mouse.move(10, 180);
-  await expect(planArrow).toHaveCSS("opacity", "0");
-  await planLink.focus();
-  await expect(planArrow).toHaveCSS("opacity", "1");
+  await expect(planIndicator).toHaveCSS("rotate", "0deg");
+  await page.locator('[data-navigation-key="household"]').focus();
+  await page.keyboard.press("Tab");
+  await expect(planLink).toBeFocused();
+  await expect(planIndicator).toHaveCSS("rotate", "-45deg");
   expect(Math.abs((await planLink.boundingBox())!.x - planBefore)).toBeLessThan(0.5);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(planArrow).toHaveCSS("transition-duration", "0s");
+  await expect(planIndicator).toHaveCSS("transition-duration", "0s");
 
   const logo = page.locator('a[aria-expanded]').first();
   await expect(logo).toHaveAttribute("aria-expanded", "true");

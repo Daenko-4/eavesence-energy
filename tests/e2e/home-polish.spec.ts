@@ -10,14 +10,20 @@ for (const width of [1365, 390]) {
         }
       });
     });
-    await page.goto('/home');
-    for (const [path, locale] of [['/de/zuhause', 'de'], ['/home', 'en']]) {
-      await page.locator('[data-header-language]').click();
-      await expect(page).toHaveURL(path);
-      await expect(page.locator('header .eavesence-logo-load-animation')).toHaveCount(2);
-      await expect.poll(() => page.locator('html').getAttribute('data-logo-animation-locale')).toBe(locale);
-      if (width >= 1024) {
-        await expect(page.locator('header a[aria-expanded]').first()).toHaveAttribute('aria-expanded', 'true', { timeout: 4000 });
+    for (const [start, destinations] of [
+      ['/home', [['/de/zuhause', 'de'], ['/home', 'en']]],
+      ['/calculator', [['/de/rechner', 'de'], ['/calculator', 'en']]],
+    ] as const) {
+      await page.goto(start);
+      await expect(page.locator('header .eavesence-logo-load-animation')).toHaveCount(0);
+      for (const [path, locale] of destinations) {
+        await page.locator('[data-header-language]').click();
+        await expect(page).toHaveURL(path);
+        await expect(page.locator('header .eavesence-logo-load-animation')).toHaveCount(2);
+        await expect.poll(() => page.locator('html').getAttribute('data-logo-animation-locale')).toBe(locale);
+        if (width >= 1024) {
+          await expect(page.locator('header a[aria-expanded]').first()).toHaveAttribute('aria-expanded', 'true', { timeout: 4000 });
+        }
       }
     }
     // Ordinary visits still show subpage navigation immediately.
@@ -72,12 +78,18 @@ for (const width of [1365, 390]) {
       expect(proBox.y).toBe(overviewBox.y);
       expect(await pro.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
       expect(await workspace.evaluate(el => el.getBoundingClientRect().right <= innerWidth)).toBe(true);
+      await expect(overview.locator('.navigation-indicator')).toHaveText('+');
+      await expect(overview.locator('.navigation-indicator')).toHaveCSS('rotate', '-45deg');
+      await expect(pro.locator('.navigation-indicator')).toHaveCSS('rotate', '0deg');
       await workspace.screenshot({ path: info.outputPath(`workspace-overview-${locale}-${width}.png`) });
       await pro.click();
       await expect(pro).toHaveAttribute('aria-pressed', 'true');
+      await expect(pro.locator('.navigation-indicator')).toHaveCSS('rotate', '-45deg');
+      await expect(overview.locator('.navigation-indicator')).toHaveCSS('rotate', '0deg');
       await expect(page.locator('[data-home-plan-content]')).toBeVisible();
       await workspace.screenshot({ path: info.outputPath(`workspace-plan-${locale}-${width}.png`) });
       await page.getByRole('navigation', { name: de ? 'Bereich wählen' : 'Choose workspace' }).getByRole('button', { name: de ? 'Übersicht' : 'Overview', exact: true }).click();
+      await expect(pro.locator('.navigation-indicator')).toHaveCSS('rotate', '0deg');
       await summary.scrollIntoViewIfNeeded();
       const areaBar = page.locator('[data-cost-area-overview]');
       const areaNav = areaBar.getByRole('navigation');

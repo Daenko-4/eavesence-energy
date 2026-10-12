@@ -1862,8 +1862,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
 
           <nav aria-label={locale === "de" ? "Bereich wählen" : "Choose workspace"} data-workspace={view} className="home-workspace-navigation mt-6">
-            <button type="button" aria-pressed={view === "overview"} onClick={() => changeWorkspace("overview")} className="home-workspace-link">{locale === "de" ? "Übersicht" : "Overview"}<span className="navigation-arrow" aria-hidden="true">↗</span></button>
-            {homeRelease.proPreview && <button type="button" aria-pressed={view === "plan"} onClick={() => { changeWorkspace("plan"); setSettingsOpen(false); }} className="home-workspace-link">{locale === "de" ? "Planen & sparen" : "Plan & save"}<span className="navigation-pro-label">Pro</span><span className="navigation-arrow" aria-hidden="true">↗</span></button>}
+            <button type="button" aria-pressed={view === "overview"} onClick={() => changeWorkspace("overview")} className="home-workspace-link">{locale === "de" ? "Übersicht" : "Overview"}<span className="navigation-indicator site-disclosure-icon" aria-hidden="true">+</span></button>
+            {homeRelease.proPreview && <button type="button" aria-pressed={view === "plan"} onClick={() => { changeWorkspace("plan"); setSettingsOpen(false); }} className="home-workspace-link">{locale === "de" ? "Planen & sparen" : "Plan & save"}<span className="navigation-pro-label">Pro</span><span className="navigation-indicator site-disclosure-icon" aria-hidden="true">+</span></button>}
           </nav>
           <div hidden={view !== "overview"} data-home-overview-content>
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}

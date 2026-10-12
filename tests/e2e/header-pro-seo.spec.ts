@@ -37,6 +37,11 @@ for (const de of [false, true]) for (const width of [320, 1365]) test(`minimal h
   if (width >= 1024) await expect(header.locator('.header-navigation-links')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   if (width < 1024) {
     await header.getByRole('button', { name: t('Navigation öffnen', 'Open navigation') }).click();
+    const menu = header.locator('.header-navigation-links-mobile');
+    await expect(menu.locator('.navigation-indicator')).toHaveCount(4);
+    await expect(menu.locator('.navigation-indicator')).toHaveText(['+', '+', '+', '+']);
+    await expect(menu.locator('[aria-current] .navigation-indicator')).toHaveCSS('rotate', '-45deg');
+    await expect(menu.getByRole('link', { name: /Stromkosten-Rechner|Electricity Calculator/ }).locator('.navigation-indicator')).toHaveCSS('rotate', '0deg');
     await page.screenshot({ path: info.outputPath(`header-menu-${de ? 'de' : 'en'}-${width}.png`) });
     await header.getByRole('button', { name: t('Navigation schließen', 'Close navigation') }).click();
   }
