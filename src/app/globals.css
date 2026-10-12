@@ -339,7 +339,7 @@ textarea {
   opacity: 0.58;
 }
 
-/* Open text navigation: a small arrow identifies focus, hover and the active page. */
+/* Navigation uses the same plus-to-cross rotation as the page disclosures. */
 .header-navigation-links {
   display: inline-flex;
   align-items: center;
@@ -380,23 +380,23 @@ textarea {
   font-weight: 500;
   letter-spacing: normal;
 }
-.navigation-arrow {
+.navigation-indicator {
   display: inline-block;
   flex-shrink: 0;
-  width: 12px;
-  font-size: 13px;
+  width: 14px;
+  height: 14px;
+  font-size: 16px;
   font-weight: 400;
-  line-height: 20px;
-  opacity: 0;
-  transform: translate(-2px, 2px);
-  transition: opacity 180ms ease, transform 240ms cubic-bezier(.2,.8,.2,1);
+  line-height: 14px;
+  text-align: center;
+  rotate: 0deg;
 }
-.header-navigation-link:hover .navigation-arrow,
-.header-navigation-link:focus-visible .navigation-arrow,
-.header-navigation-link[aria-current] .navigation-arrow,
-.home-workspace-link:hover .navigation-arrow,
-.home-workspace-link:focus-visible .navigation-arrow,
-.home-workspace-link[aria-pressed="true"] .navigation-arrow { opacity: 1; transform: translate(0, 0); }
+.header-navigation-link:hover .navigation-indicator,
+.header-navigation-link:focus-visible .navigation-indicator,
+.header-navigation-link[aria-current] .navigation-indicator,
+.home-workspace-link:hover .navigation-indicator,
+.home-workspace-link:focus-visible .navigation-indicator,
+.home-workspace-link[aria-pressed="true"] .navigation-indicator { rotate: -45deg; }
 .header-help-link { display: inline-flex; align-items: center; min-height: 44px; padding: 4px 0; font-size: 12px; font-weight: 500; color: #6b6b6b !important; transition: color 180ms ease; }
 .header-help-link:hover, .header-help-link[aria-current] { color: #24272c !important; }
 .header-language-link {
@@ -461,7 +461,7 @@ textarea {
 @media (prefers-reduced-motion: reduce) {
   .header-navigation-link,
   .header-help-link,
-  .navigation-arrow,
+  .navigation-indicator,
   .header-language-arrow {
     transition: none;
   }
