@@ -53,28 +53,22 @@ function NavigationLink({
   href,
   active,
   navigationKey,
-  onPreview,
-  onActivate,
   children,
 }: {
   href: string;
   active: boolean;
   navigationKey: NavigationKey;
-  onPreview: (navigationKey: NavigationKey) => void;
-  onActivate?: (event: MouseEvent<HTMLAnchorElement>) => void;
   children: ReactNode;
 }) {
   return (
     <a
       href={href}
-      onClick={onActivate}
-      onMouseEnter={() => onPreview(navigationKey)}
-      onFocus={() => onPreview(navigationKey)}
       aria-current={active ? "location" : undefined}
       data-navigation-key={navigationKey}
       className="header-navigation-link"
     >
       <span className="header-navigation-label">{children}</span>
+      <span className="navigation-arrow" aria-hidden="true">↗</span>
     </a>
   );
 }
@@ -102,8 +96,6 @@ function HeaderContent({
   const [desktopNavigationOpen, setDesktopNavigationOpen] = useState(
     !isCalculatorPage,
   );
-  const [previewNavigation, setPreviewNavigation] =
-    useState<NavigationKey | null>(null);
   const [activeHomeSection, setActiveHomeSection] =
     useState<NavigationKey>("calculator");
   const closeNavigationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -116,8 +108,6 @@ function HeaderContent({
   const introCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suppressPointerOpenRef = useRef(false);
   const headerRef = useRef<HTMLElement>(null);
-  const desktopNavigationRef = useRef<HTMLDivElement>(null);
-  const activeIndicatorRef = useRef<HTMLSpanElement>(null);
   const text = navigation[locale];
 
   const calculatorHref = calculatorHrefOverride ?? getCalculatorHref(locale);
@@ -130,7 +120,6 @@ function HeaderContent({
       : isCalculatorPage
         ? activeHomeSection
         : null;
-  const indicatedNavigation = previewNavigation ?? activeNavigation;
 
   const otherLocale: Locale = locale === "de" ? "en" : "de";
   const languageBaseHref =
@@ -308,52 +297,6 @@ function HeaderContent({
     };
   }, [isCalculatorPage]);
 
-  useEffect(() => {
-    let disposed = false;
-
-    function positionActiveIndicator() {
-      if (disposed) return;
-      const navigationElement = desktopNavigationRef.current;
-      const indicatorElement = activeIndicatorRef.current;
-
-      if (
-        !navigationElement ||
-        !indicatorElement ||
-        !indicatedNavigation
-      ) {
-        if (indicatorElement) indicatorElement.style.opacity = "0";
-        return;
-      }
-
-      const activeLink = navigationElement.querySelector<HTMLElement>(
-        `[data-navigation-key="${indicatedNavigation}"]`,
-      );
-      if (!activeLink) {
-        indicatorElement.style.opacity = "0";
-        return;
-      }
-
-      const navigationRect = navigationElement.getBoundingClientRect();
-      const linkRect = activeLink.getBoundingClientRect();
-      indicatorElement.style.width = `${linkRect.width}px`;
-      indicatorElement.style.transform = `translateX(${linkRect.left - navigationRect.left - navigationElement.clientLeft}px)`;
-      indicatorElement.style.opacity = "1";
-    }
-
-    const frame = window.requestAnimationFrame(positionActiveIndicator);
-    window.addEventListener("resize", positionActiveIndicator);
-    const resizeObserver = new ResizeObserver(positionActiveIndicator);
-    if (desktopNavigationRef.current) resizeObserver.observe(desktopNavigationRef.current);
-    void document.fonts.ready.then(positionActiveIndicator);
-
-    return () => {
-      disposed = true;
-      window.cancelAnimationFrame(frame);
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", positionActiveIndicator);
-    };
-  }, [indicatedNavigation, desktopNavigationOpen]);
-
   function openDesktopNavigation() {
     if (introOpenTimeoutRef.current) {
       clearTimeout(introOpenTimeoutRef.current);
@@ -381,7 +324,6 @@ function HeaderContent({
       clearTimeout(logoInteractionTimeoutRef.current);
       logoInteractionTimeoutRef.current = null;
     }
-    setPreviewNavigation(null);
   }
 
   function closeMenu() {
@@ -440,7 +382,6 @@ function HeaderContent({
     }, 1450);
     closeMenu();
     setDesktopNavigationOpen(true);
-    setPreviewNavigation(null);
     if (closeNavigationTimeoutRef.current) {
       clearTimeout(closeNavigationTimeoutRef.current);
       closeNavigationTimeoutRef.current = null;
@@ -465,7 +406,7 @@ function HeaderContent({
             data-header-menu-button
             type="button"
             onClick={() => setMenuOpen((current) => !current)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-green-200 hover:bg-green-50 hover:text-[var(--brand-green-dark)] lg:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-[#24272c] lg:hidden"
             aria-label={menuOpen ? text.closeNavigation : text.openNavigation}
             aria-expanded={menuOpen}
           >
@@ -491,15 +432,6 @@ function HeaderContent({
           <div
             onMouseLeave={handleDesktopNavigationMouseLeave}
             onFocusCapture={openDesktopNavigation}
-            onBlurCapture={(event) => {
-              if (
-                event.relatedTarget instanceof Node &&
-                event.currentTarget.contains(event.relatedTarget)
-              ) {
-                return;
-              }
-              setPreviewNavigation(null);
-            }}
             className="absolute left-1/2 top-1/2 hidden h-[68px] w-[760px] -translate-x-1/2 -translate-y-1/2 lg:block"
           >
             <Link
@@ -536,16 +468,6 @@ function HeaderContent({
             </Link>
 
             <nav
-              onMouseLeave={() => setPreviewNavigation(null)}
-              onBlurCapture={(event) => {
-                if (
-                  event.relatedTarget instanceof Node &&
-                  event.currentTarget.contains(event.relatedTarget)
-                ) {
-                  return;
-                }
-                setPreviewNavigation(null);
-              }}
               aria-label={text.openNavigation}
               className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center transition-[opacity,visibility] duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                 desktopNavigationOpen
@@ -553,14 +475,14 @@ function HeaderContent({
                   : "invisible pointer-events-none opacity-0 delay-0"
               }`}
             >
-              <div ref={desktopNavigationRef} className="header-navigation-dock">
-                <NavigationLink href={`${householdHref}#home-overview`} active={activeNavigation === "household"} navigationKey="household" onPreview={setPreviewNavigation}>
+              <div className="header-navigation-links">
+                <NavigationLink href={`${householdHref}#home-overview`} active={activeNavigation === "household"} navigationKey="household">
                   {text.household}
                 </NavigationLink>
-                <NavigationLink href={planningHref} active={activeNavigation === "planning"} navigationKey="planning" onPreview={setPreviewNavigation}>
+                <NavigationLink href={planningHref} active={activeNavigation === "planning"} navigationKey="planning">
                   {text.planning}<span className="navigation-pro-label">Pro</span>
                 </NavigationLink>
-                <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator" onPreview={setPreviewNavigation}>
+                <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator">
                   {text.calculator}
                 </NavigationLink>
                 <a
@@ -572,11 +494,6 @@ function HeaderContent({
                 >
                   {text.faq}
                 </a>
-                <span
-                  ref={activeIndicatorRef}
-                  aria-hidden="true"
-                  className="header-navigation-highlight"
-                />
               </div>
             </nav>
           </div>
@@ -600,18 +517,14 @@ function HeaderContent({
               locale === "de" ? "Aktuelle Sprache: Deutsch. Zu Englisch wechseln." : "Current language: English. Switch to German."
             }
           >
-            <span className="header-language-highlight" aria-hidden="true" />
-            {(["de", "en"] as const).map((option) => (
-              <span key={option} lang={option} data-active={option === locale} className="header-language-option">
-                {option.toUpperCase()}
-              </span>
-            ))}
+            <span lang={locale} data-active="true">{locale.toUpperCase()}</span>
+            <span className="header-language-arrow" aria-hidden="true">↔</span>
           </Link>
         </div>
 
         {menuOpen && (
           <nav className="absolute inset-x-0 top-full px-5 py-3 sm:px-6 lg:hidden">
-            <div className="header-navigation-dock header-navigation-dock-mobile">
+            <div className="header-navigation-links header-navigation-links-mobile">
               {([
                 [`${householdHref}#home-overview`, text.household, "household"],
                 [planningHref, text.planning, "planning"],
@@ -634,6 +547,7 @@ function HeaderContent({
                     {label}
                     {navigationKey === "planning" && <span className="navigation-pro-label">Pro</span>}
                   </span>
+                  <span className="navigation-arrow" aria-hidden="true">↗</span>
                 </a>
               ))}
             </div>

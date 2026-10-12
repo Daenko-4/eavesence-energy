@@ -1065,10 +1065,10 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
         return { color: style.color, fontWeight: style.fontWeight };
       }),
     );
-  // One active green link, with consistent typography and no layout movement.
+  // Active links use anthracite; link typography and positions stay consistent.
   expect(navigationStyles).toHaveLength(3);
   expect(navigationStyles[0].color).toBe(navigationStyles[1].color);
-  await expect(calculatorLink).toHaveCSS("color", "rgb(8, 122, 69)");
+  await expect(calculatorLink).toHaveCSS("color", "rgb(36, 39, 44)");
   expect(
     new Set(navigationStyles.map(({ fontWeight }) => fontWeight)).size,
   ).toBe(1);
@@ -1084,21 +1084,22 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
   expect(Math.abs(xBefore - xAfterPointerLeave)).toBeLessThan(0.5);
 
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  const highlight = page.locator(".header-navigation-highlight");
   const planLink = page.locator('[data-navigation-key="planning"]');
+  const planArrow = planLink.locator(".navigation-arrow");
+  const planBefore = (await planLink.boundingBox())!.x;
+  await expect(planArrow).toHaveCSS("opacity", "0");
   await planLink.hover();
-  await expect(highlight).toHaveCSS("transition-duration", "0.36s, 0.36s, 0.18s");
-  await expect.poll(async () => {
-    const indicator = (await highlight.boundingBox())!, link = (await planLink.boundingBox())!;
-    return Math.abs(indicator.x - link.x) + Math.abs(indicator.width - link.width);
-  }).toBeLessThan(1);
-  await calculatorLink.focus();
-  await expect.poll(async () => {
-    const indicator = (await highlight.boundingBox())!, link = (await calculatorLink.boundingBox())!;
-    return Math.abs(indicator.x - link.x) + Math.abs(indicator.width - link.width);
-  }).toBeLessThan(1);
+  await expect(planArrow).toHaveCSS("transition-duration", "0.18s, 0.24s");
+  await expect(planArrow).toHaveCSS("opacity", "1");
+  await expect(planArrow).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
+  expect(Math.abs((await planLink.boundingBox())!.x - planBefore)).toBeLessThan(0.5);
+  await page.mouse.move(10, 180);
+  await expect(planArrow).toHaveCSS("opacity", "0");
+  await planLink.focus();
+  await expect(planArrow).toHaveCSS("opacity", "1");
+  expect(Math.abs((await planLink.boundingBox())!.x - planBefore)).toBeLessThan(0.5);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(highlight).toHaveCSS("transition-duration", "0s");
+  await expect(planArrow).toHaveCSS("transition-duration", "0s");
 
   const logo = page.locator('a[aria-expanded]').first();
   await expect(logo).toHaveAttribute("aria-expanded", "true");
