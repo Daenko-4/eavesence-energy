@@ -66,6 +66,8 @@ for (const width of [1365, 390]) {
       const pro = workspace.getByRole('button', { name: /Plan & save|Planen & sparen/ });
       const overview = workspace.getByRole('button', { name: de ? 'Übersicht' : 'Overview', exact: true });
       const proBox = (await pro.boundingBox())!, overviewBox = (await overview.boundingBox())!;
+      await expect(workspace).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      await expect(pro).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
       expect(proBox.height).toBe(overviewBox.height);
       expect(proBox.y).toBe(overviewBox.y);
       expect(await pro.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);

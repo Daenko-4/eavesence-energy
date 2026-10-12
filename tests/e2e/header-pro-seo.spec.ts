@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-for (const de of [false, true]) for (const width of [320, 1365]) test(`modern header and clear payday setup ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
+for (const de of [false, true]) for (const width of [320, 1365]) test(`minimal header and clear payday setup ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
   const t = (a: string, b: string) => de ? a : b;
   await page.setViewportSize({ width, height: 940 });
   await page.clock.setFixedTime(new Date('2026-10-11T12:00:00Z'));
@@ -33,12 +33,14 @@ for (const de of [false, true]) for (const width of [320, 1365]) test(`modern he
   await expect(language).toHaveAttribute('data-active-language', de ? 'de' : 'en');
   await expect(language.locator('[data-active="true"]')).toHaveText(de ? 'DE' : 'EN');
   await expect(language.locator('svg')).toHaveCount(0);
+  await expect(language).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  if (width >= 1024) await expect(header.locator('.header-navigation-links')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   if (width < 1024) {
     await header.getByRole('button', { name: t('Navigation öffnen', 'Open navigation') }).click();
     await page.screenshot({ path: info.outputPath(`header-menu-${de ? 'de' : 'en'}-${width}.png`) });
     await header.getByRole('button', { name: t('Navigation schließen', 'Close navigation') }).click();
   }
-  await header.screenshot({ path: info.outputPath(`header-modern-${de ? 'de' : 'en'}-${width}.png`) });
+  await header.screenshot({ path: info.outputPath(`header-minimal-${de ? 'de' : 'en'}-${width}.png`) });
   if (width === 320) {
     const boxes = await header.evaluate(el => ['[data-header-menu-button]', '[data-header-mobile-logo]', '[data-header-language]'].map(s => { const r = el.querySelector(s)!.getBoundingClientRect(); return { left: r.left, right: r.right }; }));
     expect(boxes[0].right).toBeLessThan(boxes[1].left);
