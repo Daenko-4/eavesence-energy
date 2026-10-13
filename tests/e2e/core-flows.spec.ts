@@ -1565,7 +1565,7 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
  if(width>=640){expect(Math.abs(fields[0].top-fields[1].top)).toBeLessThan(1);}
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
  await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await panel.getByLabel('Next payday',{exact:true}).fill(day);await panel.getByText('Keep some money in reserve (optional)',{exact:true}).click();await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await panel.getByLabel('Everyday spending until payday',{exact:true}).fill('150');await panel.getByRole('button',{name:'Show available money'}).click();
- await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel).toContainText('Extra money available until');
+ await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel.locator('h2')).toHaveText('Extra money available');await expect(panel.locator('[data-payday-hero]')).toContainText('Until');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.reload();await openPlan(page, 'payday');await expect(panel).toContainText('€650.00');
 });

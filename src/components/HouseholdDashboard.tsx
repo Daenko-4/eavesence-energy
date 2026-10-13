@@ -1769,7 +1769,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <section hidden={view !== "overview"} data-home-heading className="home-heading">
             <div data-home-identity>
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--brand-green)]">MY HOME</p>
-              <h1 className="mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
+              {view === "overview" && <h1 className="mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>}
               <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} aria-controls="home-settings" className="home-settings-action">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 2 3-1 2 2 3-2 1-3 3-1 2-3-2-2 1-3-3-2-3 1-2-2Z"/><circle cx="12" cy="12" r="3"/></svg>
                 {text.settings}
@@ -1869,7 +1869,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
             </section>
           )}
-          {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
+          {notice && view === "overview" && <p role="status" className="mt-3 text-center text-[13px] font-semibold text-[var(--brand-green)]">{notice}</p>}
 
           <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
@@ -2299,16 +2299,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           </details>
 
-          {activeTile && profile.overviewReviewed === true && profile.backupReminderDismissed === true && <PwaInstallCard locale={locale} />}
-
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <HomeMemos data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale}/>}
+
+          {activeTile && profile.overviewReviewed === true && profile.backupReminderDismissed === true && <PwaInstallCard locale={locale} />}
 
           </div>
           <div id="home-plan" hidden={view !== "plan"} data-home-plan-content className="mx-auto max-w-5xl scroll-mt-24">
 
             <div className="text-center">
               <p className="text-[11px] font-bold uppercase tracking-[.1em] text-[var(--brand-green)]">{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</p>
-              <h1 className="mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>
+              {view === "plan" && <h1 className="mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
             </div>
             <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="pro-question-navigation mt-6">
               {(["payday", "savings", "progress"] as const).map((item) => (
