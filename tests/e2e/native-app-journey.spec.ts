@@ -59,6 +59,16 @@ for (const locale of ['de', 'en']) {
   for (const width of [320, 390]) test(`full app navigation costs settings backup and Pro ${locale} ${width}`, async ({ page }, info) => {
     await show(page, locale, width, true);
     const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+    const languageSwitch = page.getByRole('button',{name:t('Sprache wechseln: Englisch','Switch language: German'),exact:true});
+    await languageSwitch.click();
+    const opposite = de ? 'en' : 'de';
+    await expect(page.getByRole('tab',{name:de?'Month':'Monat',exact:true})).toBeVisible();
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).locale)).toBe(opposite);
+    await show(page,locale,width);
+    await expect(page.getByRole('tab',{name:de?'Month':'Monat',exact:true})).toBeVisible();
+    await page.getByRole('button',{name:de?'Switch language: German':'Sprache wechseln: Englisch',exact:true}).click();
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).locale)).toBe(locale);
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!).length)).toBe(6);
     await expect(page.getByRole('checkbox')).toHaveCount(6);
     await page.getByRole('checkbox').first().click();
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning.paidPayments.length)).toBe(1);
