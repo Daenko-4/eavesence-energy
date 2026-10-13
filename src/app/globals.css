@@ -393,10 +393,7 @@ textarea {
 }
 .header-navigation-link:hover .navigation-indicator,
 .header-navigation-link:focus-visible .navigation-indicator,
-.header-navigation-link[aria-current] .navigation-indicator,
-.home-workspace-link:hover .navigation-indicator,
-.home-workspace-link:focus-visible .navigation-indicator,
-.home-workspace-link[aria-pressed="true"] .navigation-indicator { rotate: -45deg; }
+.header-navigation-link[aria-current] .navigation-indicator { rotate: -45deg; }
 .header-help-link { display: inline-flex; align-items: center; min-height: 44px; padding: 4px 0; font-size: 12px; font-weight: 500; color: #6b6b6b !important; transition: color 180ms ease; }
 .header-help-link:hover, .header-help-link[aria-current] { color: #24272c !important; }
 .header-language-link {
@@ -614,39 +611,47 @@ a {
   .home-disclosure > summary::after { transition: none; }
 }
 
-/* Workspace selection follows the same open text navigation as the header. */
-.home-workspace-navigation {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  width: fit-content;
-  max-width: 100%;
+/* Home identity, entry actions and supporting tools have separate roles. */
+.home-heading { margin-inline: auto; max-width: 680px; text-align: center; }
+.home-settings-action {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; margin-top: 2px; padding-inline: 10px;
+  border-radius: 12px; color: #65716d; font-size: 12px; font-weight: 600;
+  transition: background 180ms ease, color 180ms ease;
 }
-.home-workspace-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  min-height: 44px;
-  padding: 4px 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: #6b6b6b;
-  font-size: 13px;
-  font-weight: 550;
-  line-height: 20px;
-  letter-spacing: -.015em;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: color 200ms ease;
+.home-settings-action:hover, .home-settings-action[aria-expanded="true"] { background: #eefbf3; color: #28734d; }
+.home-settings-action:focus-visible { outline: 2px solid #28734d; outline-offset: 2px; }
+.home-entry-actions {
+  display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
+  gap: 8px 12px; margin-top: 18px; padding-top: 14px; border-top: 1px solid #dfe5dd;
 }
-.home-workspace-link:hover,
-.home-workspace-link:focus-visible,
-.home-workspace-link[aria-pressed="true"] { color: #24272c; }
-.home-workspace-link:focus-visible { outline: 2px solid #24272c; outline-offset: 4px; }
+.home-tool-panel { border: 1px solid #dfe5dd; border-radius: 16px; background: white; }
+.home-tool-panel > summary { min-height: 72px; padding: 12px 20px; }
+.home-tool-description { margin-top: 4px; color: #65716d; font-size: 13px; font-weight: 400; }
+
+/* Three distinct planning jobs; short labels remain readable on narrow phones. */
+.pro-question-navigation {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px;
+  padding: 5px; border: 1px solid #dfe5dd; border-radius: 18px; background: white;
+}
+.pro-question-button {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; min-width: 0; min-height: 66px; padding: 10px 6px;
+  border-radius: 13px; color: #65716d; font-size: 13px; font-weight: 600; line-height: 18px;
+  transition: background 180ms ease, color 180ms ease;
+}
+.pro-question-button:hover { background: #f4f6f2; color: #24272c; }
+.pro-question-button[aria-pressed="true"] { background: #24272c; color: #72dca3; }
+.pro-question-button:focus-visible { outline: 2px solid #28734d; outline-offset: 2px; }
+.pro-question-description { color: #65716d; font-size: 12px; font-weight: 400; }
+.pro-question-button[aria-pressed="true"] .pro-question-description { color: #d1d7d4; }
+@media (max-width: 479px) {
+  .home-tool-panel > summary { padding-inline: 16px; }
+  .pro-question-button { min-height: 54px; font-size: 12px; }
+  .pro-question-description { display: none; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .home-workspace-link { transition: none; }
+  .home-settings-action, .pro-question-button { transition: none; }
 }
 
 /* A single-line cost-area label needs one grid row for a centered plus. */

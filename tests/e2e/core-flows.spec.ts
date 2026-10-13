@@ -1,3 +1,4 @@
+import { homeWorkspace } from './home-navigation';
 import { expect, test, type Page } from "@playwright/test";
 
 async function disableHeaderIntro(page: Page) {
@@ -5,12 +6,12 @@ async function disableHeaderIntro(page: Page) {
 }
 
 async function openPlan(page: Page, question: "payday" | "savings" | "progress" = "savings", budget = false) {
-  await page.getByRole("navigation", { name: /Choose workspace|Bereich wählen/ }).getByRole("button", { name: /Plan & save|Planen & sparen/ }).click();
+  await homeWorkspace(page, 'plan');
   await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Spend until payday|Bis zum Gehalt ausgeben/ : question === "savings" ? /Find realistic savings|Realistisch sparen/ : /Savings achieved|Erreichte Ersparnis/ }).click();
   if (budget && !await page.getByLabel(/Everyday spending per month|Alltagsausgaben pro Monat/).isVisible()) await page.getByRole("button", { name: /Add a monthly budget|Monatsbudget ergänzen/ }).click();
 }
 async function openCostManager(page: Page) {
-  await page.getByRole("navigation", { name: /Choose workspace|Bereich wählen/ }).getByRole("button", { name: /^(Overview|Übersicht)$/ }).click();
+  await homeWorkspace(page, 'overview');
   if (!await page.locator("[data-cost-manager]").evaluate(el => (el as HTMLDetailsElement).open)) await page.locator("[data-cost-manager] > summary").click();
 }
 async function openCostAreas(page: Page) {
@@ -526,11 +527,12 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     page.getByRole("button", { name: "Reserve a beta place" }),
   ).toHaveCount(0);
 
+  await homeWorkspace(page, "overview");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Manage data" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Settings", exact: true }),
-  ).toHaveCSS("height", "24px");
+  ).toHaveCSS("height", "44px");
   await expect(page.getByRole("button", { name: "Save settings" })).toHaveCSS(
     "height",
     "24px",
@@ -538,7 +540,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
   const compactActions = [
-    { action: page.getByRole("button", { name: "Settings", exact: true }), fontSize: "11px", background: "rgba(0, 0, 0, 0)" },
+    { action: page.getByRole("button", { name: "Settings", exact: true }), fontSize: "12px", background: "rgb(238, 251, 243)" },
     { action: page.getByRole("button", { name: "Save settings" }), fontSize: "11px", background: "rgb(221, 248, 233)" },
     { action: page.locator("[data-manage-data-import]"), fontSize: "11px", background: "rgb(221, 248, 233)" },
   ];
@@ -595,6 +597,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByText("Your all-in price: €0.30 per kWh", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Save settings" }).click();
   await expect(page.getByText("Saved", { exact: true })).toBeVisible();
+  await homeWorkspace(page, "overview");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   const downloadPromise = page.waitForEvent("download");
   await page.locator("[data-manage-data-export]").click();
@@ -1268,7 +1271,8 @@ test.describe("mobile", () => {
     await expect(planDestination).toHaveAttribute("href", "#home-plan");
     await planDestination.click();
     await expect(planDestination).toHaveAttribute("aria-current", "location");
-    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await homeWorkspace(page, "overview");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
     await expect(page.getByLabel("Home name")).toBeFocused();
 
     await context.setOffline(true);
@@ -1479,11 +1483,13 @@ test("hidden advanced plans survive core edits and export", async ({ page }) => 
   });
   await page.reload(); await openPlan(page);
   await expect(page.getByRole("region", { name: "Plan ahead" })).toHaveCount(0);
+  await homeWorkspace(page, 'overview');
   await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Add income", exact: true }).click();
   await page.locator("#home-income-form").getByLabel(/Regular monthly net income|Total annual net income/).fill("2400");
   await page.locator("#home-income-form").getByRole("button", { name: "Save", exact: true }).click();
   const planning = await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!).planning);
   expect(planning.goals[0].saved).toBe(400); expect(planning.reserves[0].saved).toBe(200);
+  await homeWorkspace(page, "overview");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   const downloaded = page.waitForEvent("download"); await page.getByRole("button", { name: "Export backup", exact: true }).click();
   const { readFile } = await import("node:fs/promises");
@@ -1493,15 +1499,15 @@ test("hidden advanced plans survive core edits and export", async ({ page }) => 
 for (const width of [320, 390, 1365]) {
   test(`Pro questions are separate and fit at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 900 }); await page.goto("/home"); await page.getByRole("button", { name: "Create my home" }).click();
-    await expect(page.getByRole("heading", { name: "What can I spend until my next payday?", exact: true })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "What is left until payday?", exact: true })).toBeHidden();
     await openPlan(page, "payday");
-    await expect(page.getByRole("heading", { name: "What can I spend until my next payday?", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What is left until payday?", exact: true })).toBeVisible();
     const questions = page.getByRole("group", { name: "Choose planning question" });
     await questions.screenshot({ path: info.outputPath(`pro-questions-${width}.png`) });
     // The clear space above a compact pill remains part of its phone tap target.
     await questions.getByRole("button", { name: "Find realistic savings" }).click({ position: { x: 20, y: 2 } });
     await expect(page.getByRole("region", { name: "02 · Where can I realistically save?", exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "What can I spend until my next payday?", exact: true })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "What is left until payday?", exact: true })).toBeHidden();
     await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toHaveCount(0);
     await openPlan(page, "progress");
     await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toBeVisible();
@@ -1559,7 +1565,7 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
  if(width>=640){expect(Math.abs(fields[0].top-fields[1].top)).toBeLessThan(1);}
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
  await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await panel.getByLabel('Next payday',{exact:true}).fill(day);await panel.getByText('Keep some money in reserve (optional)',{exact:true}).click();await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await panel.getByLabel('Everyday spending until payday',{exact:true}).fill('150');await panel.getByRole('button',{name:'Show available money'}).click();
- await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel).toContainText('You can spend this extra until');
+ await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel).toContainText('Extra money available until');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.reload();await openPlan(page, 'payday');await expect(panel).toContainText('€650.00');
 });
@@ -1717,15 +1723,15 @@ for (const locale of ['de', 'en'] as const) {
     });
     await page.reload();
     await openPlan(page, 'payday');
-    const question = page.getByRole('heading',{name:locale==='de'?'Was kann ich bis zum nächsten Gehalt ausgeben?':'What can I spend until my next payday?',exact:true});
+    const question = page.getByRole('heading',{name:locale==='de'?'Was bleibt bis zum Gehalt?':'What is left until payday?',exact:true});
     await expect(question).toBeVisible();
     await question.scrollIntoViewIfNeeded();
     await page.screenshot({path:info.outputPath(`cash-window-${locale}.png`)});
     await openPlan(page, 'savings');
     const plan = page.locator('#savings-plan');
-    await expect(plan.getByRole('heading',{name:locale==='de'?'02 · Wo kann ich realistisch sparen?':'02 · Where can I realistically save?',exact:true})).toBeVisible();
+    await expect(plan.getByRole('heading',{name:locale==='de'?'Welche Kosten möchtest du senken?':'Which cost would you like to lower?',exact:true})).toBeVisible();
     await openPlan(page, 'progress');
-    const progress = page.getByRole('heading',{name:locale==='de'?'03 · Was habe ich tatsächlich eingespart?':'03 · What have I actually saved?',exact:true});
+    const progress = page.getByRole('heading',{name:locale==='de'?'Deine bestätigte Ersparnis':'Your confirmed savings',exact:true});
     await expect(progress).toBeVisible();
     await expect(page.locator('[data-home-plan-content]')).toContainText(locale==='de'?'Noch keine bestätigte Ersparnis':'No confirmed savings yet');
     await progress.scrollIntoViewIfNeeded();

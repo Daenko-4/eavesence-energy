@@ -1,3 +1,4 @@
+import { homeWorkspace } from './home-navigation';
 import {test,expect,type Page} from '@playwright/test';
 async function seed(page:Page,de:boolean){
  await page.clock.install({time:new Date('2026-10-04T12:00:00Z')});
@@ -13,7 +14,7 @@ async function seed(page:Page,de:boolean){
   localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{...base,id:'rent',name:'Rent',amount:900,category:'housing',nextDueDate:'2026-10-01'},{...base,id:'stream',name:'Streaming',amount:18,category:'subscriptions',nextDueDate:'2026-10-04'}]));
  });await page.reload();
 }
-async function pro(page:Page){await page.getByRole('navigation',{name:/Choose workspace|Bereich wählen/}).getByRole('button',{name:/Plan & save|Planen & sparen/}).click();}
+async function pro(page:Page){await homeWorkspace(page, 'plan');}
 for(const de of [false,true])for(const width of [390,1365])test(`free overview to useful Pro answers ${de?'de':'en'} ${width}`,async({page},info)=>{
  await page.setViewportSize({width,height:900});await seed(page,de);await pro(page);
  const payday=page.getByRole('region',{name:de?'Dein verfügbarer Spielraum':'Your available budget'});

@@ -69,14 +69,9 @@ export default function SavingsCoach({
       aria-label={mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
     >
       <h3 className="site-card-title">
-        {mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
+        {mode === "progress" ? t("Deine bestätigte Ersparnis", "Your confirmed savings") : t("Welche Kosten möchtest du senken?", "Which cost would you like to lower?")}
       </h3>
-      <p className="mt-1 text-[13px] text-[#52605b]">
-        {mode === "progress" ? t("Nur umgesetzte und bestätigte Änderungen zählen. Der Betrag ist aus deinen Angaben berechnet, nicht über ein Bankkonto nachgewiesen.", "Only completed, confirmed changes count. The amount is calculated from your entries, not verified against a bank account.") : t(
-          "Prüfe zuerst diesen Kostenposten. Mit einem echten günstigeren Angebot berechnen wir dein Sparpotenzial. Bestätigte Änderungen findest du unter Erspart.",
-          "Start by reviewing this cost. Enter a real lower-priced offer to calculate your savings potential. Find confirmed changes under Savings achieved.",
-        )}
-      </p>
+      {mode !== "progress" && <p className="mt-1 text-[13px] text-[#52605b]">{t("Starte mit dem Vorschlag oder wähle einen anderen Kostenposten.", "Start with the suggestion or choose another cost.")}</p>}
       {mode !== "progress" && p.plannedMonthly > 0 && <div className="mt-3 rounded-xl bg-[#eefbf3] p-3 text-[13px]"><p className="font-semibold">{t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: {money(p.plannedMonthly)} {t("pro Monat", "per month")}</p><p className="mt-1">{t("Noch nicht erreicht. Bestätige jede Änderung erst nach der Umsetzung.", "Not achieved yet. Confirm each change only after it happens.")}</p></div>}
       {p.notice && <p role="status" className="mt-3 text-[13px] text-[#087a45]">{p.notice}</p>}
       {mode === "progress" && !shownActions.length && <p className="mt-3 text-[13px] text-[#52605b]">{t("Noch keine bestätigte Ersparnis. Plane eine konkrete Kostenänderung und bestätige sie erst nach der Umsetzung.", "No confirmed savings yet. Plan a specific cost change and confirm it after it happens.")}</p>}
@@ -89,18 +84,18 @@ export default function SavingsCoach({
         </p>
       )}
       {(mode === "progress" || mode !== "opportunities" && actions.some((a) => a.status === "confirmed")) && (
-        <div className="mt-3 rounded-xl bg-[#24272c] p-3 text-white">
+        <div className="mt-3 rounded-xl bg-[#24272c] p-5 text-white">
           <p className="text-[13px] text-[#d1d7d4]">
             {t(
               "Bis heute eingespart",
               "Saved so far",
             )}
           </p>
-          <p className="mt-1 text-xl font-extrabold">{money(p.totals.scheduled)}</p>
+          <p className="mt-1 text-[32px] font-extrabold tracking-tight text-[#72dca3]">{money(p.totals.scheduled)}</p>
           <p className="mt-1 text-[13px] text-[#d1d7d4]">
             {t(
-              "Nur bestätigte Änderungen mit bereits erreichten Zahlungsterminen zählen hier. Zukünftiges Sparpotenzial bleibt getrennt. Kein Bankabgleich.",
-              "Only confirmed changes with payment dates already reached count here. Future potential stays separate. No bank verification.",
+              "Aus bestätigten Änderungen mit erreichten Zahlungsterminen berechnet. Kein Bankabgleich.",
+              "Calculated from confirmed changes with payment dates already reached. No bank verification.",
             )}
           </p>
         </div>

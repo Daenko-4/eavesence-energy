@@ -1,3 +1,4 @@
+import { homeWorkspace } from './home-navigation';
 import { test, expect } from '@playwright/test';
 for (const de of [false, true]) for (const width of [390, 1365]) {
   test(`Pro reserves, subscription preview and quick check survive reload ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
@@ -17,22 +18,22 @@ for (const de of [false, true]) for (const width of [390, 1365]) {
       ]));
     });
     await page.reload();
-    const workspace = page.getByRole('navigation', { name: /Choose workspace|Bereich wählen/ });
-    const plan = () => workspace.getByRole('button', { name: /Plan & save|Planen & sparen/ }).click();
+
+    const plan = () => homeWorkspace(page, 'plan');
     const questions = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ });
     await plan();
     const payday = page.getByRole('region', { name: /Your available budget|Dein verfügbarer Spielraum/ });
-    await payday.getByRole('button', { name: /^(Quick check|Kurzer Check)/ }).click();
+    await payday.getByRole('button', { name: /^(Review plan|Plan prüfen)/ }).click();
     await payday.getByRole('button', { name: t('Kontostand und Alltag prüfen', 'Review balance and everyday spending') }).click();
     await expect(payday.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true })).toBeFocused();
     await payday.getByRole('button', { name: t('Einklappen', 'Collapse'), exact: true }).click();
     await payday.getByRole('button', { name: t('Zahlungen ansehen und abhaken', 'View and check off payments') }).click();
     await expect(payday.getByRole('checkbox', { name: /^Streaming ·/ })).toBeVisible();
     await payday.getByRole('checkbox', { name: t('Offene und bezahlte Zahlungen geprüft', 'Reviewed unpaid and paid payments'), exact: true }).check();
-    await payday.getByRole('button', { name: t('Check abschließen', 'Complete check') }).click();
+    await payday.getByRole('button', { name: t('Prüfung abschließen', 'Complete review') }).click();
     await expect(payday).toContainText(t('Heute geprüft.', 'Reviewed today.'));
     await page.reload(); await plan();
-    await expect(payday.getByRole('button', { name: /^(Quick check|Kurzer Check)/ })).toContainText(t('heute erledigt', 'done today'));
+    await expect(payday.getByRole('button', { name: /^(Review plan|Plan prüfen)/ })).toContainText(t('heute erledigt', 'done today'));
     await questions.getByRole('button', { name: /Find realistic savings|Realistisch sparen/ }).click();
     const tools = page.getByRole('region', { name: t('Rechnungen und Abos planen', 'Plan bills and subscriptions') });
     await tools.getByText(t('Jahreskosten rechtzeitig vorbereiten', 'Prepare for annual bills'), { exact: true }).click();
