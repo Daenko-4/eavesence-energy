@@ -1,21 +1,5 @@
 import { useEffect, useState } from "react";
-import { AccessibilityInfo, Animated, type ImageSourcePropType, type ImageStyle, type StyleProp } from "react-native";
-
-export function BrandMotion({ source, style, locale }: { source: ImageSourcePropType; style: StyleProp<ImageStyle>; locale: "de" | "en" }) {
-  const [scale] = useState(() => new Animated.Value(1));
-  useEffect(() => {
-    let disposed = false;
-    const animation = Animated.sequence([
-      Animated.timing(scale, { toValue: 0.92, duration: 180, useNativeDriver: true }),
-      Animated.timing(scale, { toValue: 1.035, duration: 220, useNativeDriver: true }),
-      Animated.timing(scale, { toValue: 1, duration: 180, useNativeDriver: true }),
-    ]);
-    scale.setValue(1);
-    void AccessibilityInfo.isReduceMotionEnabled().then(reduced => { if (!disposed && !reduced) animation.start(); }).catch(() => {});
-    return () => { disposed = true; animation.stop(); };
-  }, [locale, scale]);
-  return <Animated.Image source={source} accessibilityLabel="EAVESENCE" style={[style, { transform: [{ scale }] }]} />;
-}
+import { AccessibilityInfo, Animated } from "react-native";
 
 export function DisclosureIcon({ open, color = "#087a45" }: { open: boolean; color?:string }) {
   const [rotation] = useState(() => new Animated.Value(open ? 1 : 0));

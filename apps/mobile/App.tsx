@@ -4,7 +4,7 @@ import { ProToolsScreen } from "./src/ProToolsScreen";
 import { closeSavingsHistory } from "@eavesence/core/savingsPlan";
 import { TileSymbol, TileSymbolPicker } from "./src/TileSymbol";
 import { iconForTile, type TileSymbol as SymbolKey } from "@eavesence/core/tileSymbols";
-import { BrandMotion, DisclosureIcon } from "./src/BrandMotion";
+import { DisclosureIcon } from "./src/BrandMotion";
 import { parseIncomeAmount, readIncomeExtras, summarizeIncome, type IncomeExtra } from "@eavesence/core/income";
 import { IncomeExtrasSummary } from "./src/IncomeExtrasSummary";
 import appConfig from "./app.json";
@@ -780,7 +780,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
   if (!profile && homeSetupOpen) {
     return <SafeAreaView style={styles.safe}><StatusBar style="dark" />
-      <View style={styles.appHeader}><BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
+      <View style={styles.appHeader}><Image source={brandIcon} style={styles.headerMark} accessibilityLabel="EAVESENCE" /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
       <KeyboardScrollContext.Provider value={input => revealInput(scrollRef.current,input)}><ScrollView ref={scrollRef} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         <HomeSetupForm name={homeName} onName={setHomeName} currency={currency} onCurrency={setCurrency} onSave={createHome} />
       </ScrollView></KeyboardScrollContext.Provider>
@@ -808,7 +808,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   if (profile.setupStep && profile.setupStep !== "complete") {
     const step = profile.setupStep;
     return <SafeAreaView style={styles.safe}><StatusBar style="dark" />
-      <View style={styles.appHeader}><BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
+      <View style={styles.appHeader}><Image source={brandIcon} style={styles.headerMark} accessibilityLabel="EAVESENCE" /><Text style={styles.headerBrand}>EAVESENCE</Text></View>
       <KeyboardScrollContext.Provider value={input => revealInput(scrollRef.current,input)}><ScrollView ref={scrollRef} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         <Text style={styles.eyebrow}>{locale === "de" ? `SCHRITT ${step === "income" ? 1 : step === "cost" ? 2 : 3} VON 3` : `STEP ${step === "income" ? 1 : step === "cost" ? 2 : 3} OF 3`}</Text>
         {step === "review" ? <><Text style={styles.heroSmall}>{locale === "de" ? "Dein erster Überblick ist bereit." : "Your first overview is ready."}</Text><Text style={styles.financeNote}>{locale === "de" ? "Deine Angaben sind gespeichert. Weitere Kosten, Einstellungen und den Stromrechner findest du anschließend in deiner Übersicht." : "Your entries are saved. Find more costs, settings and the electricity calculator in your overview."}</Text><View style={styles.formSurface}><Metric full label={incomeSummary.annualAverage ? locale === "de" ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : locale === "de" ? "Nettoeinkommen pro Monat" : "Net income per month"} value={hasIncome ? euro.format(monthlyIncome) : locale === "de" ? "Später ergänzen" : "Add later"} /><Metric full label={locale === "de" ? "Fixkosten pro Monat" : "Recurring costs per month"} value={euro.format(costSummary.monthlyTotal)} /><Metric full label={locale === "de" ? "Rest nach Fixkosten" : "Left after fixed costs"} value={hasIncome && hasCosts ? euro.format(monthlyIncome-costSummary.monthlyTotal) : "—"} /><Text style={styles.financeNote}>{locale === "de" ? "Monatsdurchschnitte. Alltagsausgaben gehen davon noch ab; fehlende Zahlungstermine kannst du später ergänzen." : "Monthly averages. Everyday spending still comes out of this amount; add missing payment dates later."}</Text></View><Text style={styles.financeNote}>{locale === "de" ? "Weitere Kosten kannst du anschließend ergänzen. Prüfe kurz diese Angaben und öffne dann deine Übersicht." : "You can add more costs afterwards. Check these entries, then open your overview."}</Text><PrimaryButton label={locale === "de" ? "Meine Übersicht öffnen" : "Open my overview"} onPress={() => setSetupStep("complete")} /></> : <CostsScreen key={`setup-${step}`} setup={step} onBack={step === "cost" ? () => setSetupStep("income") : undefined} profile={profile} costs={costs} tiles={tiles} tileId="default-costs" tileTitle="Haushaltskosten" onSaveIncome={saveIncome} onSaveCost={saveCost} onDeleteCost={deleteCost} />}
@@ -820,8 +820,11 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     <SafeAreaView style={styles.safe}>
       <StatusBar style="dark" />
       <View style={styles.appHeader}>
-        <BrandMotion source={brandIcon} style={styles.headerMark} locale={locale} />
+        <Image source={brandIcon} style={styles.headerMark} accessibilityLabel="EAVESENCE" />
         <View style={styles.headerCopy}><Text style={styles.headerBrand}>EAVESENCE</Text></View>
+        {!costEditorOpen && !keyboardVisible && <Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? "Sprache wechseln: Englisch" : "Switch language: German"} accessibilityHint={locale === "de" ? "Aktuelle Sprache: Deutsch" : "Current language: English"} onPress={() => void changeLanguage(locale === "de" ? "en" : "de")} style={styles.headerLanguage}>
+          <Text style={[styles.headerLanguageText,locale === "de" && styles.headerLanguageActive]}>DE</Text><Text style={styles.headerLanguageSeparator}>/</Text><Text style={[styles.headerLanguageText,locale === "en" && styles.headerLanguageActive]}>EN</Text>
+        </Pressable>}
         {tab === "settings" ? <Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? "Zurück" : "Back"} onPress={() => selectTab(settingsReturnTab.current)} style={styles.headerSettings}><Text style={{fontSize:26,color:"#65716d"}}>‹</Text></Pressable> : !costEditorOpen && <Pressable accessibilityRole="button" accessibilityLabel={localize(locale, "Einstellungen")} onPress={openSettings} style={styles.headerSettings}><NavIcon name="settings" color="#65716d"/></Pressable>}
       </View>
       <ScrollTargetContext.Provider value={target=>revealSection(scrollRef.current,target)}><KeyboardScrollContext.Provider value={(input) => revealInput(scrollRef.current,input)}><ScrollView ref={scrollRef} style={styles.scrollSurface} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
@@ -1051,6 +1054,10 @@ const styles = StyleSheet.create({
   planTabSelected: { backgroundColor: "#ddf8e9", borderColor: "#087a45" },
   planTabText: { fontSize: 12, fontWeight: "700", color: "#52605b" },
   headerSettings: { minHeight: 44, minWidth:44, alignItems:"center",justifyContent: "center" },
+  headerLanguage: { minHeight:44,minWidth:64,flexDirection:"row",gap:4,alignItems:"center",justifyContent:"center",paddingHorizontal:4 },
+  headerLanguageText: { fontSize:12,fontWeight:"500",color:"#84908a" },
+  headerLanguageActive: { fontWeight:"800",color:"#17211f" },
+  headerLanguageSeparator: { fontSize:11,color:"#a3ada7" },
   languageRow: { flexDirection: "row", justifyContent: "center", gap: 10, marginTop: 12 },
   choiceSelected: { borderWidth: 1, borderColor: "#087a45" },
   chartRow: { flexDirection: "row", gap: 8, alignItems: "center" },
@@ -1096,7 +1103,7 @@ const styles = StyleSheet.create({
   onboardingMark: { width: 54, height: 54, borderRadius: 11, marginBottom: 2 },
   formSurface: { borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22, backgroundColor: "#f6f6f0", padding: 18, gap: 13 },
   headerMark: { width: 34, height: 34, borderRadius: 7 },
-  headerCopy: { flex: 1, marginLeft: 9 },
+  headerCopy: { flex: 1, minWidth:0, marginLeft: 9 },
   headerBrand: { fontSize: 15, fontWeight: "900", letterSpacing: -0.4, color: "#10283a" },
   headerSubline: { marginTop: 1, fontSize: 9, fontWeight: "800", letterSpacing: 1.7, color: "#087a45" },
   homeTitle: { marginTop: 9, fontSize: 27, lineHeight: 32, fontWeight: "800", letterSpacing: -0.8, color: "#17211f" },
