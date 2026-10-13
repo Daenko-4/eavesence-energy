@@ -154,3 +154,141 @@ test('standalone CSS and bottom navigation keep home, costs and Pro connected', 
   await page.screenshot({ path: info.outputPath('focused-pro-standalone.png') });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+for (const de of [false, true]) {
+  test(`settings confirmation expires, resets on another save and keeps errors visible ${de ? 'de' : 'en'}`, async ({ page }) => {
+    await seed(page, de);
+    await page.clock.install({ time: new Date('2026-10-13T12:00:00Z') });
+    const settingsButton = page.locator('[data-home-identity]').getByRole('button');
+    const settings = page.locator('[data-home-settings]');
+    const save = settings.getByRole('button', { name: de ? 'Einstellungen speichern' : 'Save settings', exact: true });
+    const notice = page.locator('[data-home-notice]');
+    await settingsButton.click();
+    await expect(settings.getByRole('slider')).toHaveCount(0);
+    await settings.locator('input').first().fill('First home');
+    await save.click();
+    await expect(notice).toHaveText(de ? 'Gespeichert' : 'Saved');
+    await page.clock.fastForward(2000);
+    await settingsButton.click();
+    await settings.locator('input').first().fill('Second home');
+    await save.click();
+    await page.clock.fastForward(1500);
+    await expect(notice).toBeVisible();
+    await page.clock.fastForward(2000);
+    await expect(notice).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator('[data-home-heading] h1')).toHaveText('Second home');
+    await settingsButton.click();
+    await settings.locator('input').first().fill('Failed home');
+    await page.evaluate(() => {
+      const original = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === 'eavesence-home-profile-v1') throw new DOMException('Storage full', 'QuotaExceededError');
+        original.call(this, key, value);
+      };
+      Reflect.set(window, 'restoreTestStorage', () => { Storage.prototype.setItem = original; });
+    });
+    await save.click();
+    await expect(notice).toHaveAttribute('role', 'alert');
+    await page.clock.fastForward(5000);
+    await expect(notice).toBeVisible();
+    await expect(settings).toBeVisible();
+    await expect(page.locator('[data-home-heading] h1')).toHaveText('Second home');
+    await page.evaluate(() => { const restore = Reflect.get(window, 'restoreTestStorage') as () => void; restore(); });
+    await save.click();
+    await expect(page.locator('[data-home-heading] h1')).toHaveText('Failed home');
+    await expect(notice).toHaveAttribute('role', 'status');
+    await page.clock.fastForward(3100);
+    await expect(notice).toHaveCount(0);
+  });
+
+  for (const width of [320, 1365]) {
+    test(`cost and device panels have breathing room and the electricity goal saves independently ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
+      const t = (a: string, b: string) => de ? a : b;
+      await page.setViewportSize({ width, height: 900 });
+      await seed(page, de);
+      await page.evaluate((de) => {
+        const profile = JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);
+        profile.savingsGoalPercent = 42;
+        localStorage.setItem('eavesence-home-profile-v1', JSON.stringify(profile));
+        localStorage.setItem('eavesence-home-tiles-v1', JSON.stringify([
+          { id: 'default-costs', kind: 'costs', title: null },
+          { id: 'energy', kind: 'energy', title: null },
+        ]));
+        localStorage.setItem('eavesence-saved-devices-v1', JSON.stringify([
+          { id: 'fridge', device: 'fridge', customDeviceName: de ? 'Kühlschrank Küche' : 'Kitchen fridge', mode: 'estimate', currency: 'EUR', price: .3, watts: 80, minutesPerUse: 1440, usesPerWeek: 7, estimatedKwhPerUse: 1, measuredKwhPerUse: 0, yearlyKwh: 360, yearlyCost: 108, monthlyCost: 9, updatedAt: '2026-10-13T12:00:00Z' },
+          { id: 'washer', device: 'washer', customDeviceName: de ? 'Waschmaschine' : 'Washing machine', mode: 'estimate', currency: 'EUR', price: .3, watts: 2000, minutesPerUse: 60, usesPerWeek: 3, estimatedKwhPerUse: 1, measuredKwhPerUse: 0, yearlyKwh: 240, yearlyCost: 72, monthlyCost: 6, updatedAt: '2026-10-13T12:00:00Z' },
+        ]));
+      }, de);
+      await page.reload();
+      await page.clock.install({ time: new Date('2026-10-13T12:00:00Z') });
+      const costsBefore = await page.evaluate(() => localStorage.getItem('eavesence-home-costs-v1'));
+      const manager = page.locator('[data-cost-manager]');
+      await manager.locator(':scope > summary').click();
+      const assertInset = async (selector: string) => {
+        const outer = (await manager.boundingBox())!;
+        const inner = (await page.locator(selector).boundingBox())!;
+        expect(inner.x - outer.x).toBeGreaterThanOrEqual(16);
+        expect(outer.x + outer.width - inner.x - inner.width).toBeGreaterThanOrEqual(16);
+      };
+      await assertInset('#household-costs');
+      await page.screenshot({ path: info.outputPath(`inset-costs-${de ? 'de' : 'en'}-${width}.png`), fullPage: true });
+      const energyButton = page.locator('[data-cost-area-overview] nav').getByRole('button', { name: t('Strom & Geräte', 'Electricity & devices'), exact: true });
+      await energyButton.click();
+      await assertInset('#home-devices');
+      const goal = page.locator('[data-electricity-goal]');
+      const slider = goal.getByRole('slider');
+      await expect(slider).toBeVisible();
+      await expect(slider).toHaveValue('42');
+      const calculator = page.getByRole('button', { name: /Stromkosten-Rechner|Electricity Calculator/ });
+      await expect(calculator).toHaveAttribute('aria-expanded', 'false');
+      await slider.focus();
+      for (let i = 0; i < 17; i++) await slider.press('ArrowLeft');
+      await expect(slider).toHaveValue('25');
+      await expect(goal).toContainText(t('3,75', '3.75'));
+      await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).savingsGoalPercent)).toBe(25);
+      await page.locator('[data-home-identity]').getByRole('button').click();
+      const settings = page.locator('[data-home-settings]');
+      await settings.locator('input').first().fill('Pending home');
+      await settings.locator('select').selectOption('CHF');
+      await calculator.click();
+      await page.getByRole('button', { name: t('Jahresrechnung', 'Yearly bill'), exact: true }).click();
+      const annualBill = page.getByLabel(t('Bezahlter Jahresbetrag', 'Total paid for the year'), { exact: true });
+      const annualKwh = page.getByLabel(t('Verbrauch laut Rechnung', 'Consumption on the bill'), { exact: true });
+      await annualBill.fill('1200');
+      await slider.press('ArrowRight');
+      await expect(settings.locator('input').first()).toHaveValue('Pending home');
+      await expect(settings.locator('select')).toHaveValue('CHF');
+      await expect(annualBill).toHaveValue('1200');
+      await expect(annualKwh).toHaveValue('');
+      const saveEnergy = page.getByRole('button', { name: t('Strombasis speichern', 'Save electricity basis'), exact: true });
+      await saveEnergy.click();
+      const energyNotice = page.locator('[data-energy-notice]');
+      await expect(energyNotice).toHaveAttribute('role', 'alert');
+      await page.clock.fastForward(5000);
+      await expect(energyNotice).toBeVisible();
+      await settings.getByRole('button', { name: t('Einstellungen speichern', 'Save settings'), exact: true }).click();
+      await expect(page.locator('[data-home-heading] h1')).toHaveText('Pending home');
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).electricityInputMode)).toBe('price');
+      await annualKwh.fill('4000');
+      await saveEnergy.click();
+      await expect(energyNotice).toHaveAttribute('role', 'status');
+      await page.clock.fastForward(3100);
+      await expect(energyNotice).toHaveCount(0);
+      await page.reload();
+      await manager.locator(':scope > summary').click();
+      await energyButton.click();
+      await expect(slider).toHaveValue('26');
+      const profile = await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!));
+      expect(profile.name).toBe('Pending home');
+      expect(profile.currency).toBe('CHF');
+      expect(profile.electricityPrice).toBe(.3);
+      expect(profile.electricityInputMode).toBe('annual-bill');
+      expect(await page.evaluate(() => localStorage.getItem('eavesence-home-costs-v1'))).toBe(costsBefore);
+      await assertInset('#home-devices');
+      await assertInset('[aria-labelledby="energy-details-title"]');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.screenshot({ path: info.outputPath(`inset-energy-${de ? 'de' : 'en'}-${width}.png`), fullPage: true });
+    });
+  }
+}

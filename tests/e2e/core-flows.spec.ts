@@ -586,6 +586,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeLessThanOrEqual(1);
   expect(manageDataTextTops.exportAction).toBe(manageDataTextTops.action);
   expect(manageDataTextTops.resetAction).toBe(manageDataTextTops.action);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
   await openEnergyTile(page);
   const electricityTileButton = page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first();
   if (await electricityTileButton.getAttribute("aria-expanded") === "false") await electricityTileButton.click();
@@ -595,7 +596,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.getByLabel("Total paid for the year").fill("1200");
   await page.getByLabel("Consumption on the bill").fill("4000");
   await expect(page.getByText("Your all-in price: €0.30 per kWh", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Save settings" }).click();
+  await page.getByRole("button", { name: "Save electricity basis", exact: true }).click();
   await expect(page.getByText("Saved", { exact: true })).toBeVisible();
   await homeWorkspace(page, "overview");
   await page.getByRole("button", { name: "Settings", exact: true }).click();

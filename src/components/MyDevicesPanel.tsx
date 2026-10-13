@@ -523,7 +523,7 @@ function MyDevicesPanel(
             {text.viewHome}
           </a>
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-slate-500">{locale === "de" ? "Optional: Deine gespeicherten Geräte erscheinen in einer eigenen Stromkachel. Dort gilt der Strompreis aus deinen Zuhause-Einstellungen; abweichende Geräteschätzungen werden neu berechnet. Sie werden nicht zusätzlich vom Monatsbudget abgezogen." : "Optional: saved devices appear in a dedicated energy tile using the electricity price from your home settings. Different device estimates are recalculated. They are not deducted again from your monthly budget."}</p>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">{locale === "de" ? "Optional: Deine gespeicherten Geräte erscheinen in einer eigenen Stromkachel. Dort gilt der Strompreis aus deiner gespeicherten Strombasis; abweichende Geräteschätzungen werden neu berechnet. Sie werden nicht zusätzlich vom Monatsbudget abgezogen." : "Optional: saved devices appear in a dedicated energy tile using the price from your saved electricity basis. Different device estimates are recalculated. They are not deducted again from your monthly budget."}</p>
       </section>
     );
   }
@@ -534,7 +534,7 @@ function MyDevicesPanel(
         id={household ? "home-devices" : "meine-geraete"}
         className={
           household
-            ? `${embedded ? "" : "mt-8 "}scroll-mt-24 rounded-2xl border border-[#d8ded8] bg-[#eef0ec] p-5 sm:p-6`
+            ? `${embedded ? "rounded-xl p-4 sm:p-5" : "mt-8 rounded-2xl p-5 sm:p-6"} scroll-mt-24 border border-[#d8ded8] bg-[#eef0ec]`
             : "mt-9 scroll-mt-[104px] border-t border-slate-200/80 pt-7"
         }
       >
