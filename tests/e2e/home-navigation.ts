@@ -4,7 +4,7 @@ import { expect, type Page } from '@playwright/test';
 export async function homeWorkspace(page: Page, destination: 'overview' | 'plan') {
   const header = page.locator('header');
   const hash = destination === 'plan' ? '#home-plan' : '#home-overview';
-  const link = header.locator(`a[href$="${hash}"]:visible`).first();
+  const link = header.locator(`.header-navigation-link[href$="${hash}"]:visible`).first();
   if (!await link.isVisible()) {
     const menu = header.locator('[data-header-menu-button]');
     if (await menu.isVisible()) await menu.click();

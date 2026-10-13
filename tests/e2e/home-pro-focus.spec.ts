@@ -99,7 +99,7 @@ for (const de of [false, true]) {
       const profile = JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);
       profile.planning = { cash: { balance: 1000, asOf: '2026-10-13', payday: '2026-10-25', protected: 0, everydayRemaining: 100 } };
       localStorage.setItem('eavesence-home-profile-v1', JSON.stringify(profile));
-      const costs = JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!); delete costs[0].nextDueDate;
+      const costs = JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!); costs[0].nextDueDate = '';
       localStorage.setItem('eavesence-home-costs-v1', JSON.stringify(costs));
     });
     await page.reload(); await homeWorkspace(page, 'plan');
