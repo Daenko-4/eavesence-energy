@@ -642,7 +642,8 @@ function MyDevicesPanel(
                 {totals.map((total) => (
                   <div
                     key={total.currency}
-                    className="flex items-center justify-between gap-5 rounded-2xl bg-[#e7f7ed] px-4 py-3.5 sm:px-5"
+                    data-device-total
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#e7f7ed] px-4 py-3.5 sm:gap-5 sm:px-5"
                   >
                     <div className="min-w-0">
                       <span className="block text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--brand-green)]">
@@ -652,7 +653,7 @@ function MyDevicesPanel(
                         {total.currency}
                       </span>
                     </div>
-                    <div className="shrink-0 text-right">
+                    <div className="ml-auto shrink-0 text-right">
                       <span className="block text-xl font-extrabold tracking-[-0.035em] tabular-nums text-[#10283a]">
                         {formatMoney(total.yearlyCost, locale, total.currency)}
                       </span>

@@ -297,6 +297,16 @@ for (const de of [false, true]) {
       expect(await page.evaluate(() => localStorage.getItem('eavesence-home-costs-v1'))).toBe(costsBefore);
       await assertInset('#home-devices');
       await assertInset('[aria-labelledby="energy-details-title"]');
+      for (const total of await page.locator('#home-devices [data-device-total]').all()) {
+        const readable = await total.evaluate(el => {
+          const label = el.querySelector('span')!;
+          const value = el.querySelector('.text-right span')!;
+          const textBox = (node: Element) => { const range = document.createRange(); range.selectNodeContents(node); return range.getBoundingClientRect(); };
+          const a = textBox(label), b = textBox(value);
+          return a.right <= b.left || a.bottom <= b.top || b.bottom <= a.top;
+        });
+        expect(readable).toBe(true);
+      }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       await page.screenshot({ path: info.outputPath(`inset-energy-${de ? 'de' : 'en'}-${width}.png`), fullPage: true });
