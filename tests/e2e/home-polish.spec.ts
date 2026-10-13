@@ -5,6 +5,10 @@ for (const width of [1365, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.addInitScript(() => {
       document.addEventListener('animationstart', event => {
+        if (event instanceof AnimationEvent && event.animationName === 'header-language-toggle') {
+          const element=event.target as HTMLElement, angles:number[]=[], start=performance.now();
+          const sample=()=>{angles.push(parseFloat(getComputedStyle(element).rotate));if(performance.now()-start<900)requestAnimationFrame(sample);else element.dataset.replayAngles=JSON.stringify(angles);};sample();
+        }
         if (event instanceof AnimationEvent && event.animationName === 'eavesence-logo-load') {
           document.documentElement.dataset.logoAnimationLocale = document.documentElement.lang;
         }
@@ -21,6 +25,12 @@ for (const width of [1365, 390]) {
         await expect(page).toHaveURL(path);
         await expect(page.locator('header .eavesence-logo-load-animation')).toHaveCount(2);
         await expect.poll(() => page.locator('html').getAttribute('data-logo-animation-locale')).toBe(locale);
+        const indicator=page.locator('[data-header-language] .header-language-indicator');
+        await expect.poll(()=>indicator.getAttribute('data-replay-angles')).not.toBeNull();
+        const angles:number[]=JSON.parse((await indicator.getAttribute('data-replay-angles'))!);
+        expect(Math.max(...angles)).toBeGreaterThan(-8);
+        expect(Math.min(...angles)).toBeLessThan(-38);
+        await expect(indicator).toHaveCSS('rotate','-45deg');
         if (width >= 1024) {
           await expect(page.locator('header a[aria-expanded]').first()).toHaveAttribute('aria-expanded', 'true', { timeout: 4000 });
         }
@@ -39,6 +49,7 @@ test('language intro respects reduced motion and keeps navigation available', as
   await expect(page).toHaveURL('/de/zuhause');
   await expect(page.locator('header a[aria-expanded]').first()).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('header .eavesence-logo-load-animation')).toHaveCount(2);
+  expect(await page.locator('[data-header-language] .header-language-indicator').evaluate(el=>el.getAnimations().length)).toBe(0);
   expect(await page.locator('header .eavesence-logo-load-animation').first().evaluate(el => el.getAnimations().length)).toBe(0);
 });
 

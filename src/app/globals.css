@@ -416,15 +416,15 @@ textarea {
   line-height: 20px;
   text-decoration: none;
 }
-.header-language-arrow {
-  display: inline-block;
-  color: #6b6b6b;
-  font-size: 13px;
-  font-weight: 400;
-  transition: color 180ms ease, transform 240ms ease;
+/* At rest: ×. Replay the shared disclosure motion once on language change. */
+.header-language-indicator { rotate: -45deg; }
+.header-language-replay {
+  animation: header-language-toggle calc(var(--disclosure-duration) * 2) var(--disclosure-ease) both;
 }
-.header-language-link:hover .header-language-arrow,
-.header-language-link:focus-visible .header-language-arrow { color: #24272c; transform: translateX(2px); }
+@keyframes header-language-toggle {
+  0%, 100% { rotate: -45deg; }
+  50% { rotate: 0deg; }
+}
 .header-language-link:focus-visible, .header-help-link:focus-visible { outline: 2px solid #24272c; outline-offset: 4px; }
 @media (max-width: 359px) {
   [data-header-mobile-logo] svg { width: 26px; height: 26px; }
@@ -462,10 +462,10 @@ textarea {
   .header-navigation-link,
   .header-help-link,
   .navigation-indicator,
-  .header-language-arrow {
+  .header-language-indicator {
     transition: none;
   }
-  .header-navigation-links-mobile { animation: none; }
+  .header-navigation-links-mobile, .header-language-replay { animation: none; }
 }
 
 .pwa-mobile-navigation {

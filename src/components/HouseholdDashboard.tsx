@@ -868,7 +868,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     );
     setProfile(storedProfile);
     if (storedProfile) {
-      setIncomeValue(storedProfile.incomeAmount ? String(storedProfile.incomeAmount) : "");
+      setIncomeValue(storedProfile.incomeAmount != null && (storedProfile.incomeAmount > 0 || storedProfile.incomeDeferred === false) ? String(storedProfile.incomeAmount) : "");
       setIncomeFrequency(storedProfile.incomeFrequency ?? "monthly");
       setIncomeExtras(incomeExtraDrafts(storedProfile.incomeExtras));
       setName(localizeDefaultHouseholdName(storedProfile.name, locale));
@@ -1092,7 +1092,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       return;
     }
     try {
-      persistProfile({ ...profile, incomeExtras: extras, incomeAmount: parsed, incomeDeferred: parsed === 0, incomeFrequency, updatedAt: new Date().toISOString() });
+      persistProfile({ ...profile, incomeExtras: extras, incomeAmount: parsed, incomeDeferred: !incomeValue.trim(), incomeFrequency, updatedAt: new Date().toISOString() });
     } catch {
       setIncomeError(locale === "de" ? "Einkommen konnte nicht gespeichert werden. Deine Eingaben bleiben erhalten." : "Could not save income. Your entries have been kept.");
       return;
@@ -1689,6 +1689,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const upcomingPayments = paymentsNextMonth(householdCosts);
   const incomeSummary = summarizeIncome(profile);
   const monthlyIncome = incomeSummary.monthly;
+  const hasRecordedIncome = monthlyIncome > 0 || (profile?.incomeAmount === 0 && profile.incomeDeferred === false);
   const activeTile = activeTileId === null ? null : homeTiles.find((tile) => tile.id === activeTileId) ?? homeTiles.find((tile) => tile.kind === "costs") ?? null;
   const primaryCostTileId = homeTiles.find((tile) => tile.kind === "costs")?.id ?? null;
 
@@ -1767,7 +1768,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
             <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className="mt-4 flex flex-wrap items-center gap-3">
               <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
-              <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={openIncomeForm} aria-expanded={incomeOpen} aria-controls="home-income-form">{monthlyIncome > 0 ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
+              <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={openIncomeForm} aria-expanded={incomeOpen} aria-controls="home-income-form">{hasRecordedIncome ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
               <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} aria-controls="home-settings" className={`${homeDashboardActionClass} home-outlined-action`}>{text.settings}</button>
             </div>
           </div>
@@ -1867,7 +1868,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </nav>
           <div hidden={view !== "overview"} data-home-overview-content>
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
-          <HomeCoreOverview hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} undatedCosts={householdCosts.filter(cost => !cost.nextDueDate)} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} incomeForm={
+          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} undatedCosts={householdCosts.filter(cost => !cost.nextDueDate)} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Sonderzahlungen)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<select aria-label={text.financePeriod} value={incomeFrequency} onChange={(event) => { const next = event.target.value as "monthly" | "yearly"; if (incomeFrequency === "yearly" && next === "monthly") setIncomeValue(""); setIncomeFrequency(next); }} className={`${homeFieldClass} min-w-0 w-full`}><option value="monthly">{locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net income"}</option><option value="yearly">{locale === "de" ? "Jahresnetto (Monatsdurchschnitt)" : "Annual net income (monthly average)"}</option></select></label>

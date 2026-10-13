@@ -1,6 +1,6 @@
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useEffect,useRef,useState} from 'react';
-import {Keyboard,KeyboardAvoidingView,Modal,Platform,Pressable,ScrollView,StyleSheet,View} from 'react-native';
+import {Alert,Keyboard,KeyboardAvoidingView,Modal,Platform,Pressable,ScrollView,StyleSheet,View} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type {HouseholdCostFrequency,HouseholdCostCategory} from '@eavesence/core/householdCosts';
 import {DisclosureIcon} from './BrandMotion';
@@ -15,6 +15,14 @@ function Close({onClose}:{onClose:()=>void}){const action=useFormAction(),de=use
 export function CostEditor(p:Props){
  const de=useMobileLocale()==='de',t=(a:string,b:string)=>de?a:b;
  const [more,setMore]=useState(false),[choice,setChoice]=useState<'frequency'|'category'|null>(null),[dateField,setDateField]=useState<'date'|'deadline'|null>(null),[draftDate,setDraftDate]=useState(new Date());
+ const initialDraft=useRef(JSON.stringify([p.name,p.amount,p.frequency,p.date,p.deadline,p.category,!!p.variableAmount]));
+ function closeEditor(){
+  if(initialDraft.current===JSON.stringify([p.name,p.amount,p.frequency,p.date,p.deadline,p.category,!!p.variableAmount])){p.onClose();return;}
+  Alert.alert(t('Änderungen verwerfen?','Discard changes?'),t('Deine Kosten sind noch nicht gespeichert.','Your cost has not been saved yet.'),[
+   {text:t('Weiter bearbeiten','Keep editing'),style:'cancel'},
+   {text:t('Verwerfen','Discard'),style:'destructive',onPress:()=>{Keyboard.dismiss();p.onClose();}},
+  ]);
+ }
  const scroll=useRef<ScrollView>(null);
  const [keyboardVisible,setKeyboardVisible]=useState(false);
  useEffect(()=>{const show=Keyboard.addListener("keyboardDidShow",()=>setKeyboardVisible(true)),hide=Keyboard.addListener("keyboardDidHide",()=>setKeyboardVisible(false));return()=>{show.remove();hide.remove();};},[]);
@@ -26,8 +34,8 @@ export function CostEditor(p:Props){
  function openDate(field:'date'|'deadline'){Keyboard.dismiss();setDraftDate(parseDate(field==='date'?p.date:p.deadline));setDateField(field);}
  function applyDate(d:Date){if(dateField==='date')p.onDate(formatDate(d));else p.onDeadline(formatDate(d));}
  function selectRow(label:string,value:string,action:()=>void){return <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${value}`} onPress={()=>{Keyboard.dismiss();action();}} style={s.select}><View style={s.flex}><Text style={s.label}>{label}</Text><Text style={s.selected}>{value}</Text></View><Text style={s.chevron}>›</Text></Pressable>;}
- return <Modal visible animationType="slide" onRequestClose={p.onClose}><SafeAreaView style={s.safe}><KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={s.safe}><FormSection style={s.safe} onSave={p.onSave} saveLabel={t('Kosten speichern','Save cost')}>
-  <View style={s.header}><Close onClose={p.onClose}/><Text accessibilityRole="header" style={s.title}>{p.editing?t('Kosten bearbeiten','Edit cost'):t('Kosten hinzufügen','Add cost')}</Text><View style={s.back}/></View>
+ return <Modal visible animationType="slide" onRequestClose={closeEditor}><SafeAreaView style={s.safe}><KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={s.safe}><FormSection style={s.safe} onSave={p.onSave} saveLabel={t('Kosten speichern','Save cost')}>
+  <View style={s.header}><Close onClose={closeEditor}/><Text accessibilityRole="header" style={s.title}>{p.editing?t('Kosten bearbeiten','Edit cost'):t('Kosten hinzufügen','Add cost')}</Text><View style={s.back}/></View>
   <KeyboardScrollContext.Provider value={input=>revealInput(scroll.current,input)}><ScrollView ref={scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" contentContainerStyle={s.body}>
    <View style={s.group}><View style={s.input}><FormInput label={t('Name','Name')} value={p.name} onChangeText={p.onName} placeholder={t('z. B. Internet','e.g. Internet')} style={s.inputStyle}/></View><View style={s.input}><FormInput label={t('Betrag','Amount')} value={p.amount} onChangeText={p.onAmount} keyboardType="decimal-pad" placeholder="0,00" style={s.inputStyle}/></View>
     <Pressable accessibilityRole="checkbox" accessibilityLabel={t('Betrag variiert','Amount varies')} accessibilityState={{checked:!!p.variableAmount}} onPress={()=>p.onVariableAmount?.(!p.variableAmount)} style={[s.select,{minHeight:52}]}><Text style={s.label}>{t('Betrag variiert','Amount varies')}</Text><Text style={s.selected}>{p.variableAmount?'☑':'☐'}</Text></Pressable>

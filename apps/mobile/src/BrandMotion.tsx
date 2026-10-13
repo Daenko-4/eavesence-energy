@@ -24,7 +24,7 @@ export function DisclosureIcon({ open, color = "#087a45" }: { open: boolean; col
     let animation: Animated.CompositeAnimation | undefined;
     void AccessibilityInfo.isReduceMotionEnabled().then(reduced => {
       if (disposed) return;
-      animation = Animated.timing(rotation, { toValue: open ? 1 : 0, duration: reduced ? 0 : 180, useNativeDriver: true });
+      animation = Animated.timing(rotation, { toValue: open ? 1 : 0, duration: reduced ? 0 : 360, useNativeDriver: true });
       animation.start();
     }).catch(() => { if (!disposed) rotation.setValue(open ? 1 : 0); });
     return () => { disposed = true; animation?.stop(); };

@@ -516,7 +516,7 @@ function HeaderContent({
             }
           >
             <span lang={locale} data-active="true">{locale.toUpperCase()}</span>
-            <span className="header-language-arrow" aria-hidden="true">↔</span>
+            <span className={`navigation-indicator site-disclosure-icon header-language-indicator ${languageIntro ? "header-language-replay" : ""}`} aria-hidden="true">+</span>
           </Link>
         </div>
 
