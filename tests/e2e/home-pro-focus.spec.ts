@@ -108,6 +108,7 @@ for (const de of [false, true]) {
     await expect(panel.locator('[data-payday-result]')).toHaveCount(0);
     await panel.getByRole('button', { name: `Internet · ${t('Termin ergänzen', 'Add date')}`, exact: true }).click();
     await expect(page.locator('#household-cost-form')).toBeVisible();
+    await expect(page.locator('#household-cost-form input[type="date"]').first()).toBeFocused();
     await expect(page.locator('[data-home-plan-content]')).toBeHidden();
     await page.evaluate(() => {
       const profile = JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!); profile.planning.cash.everydayRemaining = null;

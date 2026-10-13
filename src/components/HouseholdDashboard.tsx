@@ -1727,7 +1727,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     }));
   }
 
-  function openCostForm(cost?: HouseholdCost, template?: HouseholdCostCategory) {
+  function openCostForm(cost?: HouseholdCost, template?: HouseholdCostCategory, focusDate = false) {
     changeWorkspace("overview");
     setCostManagerOpen(true);
     const tile = cost?.tileId
@@ -1737,7 +1737,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setActiveTileId(selected.id);
     setCostRequest({ costId: cost?.id, template, nonce: Date.now() + Math.random() });
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
-      document.getElementById("household-costs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const target = focusDate
+        ? document.querySelector<HTMLInputElement>('#household-cost-form input[type="date"]')
+        : document.getElementById("household-costs");
+      target?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: focusDate ? "center" : "start" });
+      if (focusDate) target?.focus({ preventScroll: true });
     }));
   }
 
@@ -2322,7 +2326,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               ))}
             </div>
             <div hidden={planQuestion !== "payday"}>
-          <PaydayPanel onSavings={()=>setPlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+          <PaydayPanel onSavings={()=>setPlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
             </div>
             <div hidden={planQuestion === "payday"}>
           <SavingsPlanPanel
