@@ -1,3 +1,4 @@
+import { homeWorkspace } from './home-navigation';
 import {test, expect} from '@playwright/test';
 
 test('missing dates identify the cost and open its existing edit form', async ({page}) => {
@@ -12,11 +13,11 @@ test('missing dates identify the cost and open its existing edit form', async ({
     localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'insurance',name:'Insurance',category:'insurance',amount:600,frequency:'yearly',nextDueDate:'',updatedAt:'2026-10-03T12:00:00Z'}]));
   });
   await page.reload();
-  await page.getByRole('button',{name:/Plan & save/}).click();
+  await homeWorkspace(page, 'plan');
   const payday=page.getByRole('region',{name:'Your available budget',exact:true});
-  await expect(payday).toContainText('Your balance is recorded');
+  await expect(payday).toHaveAttribute('data-payday-state', 'dates');
   await expect(payday).not.toContainText('planning basics');
-  await expect(payday).toContainText('Still missing: payment dates.');
+  await expect(payday).toContainText('1 cost has no payment date.');
   await expect(payday).not.toContainText('everyday-spending estimate');
   await payday.getByRole('button',{name:'Insurance · Add date',exact:true}).click();
   await expect(page.locator('[data-home-overview-content]')).toBeVisible();

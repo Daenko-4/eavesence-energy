@@ -1,3 +1,4 @@
+import { homeWorkspace } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
 for (const locale of ['de', 'en'] as const) {
@@ -46,6 +47,7 @@ test('editing income from a bookmarked plan stays in overview after saving', asy
   await page.getByRole('button', { name: 'Create my home', exact: true }).click();
   await page.goto('/home#home-plan');
   await expect(page.locator('[data-home-plan-content]')).toBeVisible();
+  await homeWorkspace(page, 'overview');
   await page.getByRole('group', { name: 'Home actions' }).getByRole('button', { name: 'Add income', exact: true }).click();
   await page.locator('#home-income-form input').fill('2000');
   await page.locator('#home-income-form button[type="submit"]').click();

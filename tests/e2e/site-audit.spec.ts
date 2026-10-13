@@ -48,13 +48,13 @@ for (const locale of ['en', 'de'] as const) for (const width of [320, 390, 1365]
       const css = getComputedStyle(button);
       return [css.fontSize, css.fontWeight, css.lineHeight, css.padding, css.borderTopWidth, css.borderRadius, button.getBoundingClientRect().height];
     }));
-    expect(styles).toHaveLength(3);
-    expect(styles[1]).toEqual(styles[0]); expect(styles[2]).toEqual(styles[0]);
-    await actions.getByRole('button', { name: de ? 'Einstellungen' : 'Settings', exact: true }).click();
+    expect(styles).toHaveLength(2);
+    expect(styles[1]).toEqual(styles[0]);
+    await page.locator('[data-home-identity]').getByRole('button', { name: de ? 'Einstellungen' : 'Settings', exact: true }).click();
     const settings = page.locator('[data-home-settings]');
     await expect(settings.locator('input').first()).toBeFocused();
     await expect.poll(() => settings.evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(300);
-    await actions.getByRole('button', { name: de ? 'Einstellungen' : 'Settings', exact: true }).click();
+    await page.locator('[data-home-identity]').getByRole('button', { name: de ? 'Einstellungen' : 'Settings', exact: true }).click();
     await expect(settings).toHaveCount(0);
     const overview = page.getByRole('region', { name: de ? 'Finanzen im Überblick' : 'Your household at a glance' });
     await expect(overview.locator('article')).toHaveCount(3);

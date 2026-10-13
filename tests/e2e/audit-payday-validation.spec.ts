@@ -1,3 +1,4 @@
+import { homeWorkspace } from './home-navigation';
 import {test,expect} from '@playwright/test';
 for(const locale of ['de','en']) test(`payday errors identify and focus the field ${locale}`,async({page},info)=>{
   const de=locale==='de',t=(a:string,b:string)=>de?a:b;
@@ -5,7 +6,7 @@ for(const locale of ['de','en']) test(`payday errors identify and focus the fiel
   await page.setViewportSize({width:390,height:900});
   await page.goto(de?'/de/zuhause':'/home');
   await page.getByRole('button',{name:t('Zuhause erstellen','Create my home'),exact:true}).click();
-  await page.getByRole('navigation',{name:/Choose workspace|Bereich wählen/}).getByRole('button',{name:/Plan & save|Planen & sparen/}).click();
+  await homeWorkspace(page, 'plan');
   const panel=page.getByRole('region',{name:/Your available budget|Dein verfügbarer Spielraum/});
   await panel.getByRole('button',{name:t('Verfügbares Geld berechnen','Calculate available money'),exact:true}).click();
   const balance=panel.getByLabel(t('Aktueller Kontostand','Current account balance'),{exact:true});

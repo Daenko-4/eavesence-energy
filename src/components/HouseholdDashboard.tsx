@@ -781,15 +781,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [view, setView] = useState<"overview" | "plan">("overview");
   useEffect(() => { window.dispatchEvent(new CustomEvent("eavesence:home-view", { detail: view })); }, [view]);
-  function changeWorkspace(next: "overview" | "plan") {
-    // Keep header deep links aligned with the selected workspace.
-    if (["#home-plan", "#payday-plan", "#savings-plan", "#home-overview"].includes(window.location.hash)) {
-      const hash = next === "plan" ? "#home-plan" : "#home-overview";
-      lastRequestedHash.current = hash;
-      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
-    }
-    setView(next);
-  }
   const [planQuestion, setPlanQuestion] = useState<"payday" | "savings" | "progress">("payday");
   const [name, setName] = useState(locale === "de" ? "Mein Zuhause" : "My home");
   const [currency, setCurrency] = useState<SavedDeviceCurrency>("EUR");
@@ -834,6 +825,17 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const newTileButtonRef = useRef<HTMLButtonElement>(null);
   const tileNameInputRef = useRef<HTMLInputElement>(null);
   const lastRequestedHash = useRef<string | null>(null);
+  function changeWorkspace(next: "overview" | "plan") {
+    // Keep header deep links aligned with the selected workspace.
+    if (["#home-plan", "#payday-plan", "#savings-plan", "#home-overview"].includes(window.location.hash)) {
+      const hash = next === "plan" ? "#home-plan" : "#home-overview";
+      lastRequestedHash.current = hash;
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
+    }
+    if (next === "plan") setSettingsOpen(false);
+    setView(next);
+  }
+
 
   useEffect(() => {
     if (tileFormOpen) tileNameInputRef.current?.focus();
@@ -988,7 +990,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       if (!hash) { lastRequestedHash.current = null; return; }
       if (lastRequestedHash.current === hash) return;
       lastRequestedHash.current = hash;
-      if (["#savings-plan", "#home-plan", "#payday-plan"].includes(hash)) { setView("plan"); setPlanQuestion(hash === "#savings-plan" ? "savings" : "payday"); }
+      if (["#savings-plan", "#home-plan", "#payday-plan"].includes(hash)) { setView("plan"); setSettingsOpen(false); setPlanQuestion(hash === "#savings-plan" ? "savings" : "payday"); }
       else if (hash.startsWith("#home-") || hash === "#household-costs") setView("overview");
       const requestedKind: HomeTileKind | null =
         hash === "#household-costs"
@@ -1725,7 +1727,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     }));
   }
 
-  function openCostForm(cost?: HouseholdCost, template?: HouseholdCostCategory) {
+  function openCostForm(cost?: HouseholdCost, template?: HouseholdCostCategory, focusDate = false) {
     changeWorkspace("overview");
     setCostManagerOpen(true);
     const tile = cost?.tileId
@@ -1735,7 +1737,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setActiveTileId(selected.id);
     setCostRequest({ costId: cost?.id, template, nonce: Date.now() + Math.random() });
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
-      document.getElementById("household-costs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const target = focusDate
+        ? document.querySelector<HTMLInputElement>('#household-cost-form input[type="date"]')
+        : document.getElementById("household-costs");
+      target?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: focusDate ? "center" : "start" });
+      if (focusDate) target?.focus({ preventScroll: true });
     }));
   }
 
@@ -1760,18 +1766,21 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       <Header locale={locale} languageHrefOverride={languageHref} />
       <main id="home-overview" className="scroll-mt-20 px-5 pb-20 pt-10 sm:px-6 sm:pt-14">
         <div className="mx-auto max-w-7xl">
-          <div>
-            <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">EAVESENCE</p>
-              <h1 className="mt-2 text-[clamp(2rem,3.3vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.045em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>
-              <p className="mt-2 text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
+          <section hidden={view !== "overview"} data-home-heading className="home-heading">
+            <div data-home-identity>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--brand-green)]">MY HOME</p>
+              {view === "overview" && <h1 className="mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>}
+              <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} aria-controls="home-settings" className="home-settings-action">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 2 3-1 2 2 3-2 1-3 3-1 2-3-2-2 1-3-3-2-3 1-2-2Z"/><circle cx="12" cy="12" r="3"/></svg>
+                {text.settings}
+              </button>
+              <p className="mx-auto mt-1 max-w-lg text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
             </div>
-            <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className="mt-4 flex flex-wrap items-center gap-3">
+            <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className="home-entry-actions">
               <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
               <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={openIncomeForm} aria-expanded={incomeOpen} aria-controls="home-income-form">{hasRecordedIncome ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
-              <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} aria-controls="home-settings" className={`${homeDashboardActionClass} home-outlined-action`}>{text.settings}</button>
             </div>
-          </div>
+          </section>
 
           {settingsOpen && (
             <section id="home-settings" data-home-settings className={`mt-6 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
@@ -1860,13 +1869,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
             </section>
           )}
-          {notice && <p role="status" className="mt-3 text-[13px] font-bold text-[var(--brand-green)]">{notice}</p>}
+          {notice && view === "overview" && <p role="status" className="mt-3 text-center text-[13px] font-semibold text-[var(--brand-green)]">{notice}</p>}
 
-          <nav aria-label={locale === "de" ? "Bereich wählen" : "Choose workspace"} data-workspace={view} className="home-workspace-navigation mt-6">
-            <button type="button" aria-pressed={view === "overview"} onClick={() => changeWorkspace("overview")} className="home-workspace-link">{locale === "de" ? "Übersicht" : "Overview"}<span className="navigation-indicator site-disclosure-icon" aria-hidden="true">+</span></button>
-            {homeRelease.proPreview && <button type="button" aria-pressed={view === "plan"} onClick={() => { changeWorkspace("plan"); setSettingsOpen(false); }} className="home-workspace-link">{locale === "de" ? "Planen & sparen" : "Plan & save"}<span className="navigation-pro-label">Pro</span><span className="navigation-indicator site-disclosure-icon" aria-hidden="true">+</span></button>}
-          </nav>
-          <div hidden={view !== "overview"} data-home-overview-content>
+          <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
           <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} undatedCosts={householdCosts.filter(cost => !cost.nextDueDate)} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
@@ -1883,9 +1888,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
 
           {profile.overviewReviewed === true && !profile.backupReminderDismissed && <p className="mt-4 text-[12px] leading-5 text-[#65716d]">{locale === "de" ? "Deine Angaben bleiben in diesem Browser. Eine Sicherung schützt sie beim Gerätewechsel oder Löschen der Browserdaten." : "Your entries stay in this browser. A backup protects them when you switch devices or clear browser data."} <button type="button" onClick={exportHome} className="eavesence-pill-button home-dashboard-action">{text.exportHome}</button> <button type="button" onClick={() => persistProfile({...profile,backupReminderDismissed:true})} className="min-h-11 px-2 text-[12px] font-semibold">{locale === "de" ? "Später" : "Later"}</button></p>}
-          {householdCosts.length > 0 && profile.overviewReviewed !== false && <HomeMemos data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale}/>}
-          <details data-cost-manager open={costManagerOpen} onToggle={event=>setCostManagerOpen(event.currentTarget.open)} className="home-disclosure mt-5"><summary className="home-single-line-summary min-h-11 cursor-pointer rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] px-4 text-[13px] font-semibold">{locale === "de" ? "Kosten verwalten" : "Manage costs"}</summary>
-          <div className="mt-5" data-cost-area-overview>
+          <details data-cost-manager open={costManagerOpen} onToggle={event=>setCostManagerOpen(event.currentTarget.open)} className="home-disclosure home-tool-panel mt-5"><summary className="cursor-pointer text-[13px] font-semibold"><span>{locale === "de" ? "Kosten verwalten" : "Manage costs"}</span><span className="home-tool-description">{locale === "de" ? "Gespeicherte Kosten, Bereiche & Import" : "Saved costs, areas & import"}</span></summary>
+          <div className="border-t border-[#dfe5dd] p-4 sm:p-5" data-cost-area-overview>
           <nav aria-label={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} className="flex flex-wrap gap-2 rounded-t-xl bg-[#24272c] px-4 pt-3 pb-2">{homeTiles.map(tile => <button type="button" key={tile.id} aria-pressed={activeTileId === tile.id} onClick={() => {setCostRequest(null);setActiveTileId(tile.id);}} className={`min-h-11 rounded-full border px-4 text-[12px] font-semibold ${activeTileId === tile.id ? "border-[#72dca3] bg-[#dcfce8] text-[#17211f]" : "border-[#65716d] text-white"}`}><span className="flex items-center gap-2"><TileSymbol icon={iconForTile(tile)}/>{tile.title ?? text.tileTitles[tile.kind]}</span></button>)}</nav>
           <details className="home-disclosure home-cost-area-disclosure"><summary className="home-single-line-summary text-[13px] font-semibold"><span className="home-cost-area-control">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</span></summary>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
@@ -1964,6 +1968,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             {!homeTiles.some(tile => tile.kind === "energy") && <p className="mt-4 text-[11px] leading-relaxed text-[#65716d]">{locale === "de" ? "Stromkosten genauer ansehen?" : "Want to explore device electricity costs?"}{" "}<a href={locale === "de" ? "/de/rechner#rechner" : "/calculator#rechner"} className="eavesence-pill-link">{locale === "de" ? "Zum Stromrechner" : "Open energy calculator"}</a>{" "}{locale === "de" ? "Dort kannst du Geräte speichern und freiwillig als eigene Kachel übernehmen." : "Save devices there and optionally add them as a dedicated tile."}</p>}
           </section>
           </details>
+
           </div>
 
           {activeTile?.kind === "energy" && <section className="mt-8 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4" aria-labelledby="monthly-overview-title">
@@ -2294,32 +2299,34 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           </details>
 
+          {householdCosts.length > 0 && profile.overviewReviewed !== false && <HomeMemos data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale}/>}
+
           {activeTile && profile.overviewReviewed === true && profile.backupReminderDismissed === true && <PwaInstallCard locale={locale} />}
 
           </div>
-          <div id="home-plan" hidden={view !== "plan"} data-home-plan-content className="scroll-mt-24">
+          <div id="home-plan" hidden={view !== "plan"} data-home-plan-content className="mx-auto max-w-5xl scroll-mt-24">
 
-            <p className="mt-5 text-[11px] font-bold uppercase tracking-[.1em] text-[var(--brand-green)]">{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</p>
-            <h2 className="mt-2 site-section-title">{locale === "de" ? "Dein Plan" : "Your plan"}</h2>
-            <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{locale === "de" ? "Zuerst dein Spielraum bis zum Gehalt. Danach konkrete Kosten prüfen und bestätigte Ersparnisse verfolgen." : "Start with your budget until payday. Then review specific costs and track confirmed savings."}</p>
-            <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="mt-4 flex flex-wrap gap-2">
-              {(["payday", "savings", "progress"] as const).map((item, index) => (
+            <div className="text-center">
+              <p className="text-[11px] font-bold uppercase tracking-[.1em] text-[var(--brand-green)]">{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</p>
+              {view === "plan" && <h1 className="mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
+            </div>
+            <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="pro-question-navigation mt-6">
+              {(["payday", "savings", "progress"] as const).map((item) => (
                 <button
                   type="button"
                   key={item}
                   aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
                   aria-pressed={planQuestion === item}
                   onClick={() => setPlanQuestion(item)}
-                  className="group inline-flex min-h-11 items-center rounded-full bg-transparent p-0 text-left focus-visible:outline-none"
+                  className="pro-question-button"
                 >
-                  <span className={`inline-flex min-h-8 items-center rounded-full border px-2.5 text-[11px] font-semibold leading-4 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-[#24272c] ${planQuestion === item ? "border-[#087a45] bg-[#ddf8e9] text-[#087a45]" : "border-[#dfe5dd] bg-white text-[#52605b]"}`}>
-                    {index+1} · {item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}
-                  </span>
+                  <span>{item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
+                  <span className="pro-question-description">{item === "payday" ? locale === "de" ? "Verfügbares Geld" : "Available money" : item === "savings" ? locale === "de" ? "Änderungen vergleichen" : "Compare changes" : locale === "de" ? "Fortschritt verfolgen" : "Track progress"}</span>
                 </button>
               ))}
             </div>
             <div hidden={planQuestion !== "payday"}>
-          <PaydayPanel onSavings={()=>setPlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+          <PaydayPanel onSavings={()=>setPlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
             </div>
             <div hidden={planQuestion === "payday"}>
           <SavingsPlanPanel

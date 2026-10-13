@@ -69,80 +69,72 @@ export default function PaydayPanel({
       : t("− Alltag (deine Eingabe)", "− Everyday spending (your entry)"), p.forecast.everyday],
     [t("− Reserve", "− Money kept in reserve"), p.cash!.protected],
   ] : [];
+  const expired = !!p.cash && p.cash.payday <= p.today;
+  const missingDates = p.forecast?.missingDates ?? 0;
+  const missingEveryday = p.forecast?.everyday === null;
+  const state = !p.cash ? "empty" : expired ? "expired" : p.stale ? "stale" : missingDates > 0 ? "dates" : missingEveryday ? "everyday" : complete ? "ready" : "incomplete";
+  const currentResult = complete && state === "ready";
+  const statusText = state === "empty"
+    ? t("Was bleibt nach Rechnungen und Alltag? Mit drei Angaben siehst du es.", "What is left after bills and everyday spending? Find out with three entries.")
+    : state === "expired"
+      ? t("Wähle den nächsten Gehaltstag und bestätige deinen Kontostand.", "Choose your next payday and confirm your account balance.")
+      : state === "stale"
+        ? p.cash?.needsRefresh
+          ? t("Zahlungen wurden geändert. Bestätige den Kontostand aus deiner Banking-App erneut.", "Payments changed. Confirm the balance from your banking app again.")
+          : t(`Kontostand vom ${day(p.cash!.asOf)}. Für heute bitte erneut bestätigen.`, `Balance from ${day(p.cash!.asOf)}. Please confirm it for today.`)
+        : missingDates > 0
+          ? t(`${missingDates} Kosten ohne Zahlungstermin. Ergänze sie für eine vollständige Rechnung.`, `${missingDates === 1 ? "1 cost has" : `${missingDates} costs have`} no payment date. Add ${missingDates === 1 ? "it" : "them"} for a complete calculation.`)
+          : missingEveryday
+            ? t("Wie viel brauchst du bis zum Gehalt noch für den Alltag? Auch 0 ist möglich.", "How much do you still need for everyday spending until payday? 0 is allowed.")
+            : currentResult
+              ? shortfall
+                ? t("Prüfe offene Rechnungen und deine Alltagsschätzung.", "Review unpaid bills and your everyday estimate.")
+                : t("Rechnungen, Alltag und Reserve sind bereits abgezogen.", "Bills, everyday spending and reserve are already deducted.")
+              : t("Ergänze deine Angaben für eine vollständige Rechnung.", "Complete your entries to calculate available money.");
+  const editorId = useId();
+  const editTarget = state === "expired" ? "payday" : state === "everyday" ? "everyday" : "balance";
+  function editPlan() { setOpen(true); focusInvalid(editTarget); }
   return (
     <section
-      className="mt-5 min-w-0 overflow-hidden rounded-[1.45rem] border border-[#32363b]"
+      className="mt-5 min-w-0 overflow-hidden rounded-[1.45rem] border border-[#dfe5dd] bg-white"
       aria-label={t("Dein verfügbarer Spielraum", "Your available budget")}
+      data-payday-state={state}
     >
-      <div className="bg-[#24272c] p-5 text-white sm:p-6">
-        <p className="text-[13px] font-bold uppercase tracking-widest text-[#72dca3]">
-          {complete
-            ? t("Bis zum nächsten Gehalt", "Until your next payday")
-            : t("Bis zum nächsten Gehalt", "Until your next payday")}
+      <div className="bg-[#24272c] p-5 text-center text-white sm:p-6" data-payday-hero>
+        <p className="text-[11px] font-semibold uppercase tracking-[.1em] text-[#b8efcc]">
+          {!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} ${p.forecast.days === 1 ? "Tag" : "Tage"}`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} ${p.forecast.days === 1 ? "day" : "days"}`) : t("Dein Geld bis zum Gehalt", "Your money until payday")}
         </p>
-        <h2 ref={resultHeading} tabIndex={-1} className="mt-2 site-section-title">
-          {complete
-            ? t(
-                shortfall ? `Bis ${day(p.cash!.payday)} fehlen dir voraussichtlich` : `Bis ${day(p.cash!.payday)} kannst du zusätzlich ausgeben`,
-                shortfall ? `Estimated shortfall until ${day(p.cash!.payday)}` : `You can spend this extra until ${day(p.cash!.payday)}`,
-              )
-            : t("Was kann ich bis zum nächsten Gehalt ausgeben?", "What can I spend until my next payday?")}
+        <h2 ref={resultHeading} tabIndex={-1} className="mt-2 site-section-title outline-none">
+          {open ? t("Deine Angaben", "Your entries") : currentResult
+            ? shortfall ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Zusätzlich verfügbar", "Extra money available")
+            : state === "stale" ? t("Kontostand bestätigen", "Confirm account balance")
+            : state === "expired" ? t("Neuen Zeitraum planen", "Plan your next pay period")
+            : state === "dates" ? t("Zahlungstermine ergänzen", "Add payment dates")
+            : state === "everyday" ? t("Alltag noch einplanen", "Add everyday spending")
+            : t("Was bleibt bis zum Gehalt?", "What is left until payday?")}
         </h2>
-        <p hidden={open && !p.forecast} className={`mt-2 text-[28px] font-extrabold tracking-tight ${shortfall ? "text-[#ffd28c]" : "text-[#72dca3]"}`} data-payday-result aria-live="polite">
-          {complete
-            ? money(Math.abs(p.forecast!.remaining!))
-            : "—"}
-        </p>
-        <p hidden={open && !p.forecast} className="mt-2 max-w-2xl text-[13px] leading-5 text-[#d1d7d4]">
-          {complete
-            ? t(
-                shortfall ? "Dein Kontostand reicht für die offenen Rechnungen, geplanten Alltagsausgaben und deine Reserve noch nicht aus." : `Für deinen Alltag sind ${money(p.forecast!.everyday!)} eingeplant. Rechnungen und Reserve sind ebenfalls abgezogen. Dieser Betrag bleibt zusätzlich übrig.`,
-                shortfall ? "Your balance does not cover unpaid bills, planned everyday spending and your reserve yet." : `Your everyday budget is ${money(p.forecast!.everyday!)}. Bills and reserve are also deducted. This amount is left on top.`,
-              )
-            : t(
-                p.cash && p.cash.payday <= p.today ? "Dein Gehaltstermin ist erreicht. Trage den aktuellen Kontostand und den nächsten Gehaltstag ein." : p.forecast ? `Dein Kontostand ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben für einen vollständigen Spielraum.` : "Kontostand eintragen, nächsten Gehaltstag wählen und Alltag bis dahin schätzen. Offene Rechnungen aus My Home berücksichtigen wir automatisch.",
-                p.cash && p.cash.payday <= p.today ? "Your payday has arrived. Enter your current balance and your next payday." : p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter your account balance, choose your next payday and estimate everyday spending until then. We include unpaid bills from My Home automatically.",
-              )}
-        </p>
-
-        {complete && p.forecast!.remaining! < 0 && <p className="mt-2 text-[13px] text-[#ffe1a8]">{t(`Es fehlen voraussichtlich ${money(-p.forecast!.remaining!)}. Prüfe offene Zahlungen und deine Alltagsschätzung.`, `Estimated shortfall: ${money(-p.forecast!.remaining!)}. Review pending payments and your everyday estimate.`)}</p>}
-        {p.forecast && p.forecast.overdue > 0 && <p className="mt-2 text-[13px] text-[#ffe1a8]">{t(`${p.forecast.overdue} frühere Zahlungen dieses Monats sind noch nicht abgehakt und deshalb enthalten. Bereits bezahlt? In der Monatscheckliste abhaken und Guthaben erneut bestätigen.`, `${p.forecast.overdue} earlier payments this month are still unchecked and included. Already paid? Check them off in the monthly checklist, then confirm your balance again.`)}</p>}
-        {p.forecast && <div className="mt-3 flex flex-wrap gap-2">{input.costs.filter(c => !c.nextDueDate).map(c => <button key={c.id} type="button" className="min-h-11 rounded-full border border-[#72dca3] px-3 text-[13px] font-semibold" onClick={() => onReviewCost?.(c)}>{c.name} · {t("Termin ergänzen", "Add date")}</button>)}</div>}
-        {p.forecast?.everyday === null && <p className="mt-2 text-[13px] text-[#ffe1a8]">{t("Noch offen: Alltag bis zum Gehalt. Öffne die Rechnung und ergänze den Betrag; 0 ist möglich.", "Still missing: everyday spending until payday. Open the calculation and add an amount; 0 is allowed.")}</p>}
-        {p.stale && (
-          <p className="mt-2 text-[13px] text-[#ffe1a8]">
-            {t(
-              "Bitte aktualisiere deinen Kontostand. Seit dem letzten Tag oder einer abgehakten Zahlung kann er sich geändert haben.",
-              "Please update your account balance. It may have changed since the last day or a payment was checked off.",
-            )}
-          </p>
-        )}
-        <button
-          type="button"
-          aria-expanded={open}
-          className="mt-3 inline-flex min-h-10 items-center rounded-full bg-[#72dca3] px-4 text-[13px] font-bold text-[#17211f]"
-          onClick={() => open ? setOpen(false) : reviewBalance()}
-        >
-          {open
-            ? t("Einklappen", "Collapse")
-            : p.cash
-              ? t(
-                  "Kontostand aktualisieren",
-                  "Update account balance",
-                )
-              : t("Verfügbares Geld berechnen", "Calculate available money")}
-        </button>
+        {currentResult && !open && <p className={`mt-2 text-[clamp(2rem,4vw,2.6rem)] font-extrabold leading-tight tracking-tight ${shortfall ? "text-[#ffd28c]" : "text-[#72dca3]"}`} data-payday-result aria-live="polite">{money(Math.abs(p.forecast!.remaining!))}</p>}
+        <p hidden={open} className={`mx-auto mt-2 max-w-2xl text-[13px] leading-5 ${state === "stale" || state === "expired" || state === "dates" ? "text-[#ffe1a8]" : "text-[#d1d7d4]"}`} data-payday-status role="status">{statusText}</p>
+        {state === "empty" && !open && <ol className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[12px] text-[#d1d7d4]" aria-label={t("Drei Angaben", "Three entries")}>{[t("Kontostand", "Account balance"),t("Gehaltstag", "Payday"),t("Alltag", "Everyday spending")].map((label,index)=><li key={label} className="flex items-center gap-2"><span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#65716d] text-[11px]" aria-hidden="true">{index+1}</span>{label}</li>)}</ol>}
+        {currentResult && !open && <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-white/15 pt-3 text-[12px]" data-payday-summary>{[[t("Rechnungen", "Bills"),p.forecast!.fixed],[t("Alltag", "Everyday"),p.forecast!.everyday!],[t("Reserve", "Reserve"),p.cash!.protected]].map(([label,value])=><div key={label}><dt className="text-[#b8c4bf]">{label}</dt><dd className="mt-1 break-words text-[13px] font-semibold">{money(Number(value))}</dd></div>)}</dl>}
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+          <button type="button" aria-expanded={open} aria-controls={editorId} className="inline-flex min-h-11 items-center gap-3 rounded-full bg-[#72dca3] px-4 text-[13px] font-semibold text-[#17211f]" onClick={() => open ? setOpen(false) : editPlan()}>
+            {open ? t("Einklappen", "Collapse") : p.cash ? t("Kontostand aktualisieren", "Update account balance") : t("Verfügbares Geld berechnen", "Calculate available money")}
+            <span aria-hidden="true" className={`site-disclosure-icon text-lg ${open ? "-rotate-45" : ""}`}>+</span>
+          </button>
+          {currentResult && !open && (p.forecast!.overdue > 0 || p.forecast!.estimatedBills > 0) && <button type="button" className="min-h-11 text-left text-[12px] text-[#ffe1a8] underline decoration-white/30 underline-offset-4" onClick={reviewPayments}>{[p.forecast!.overdue > 0 ? t(`${p.forecast!.overdue} frühere Zahlungen offen`, `${p.forecast!.overdue} earlier payments unchecked`) : "",p.forecast!.estimatedBills > 0 ? t(`${p.forecast!.estimatedBills} Beträge geschätzt`, `${p.forecast!.estimatedBills} estimated amounts`) : ""].filter(Boolean).join(" · ")}</button>}
+        </div>
       </div>
-      {!open && p.forecast && <details data-payday-calculation className="home-disclosure bg-white p-4 sm:p-5"><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{t("So entsteht dein Spielraum", "How your available money is calculated")}</summary><dl className="space-y-2 text-[13px]">{calculationRows.map(([label, value]) => <div key={String(label)} className="flex justify-between gap-3"><dt>{label}</dt><dd className="shrink-0 font-semibold">{value === null ? "—" : money(Number(value))}</dd></div>)}<div className="flex justify-between gap-3 border-t border-[#dfe5dd] pt-2 font-semibold"><dt>{complete ? t("= Zusätzlicher Spielraum", "= Extra available") : t("= Angaben fehlen noch", "= Entries still missing")}</dt><dd className="shrink-0">{complete ? money(p.forecast!.remaining!) : "—"}</dd></div></dl>{complete&&p.forecast!.remaining!>=0&&<p className="mt-3 text-[13px] text-[#52605b]">{t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`)}</p>}</details>}
-      {complete&&p.forecast!.estimatedBills>0&&<p className="bg-white px-4 py-3 text-[13px] leading-5 text-[#52605b]">{t(`${p.forecast!.estimatedBills} Rechnungsbeträge noch geschätzt. Ergänze die tatsächlichen Beträge in der Monatscheckliste.`,`${p.forecast!.estimatedBills} invoice amounts are still estimated. Add actual amounts in the monthly checklist.`)}</p>}
+      {!open && missingDates > 0 && <div className="border-b border-[#dfe5dd] p-4 sm:p-5"><div className="flex flex-wrap gap-2">{input.costs.filter(c=>!c.nextDueDate).map(c=><button key={c.id} type="button" className="eavesence-pill-button home-dashboard-action" onClick={()=>onReviewCost?.(c)}>{c.name} · {t("Termin ergänzen", "Add date")}</button>)}</div></div>}
+      {!open && p.forecast && !p.stale && <details data-payday-calculation className="home-disclosure bg-white p-4 sm:p-5"><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{t("So entsteht dein Spielraum", "How your available money is calculated")}</summary><dl className="space-y-2 text-[13px]">{calculationRows.map(([label, value]) => <div key={String(label)} className="flex justify-between gap-3"><dt>{label}</dt><dd className="shrink-0 font-semibold">{value === null ? "—" : money(Number(value))}</dd></div>)}<div className="flex justify-between gap-3 border-t border-[#dfe5dd] pt-2 font-semibold"><dt>{complete ? t("= Zusätzlicher Spielraum", "= Extra available") : t("= Angaben fehlen noch", "= Entries still missing")}</dt><dd className="shrink-0">{complete ? money(p.forecast!.remaining!) : "—"}</dd></div></dl>{complete&&p.forecast!.remaining!>=0&&<p className="mt-3 text-[13px] text-[#52605b]">{t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`)}</p>}</details>}
       {open && (
-        <div className="space-y-3 bg-white p-4 sm:p-5">
+        <div id={editorId} className="space-y-3 bg-white p-4 sm:p-5">
           <form noValidate onSubmit={async (e) => {
             e.preventDefault();
             if (await p.save(focusInvalid)) { setOpen(false); requestAnimationFrame(() => { resultHeading.current?.focus({preventScroll:true}); resultHeading.current?.scrollIntoView({block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"}); }); }
           }} className="space-y-5" data-payday-form>
             <fieldset className="min-w-0">
-              <legend className="mb-3 text-[14px] font-semibold">{t("1 · Dein Geld heute", "1 · Your money today")}</legend>
+              <legend className="mb-3 text-[14px] font-semibold">{t("1 · Kontostand & Gehaltstag", "1 · Balance & payday")}</legend>
               <div className="grid items-start gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-[13px]">
                   <span>{t("Aktueller Kontostand", "Current account balance")}</span>
@@ -153,13 +145,13 @@ export default function PaydayPanel({
                   <input ref={paydayInput} aria-invalid={p.errorField === "payday"} className={field} type="date" min={new Date(Date.parse(p.today) + 86400000).toISOString().slice(0,10)} max={new Date(Date.parse(p.today) + 90 * 86400000).toISOString().slice(0,10)} value={p.payday} onChange={e => p.setPayday(e.target.value)}/>
                 </label>
               </div>
-              <p id="payday-balance-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Übernimm den Kontostand von heute aus deiner Banking-App. Ziehe selbst noch nichts ab. Das nächste Gehalt ist hier noch nicht eingerechnet.", "Copy today's balance from your banking app. Do not deduct anything yourself. Your next salary is not included yet.")}</p>
+              <p id="payday-balance-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Wie in deiner Banking-App – noch nichts abziehen. Das nächste Gehalt zählt erst danach.", "Use today's balance from your banking app, before any deductions. Your next salary is not included.")}</p>
             </fieldset>
             <fieldset className="min-w-0 rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-4">
               <legend className="px-1 text-[14px] font-semibold">{t("2 · Offene Rechnungen", "2 · Unpaid bills")}</legend>
               {p.preview ? <>
                 <div className="flex items-baseline justify-between gap-3 text-[13px]"><span>{t(`${p.preview.payments.length} Zahlungen bis ${day(p.payday)}`, `${p.preview.payments.length} payments before ${day(p.payday)}`)}</span><strong className="shrink-0" data-payday-preview-bills>{money(p.preview.fixed)}</strong></div>
-                <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Diese Rechnungen aus My Home ziehen wir automatisch ab. Bereits bezahlt? Hake sie ab, damit sie nicht nochmals abgezogen werden.", "We deduct these My Home bills automatically. Already paid? Check them off so they are not deducted again.")}</p>
+                <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Aus My Home übernommen. Bezahlte Rechnungen abhaken, damit wir sie nicht doppelt abziehen.", "Included from My Home. Check off paid bills so we do not deduct them twice.")}</p>
                 {p.preview.overdue > 0 && <p className="mt-2 text-[13px] text-amber-800">{t(`${p.preview.overdue} frühere Zahlungen dieses Monats sind noch offen und enthalten.`, `${p.preview.overdue} earlier payments this month are still unchecked and included.`)}</p>}
                 {p.preview.estimatedBills > 0 && <p className="mt-2 text-[13px] text-[#52605b]">{t(`${p.preview.estimatedBills} Beträge noch geschätzt.`, `${p.preview.estimatedBills} amounts are still estimates.`)}</p>}
                 {bills.length > 0 && <button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={reviewPayments}>{t("Zahlungen prüfen", "Review payments")}</button>}
@@ -172,7 +164,7 @@ export default function PaydayPanel({
                 <span>{t("Alltagsausgaben bis zum Gehalt", "Everyday spending until payday")}</span>
                 <input ref={everydayInput} aria-invalid={p.errorField === "everyday"} className={field} inputMode="decimal" aria-describedby="payday-everyday-help" value={p.everyday} onChange={e => p.setEveryday(e.target.value)} placeholder={t("z. B. 200,00", "e.g. 200.00")}/>
               </label>
-              <p id="payday-everyday-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Wie viel brauchst du bis dahin noch für Lebensmittel, Freizeit und andere Alltagsausgaben? Gespeicherte Rechnungen zählen hier nicht dazu. Auch 0 ist möglich.", "How much will you still need for groceries, leisure and other everyday spending? Do not include your saved bills here. 0 is allowed.")}</p>
+              <p id="payday-everyday-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Lebensmittel, Freizeit & Co. bis zum Gehalt – ohne die gespeicherten Rechnungen. 0 ist möglich.", "Groceries, leisure and other everyday spending until payday, excluding saved bills. 0 is allowed.")}</p>
               {p.suggestedEveryday !== null && <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px] text-[#52605b]"><span>{t(`Vorschlag für ${p.preview!.days} Tage: ${money(p.suggestedEveryday)} – aus deiner Monatsschätzung von ${money(input.variableMonthly!)}.`, `Suggestion for ${p.preview!.days} days: ${money(p.suggestedEveryday)} – based on your monthly estimate of ${money(input.variableMonthly!)}.`)}</span><button type="button" className="eavesence-pill-button home-dashboard-action" onClick={() => p.setEveryday(de ? String(p.suggestedEveryday).replace(".", ",") : String(p.suggestedEveryday))}>{t("Vorschlag übernehmen", "Use suggestion")}</button></div>}
             </fieldset>
             <details className="home-disclosure rounded-xl border border-[#dfe5dd] p-3" open={reserveOpen} onToggle={e => setReserveOpen(e.currentTarget.open)}>
@@ -181,7 +173,7 @@ export default function PaydayPanel({
                 <span>{t("Reserve, die übrig bleiben soll (optional)", "Money to keep in reserve (optional)")}</span>
                 <input ref={protectedInput} aria-invalid={p.errorField === "protected"} className={field} inputMode="decimal" value={p.protectedAmount} onChange={e => p.setProtected(e.target.value)}/>
               </label>
-              <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Dieser Teil deines Kontostands soll unangetastet bleiben. Rechnungen und Alltag sind bereits berücksichtigt. Sparziele werden nicht automatisch abgezogen.", "This part of your balance stays untouched. Bills and everyday spending are already accounted for. Savings goals are not deducted automatically.")}</p>
+              <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Dieser Betrag bleibt unangetastet. Sparziele werden hier nicht automatisch abgezogen.", "This amount stays untouched. Savings goals are not deducted automatically here.")}</p>
             </details>
             {p.error && <p role="alert" className="text-[13px] text-red-700">{p.error}</p>}
             <button type="submit" disabled={p.busy} className="eavesence-pill-button home-primary-action">{t("Verfügbares Geld anzeigen", "Show available money")}</button>
@@ -192,7 +184,7 @@ export default function PaydayPanel({
         <button ref={billsButton} type="button" aria-expanded={billsOpen} aria-controls={billsId} onClick={()=>setBillsOpen(!billsOpen)} className="flex min-h-11 w-full items-center justify-between gap-3 text-left text-[13px] font-semibold"><span>{t("Zahlungen bis zum Gehalt abhaken", "Check off payments until payday")} · {bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</span><span aria-hidden="true" className={`site-disclosure-icon text-xl text-[#28734d] transition-transform duration-200 motion-reduce:transition-none ${billsOpen?"-rotate-45":""}`}>+</span></button>
         <div id={billsId} hidden={!billsOpen}><p className="my-2 text-[13px] text-[#52605b]">{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</p><ul className="divide-y divide-[#e7ebe5]">{bills.map(b=>{const paid=checklist.isPaid(b);return <li key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})}><label className="flex min-h-12 cursor-pointer items-center gap-3 py-2 text-[13px]"><input type="checkbox" checked={paid} disabled={checklist.busy||checklist.isClosed(b)} onChange={()=>void checklist.toggle(b)} aria-label={`${b.cost.name} · ${day(b.date)} · ${t("Bezahlt", "Paid")}`} className="h-5 w-5 shrink-0 accent-[#28734d]"/><span className={`min-w-0 flex-1 ${paid?"text-[#65716d] line-through":""}`}>{b.cost.name}<span className="block text-[13px] text-[#65716d]">{day(b.date)}</span></span><span className="shrink-0">{b.estimated?t("ca. ","approx. "):""}{money(b.cost.amount)}</span></label>{b.cost.variableAmount&&<button type="button" className="eavesence-pill-button home-dashboard-action" disabled={checklist.busy||checklist.isClosed(b)} onClick={()=>checklist.editAmount(b)}>{b.cost.name} · {t("Rechnungsbetrag","Invoice amount")}</button>}</li>})}</ul><PaymentAmountForm c={checklist} locale={locale}/>{checklist.error&&<p role="alert" className="mt-2 text-[13px] text-red-700">{checklist.error}</p>}</div>
       </div>}
-      <QuickCheck locale={locale} input={input} data={data} onSave={onSave} onBalance={reviewBalance} onPayments={reviewPayments} onSavings={onSavings} onReview={onReviewCost}/>
+      <QuickCheck hasPayments={bills.length > 0} locale={locale} input={input} data={data} onSave={onSave} onBalance={reviewBalance} onPayments={reviewPayments} onSavings={onSavings} onReview={onReviewCost}/>
     </section>
   );
 }

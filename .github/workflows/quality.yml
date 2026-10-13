@@ -48,6 +48,9 @@ jobs:
         # The pinned runner supplies the system libraries; avoid unrelated apt upgrades.
         run: npx playwright install chromium
 
+      - name: Install WebKit for Safari home journeys
+        run: npx playwright install --with-deps webkit
+
       - name: Run browser tests
         run: npm run test:e2e
 

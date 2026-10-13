@@ -1,3 +1,4 @@
+import { homeWorkspace } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
 async function seed(page: import('@playwright/test').Page, de=false, mixed=true) {
@@ -51,9 +52,9 @@ test('payment changes invalidate the old balance and a fresh payday calculation 
   await seed(page,false,false);
   await page.getByRole('button',{name:'Check off payments',exact:true}).click();
   await page.getByRole('checkbox',{name:/^Rent ·/}).check();
-  await page.getByRole('navigation',{name:'Choose workspace'}).getByRole('button',{name:/Plan & save/}).click();
+  await homeWorkspace(page, 'plan');
   const payday=page.getByRole('region',{name:'Your available budget',exact:true});
-  await expect(payday).toContainText('Please update your account balance');
+  await expect(payday).toContainText('Payments changed');
   await payday.getByRole('button',{name:'Update account balance',exact:true}).click();
   await payday.getByLabel('Current account balance',{exact:true}).fill('700');
   await payday.getByRole('button',{name:'Show available money',exact:true}).click();

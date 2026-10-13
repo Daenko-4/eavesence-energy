@@ -1,3 +1,4 @@
+import { homeWorkspace } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
 for (const locale of ['de', 'en'] as const) {
@@ -50,8 +51,8 @@ for (const locale of ['de', 'en'] as const) {
     await rows.last().getByRole('button', { name: de ? 'Bonus entfernen' : 'Remove Bonus', exact: true }).click();
     await form.locator('button[type="submit"]').click();
     if (!de) {
-      const workspace = page.getByRole('navigation', { name: 'Choose workspace' });
-      await workspace.getByRole('button', { name: /Plan & save/ }).click();
+
+      await homeWorkspace(page, 'plan');
       await page.getByRole('button', { name: 'Find realistic savings', exact: true }).click();
       await page.getByRole('button', { name: 'Add a monthly budget (optional)', exact: true }).click();
       await page.getByLabel('Everyday spending per month (estimate)', { exact: true }).fill('500');
@@ -60,7 +61,7 @@ for (const locale of ['de', 'en'] as const) {
       await expect(page.getByText('Includes €2,000.00 planned extra income', { exact: true })).toBeVisible();
       await expect(page.getByText('Includes €600.00 planned extra income', { exact: true })).toBeVisible();
       await expect(page.getByText('€3,910.00', { exact: true })).toBeVisible();
-      await workspace.getByRole('button', { name: 'Overview', exact: true }).click();
+      await homeWorkspace(page, 'overview');
     }
     await actions.getByRole('button', { name: de ? 'Einkommen ändern' : 'Edit income', exact: true }).click();
     await page.screenshot({ fullPage: true, path: info.outputPath(`income-extras-editor-${locale}.png`) });
