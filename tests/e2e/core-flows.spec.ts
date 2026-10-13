@@ -1311,7 +1311,7 @@ test.describe("mobile", () => {
 
   test("My home history, comparison and edit controls fit on a small phone", async ({
     page,
-  }) => {
+  }, info) => {
     await disableHeaderIntro(page);
     await page.setViewportSize({ width: 320, height: 568 });
     await page.addInitScript(() => {
@@ -1379,6 +1379,7 @@ test.describe("mobile", () => {
     await septemberEntry.getByRole("button", { name: "Edit" }).click();
     await expect(page.getByRole("button", { name: "Update monthly value" })).toBeVisible();
 
+    await page.screenshot({ path: info.outputPath("inset-monthly-history-320.png"), fullPage: true });
     const mobileLayout = await page.evaluate(() => {
       const viewportWidth = document.documentElement.clientWidth;
       const controls = Array.from(

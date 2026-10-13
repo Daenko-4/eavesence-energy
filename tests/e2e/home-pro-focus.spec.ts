@@ -207,7 +207,7 @@ for (const de of [false, true]) {
       const t = (a: string, b: string) => de ? a : b;
       await page.setViewportSize({ width, height: 900 });
       await seed(page, de);
-      await page.evaluate((de) => {
+      await page.evaluate(() => {
         const profile = JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);
         profile.savingsGoalPercent = 42;
         localStorage.setItem('eavesence-home-profile-v1', JSON.stringify(profile));
@@ -216,10 +216,14 @@ for (const de of [false, true]) {
           { id: 'energy', kind: 'energy', title: null },
         ]));
         localStorage.setItem('eavesence-saved-devices-v1', JSON.stringify([
-          { id: 'fridge', device: 'fridge', customDeviceName: de ? 'Kühlschrank Küche' : 'Kitchen fridge', mode: 'estimate', currency: 'EUR', price: .3, watts: 80, minutesPerUse: 1440, usesPerWeek: 7, estimatedKwhPerUse: 1, measuredKwhPerUse: 0, yearlyKwh: 360, yearlyCost: 108, monthlyCost: 9, updatedAt: '2026-10-13T12:00:00Z' },
-          { id: 'washer', device: 'washer', customDeviceName: de ? 'Waschmaschine' : 'Washing machine', mode: 'estimate', currency: 'EUR', price: .3, watts: 2000, minutesPerUse: 60, usesPerWeek: 3, estimatedKwhPerUse: 1, measuredKwhPerUse: 0, yearlyKwh: 240, yearlyCost: 72, monthlyCost: 6, updatedAt: '2026-10-13T12:00:00Z' },
+          { id: 'fridge', device: 'Kühlschrank', customDeviceName: '', mode: 'estimate', currency: 'EUR', price: .3, watts: 80, minutesPerUse: 1440, usesPerWeek: 7, estimatedKwhPerUse: 1, measuredKwhPerUse: 0, yearlyKwh: 360, yearlyCost: 108, monthlyCost: 9, updatedAt: '2026-10-13T12:00:00Z' },
+          { id: 'washer', device: 'Waschmaschine', customDeviceName: '', mode: 'estimate', currency: 'EUR', price: .3, watts: 2000, minutesPerUse: 60, usesPerWeek: 3, estimatedKwhPerUse: 1, measuredKwhPerUse: 0, yearlyKwh: 240, yearlyCost: 72, monthlyCost: 6, updatedAt: '2026-10-13T12:00:00Z' },
         ]));
-      }, de);
+        localStorage.setItem('eavesence-home-history-v1', JSON.stringify([
+          { month: '2026-10', kwh: 210, cost: 63, updatedAt: '2026-10-13T12:00:00Z' },
+          { month: '2026-09', kwh: 200, cost: 60, updatedAt: '2026-10-13T12:00:00Z' },
+        ]));
+      });
       await page.reload();
       await page.clock.install({ time: new Date('2026-10-13T12:00:00Z') });
       const costsBefore = await page.evaluate(() => localStorage.getItem('eavesence-home-costs-v1'));
@@ -232,6 +236,7 @@ for (const de of [false, true]) {
         expect(outer.x + outer.width - inner.x - inner.width).toBeGreaterThanOrEqual(16);
       };
       await assertInset('#household-costs');
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       await page.screenshot({ path: info.outputPath(`inset-costs-${de ? 'de' : 'en'}-${width}.png`), fullPage: true });
       const energyButton = page.locator('[data-cost-area-overview] nav').getByRole('button', { name: t('Strom & Geräte', 'Electricity & devices'), exact: true });
       await energyButton.click();
@@ -256,6 +261,11 @@ for (const de of [false, true]) {
       const annualBill = page.getByLabel(t('Bezahlter Jahresbetrag', 'Total paid for the year'), { exact: true });
       const annualKwh = page.getByLabel(t('Verbrauch laut Rechnung', 'Consumption on the bill'), { exact: true });
       await annualBill.fill('1200');
+      await annualKwh.fill('4000');
+      const priceEstimate = page.locator('[aria-labelledby="electricity-basis-title"]').getByText(/Persönlicher Gesamtpreis|Your all-in price/);
+      await expect(priceEstimate).toContainText('€');
+      await expect(priceEstimate).not.toContainText('CHF');
+      await annualKwh.fill('');
       await slider.press('ArrowRight');
       await expect(settings.locator('input').first()).toHaveValue('Pending home');
       await expect(settings.locator('select')).toHaveValue('CHF');
@@ -288,7 +298,13 @@ for (const de of [false, true]) {
       await assertInset('#home-devices');
       await assertInset('[aria-labelledby="energy-details-title"]');
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       await page.screenshot({ path: info.outputPath(`inset-energy-${de ? 'de' : 'en'}-${width}.png`), fullPage: true });
+      await page.getByRole('button', { name: /Monatswerte & Verlauf|Monthly values & history/ }).click();
+      await expect(page.locator('[data-monthly-history-entry]')).toHaveCount(2);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await page.screenshot({ path: info.outputPath(`inset-history-${de ? 'de' : 'en'}-${width}.png`), fullPage: true });
     });
   }
 }

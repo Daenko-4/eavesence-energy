@@ -538,7 +538,7 @@ function MyDevicesPanel(
             : "mt-9 scroll-mt-[104px] border-t border-slate-200/80 pt-7"
         }
       >
-        <div className="flex items-start justify-between gap-3">
+        <div className={household && embedded ? "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between" : "flex items-start justify-between gap-3"}>
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-950">
@@ -578,7 +578,7 @@ function MyDevicesPanel(
             </div>
           </div>
           {(savedDevices.length > 0 || household) && (
-            <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <div className={household && embedded ? "flex flex-wrap items-center gap-2 sm:shrink-0 sm:flex-col sm:items-end sm:gap-1.5" : "flex shrink-0 flex-col items-end gap-1.5"}>
               {household && (
                 <a href={calculatorHref} className="eavesence-pill-link">
                   {text.addDevice}

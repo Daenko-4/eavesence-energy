@@ -94,7 +94,7 @@ const BETA_INTEREST_STORAGE_KEY = "eavesence-home-beta-interest-v1";
 const homeSurfaceClass =
   "rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)]";
 const homeFieldClass =
-  "home-field min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
+  "home-field min-h-10 min-w-0 w-full rounded-xl border border-slate-300 bg-white px-3 text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
 const homePrimaryActionClass =
   "eavesence-pill-button home-primary-action active:scale-[0.98]";
 const homeCompactActionClass =
@@ -715,11 +715,11 @@ function MonthlyHistoryChart({
       </div>
       <div className="mt-4 space-y-3">
         {chartEntries.map((entry) => (
-          <div key={entry.month} data-chart-entry={entry.month} className="grid grid-cols-[4.25rem_1fr] items-center gap-3">
+          <div key={entry.month} data-chart-entry={entry.month} className="grid grid-cols-[4.25rem_minmax(0,1fr)] items-center gap-3">
             <span className="text-[11px] font-semibold text-[#65716d]">
               {dateFormatter.format(new Date(`${entry.month}-01T00:00:00Z`))}
             </span>
-            <div className="space-y-1.5">
+            <div className="min-w-0 space-y-1.5">
               <div className="flex items-center gap-2">
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)]" style={{ width: `${Math.max(3, (entry.kwh / maxKwh) * 100)}%` }} /></div>
                 <span className="w-20 text-right text-[11px] tabular-nums text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span>
@@ -2130,7 +2130,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.annualBill}</span><input type="text" inputMode="decimal" value={annualElectricityBill} onChange={(event) => setAnnualElectricityBill(event.target.value)} className={homeFieldClass} /></label>
                 <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.annualKwh}</span><input type="text" inputMode="decimal" value={annualElectricityKwh} onChange={(event) => setAnnualElectricityKwh(event.target.value)} className={homeFieldClass} /></label>
-                {positiveNumber(annualElectricityBill) && positiveNumber(annualElectricityKwh) ? <p className="text-[13px] font-bold text-[var(--brand-green)] sm:col-span-2">{text.effectivePrice.replace("{price}", formatMoneyPrecise((positiveNumber(annualElectricityBill) ?? 0) / (positiveNumber(annualElectricityKwh) ?? 1), locale, currency))}</p> : null}
+                {positiveNumber(annualElectricityBill) && positiveNumber(annualElectricityKwh) ? <p className="text-[13px] font-bold text-[var(--brand-green)] sm:col-span-2">{text.effectivePrice.replace("{price}", formatMoneyPrecise((positiveNumber(annualElectricityBill) ?? 0) / (positiveNumber(annualElectricityKwh) ?? 1), locale, profile.currency))}</p> : null}
                 <label className="flex items-start gap-2 text-[11px] font-semibold leading-5 text-[#52605b] sm:col-span-2"><input type="checkbox" checked={electricityBillIncludesBonus} onChange={(event) => setElectricityBillIncludesBonus(event.target.checked)} className="mt-1 accent-[var(--brand-green)]" /><span>{text.bonusQuestion}{electricityBillIncludesBonus ? <span className="mt-1 block font-normal text-[#65716d]">{text.bonusHint}</span> : null}</span></label>
               </div>
             )}
@@ -2248,7 +2248,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           {activeTile?.kind === "energy" && openEnergyDetail === "monthly" && (
           <section id="energy-detail-monthly" className="mt-5 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-            <div id="monthly-check-in" className={`${homeSurfaceClass} scroll-mt-24 p-5`}>
+            <div id="monthly-check-in" className={`${homeSurfaceClass} min-w-0 scroll-mt-24 p-4 sm:p-5`}>
               <h2 className={homeSectionTitleClass}>{text.monthlyCheckIn}</h2>
               <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{text.checkInText}</p>
               <div data-monthly-checkin-status className={`mt-4 rounded-xl border px-3 py-2.5 ${currentMonthEntry ? "border-[#b8efcc] bg-[#eefbf3]" : "border-amber-200 bg-amber-50"}`}>
@@ -2284,7 +2284,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
               </form>
             </div>
-            <div className={`${homeSurfaceClass} p-5`}>
+            <div className={`${homeSurfaceClass} min-w-0 p-4 sm:p-5`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className={homeSectionTitleClass}>{text.history}</h2>
                 {monthlyTrend && (
@@ -2299,7 +2299,26 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 )}
               </div>
               {historyNotice && <p role="status" className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-[13px] font-bold text-[var(--brand-green)]">{historyNotice}</p>}
-              {history.length === 0 ? <p className="mt-6 text-[13px] text-[#65716d]">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} data-monthly-history-entry={entry.month} className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3"><div className="grid grid-cols-[1fr_auto_auto] items-center gap-4"><span className="text-[13px] font-semibold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span></div><div className="mt-2 flex flex-wrap items-center justify-between gap-2">{index === 0 && monthlyTrend !== null ? <span className="text-[11px] text-[#65716d]">{text.comparedWithPrevious}</span> : <span />}<div className="flex gap-1.5"><button type="button" onClick={() => editMonthlyCheckIn(entry)} className={`${homeCompactActionClass} min-h-7 px-2.5`}>{text.editMonth}</button><button type="button" onClick={() => deleteMonthlyCheckIn(entry)} className={`${homeDangerActionClass} min-h-7 px-2.5`}><span aria-hidden="true">×</span>{text.deleteMonth}</button></div></div></div>)}</div>}
+              {history.length === 0 ? <p className="mt-6 text-[13px] text-[#65716d]">{text.noHistory}</p> : (
+                <div className="mt-5 space-y-3">
+                  {history.slice(0, 6).map((entry, index) => (
+                    <div key={entry.month} data-monthly-history-entry={entry.month} className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3">
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+                        <span className="col-span-2 text-[13px] font-semibold sm:col-span-1">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span>
+                        <span className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span>
+                        <span className="text-right text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                        {index === 0 && monthlyTrend !== null ? <span className="text-[11px] text-[#65716d]">{text.comparedWithPrevious}</span> : <span />}
+                        <div className="flex gap-1.5">
+                          <button type="button" onClick={() => editMonthlyCheckIn(entry)} className={`${homeCompactActionClass} min-h-7 px-2.5`}>{text.editMonth}</button>
+                          <button type="button" onClick={() => deleteMonthlyCheckIn(entry)} className={`${homeDangerActionClass} min-h-7 px-2.5`}><span aria-hidden="true">×</span>{text.deleteMonth}</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {monthlyGoalProgress && <div data-monthly-goal-progress className="mt-5 rounded-xl border border-[#dfe5dd] bg-white/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[13px] font-bold text-[#17211f]">{text.monthlyGoalTitle}</p><span className="text-[11px] font-bold text-[var(--brand-green)]">{monthlyGoalProgress.reached ? text.monthlyGoalReached : text.monthlyGoalProgress.replace("{percent}", formatNumber(monthlyGoalProgress.progressPercent, locale, 0))}</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)] transition-all" style={{ width: `${monthlyGoalProgress.progressPercent}%` }} /></div><p className="mt-2 text-[11px] leading-5 text-[#65716d]">{text.monthlyGoalValues.replace("{target}", formatMoney(monthlyGoalProgress.targetCost, locale, profile.currency)).replace("{current}", formatMoney(monthlyGoalProgress.currentCost, locale, profile.currency))}</p></div>}
               <MonthlyHistoryChart entries={history} locale={locale} currency={profile.currency} range={chartMonths} onRangeChange={setChartMonths} labels={{ title: text.chartTitle, consumption: text.chartConsumption, cost: text.chartCost, sixMonths: text.chartSixMonths, twelveMonths: text.chartTwelveMonths }} />
             </div>
