@@ -6,9 +6,11 @@ import {
   paydayForecast,
   paydayPayments,
   readCashWindow,
+  validDay,
 } from "./homeValue.ts";
 import { readPlanningData, type PlanningData } from "./planning.ts";
 import type { SavingsPlanInput } from "./savingsPlan.ts";
+export type CashInputField = "balance" | "payday" | "everyday" | "protected";
 export function useCashWindow(
   input: SavingsPlanInput,
   data: PlanningData | undefined,
@@ -26,6 +28,7 @@ export function useCashWindow(
     ),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const [errorField, setErrorField] = useState<CashInputField | null>(null);
   const forecast = paydayForecast(
     input.costs,
     cash,
@@ -39,18 +42,28 @@ export function useCashWindow(
   const preview = paydayForecast(input.costs, draftCash, input.variableMonthly, today, p.paidPayments, p.actualPayments);
   const suggestedEveryday = preview?.everyday == null ? null : Math.round(preview.everyday * 100) / 100;
   const saving=useRef(false);
-  async function save() {
+  async function save(onInvalid?: (field: CashInputField) => void) {
     if(saving.current)return false;
+    const invalid = (field: CashInputField, message: string) => {
+      setErrorField(field); setError(message); onInvalid?.(field); return false;
+    };
+    const locale = de ? "de" : "en";
+    const parsedBalance = parseMoney(balance, locale);
+    if (!Number.isFinite(parsedBalance)) return invalid("balance", de ? "Trage deinen aktuellen Kontostand als gültigen Betrag ein. Auch ein Minus ist möglich." : "Enter your current account balance as a valid amount. Negative balances are allowed.");
+    if (!validDay(payday) || payday <= today || (Date.parse(payday) - Date.parse(today)) / 86400000 > 90) return invalid("payday", de ? "Wähle deinen nächsten Gehaltstag: ab morgen und innerhalb der nächsten 90 Tage." : "Choose your next payday: from tomorrow and within the next 90 days.");
     if (!everyday.trim()) {
-      setError(de ? "Trage dein Alltagsbudget bis zum Gehalt ein oder übernimm den Vorschlag. 0 ist möglich." : "Enter your everyday budget until payday or use the suggestion. 0 is allowed.");
-      return false;
+      return invalid("everyday", de ? "Trage dein Alltagsbudget bis zum Gehalt ein oder übernimm den Vorschlag. 0 ist möglich." : "Enter your everyday budget until payday or use the suggestion. 0 is allowed.");
     }
+    const parsedEveryday = parseMoney(everyday, locale);
+    if (!Number.isFinite(parsedEveryday) || parsedEveryday < 0) return invalid("everyday", de ? "Trage die Alltagsausgaben bis zum Gehalt als Betrag ab 0 ein." : "Enter everyday spending until payday as an amount of 0 or more.");
+    const parsedProtected = protectedAmount.trim() ? parseMoney(protectedAmount, locale) : 0;
+    if (!Number.isFinite(parsedProtected) || parsedProtected < 0) return invalid("protected", de ? "Trage die Reserve als Betrag ab 0 ein oder lasse das Feld leer." : "Enter a reserve of 0 or more, or leave the field blank.");
     const next = readCashWindow({
-      balance: parseMoney(balance, de ? "de" : "en"),
+      balance: parsedBalance,
       asOf: today,
       payday,
-      protected: parseMoney(protectedAmount, de ? "de" : "en"),
-      everydayRemaining: everyday.trim() ? parseMoney(everyday, de ? "de" : "en") : null,
+      protected: parsedProtected,
+      everydayRemaining: parsedEveryday,
     });
     if (
       !next ||
@@ -66,6 +79,7 @@ export function useCashWindow(
     saving.current=true;
     setBusy(true);
     setError("");
+    setErrorField(null);
     try {
       await onSave({ ...p, cash: next });
       return true;
@@ -83,16 +97,17 @@ export function useCashWindow(
     preview,
     suggestedEveryday,
     balance,
-    setBalance: (value: string) => { setBalance(value); setError(""); },
+    setBalance: (value: string) => { setBalance(value); setError(""); setErrorField(null); },
     payday,
-    setPayday: (value: string) => { setPayday(value); setError(""); },
+    setPayday: (value: string) => { setPayday(value); setError(""); setErrorField(null); },
     protectedAmount,
     reserved: parseMoney(protectedAmount, de ? "de" : "en"),
-    setProtected: (value: string) => { setProtected(value); setError(""); },
+    setProtected: (value: string) => { setProtected(value); setError(""); setErrorField(null); },
     everyday,
-    setEveryday: (value: string) => { setEveryday(value); setError(""); },
+    setEveryday: (value: string) => { setEveryday(value); setError(""); setErrorField(null); },
     busy,
     error,
+    errorField,
     save,
     forecast,
     today,

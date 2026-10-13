@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { usePaymentChecklist } from "@eavesence/core/usePaymentChecklist";
 import { paymentKey } from "@eavesence/core/paymentChecklist";
 import { DisclosureIcon } from "./BrandMotion";
-import { useCashWindow } from "@eavesence/core/useCashWindow";
+import { type CashInputField, useCashWindow } from "@eavesence/core/useCashWindow";
 import type { PlanningData } from "@eavesence/core/planning";
 import {
   type SavingsPlanInput,
@@ -39,6 +39,11 @@ export function PaydayScreen({
   const bills = open ? p.previewBills : p.bills;
   const [billsOpen,setBillsOpen] = useState(false);
   const [reserveOpen,setReserveOpen] = useState(false);
+  const [invalidFocus,setInvalidFocus] = useState<{field: CashInputField | null; request: number}>({field:null,request:0});
+  function focusInvalid(field: CashInputField) {
+    if (field === "protected") setReserveOpen(true);
+    setInvalidFocus(previous => ({field,request:previous.request+1}));
+  }
   const [calculationOpen,setCalculationOpen] = useState(false);
   const [focusBalance,setFocusBalance] = useState(false);
   const [balanceFocusRequest,setBalanceFocusRequest]=useState(0);
@@ -157,15 +162,16 @@ export function PaydayScreen({
       </View>
       {!open && p.forecast && <View style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:calculationOpen}} onPress={()=>setCalculationOpen(!calculationOpen)} style={styles.disclosure}><Text style={styles.subTitle}>{t("So berechnen wir dein verfügbares Geld", "How your available money is calculated")}</Text><DisclosureIcon open={calculationOpen}/></Pressable>{calculationOpen&&<>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}<Text style={styles.subTitle}>{complete ? t("= Zusätzlich verfügbares Geld", "= Extra available") : t("= Angaben fehlen noch", "= Entries still missing")}: {complete ? money(p.forecast!.remaining!) : "—"}</Text><Text style={styles.note}>{complete&&p.forecast!.remaining!>=0?t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`):""}</Text></>}</View>}
       {open && (
-        <View ref={formTarget} onLayout={revealBalance}><FormSection style={styles.form} onSave={async()=>{const saved=await p.save();if(saved){setOpen(false);requestAnimationFrame(()=>scrollTarget(resultTarget.current));}return saved;}} keyboardSaveLabel={t("Anzeigen","Show result")} saveLabel={t("Verfügbares Geld anzeigen", "Show available money")}>
+        <View ref={formTarget} onLayout={revealBalance}><FormSection style={styles.form} onSave={async()=>{const saved=await p.save(focusInvalid);if(saved){setOpen(false);requestAnimationFrame(()=>scrollTarget(resultTarget.current));}return saved;}} keyboardSaveLabel={t("Anzeigen","Show result")} saveLabel={t("Verfügbares Geld anzeigen", "Show available money")}>
           <Text style={styles.subTitle}>{t("1 · Dein Geld heute", "1 · Your money today")}</Text>
           <Text style={styles.note}>{t("Übernimm den Kontostand von heute aus deiner Banking-App. Ziehe selbst noch nichts ab.", "Copy today's balance from your banking app. Do not deduct anything yourself.")}</Text>
           <FormInput
             autoFocus={focusBalance}
-            focusRequest={balanceFocusRequest}
+            focusRequest={invalidFocus.field === "balance" ? invalidFocus.request : balanceFocusRequest}
             label={t("Aktueller Kontostand", "Current account balance")}
             keyboardType="decimal-pad"
             signedAmount
+            accessibilityHint={p.errorField === "balance" ? p.error : undefined}
             value={p.balance}
             onChangeText={p.setBalance}
           />
@@ -177,6 +183,8 @@ export function PaydayScreen({
             keyboardType="number-pad"
             maxLength={10}
             placeholder={p.today.split("-").reverse().join(".")}
+            focusRequest={invalidFocus.field === "payday" ? invalidFocus.request : 0}
+            accessibilityHint={p.errorField === "payday" ? p.error : undefined}
             value={display}
             onChangeText={(v) => p.setPayday(dateInput(v))}
           />
@@ -209,6 +217,8 @@ export function PaydayScreen({
               "Alltagsausgaben bis zum Gehalt",
               "Everyday spending until payday",
             )}
+            focusRequest={invalidFocus.field === "everyday" ? invalidFocus.request : 0}
+            accessibilityHint={p.errorField === "everyday" ? p.error : undefined}
             value={p.everyday}
             onChangeText={p.setEveryday}
             keyboardType="decimal-pad"
@@ -218,7 +228,7 @@ export function PaydayScreen({
           {p.suggestedEveryday !== null && <View style={styles.box}><Text style={styles.note}>{t(`Vorschlag für ${p.preview!.days} Tage: ${money(p.suggestedEveryday)} – aus deiner Monatsschätzung von ${money(input.variableMonthly!)}.`, `Suggestion for ${p.preview!.days} days: ${money(p.suggestedEveryday)} – based on your monthly estimate of ${money(input.variableMonthly!)}.`)}</Text>{button(t("Vorschlag übernehmen", "Use suggestion"),()=>p.setEveryday(de?String(p.suggestedEveryday).replace(".",","):String(p.suggestedEveryday)))}</View>}
           <Pressable accessibilityRole="button" accessibilityState={{expanded:reserveOpen}} onPress={()=>setReserveOpen(!reserveOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Geld als Reserve behalten (optional)", "Keep some money in reserve (optional)")}{p.reserved>0?` · ${money(p.reserved)}`:""}</Text><DisclosureIcon open={reserveOpen}/></Pressable>
           {reserveOpen && <>
-            <FormInput label={t("Reserve, die übrig bleiben soll (optional)", "Money to keep in reserve (optional)")} keyboardType="decimal-pad" value={p.protectedAmount} onChangeText={p.setProtected}/>
+            <FormInput label={t("Reserve, die übrig bleiben soll (optional)", "Money to keep in reserve (optional)")} focusRequest={invalidFocus.field === "protected" ? invalidFocus.request : 0} accessibilityHint={p.errorField === "protected" ? p.error : undefined} keyboardType="decimal-pad" value={p.protectedAmount} onChangeText={p.setProtected}/>
             <Text style={styles.note}>{t("Dieser Teil deines Kontostands soll unangetastet bleiben. Rechnungen und Alltag sind bereits berücksichtigt. Sparziele werden nicht automatisch abgezogen.", "This part of your balance stays untouched. Bills and everyday spending are already accounted for. Savings goals are not deducted automatically.")}</Text>
           </>}
           <Text style={styles.note}>{t("Das nächste Gehalt ist hier noch nicht eingerechnet.", "Your next salary is not included yet.")}</Text>

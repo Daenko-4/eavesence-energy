@@ -65,3 +65,14 @@ test("extras survive website and app backup restore; broken extras reject the en
   assert.equal(readMobileBackup(JSON.stringify({...backup,profile:{...backup.profile,incomeExtras:[extras[0],extras[0]]}})),null);
   assert.ok(readHouseholdProfile(JSON.stringify({...profile,incomeExtras:undefined})));
 });
+
+test("website default or skipped zero remains unknown in app imports while a recorded zero survives restore", () => {
+  const base=createHouseholdProfile({name:"Home",currency:"EUR",electricityPrice:.3,savingsGoalPercent:10,roomNames:[]});
+  for (const [incomeDeferred, expected] of [[undefined,undefined],[true,undefined],[false,0]]) {
+    const profile={...base,incomeAmount:0,incomeDeferred};
+    const web=createHouseholdBackup({profile,devices:[],history:[],costs:[rent]});
+    const app=convertWebBackup(JSON.stringify(web));
+    assert.ok(app);assert.equal(app.profile.incomeAmount,expected);
+    assert.equal(readMobileBackup(JSON.stringify(createMobileBackup({...app}))).profile.incomeAmount,expected);
+  }
+});

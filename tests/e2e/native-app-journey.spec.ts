@@ -1,0 +1,116 @@
+import { test, expect, type Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
+let script: string;
+test.beforeAll(() => { script = JSON.parse(execFileSync('node', ['scripts/mobile-interaction-render.mjs', 'app'], { encoding: 'utf8', maxBuffer: 8_000_000 })).script; });
+async function show(page: Page, locale: string, width: number, returning = false, incomeAmount = 2400) {
+  await page.setViewportSize({ width, height: 852 });
+  await page.goto('/calculator');
+  await page.evaluate(({ locale, returning, incomeAmount }) => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (returning) {
+      localStorage.setItem('eavesence-mobile-profile-v1', JSON.stringify({ name: 'Test home', locale, currency: 'EUR', electricityPrice: .3, savingsGoalPercent: 10, incomeAmount, incomeFrequency: 'monthly', setupStep: 'complete', backupReminderDismissed: true, createdAt: new Date().toISOString() }));
+      localStorage.setItem('eavesence-mobile-costs-v1', JSON.stringify(['Rent', 'Internet', 'Electricity', 'Streaming', 'Insurance', 'Phone'].map((name, i) => ({ id: `cost-${i}`, name, amount: i === 0 ? 900 : 40, category: i === 0 ? 'housing' : 'subscriptions', frequency: 'monthly', nextDueDate: today, updatedAt: new Date().toISOString() }))));
+    }
+  }, { locale, returning, incomeAmount });
+  await page.setContent(`<!doctype html><html lang="${locale}"><style>*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,Arial;margin:0;background:#f6f7f2}button,input{font:inherit;background:none;border:0;text-align:left;color:inherit}#root>div{height:100dvh}</style><body><div id="root"></div><script>${script}</script></body></html>`);
+}
+for (const locale of ['de', 'en']) {
+  const de = locale === 'de', t = (a: string, b: string) => de ? a : b;
+  test(`full app guided setup saves income and first cost ${locale}`, async ({ page }, info) => {
+    await show(page, locale, 390);
+    if (de) await page.getByRole('button', { name: 'Deutsch', exact: true }).click();
+    await page.getByRole('button', { name: t('Jetzt starten', 'Get started'), exact: true }).click();
+    await expect(page.getByRole('tablist')).toHaveCount(0);
+    await expect(page.getByRole('textbox', { name: t('Name deines Zuhauses', 'Home name'), exact: true })).toHaveValue('');
+    await page.getByRole('button', { name: t('Zuhause speichern & weiter', 'Save home & continue'), exact: true }).click();
+    const income = page.getByRole('textbox', { name: t('Reguläres Monatsnetto (ohne Extras)', 'Regular monthly net income (excluding extras)'), exact: true });
+    await income.fill('240');
+    await page.getByRole('button', { name: t('Einkommen speichern & weiter', 'Save income & continue'), exact: true }).click();
+    await page.getByRole('button', { name: t('Zurück zum Einkommen', 'Back to income'), exact: true }).click();
+    await expect(income).toHaveValue('240');
+    await income.fill('2400');
+    await page.getByRole('button', { name: t('Einkommen speichern & weiter', 'Save income & continue'), exact: true }).click();
+    await page.getByRole('textbox', { name: t('Bezeichnung', 'Name'), exact: true }).fill('Internet');
+    await page.getByRole('textbox', { name: t('Betrag', 'Amount'), exact: true }).fill('40');
+    await page.getByRole('button', { name: t('Kosten speichern & weiter', 'Save cost & continue'), exact: true }).click();
+    await page.getByRole('button', { name: t('Meine Übersicht öffnen', 'Open my overview'), exact: true }).click();
+    await expect(page.getByRole('tab', { name: t('Monat', 'Month'), exact: true })).toBeVisible();
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).incomeAmount)).toBe(2400);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!)[0].name)).toBe('Internet');
+    await page.screenshot({ path: info.outputPath(`app-first-month-${locale}.png`) });
+  });
+  test(`full app records zero income and protects clearing it ${locale}`,async({page})=>{
+    await show(page,locale,390,true,0);
+    await page.getByRole('button',{name:t('Monatsbudget & Kostenbereiche','Monthly budget & cost areas'),exact:true}).click();
+    await expect(page.getByRole('alert')).toContainText(t('Fixkosten übersteigen dein Einkommen','fixed costs exceed your income'));
+    await expect(page.getByText(t('1 · Einkommen eintragen','1 · Add your income'),{exact:true})).toHaveCount(0);
+    await show(page,locale,390);
+    await page.getByRole('button',{name:t('Monatsbudget & Kostenbereiche','Monthly budget & cost areas'),exact:true}).click();
+    await page.getByRole('button',{name:t('Einkommen ändern','Edit income'),exact:true}).click();
+    const income=page.getByRole('textbox',{name:t('Reguläres Monatsnetto (ohne Extras)','Regular monthly net income (excluding extras)'),exact:true});
+    await expect(income).toHaveValue('0');
+    await income.fill('');
+    await page.getByRole('button',{name:t('Zur Kostenliste','Back to costs'),exact:true}).click();
+    expect(await page.evaluate(() => (window as unknown as {reviewAlert:unknown[]}).reviewAlert[0])).toBe(t('Änderungen verwerfen?','Discard changes?'));
+    await expect(income).toHaveValue('');
+    await page.getByRole('button',{name:t('Einkommen speichern','Save income'),exact:true}).click();
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).incomeAmount)).toBeUndefined();
+  });
+  for (const width of [320, 390]) test(`full app navigation costs settings backup and Pro ${locale} ${width}`, async ({ page }, info) => {
+    await show(page, locale, width, true);
+    const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+    await expect(page.getByRole('checkbox')).toHaveCount(6);
+    await page.getByRole('checkbox').first().click();
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning.paidPayments.length)).toBe(1);
+    await page.getByRole('tab', { name: t('Kosten', 'Costs'), exact: true }).click();
+    await page.screenshot({ path: info.outputPath(`app-costs-${locale}-${width}.png`) });
+    const search = page.getByRole('textbox',{name:t('Kosten suchen','Search costs'),exact:true});
+    await search.fill('internet');
+    await expect(page.getByRole('button',{name:/^Internet ·/})).toHaveCount(1);
+    await expect(page.getByRole('button',{name:/^Rent ·/})).toHaveCount(0);
+    await search.fill('xyz-no-match');
+    await expect(page.getByText(t('Keine passenden Kosten. Versuche einen anderen Namen oder eine Kategorie.','No matching costs. Try another name or category.'),{exact:true})).toBeVisible();
+    await page.getByRole('button',{name:t('Suche löschen','Clear search'),exact:true}).click();
+    await page.getByRole('button',{name:/^Internet ·/}).click();
+    await page.getByRole('button',{name:t('Bearbeiten: Internet','Edit: Internet'),exact:true}).click();
+    const editAmount=page.getByRole('textbox',{name:t('Betrag','Amount'),exact:true});
+    await editAmount.fill('39');
+    await page.getByRole('button',{name:t('Abbrechen','Cancel'),exact:true}).click();
+    expect(await page.evaluate(() => (window as unknown as {reviewAlert:unknown[]}).reviewAlert[0])).toBe(t('Änderungen verwerfen?','Discard changes?'));
+    await page.evaluate(() => ((window as unknown as {reviewAlert:[string,string,Array<{onPress?:()=>void}>]}).reviewAlert[2][0].onPress)?.());
+    await expect(editAmount).toHaveValue('39');
+    await page.getByRole('button',{name:t('Kosten speichern','Save cost'),exact:true}).click();
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!).find((cost:{id:string})=>cost.id==='cost-1').amount)).toBe(39);
+    await page.getByRole('button', { name: t('Kosten hinzufügen', 'Add cost'), exact: true }).click();
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('New internet');
+    await page.getByRole('textbox', { name: t('Betrag', 'Amount'), exact: true }).fill('25');
+    await page.getByRole('button', { name: t('Kosten speichern', 'Save cost'), exact: true }).click();
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!).length)).toBe(7);
+    await page.getByRole('button', { name: t('Einstellungen', 'Settings'), exact: true }).click();
+    await page.screenshot({ path: info.outputPath(`app-settings-${locale}-${width}.png`) });
+    await expect(page.getByRole('button',{name:t('Sicherung exportieren','Export backup'),exact:true})).toHaveCount(0);
+    const homeName=page.getByRole('textbox',{name:'Name',exact:true});
+    await homeName.fill('Changed home');
+    await page.getByRole('button',{name:t('Zurück','Back'),exact:true}).click();
+    expect(await page.evaluate(() => (window as unknown as {reviewAlert:unknown[]}).reviewAlert[0])).toBe(t('Änderungen verwerfen?','Discard changes?'));
+    await expect(homeName).toHaveValue('Changed home');
+    await page.getByRole('button',{name:t('Einstellungen speichern','Save settings'),exact:true}).click();
+    await expect(page.getByRole('tablist',{name:/App-Navigation|App navigation/}).getByRole('tab',{name:t('Kosten','Costs'),exact:true})).toHaveAttribute('aria-selected','true');
+    await page.getByRole('button',{name:t('Einstellungen','Settings'),exact:true}).click();
+    await page.getByRole('button',{name:t('Stromrechner','Calculator'),exact:true}).click();
+    await expect(page.getByRole('textbox',{name:/Strompreis|Electricity price/})).toBeVisible();
+    await page.getByRole('button',{name:t('Stromrechner','Calculator'),exact:true}).click();
+    await expect(page.getByRole('textbox',{name:/Strompreis|Electricity price/})).toHaveCount(0);
+    await page.getByRole('button',{name:t('Sicherung & Daten','Backup & data'),exact:true}).click();
+    await page.getByRole('button', { name: t('Sicherung exportieren', 'Export backup'), exact: true }).click();
+    expect(await page.evaluate(() => (window as unknown as { reviewBackup: { costs: unknown[] } }).reviewBackup.costs.length)).toBe(7);
+    await page.getByRole('tab', { name: 'Plan', exact: true }).click();
+    await page.getByRole('tab', { name: t('Realistisch sparen', 'Find realistic savings'), exact: true }).click();
+    await expect(page.getByText(t('Monatsbudget ergänzen (optional)', 'Add a monthly budget (optional)'), { exact: true })).toBeVisible();
+    await page.getByRole('tab', { name: t('Erreichte Ersparnis', 'Savings achieved'), exact: true }).click();
+    await page.getByRole('tab', { name: t('Rechner', 'Calculator'), exact: true }).click();
+    await expect(page.getByText(t('Was kostet dein Gerät?', 'What does your device cost?'), { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(errors).toEqual([]);
+  });
+}

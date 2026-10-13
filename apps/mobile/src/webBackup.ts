@@ -42,7 +42,7 @@ export function convertWebBackup(json: string, locale: "de" | "en" = "en"): Mobi
       currency: source.profile.currency,
       electricityPrice: source.profile.electricityPrice,
       savingsGoalPercent: source.profile.savingsGoalPercent,
-      incomeAmount: source.profile.incomeAmount,
+      incomeAmount: source.profile.incomeAmount === 0 && source.profile.incomeDeferred !== false ? undefined : source.profile.incomeAmount,
       incomeFrequency: source.profile.incomeFrequency,
       incomeExtras: source.profile.incomeExtras,
       variableMonthly: source.profile.variableMonthly,

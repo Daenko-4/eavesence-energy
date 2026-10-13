@@ -1,0 +1,27 @@
+import {test,expect} from '@playwright/test';
+for(const locale of ['de','en']) test(`recorded zero income completes website setup ${locale}`,async({page})=>{
+  const de=locale==='de',t=(a:string,b:string)=>de?a:b;
+  await page.setViewportSize({width:390,height:900});
+  await page.goto(de?'/de/zuhause':'/home');
+  await page.getByRole('button',{name:t('Zuhause erstellen','Create my home'),exact:true}).click();
+  const setup=page.locator('[data-home-setup]');
+  await setup.getByRole('button').first().click();
+  await page.locator('#home-income-form input').fill('0');
+  await page.locator('#home-income-form button[type="submit"]').click();
+  await expect(setup).toContainText(t('2 · Erste Kosten hinzufügen','2 · Add your first cost'));
+  await setup.getByRole('button').first().click();
+  await page.locator('#household-cost-name').fill('Internet');
+  await page.locator('#household-costs').getByLabel(t('Betrag','Amount'),{exact:true}).fill('40');
+  await page.locator('#household-costs').getByRole('button',{name:t('Speichern','Save'),exact:true}).click();
+  await expect(page.locator('[data-home-review]')).toBeVisible();
+  await page.getByRole('button',{name:t('Übersicht geprüft','Overview checked'),exact:true}).click();
+  await page.reload();
+  await expect(setup).toHaveCount(0);
+  await page.locator('[data-home-monthly-budget] summary').click();
+  const budget=page.locator('[data-home-monthly-budget]');
+  await expect(budget.locator('article').first()).toContainText(de?'0,00':'0.00');
+  await expect(budget.locator('article').last()).toContainText(new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency:'EUR'}).format(-40));
+  await expect(budget.getByRole('status')).toContainText(t('Fixkosten übersteigen dein Einkommen','fixed costs exceed your income'));
+  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!));
+  expect(stored.incomeAmount).toBe(0);expect(stored.incomeDeferred).toBe(false);
+});

@@ -95,7 +95,7 @@ const copy = {
     intro:
       "Add costs once. Annual and other less frequent payments are included as monthly averages.",
     add: "Add cost",
-    close: "Hide form",
+    close: "Collapse",
     monthly: "Per month",
     yearly: "Per year",
     suggestions: "Quick setup",

@@ -70,7 +70,7 @@ for (const locale of ['en', 'de'] as const) for (const width of [320, 390, 1365]
     await actions.getByRole('button', { name: de ? 'Kosten hinzufügen' : 'Add cost', exact: true }).click();
     await expect(page.locator('#household-cost-name')).toBeFocused();
     const costPanel = page.locator('#household-costs');
-    await costPanel.getByRole('button', { name: de ? 'Formular einklappen' : 'Hide form', exact: true }).click();
+    await costPanel.getByRole('button', { name: de ? 'Formular einklappen' : 'Collapse', exact: true }).click();
     await expect(page.locator('#household-cost-form')).toHaveCount(0);
     await page.locator('h1').click();
     await page.screenshot({ path: testInfo.outputPath(`my-home-header-${locale}-${width}.png`) });

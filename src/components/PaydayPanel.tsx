@@ -4,7 +4,7 @@ import QuickCheck from "./QuickCheck";
 import { useId, useRef, useState } from "react";
 import { usePaymentChecklist } from "@eavesence/core/usePaymentChecklist";
 import { paymentKey } from "@eavesence/core/paymentChecklist";
-import { useCashWindow } from "@eavesence/core/useCashWindow";
+import { type CashInputField, useCashWindow } from "@eavesence/core/useCashWindow";
 import type { PlanningData } from "@eavesence/core/planning";
 import type { SavingsPlanInput } from "@eavesence/core/savingsPlan";
 const field =
@@ -35,6 +35,14 @@ export default function PaydayPanel({
   const [billsOpen,setBillsOpen] = useState(false), billsId = useId();
   const balanceInput = useRef<HTMLInputElement>(null), billsButton = useRef<HTMLButtonElement>(null), resultHeading = useRef<HTMLHeadingElement>(null);
   const [reserveOpen, setReserveOpen] = useState(false);
+  const paydayInput = useRef<HTMLInputElement>(null), everydayInput = useRef<HTMLInputElement>(null), protectedInput = useRef<HTMLInputElement>(null);
+  function focusInvalid(field: CashInputField) {
+    if (field === "protected") setReserveOpen(true);
+    requestAnimationFrame(() => {
+      const element = ({balance: balanceInput, payday: paydayInput, everyday: everydayInput, protected: protectedInput})[field].current;
+      element?.scrollIntoView({block: "center",behavior:"instant"}); element?.focus({preventScroll: true});
+    });
+  }
   const reviewBalance = () => { setOpen(true); requestAnimationFrame(() => { balanceInput.current?.scrollIntoView({block:"center"}); balanceInput.current?.focus({preventScroll:true}); }); };
   const reviewPayments = () => { setBillsOpen(true); requestAnimationFrame(() => { billsButton.current?.scrollIntoView({block:"center"}); billsButton.current?.focus({preventScroll:true}); }); };
   const money = (n: number) =>
@@ -129,20 +137,20 @@ export default function PaydayPanel({
       {complete&&p.forecast!.estimatedBills>0&&<p className="bg-white px-4 py-3 text-[13px] leading-5 text-[#52605b]">{t(`${p.forecast!.estimatedBills} Rechnungsbeträge noch geschätzt. Ergänze die tatsächlichen Beträge in der Monatscheckliste.`,`${p.forecast!.estimatedBills} invoice amounts are still estimated. Add actual amounts in the monthly checklist.`)}</p>}
       {open && (
         <div className="space-y-3 bg-white p-4 sm:p-5">
-          <form onSubmit={async (e) => {
+          <form noValidate onSubmit={async (e) => {
             e.preventDefault();
-            if (await p.save()) { setOpen(false); requestAnimationFrame(() => { resultHeading.current?.focus({preventScroll:true}); resultHeading.current?.scrollIntoView({block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"}); }); }
+            if (await p.save(focusInvalid)) { setOpen(false); requestAnimationFrame(() => { resultHeading.current?.focus({preventScroll:true}); resultHeading.current?.scrollIntoView({block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"}); }); }
           }} className="space-y-5" data-payday-form>
             <fieldset className="min-w-0">
               <legend className="mb-3 text-[14px] font-semibold">{t("1 · Dein Geld heute", "1 · Your money today")}</legend>
               <div className="grid items-start gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-[13px]">
                   <span>{t("Aktueller Kontostand", "Current account balance")}</span>
-                  <input ref={balanceInput} className={field} inputMode="decimal" aria-describedby="payday-balance-help" value={p.balance} onChange={e => p.setBalance(e.target.value)} placeholder={t("z. B. 1.200,00", "e.g. 1,200.00")}/>
+                  <input ref={balanceInput} aria-invalid={p.errorField === "balance"} className={field} inputMode="decimal" aria-describedby="payday-balance-help" value={p.balance} onChange={e => p.setBalance(e.target.value)} placeholder={t("z. B. 1.200,00", "e.g. 1,200.00")}/>
                 </label>
                 <label className="grid gap-2 text-[13px]">
                   <span>{t("Nächstes Gehalt am", "Next payday")}</span>
-                  <input className={field} type="date" min={new Date(Date.parse(p.today) + 86400000).toISOString().slice(0,10)} max={new Date(Date.parse(p.today) + 90 * 86400000).toISOString().slice(0,10)} value={p.payday} onChange={e => p.setPayday(e.target.value)}/>
+                  <input ref={paydayInput} aria-invalid={p.errorField === "payday"} className={field} type="date" min={new Date(Date.parse(p.today) + 86400000).toISOString().slice(0,10)} max={new Date(Date.parse(p.today) + 90 * 86400000).toISOString().slice(0,10)} value={p.payday} onChange={e => p.setPayday(e.target.value)}/>
                 </label>
               </div>
               <p id="payday-balance-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Übernimm den Kontostand von heute aus deiner Banking-App. Ziehe selbst noch nichts ab. Das nächste Gehalt ist hier noch nicht eingerechnet.", "Copy today's balance from your banking app. Do not deduct anything yourself. Your next salary is not included yet.")}</p>
@@ -162,7 +170,7 @@ export default function PaydayPanel({
               <legend className="mb-3 text-[14px] font-semibold">{t("3 · Dein Alltag bis dahin", "3 · Everyday spending until then")}</legend>
               <label className="grid max-w-sm gap-2 text-[13px]">
                 <span>{t("Alltagsausgaben bis zum Gehalt", "Everyday spending until payday")}</span>
-                <input className={field} inputMode="decimal" aria-describedby="payday-everyday-help" value={p.everyday} onChange={e => p.setEveryday(e.target.value)} placeholder={t("z. B. 200,00", "e.g. 200.00")}/>
+                <input ref={everydayInput} aria-invalid={p.errorField === "everyday"} className={field} inputMode="decimal" aria-describedby="payday-everyday-help" value={p.everyday} onChange={e => p.setEveryday(e.target.value)} placeholder={t("z. B. 200,00", "e.g. 200.00")}/>
               </label>
               <p id="payday-everyday-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Wie viel brauchst du bis dahin noch für Lebensmittel, Freizeit und andere Alltagsausgaben? Gespeicherte Rechnungen zählen hier nicht dazu. Auch 0 ist möglich.", "How much will you still need for groceries, leisure and other everyday spending? Do not include your saved bills here. 0 is allowed.")}</p>
               {p.suggestedEveryday !== null && <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px] text-[#52605b]"><span>{t(`Vorschlag für ${p.preview!.days} Tage: ${money(p.suggestedEveryday)} – aus deiner Monatsschätzung von ${money(input.variableMonthly!)}.`, `Suggestion for ${p.preview!.days} days: ${money(p.suggestedEveryday)} – based on your monthly estimate of ${money(input.variableMonthly!)}.`)}</span><button type="button" className="eavesence-pill-button home-dashboard-action" onClick={() => p.setEveryday(de ? String(p.suggestedEveryday).replace(".", ",") : String(p.suggestedEveryday))}>{t("Vorschlag übernehmen", "Use suggestion")}</button></div>}
@@ -171,7 +179,7 @@ export default function PaydayPanel({
               <summary className="min-h-10 cursor-pointer text-[13px] font-semibold">{t("Geld als Reserve behalten (optional)", "Keep some money in reserve (optional)")}{p.reserved > 0 ? ` · ${money(p.reserved)}` : ""}</summary>
               <label className="grid max-w-sm gap-2 text-[13px]">
                 <span>{t("Reserve, die übrig bleiben soll (optional)", "Money to keep in reserve (optional)")}</span>
-                <input className={field} inputMode="decimal" value={p.protectedAmount} onChange={e => p.setProtected(e.target.value)}/>
+                <input ref={protectedInput} aria-invalid={p.errorField === "protected"} className={field} inputMode="decimal" value={p.protectedAmount} onChange={e => p.setProtected(e.target.value)}/>
               </label>
               <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Dieser Teil deines Kontostands soll unangetastet bleiben. Rechnungen und Alltag sind bereits berücksichtigt. Sparziele werden nicht automatisch abgezogen.", "This part of your balance stays untouched. Bills and everyday spending are already accounted for. Savings goals are not deducted automatically.")}</p>
             </details>

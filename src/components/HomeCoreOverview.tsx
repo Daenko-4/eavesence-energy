@@ -6,6 +6,7 @@ import type { paymentsNextMonth } from "@/lib/householdCosts";
 type Props = {
   hasVariableCosts?: boolean;
   incomeIsAverage?: boolean;
+  incomeProvided?: boolean;
   incomeDeferred?: boolean; onSkipIncome?: () => void;
   needsReview?: boolean; onFinishReview?: () => void;
   undatedCosts?: {id: string; name: string}[]; onReviewCost?: (id: string) => void;
@@ -14,16 +15,17 @@ type Props = {
   incomeOpen: boolean; onIncome: () => void; onCost: () => void;
   upcomingOpen: boolean; onUpcoming: () => void; incomeForm: ReactNode;
 };
-export default function HomeCoreOverview({ incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, undatedCosts = [], onReviewCost, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, upcoming, incomeOpen, onIncome, onCost, upcomingOpen, onUpcoming, incomeForm }: Props) {
+export default function HomeCoreOverview({ incomeProvided, incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, undatedCosts = [], onReviewCost, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, upcoming, incomeOpen, onIncome, onCost, upcomingOpen, onUpcoming, incomeForm }: Props) {
   const [budgetOpen,setBudgetOpen] = useState(false);
   const de = locale === "de";
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
-  const needsIncome = income <= 0 && !incomeDeferred;
-  const deficit = income > 0 && fixed > income;
+  const needsIncome = !(incomeProvided ?? income > 0) && !incomeDeferred;
+  const hasIncome = incomeProvided ?? income > 0;
+  const deficit = hasIncome && fixed > income;
   const cards = [
-    { label: incomeIsAverage ? de ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : de ? "Reguläres Monatsnetto" : "Regular monthly net income", value: income > 0 ? money(income) : "—" },
+    { label: incomeIsAverage ? de ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : de ? "Reguläres Monatsnetto" : "Regular monthly net income", value: hasIncome ? money(income) : "—" },
     { label: de ? "Fixkosten pro Monat" : "Recurring costs / month", value: `${hasVariableCosts?(de?"ca. ":"approx. "):""}${money(fixed)}` },
-    { label: incomeIsAverage ? de ? "Rest nach Fixkosten · Durchschnitt" : "Left after fixed costs · average" : de ? "Rest nach Fixkosten" : "Left after fixed costs", value: income > 0 && count > 0 ? `${hasVariableCosts?(de?"ca. ":"approx. "):""}${money(income-fixed)}` : "—", emphasis: true },
+    { label: incomeIsAverage ? de ? "Rest nach Fixkosten · Durchschnitt" : "Left after fixed costs · average" : de ? "Rest nach Fixkosten" : "Left after fixed costs", value: hasIncome && count > 0 ? `${hasVariableCosts?(de?"ca. ":"approx. "):""}${money(income-fixed)}` : "—", emphasis: true },
   ];
   return <section className="mt-6" aria-label={de ? "Finanzen im Überblick" : "Your household at a glance"}>
     {(needsIncome || !count) && <div data-home-setup className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">

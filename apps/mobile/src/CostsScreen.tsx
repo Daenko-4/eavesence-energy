@@ -1,3 +1,4 @@
+import {DisclosureIcon} from "./BrandMotion";
 import {CostEditor} from "./CostEditor";
 import { incomeExtraDrafts, incomeExtrasFromDraft, parseIncomeAmount, type IncomeExtra } from "@eavesence/core/income";
 import { IncomeExtrasSummary } from "./IncomeExtrasSummary";
@@ -5,13 +6,14 @@ import { IncomeExtrasEditor } from "./IncomeExtrasEditor";
 import {
   createHouseholdCost,
   monthlyCost,
+  nextPaymentForCost,
   summarizeHouseholdCosts,
   type HouseholdCost,
   type HouseholdCostCategory,
   type HouseholdCostFrequency,
 } from "@eavesence/core/householdCosts";
 import { homeRelease } from "../../../src/lib/homeRelease";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Keyboard, Pressable, StyleSheet, View } from "react-native";
 
 import { costsForTile, destinationTileId } from "./costTiles";
@@ -119,7 +121,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   initialAction?: "none" | "income" | "cost";
   onSaveCost: (cost: HouseholdCost) => Promise<void>;
   onDeleteCost: (id: string) => Promise<void>;
-  onSaveIncome: (amount: number, frequency: "monthly" | "yearly", extras: IncomeExtra[]) => Promise<void>;
+  onSaveIncome: (amount: number | undefined, frequency: "monthly" | "yearly", extras: IncomeExtra[]) => Promise<void>;
 }) {
   const locale = useMobileLocale();
   const initialCost=costs.find(c=>c.id===initialCostId);
@@ -136,12 +138,31 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   const [frequency, setFrequency] = useState<HouseholdCostFrequency>(initialCost?.frequency??"monthly");
   const [dueDate, setDueDate] = useState(displayDate(initialCost?.nextDueDate??""));
   const [deadline, setDeadline] = useState(displayDate(initialCost?.cancellationDeadline??""));
-  const [income, setIncome] = useState(profile.incomeAmount ? String(profile.incomeAmount) : "");
+  const [income, setIncome] = useState(profile.incomeAmount != null ? String(profile.incomeAmount) : "");
   const [incomeExtras, setIncomeExtras] = useState(() => incomeExtraDrafts(profile.incomeExtras));
   const [incomeExtrasOpen, setIncomeExtrasOpen] = useState(false);
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">(profile.incomeFrequency ?? "monthly");
   const money = new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", { style: "currency", currency: profile.currency ?? "EUR" });
   const visibleCosts = costsForTile(costs, tileId);
+  const [search,setSearch] = useState("");
+  const [expandedCost,setExpandedCost] = useState<string | null>(null);
+  const filteredCosts = visibleCosts.filter(cost => `${cost.name} ${localize(locale,categories.find(([key])=>key===cost.category)?.[1] ?? "")}`.toLocaleLowerCase(locale).includes(search.trim().toLocaleLowerCase(locale)));
+  const initialIncomeDraft = useRef(JSON.stringify([profile.incomeAmount != null ? String(profile.incomeAmount) : "",profile.incomeFrequency ?? "monthly",incomeExtraDrafts(profile.incomeExtras)]));
+  function closeIncome(){
+    if(initialIncomeDraft.current === JSON.stringify([income,incomeFrequency,incomeExtras])){setIncomeOpen(false);return;}
+    Alert.alert(locale === "de" ? "Änderungen verwerfen?" : "Discard changes?",locale === "de" ? "Dein Einkommen ist noch nicht gespeichert." : "Your income has not been saved yet.",[
+      {text:locale === "de" ? "Weiter bearbeiten" : "Keep editing",style:"cancel"},
+      {text:locale === "de" ? "Verwerfen" : "Discard",style:"destructive",onPress:()=>{Keyboard.dismiss();setIncomeOpen(false);}},
+    ]);
+  }
+  async function backToIncome(){
+    if (!onBack) return;
+    if (!name.trim() && !amount.trim() && !dueDate && !deadline && frequency === "monthly" && !variableAmount) { await onBack(); return; }
+    Alert.alert(locale === "de" ? "Eingaben verwerfen?" : "Discard entries?",locale === "de" ? "Diese Kosten sind noch nicht gespeichert." : "This cost has not been saved yet.",[
+      {text:locale === "de" ? "Weiter bearbeiten" : "Keep editing",style:"cancel"},
+      {text:locale === "de" ? "Verwerfen" : "Discard",style:"destructive",onPress:()=>void onBack().catch(()=>Alert.alert(locale === "de" ? "Speichern fehlgeschlagen" : "Could not save",locale === "de" ? "Bitte versuche es erneut." : "Please try again."))},
+    ]);
+  }
   const summary = summarizeHouseholdCosts(visibleCosts);
 
   function openNew(suggestion?: [HouseholdCostCategory, string, HouseholdCostFrequency]) {
@@ -179,7 +200,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
     setFeedback(locale === "de" ? "Kosten gespeichert." : "Cost saved.");
     Keyboard.dismiss();
     setFormOpen(false);
-    setEditingId(null);
+    setEditingId(null); setSearch(""); setExpandedCost(null);
   }
 
   function confirmDelete(cost: HouseholdCost) {
@@ -198,8 +219,8 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       Alert.alert(locale === "de" ? "Monatsnetto ergänzen" : "Add monthly net income", locale === "de" ? "Trage den tatsächlichen Monatsbetrag ein. Wir leiten ihn nicht aus dem Jahresnetto ab." : "Enter your actual monthly amount. We do not infer it from annual income.");
       return;
     }
-    const parsed = income.trim() === "" ? 0 : parseIncomeAmount(income, locale);
-    if (!Number.isFinite(parsed) || parsed < 0) {
+    const parsed = income.trim() === "" ? undefined : parseIncomeAmount(income, locale);
+    if (parsed !== undefined && (!Number.isFinite(parsed) || parsed < 0)) {
       Alert.alert((locale === "de" ? "Betrag prüfen" : "Check amount"), (locale === "de" ? "Gib einen Betrag ab 0 ein." : "Enter an amount of 0 or more."));
       return;
     }
@@ -237,7 +258,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
     <Pressable accessibilityRole="button" accessibilityState={{expanded:moreOpen}} style={styles.secondary} onPress={() => setMoreOpen(!moreOpen)}><Text style={styles.secondaryText}>{locale === "de" ? "Optional: Zahlungstermin & weitere Intervalle" : "Optional: payment date & more intervals"}</Text></Pressable>
     {moreOpen && <><DateField label="Nächste Zahlung (optional)" value={dueDate} onChangeText={setDueDate} /><Text style={styles.help}>Mit Zahlungstermin können wir den nächsten Monat genau berechnen. Ohne Termin fließt der Posten nur in den Monatsdurchschnitt ein.</Text></>}
     <FormSubmitButton label={locale === "de" ? "Kosten speichern & weiter" : "Save cost & continue"} style={styles.primary} textStyle={styles.primaryText} />
-    {onBack && <FormActionButton label={locale === "de" ? "Zurück zum Einkommen" : "Back to income"} onPress={onBack} style={styles.secondary} textStyle={styles.secondaryText} />}
+    {onBack && <FormActionButton label={locale === "de" ? "Zurück zum Einkommen" : "Back to income"} onPress={backToIncome} style={styles.secondary} textStyle={styles.secondaryText} />}
     {onSkip && <FormActionButton label={locale === "de" ? "Kosten später ergänzen" : "Add costs later"} onPress={onSkip} style={styles.secondary} textStyle={styles.secondaryText} />}
   </FormSection>;
 
@@ -249,14 +270,14 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
     {profile.incomeFrequency === "yearly" && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency ?? "EUR"} />}
     <IncomeExtrasEditor frequency={incomeFrequency} drafts={incomeExtras} onChange={setIncomeExtras} open={incomeExtrasOpen} onToggle={() => setIncomeExtrasOpen(!incomeExtrasOpen)} />
     <FormSubmitButton label="Einkommen speichern" style={styles.primary} textStyle={styles.primaryText} />
-    <Pressable accessibilityRole="button" onPress={() => setIncomeOpen(false)} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Zur Kostenliste" : "Back to costs"}</Text></Pressable>
+    <FormActionButton label={locale === "de" ? "Zur Kostenliste" : "Back to costs"} onPress={closeIncome} style={styles.secondary} textStyle={styles.secondaryText} />
   </FormSection>;
 
   return <>
     {!formOpen&&<><Text style={styles.title}>{tileId === "default-costs" ? localize(locale, "Haushaltskosten") : tileTitle}</Text>
     <Text style={styles.explanation}>{localize(locale, tileId === "default-costs" ? "Alle regelmäßigen Kosten aus deinen Kacheln an einem Ort. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um." : "Die regelmäßigen Kosten in dieser Kachel. Jährliche und andere Zahlungen rechnen wir auf einen Monatsdurchschnitt um.")}</Text></>}
     {!formOpen && <View style={styles.metrics}>
-      <View style={styles.metric}><Text style={styles.label}>PRO MONAT</Text><Text style={styles.value}>{money.format(summary.monthlyTotal)}</Text></View>
+      <Text style={styles.summaryLabel}>{locale === "de" ? "Monatsdurchschnitt" : "Monthly average"}</Text><Text style={styles.value}>{visibleCosts.some(cost=>cost.variableAmount) ? locale === "de" ? "ca. " : "approx. " : ""}{money.format(summary.monthlyTotal)}</Text>
     </View>}
 
 
@@ -278,26 +299,37 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       </View>)}</View>
     </>}
     {!!feedback && <View style={styles.panel}><Text style={styles.help}>{feedback}</Text>{onOverview && <Pressable accessibilityRole="button" onPress={onOverview} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Monatsübersicht ansehen" : "View monthly overview"}</Text></Pressable>}</View>}
-    {!formOpen && <><Text style={styles.sectionTitle}>Angelegte Kosten</Text>
-    {visibleCosts.length === 0 ? <Text style={styles.help}>Noch keine Kosten angelegt.</Text> : visibleCosts.map((cost) => <View key={cost.id} style={styles.costRow}>
-      <Text style={styles.costName}>{cost.name}</Text>
-      {tileId === "default-costs" && cost.tileId && cost.tileId !== "default-costs" && <Text style={styles.costArea}>{tiles.find((tile) => tile.id === cost.tileId)?.title ?? "Eigene Kachel"}</Text>}
-      <Text style={styles.costDetail}>{categories.find(([key]) => key === cost.category)?.[1]} · {frequencies.find(([key]) => key === cost.frequency)?.[1]}</Text>
-      <Text style={styles.costDetail}>{cost.variableAmount?(locale==='de'?'ca. ':'approx. '):''}{money.format(cost.amount)} {locale === "de" ? "je Zahlung" : "per payment"}{cost.frequency !== "monthly" ? ` · ${money.format(monthlyCost(cost.amount, cost.frequency))} ${locale === "de" ? "pro Monat im Durchschnitt" : "per month on average"}` : ""}</Text>
-      <Text style={styles.costDetail}>{cost.nextDueDate ? `${locale === "de" ? "Nächste Zahlung" : "Next payment"}: ${displayDate(cost.nextDueDate)}` : "Ohne Zahlungstermin"}</Text>
-      {cost.cancellationDeadline && <Text style={styles.costDetail}>{locale === "de" ? "Kündigungsfrist" : "Cancellation deadline"}: {displayDate(cost.cancellationDeadline)}</Text>}
-      <View style={styles.actions}><Pressable onPress={() => edit(cost)} style={styles.choice}><Text style={styles.choiceText}>Bearbeiten</Text></Pressable>{cost.cancellationDeadline && <Pressable onPress={() => void shareDeadline(cost.name, cost.cancellationDeadline!, locale).catch(() => Alert.alert(locale === "de" ? "Kalender nicht verfügbar" : "Calendar unavailable", locale === "de" ? "Die Frist konnte nicht geteilt werden." : "Could not share this deadline."))} style={styles.choice}><Text style={styles.choiceText}>{locale === "de" ? "Frist vormerken" : "Add to calendar"}</Text></Pressable>}<Pressable onPress={() => confirmDelete(cost)} style={styles.choice}><Text style={styles.deleteText}>Entfernen</Text></Pressable></View>
-    </View>)}</>}
+    {!formOpen && <><Text style={styles.sectionTitle}>{locale === "de" ? "Angelegte Kosten" : "Saved costs"} · {visibleCosts.length}</Text>
+    {(visibleCosts.length >= 5 || search) && <View style={styles.search}><FormInput label={locale === "de" ? "Kosten suchen" : "Search costs"} value={search} onChangeText={setSearch} placeholder={locale === "de" ? "Name oder Kategorie" : "Name or category"} />{search && <Pressable accessibilityRole="button" accessibilityLabel={locale === "de" ? "Suche löschen" : "Clear search"} onPress={()=>setSearch("")} style={styles.secondary}><Text style={styles.secondaryText}>{locale === "de" ? "Suche löschen" : "Clear search"}</Text></Pressable>}</View>}
+    {search.trim() && <Text style={styles.help}>{filteredCosts.length} {locale === "de" ? "Treffer" : "results"}</Text>}
+    {visibleCosts.length === 0 ? <Text style={styles.help}>Noch keine Kosten angelegt.</Text> : !filteredCosts.length ? <Text style={styles.help}>{locale === "de" ? "Keine passenden Kosten. Versuche einen anderen Namen oder eine Kategorie." : "No matching costs. Try another name or category."}</Text> : filteredCosts.map(cost => {
+      const expanded = expandedCost === cost.id;
+      const nextDate = nextPaymentForCost(cost) ?? cost.nextDueDate;
+      return <View key={cost.id} style={styles.costRow}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`${cost.name} · ${money.format(cost.amount)}`} accessibilityState={{expanded}} onPress={()=>setExpandedCost(expanded ? null : cost.id)} style={styles.costHeader}>
+          <View style={styles.costCopy}><Text style={styles.costName}>{cost.name}</Text><Text style={styles.costDetail}>{localize(locale,frequencies.find(([key])=>key===cost.frequency)?.[1] ?? "")} · {nextDate ? displayDate(nextDate) : locale === "de" ? "Termin fehlt" : "Date missing"}</Text></View>
+          <Text style={styles.costAmount}>{cost.variableAmount ? locale === "de" ? "ca. " : "approx. " : ""}{money.format(cost.amount)}</Text><DisclosureIcon open={expanded}/>
+        </Pressable>
+        {expanded && <View style={styles.costExpanded}>
+          {tileId === "default-costs" && cost.tileId && cost.tileId !== "default-costs" && <Text style={styles.costArea}>{tiles.find(tile=>tile.id===cost.tileId)?.title ?? localize(locale,"Eigene Kachel")}</Text>}
+          <Text style={styles.costDetail}>{categories.find(([key])=>key===cost.category)?.[1]}</Text>
+          <Text style={styles.costDetail}>{money.format(cost.amount)} {locale === "de" ? "je Zahlung" : "per payment"}{cost.frequency !== "monthly" ? ` · ${money.format(monthlyCost(cost.amount,cost.frequency))} ${locale === "de" ? "pro Monat im Durchschnitt" : "per month on average"}` : ""}</Text>
+          {cost.variableAmount && <Text style={styles.help}>{locale === "de" ? "Planbetrag. Den tatsächlichen Betrag ergänzt du in der Monatscheckliste." : "Planning amount. Add the actual amount in your monthly checklist."}</Text>}
+          {cost.cancellationDeadline && <Text style={styles.costDetail}>{locale === "de" ? "Kündigungsfrist" : "Cancellation deadline"}: {displayDate(cost.cancellationDeadline)}</Text>}
+          <View style={styles.actions}><Pressable accessibilityRole="button" accessibilityLabel={`${locale === "de" ? "Bearbeiten" : "Edit"}: ${cost.name}`} onPress={()=>edit(cost)} style={styles.choice}><Text style={styles.choiceText}>Bearbeiten</Text></Pressable>{cost.cancellationDeadline && <Pressable accessibilityRole="button" onPress={()=>void shareDeadline(cost.name,cost.cancellationDeadline!,locale).catch(()=>Alert.alert(locale === "de" ? "Kalender nicht verfügbar" : "Calendar unavailable",locale === "de" ? "Die Frist konnte nicht geteilt werden." : "Could not share this deadline."))} style={styles.choice}><Text style={styles.choiceText}>{locale === "de" ? "Frist vormerken" : "Add to calendar"}</Text></Pressable>}<Pressable accessibilityRole="button" accessibilityLabel={`${locale === "de" ? "Entfernen" : "Remove"}: ${cost.name}`} onPress={()=>confirmDelete(cost)} style={styles.choice}><Text style={styles.deleteText}>Entfernen</Text></Pressable></View>
+        </View>}
+      </View>;
+    })}</>}
   </>;
 }
 
 const styles = StyleSheet.create({
   eyebrow: { fontSize: 12, fontWeight: "900", letterSpacing: 1.5, color: "#087a45" },
-  title: { marginTop: 8, marginBottom: 12, fontSize: 24, fontWeight: "800", letterSpacing: -0.6, color: "#17211f" },
+  title: { marginTop: 8, marginBottom: 12, fontSize: 22, fontWeight: "700", letterSpacing: -0.5, color: "#17211f" },
   explanation: { fontSize: 13, lineHeight: 20, color: "#65716d" },
-  metrics: { flexDirection: "row", gap: 10, marginTop: 18, padding: 10, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22, backgroundColor: "#f4f6f2" },
-  metric: { flex: 1, minWidth: 0, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 12 },
-  value: { marginTop: 8, fontSize: 18, fontWeight: "900", letterSpacing: -0.4, color: "#17211f" },
+  metrics: { marginTop:18,padding:16,borderWidth:1,borderColor:"#dfe5dd",borderRadius:16,backgroundColor:"#ffffff",gap:6 },
+  summaryLabel: {fontSize:12,fontWeight:"600",color:"#65716d"},
+  value: {fontSize:24,fontWeight:"700",letterSpacing:-0.6,color:"#17211f"},
   label: { marginTop: 12, fontSize: 13, fontWeight: "700", color: "#52605b" },
   panel: { marginTop: 18, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22, backgroundColor: "#f6f6f0", padding: 16, gap: 12 },
   panelTitle: { fontSize: 17, fontWeight: "900", color: "#17211f" },
@@ -319,8 +351,13 @@ const styles = StyleSheet.create({
   categoryCard: { width: "48%", minHeight: 88, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 12 },
   categoryLabel: { fontSize: 12, fontWeight: "700", color: "#52605b" },
   categoryAmount: { marginTop: 7, fontSize: 14, fontWeight: "900", color: "#17211f" },
-  costRow: { marginTop: 10, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#fbfcf8", padding: 14 },
-  costName: { fontSize: 14, fontWeight: "900", color: "#17211f" },
+  search: {marginTop:12},
+  costRow: {marginTop:8,borderWidth:1,borderColor:"#dfe5dd",borderRadius:14,backgroundColor:"#ffffff",overflow:"hidden"},
+  costHeader: {minHeight:76,flexDirection:"row",alignItems:"center",gap:12,padding:14},
+  costCopy: {flex:1,minWidth:0},
+  costName: {fontSize:14,fontWeight:"600",color:"#17211f"},
+  costAmount: {fontSize:14,fontWeight:"600",color:"#17211f"},
+  costExpanded: {borderTopWidth:1,borderColor:"#dfe5dd",padding:14},
   costArea: { marginTop: 5, fontSize: 11, fontWeight: "800", color: "#087a45" },
   costDetail: { marginTop: 5, fontSize: 13, lineHeight: 20, color: "#65716d" },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },

@@ -23,10 +23,10 @@ runInNewContext(compiled, { module: overviewModule, exports: overviewModule.expo
 const { HomeCoreOverview } = overviewModule.exports;
 const cost = (overrides = {}) => ({ id: "insurance", name: "Insurance", category: "insurance", amount: 600, frequency: "yearly", nextDueDate: "2026-11-15", updatedAt: "2026-10-03T00:00:00Z", ...overrides });
 const money = (amount, locale = "en") => new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", { style: "currency", currency: "EUR" }).format(amount);
-function render({ costs = [cost()], income = 2500, locale = "en", upcomingOpen = false, incomeIsAverage = false } = {}) {
+function render({ costs = [cost()], income = 2500, locale = "en", upcomingOpen = false, incomeIsAverage = false, incomeProvided } = {}) {
   const noop = () => {};
   return renderToStaticMarkup(React.createElement(HomeCoreOverview, {
-    costs, income, incomeIsAverage, locale, currency: "EUR", upcomingOpen,
+    costs, income, incomeIsAverage, incomeProvided, locale, currency: "EUR", upcomingOpen,
     forecast: forecastHouseholdCosts(costs, new Date("2026-10-03T00:00:00Z")),
     onUpcoming: noop, onIncome: noop, onCost: noop, onCosts: noop, onReview: noop,
   }));
@@ -68,4 +68,15 @@ test("native legacy annual income labels income and remainder as averages", () =
   const html = render({ incomeIsAverage: true });
   assert.ok(html.includes("Net income · monthly average"));
   assert.ok(html.includes("Left after fixed costs · average"));
+});
+
+test("recorded zero income shows the cost gap without repeating setup in either language", () => {
+  for (const locale of ["de", "en"]) {
+    const html = render({income:0,incomeProvided:true,locale});
+    assert.ok(html.includes(money(0,locale)));
+    assert.ok(html.includes(money(-50,locale)));
+    assert.ok(html.includes('role="alert"'));
+    assert.ok(!html.includes(locale === "de" ? "1 · Einkommen eintragen" : "1 · Add your income"));
+    assert.ok(render({income:0,incomeProvided:false,locale}).includes(locale === "de" ? "1 · Einkommen eintragen" : "1 · Add your income"));
+  }
 });

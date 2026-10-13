@@ -2,7 +2,8 @@
 
 The free beta requires no login or bank connection. The TestFlight profile
 explicitly disables purchases; all planning tools are a preview. Data stays on
-the device. Website and app do not synchronize; JSON backups transfer the data.
+the device. Website and app do not synchronize. Website backups can be imported into the
+app; app backups restore app data. App-to-website import is not supported.
 
 ## Prepare from Windows PowerShell
 
@@ -40,12 +41,14 @@ A paid Apple Developer membership is required. See
 
 Export real data first. Use invented amounts for destructive tests.
 
-1. Fresh start: choose English, Get started. Follow income → first cost →
-   first overview. Settings and bottom navigation must stay hidden until
+1. Fresh start: choose English, Get started. Follow home name/currency → income →
+   first cost → first overview. Settings and bottom navigation stay hidden until
    completion. Enter 2,400/month and rent 800, then open the overview. Test
    force-close during the cost step: income and the current step persist.
-   Test skip, back, invalid amounts and keyboard save. In a fresh second run,
-   enter 28,800/year: the first overview must show 2,400/month.
+   Before adding a cost, go back to income and correct it. Invalid amounts retain
+   the draft. In a fresh second run, enter 0 income and internet 40: the overview
+   shows 0 income and a 40 shortfall without requesting income again. Annual-net
+   input is available later via Edit income, not in the initial monthly setup.
    Afterwards open Settings, switch DE/EN, relaunch: language persists.
 2. Income 2,400/month; rent 800, internet 40, insurance 240/year. Fixed costs:
    860/month. Remainder: 1,540 before everyday spending. Missing payment dates
@@ -62,7 +65,11 @@ Export real data first. Use invented amounts for destructive tests.
 4. Open Edit income from Overview, save a changed amount: return to Overview,
    with the remainder updated. Change internet to 35: costs 855, remainder 1,545. Expand Organize cost areas. Create, move and rename a
    custom Insurance tile; entries must not duplicate or disappear.
-5. Keyboard: name, decimal amount, date and last field on a small iPhone. The
+5. Search at least five saved costs by name/category; clear the search and check
+   totals stay unchanged. Open one cost to edit. Cancel changed cost/income/settings:
+   keep editing or discard must be a deliberate choice. Settings opens from Costs
+   and saving/back returns there. Calculator/reminders/backup/help are collapsed.
+   Keyboard: name, decimal amount, date and last field on a small iPhone. The
    focused field and save action remain visible. Test keyboard save and form
    save, invalid entries and repeated taps. Invalid inputs retain the draft.
 6. Force-close, airplane mode, reopen: values persist. Calculate a router in
