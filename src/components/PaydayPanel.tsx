@@ -40,7 +40,7 @@ export default function PaydayPanel({
     if (field === "protected") setReserveOpen(true);
     requestAnimationFrame(() => {
       const element = ({balance: balanceInput, payday: paydayInput, everyday: everydayInput, protected: protectedInput})[field].current;
-      element?.scrollIntoView({block: "center"}); element?.focus({preventScroll: true});
+      element?.scrollIntoView({block: "center",behavior:"instant"}); element?.focus({preventScroll: true});
     });
   }
   const reviewBalance = () => { setOpen(true); requestAnimationFrame(() => { balanceInput.current?.scrollIntoView({block:"center"}); balanceInput.current?.focus({preventScroll:true}); }); };

@@ -95,7 +95,7 @@ for (const locale of ['de', 'en']) {
     expect(await page.evaluate(() => (window as unknown as {reviewAlert:unknown[]}).reviewAlert[0])).toBe(t('Änderungen verwerfen?','Discard changes?'));
     await expect(homeName).toHaveValue('Changed home');
     await page.getByRole('button',{name:t('Einstellungen speichern','Save settings'),exact:true}).click();
-    await expect(page.getByRole('tab',{name:t('Kosten','Costs'),exact:true})).toHaveAttribute('aria-selected','true');
+    await expect(page.getByRole('tablist',{name:/App-Navigation|App navigation/}).getByRole('tab',{name:t('Kosten','Costs'),exact:true})).toHaveAttribute('aria-selected','true');
     await page.getByRole('button',{name:t('Einstellungen','Settings'),exact:true}).click();
     await page.getByRole('button',{name:t('Stromrechner','Calculator'),exact:true}).click();
     await expect(page.getByRole('textbox',{name:/Strompreis|Electricity price/})).toBeVisible();

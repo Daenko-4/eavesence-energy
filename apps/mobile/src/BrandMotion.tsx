@@ -29,5 +29,5 @@ export function DisclosureIcon({ open, color = "#087a45" }: { open: boolean; col
     }).catch(() => { if (!disposed) rotation.setValue(open ? 1 : 0); });
     return () => { disposed = true; animation?.stop(); };
   }, [open, rotation]);
-  return <Animated.Text accessible={false} style={{ width: 18, textAlign: "center", color, fontSize: 22, transform: [{ rotate: rotation.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "-45deg"] }) }] }}>+</Animated.Text>;
+  return <Animated.Text accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ width: 18, textAlign: "center", color, fontSize: 22, transform: [{ rotate: rotation.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "-45deg"] }) }] }}>+</Animated.Text>;
 }

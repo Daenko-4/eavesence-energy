@@ -20,7 +20,7 @@ for(const locale of ['de','en']) test(`payday errors identify and focus the fiel
   await expect(panel.getByRole('alert')).toContainText('90');
   await payday.fill('2026-10-25');await save.click();await expect(everyday).toBeFocused();
   await everyday.fill('200');
-  await panel.getByRole('button',{name:/Geld als Reserve|Keep some money/}).click();
+  await panel.locator('summary').filter({hasText:/Geld als Reserve|Keep some money/}).click();
   const reserve=panel.getByLabel(t('Reserve, die übrig bleiben soll (optional)','Money to keep in reserve (optional)'),{exact:true});
   await reserve.fill('-1');await save.click();await expect(reserve).toBeFocused();await expect(reserve).toHaveAttribute('aria-invalid','true');
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning?.cash)).toBeUndefined();
