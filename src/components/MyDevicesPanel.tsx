@@ -523,7 +523,7 @@ function MyDevicesPanel(
             {text.viewHome}
           </a>
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-slate-500">{locale === "de" ? "Optional: Deine gespeicherten Geräte erscheinen in einer eigenen Stromkachel. Dort gilt der Strompreis aus deinen Zuhause-Einstellungen; abweichende Geräteschätzungen werden neu berechnet. Sie werden nicht zusätzlich vom Monatsbudget abgezogen." : "Optional: saved devices appear in a dedicated energy tile using the electricity price from your home settings. Different device estimates are recalculated. They are not deducted again from your monthly budget."}</p>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">{locale === "de" ? "Optional: Deine gespeicherten Geräte erscheinen in einer eigenen Stromkachel. Dort gilt der Strompreis aus deiner gespeicherten Strombasis; abweichende Geräteschätzungen werden neu berechnet. Sie werden nicht zusätzlich vom Monatsbudget abgezogen." : "Optional: saved devices appear in a dedicated energy tile using the price from your saved electricity basis. Different device estimates are recalculated. They are not deducted again from your monthly budget."}</p>
       </section>
     );
   }
@@ -534,11 +534,11 @@ function MyDevicesPanel(
         id={household ? "home-devices" : "meine-geraete"}
         className={
           household
-            ? `${embedded ? "" : "mt-8 "}scroll-mt-24 rounded-2xl border border-[#d8ded8] bg-[#eef0ec] p-5 sm:p-6`
+            ? `${embedded ? "rounded-xl p-4 sm:p-5" : "mt-8 rounded-2xl p-5 sm:p-6"} scroll-mt-24 border border-[#d8ded8] bg-[#eef0ec]`
             : "mt-9 scroll-mt-[104px] border-t border-slate-200/80 pt-7"
         }
       >
-        <div className="flex items-start justify-between gap-3">
+        <div className={household && embedded ? "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between" : "flex items-start justify-between gap-3"}>
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-950">
@@ -578,7 +578,7 @@ function MyDevicesPanel(
             </div>
           </div>
           {(savedDevices.length > 0 || household) && (
-            <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <div className={household && embedded ? "flex flex-wrap items-center gap-2 sm:shrink-0 sm:flex-col sm:items-end sm:gap-1.5" : "flex shrink-0 flex-col items-end gap-1.5"}>
               {household && (
                 <a href={calculatorHref} className="eavesence-pill-link">
                   {text.addDevice}
@@ -642,7 +642,8 @@ function MyDevicesPanel(
                 {totals.map((total) => (
                   <div
                     key={total.currency}
-                    className="flex items-center justify-between gap-5 rounded-2xl bg-[#e7f7ed] px-4 py-3.5 sm:px-5"
+                    data-device-total
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#e7f7ed] px-4 py-3.5 sm:gap-5 sm:px-5"
                   >
                     <div className="min-w-0">
                       <span className="block text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--brand-green)]">
@@ -652,7 +653,7 @@ function MyDevicesPanel(
                         {total.currency}
                       </span>
                     </div>
-                    <div className="shrink-0 text-right">
+                    <div className="ml-auto shrink-0 text-right">
                       <span className="block text-xl font-extrabold tracking-[-0.035em] tabular-nums text-[#10283a]">
                         {formatMoney(total.yearlyCost, locale, total.currency)}
                       </span>

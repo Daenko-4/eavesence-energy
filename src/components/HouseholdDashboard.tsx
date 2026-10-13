@@ -94,7 +94,7 @@ const BETA_INTEREST_STORAGE_KEY = "eavesence-home-beta-interest-v1";
 const homeSurfaceClass =
   "rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)]";
 const homeFieldClass =
-  "home-field min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
+  "home-field min-h-10 min-w-0 w-full rounded-xl border border-slate-300 bg-white px-3 text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
 const homePrimaryActionClass =
   "eavesence-pill-button home-primary-action active:scale-[0.98]";
 const homeCompactActionClass =
@@ -285,7 +285,7 @@ const copy = {
     checkInLoaded: "Monatswert wurde zum Bearbeiten geladen.",
     checkInRequired: "Bitte gib einen Wert größer als 0 ein.",
     checkInPriceRequired:
-      "Bitte hinterlege zuerst einen Strompreis größer als 0 in den Einstellungen.",
+      "Bitte hinterlege zuerst einen Strompreis größer als 0 im Stromrechner.",
     history: "Verlauf",
     noHistory: "Noch kein Monatswert vorhanden.",
     comparedWithPrevious: "gegenüber dem vorherigen Eintrag",
@@ -359,6 +359,7 @@ const copy = {
     saveSettings: "Einstellungen speichern",
     saveEnergy: "Strombasis speichern",
     saved: "Gespeichert",
+    saveFailed: "Speichern hat nicht geklappt. Bitte versuche es noch einmal.",
     dataTitle: "Daten verwalten",
     dataText:
       "Die Sicherung enthält Einkommen und Sonderzahlungen, Kosten, Sparvorhaben, Einstellungen, Kacheln, Geräte und den Monatsverlauf.",
@@ -542,7 +543,7 @@ const copy = {
     checkInLoaded: "Monthly value loaded for editing.",
     checkInRequired: "Enter a value greater than 0.",
     checkInPriceRequired:
-      "First add an electricity price greater than 0 in Settings.",
+      "First add an electricity price greater than 0 in Electricity Calculator.",
     history: "History",
     noHistory: "No monthly value yet.",
     comparedWithPrevious: "compared with the previous entry",
@@ -616,6 +617,7 @@ const copy = {
     saveSettings: "Save settings",
     saveEnergy: "Save electricity basis",
     saved: "Saved",
+    saveFailed: "Could not save. Please try again.",
     dataTitle: "Manage data",
     dataText:
       "The backup includes income and extra payments, costs, savings plans, settings, tiles, devices and monthly history.",
@@ -713,11 +715,11 @@ function MonthlyHistoryChart({
       </div>
       <div className="mt-4 space-y-3">
         {chartEntries.map((entry) => (
-          <div key={entry.month} data-chart-entry={entry.month} className="grid grid-cols-[4.25rem_1fr] items-center gap-3">
+          <div key={entry.month} data-chart-entry={entry.month} className="grid grid-cols-[4.25rem_minmax(0,1fr)] items-center gap-3">
             <span className="text-[11px] font-semibold text-[#65716d]">
               {dateFormatter.format(new Date(`${entry.month}-01T00:00:00Z`))}
             </span>
-            <div className="space-y-1.5">
+            <div className="min-w-0 space-y-1.5">
               <div className="flex items-center gap-2">
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)]" style={{ width: `${Math.max(3, (entry.kwh / maxKwh) * 100)}%` }} /></div>
                 <span className="w-20 text-right text-[11px] tabular-nums text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span>
@@ -793,7 +795,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [monthlyElectricityPayment, setMonthlyElectricityPayment] = useState("");
   const [electricityBillIncludesBonus, setElectricityBillIncludesBonus] =
     useState(false);
-  const [goal, setGoal] = useState(10);
   const [month, setMonth] = useState(currentMonth());
   const [monthKwh, setMonthKwh] = useState("");
   const [monthCost, setMonthCost] = useState("");
@@ -819,7 +820,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     "monthly" | "comparison" | "saving" | null
   >(null);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState<{
+    kind: "success" | "error";
+    message: string;
+    scope: "home" | "energy" | "goal";
+  } | null>(null);
+  const preserveProfileDrafts = useRef(false);
   const homeImportInputRef = useRef<HTMLInputElement>(null);
   const tileFormRef = useRef<HTMLDivElement>(null);
   const newTileButtonRef = useRef<HTMLButtonElement>(null);
@@ -836,6 +842,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setView(next);
   }
 
+  useEffect(() => {
+    if (notice?.kind !== "success") return;
+    const timer = window.setTimeout(() => setNotice(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
 
   useEffect(() => {
     if (tileFormOpen) tileNameInputRef.current?.focus();
@@ -895,7 +906,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       setElectricityBillIncludesBonus(
         storedProfile.electricityBillIncludesBonus ?? false,
       );
-      setGoal(storedProfile.savingsGoalPercent);
     }
     setSavedDevices(readSavedDevices(window.localStorage.getItem(SAVED_DEVICES_STORAGE_KEY)));
     setHistory(readMonthlyEnergyEntries(window.localStorage.getItem(HOUSEHOLD_HISTORY_STORAGE_KEY)));
@@ -932,7 +942,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       setReady(true);
     });
     window.addEventListener("storage", loadLocalData);
-    window.addEventListener(HOUSEHOLD_CHANGED_EVENT, loadLocalData);
+    function refreshProfile() {
+      if (!preserveProfileDrafts.current) loadLocalData();
+    }
+    window.addEventListener(HOUSEHOLD_CHANGED_EVENT, refreshProfile);
 
     const now = new Date();
     const existing = readVisitState(window.localStorage.getItem(HOUSEHOLD_VISIT_STORAGE_KEY));
@@ -961,7 +974,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     return () => {
       window.cancelAnimationFrame(initialFrame);
       window.removeEventListener("storage", loadLocalData);
-      window.removeEventListener(HOUSEHOLD_CHANGED_EVENT, loadLocalData);
+      window.removeEventListener(HOUSEHOLD_CHANGED_EVENT, refreshProfile);
     };
   }, [loadLocalData, locale]);
 
@@ -1043,10 +1056,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     [profile, savedDevices],
   );
 
-  function persistProfile(nextProfile: HouseholdProfile) {
+  function persistProfile(nextProfile: HouseholdProfile, preserveDrafts = false) {
     window.localStorage.setItem(HOUSEHOLD_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile));
     setProfile(nextProfile);
-    window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
+    // Notify other widgets without resetting unrelated forms during a settings change.
+    preserveProfileDrafts.current = preserveDrafts;
+    try {
+      window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
+    } finally {
+      preserveProfileDrafts.current = false;
+    }
   }
 
   function persistHouseholdCosts(nextCosts: HouseholdCost[], confirmedProfile?: HouseholdProfile) {
@@ -1198,7 +1217,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       name,
       currency,
       electricityPrice: price,
-      savingsGoalPercent: goal,
+      savingsGoalPercent: 10,
       roomNames: [],
     });
     persistProfile(nextProfile);
@@ -1212,6 +1231,23 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   function saveSettings() {
     if (!profile) return;
+    try {
+      persistProfile({
+        ...profile,
+        name: name.trim() || profile.name,
+        currency,
+        updatedAt: new Date().toISOString(),
+      }, true);
+      setName(localizeDefaultHouseholdName(name.trim() || profile.name, locale));
+      setNotice({ kind: "success", message: text.saved, scope: "home" });
+      setSettingsOpen(false);
+    } catch {
+      setNotice({ kind: "error", message: text.saveFailed, scope: "home" });
+    }
+  }
+
+  function saveElectricitySettings() {
+    if (!profile) return;
     const parsedAnnualBill = positiveNumber(annualElectricityBill);
     const parsedAnnualKwh = positiveNumber(annualElectricityKwh);
     const parsedMonthlyPayment = positiveNumber(monthlyElectricityPayment);
@@ -1219,37 +1255,50 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       electricityInputMode === "annual-bill" &&
       (parsedAnnualBill === null || parsedAnnualKwh === null)
     ) {
-      setNotice(text.energyAnnualRequired);
+      setNotice({ kind: "error", message: text.energyAnnualRequired, scope: "energy" });
       return;
     }
     if (
       electricityInputMode === "monthly-payment" &&
       parsedMonthlyPayment === null
     ) {
-      setNotice(text.energyMonthlyRequired);
+      setNotice({ kind: "error", message: text.energyMonthlyRequired, scope: "energy" });
       return;
     }
     const resolvedPrice =
       electricityInputMode === "annual-bill"
         ? (parsedAnnualBill ?? 0) / (parsedAnnualKwh ?? 1)
         : Math.max(0, price);
-    persistProfile({
-      ...profile,
-      name: name.trim() || profile.name,
-      currency,
-      electricityPrice: resolvedPrice,
-      electricityInputMode,
-      annualElectricityBill: parsedAnnualBill ?? 0,
-      annualElectricityKwh: parsedAnnualKwh ?? 0,
-      monthlyElectricityPayment: parsedMonthlyPayment ?? 0,
-      electricityBillIncludesBonus,
-      savingsGoalPercent: Math.min(50, Math.max(1, goal)),
-      updatedAt: new Date().toISOString(),
-    });
-    setNotice(text.saved);
-    setPrice(resolvedPrice);
-    setSettingsOpen(false);
-    track("Home Savings Goal Set", { locale, savings_goal: goal });
+    try {
+      persistProfile({
+        ...profile,
+        electricityPrice: resolvedPrice,
+        electricityInputMode,
+        annualElectricityBill: parsedAnnualBill ?? 0,
+        annualElectricityKwh: parsedAnnualKwh ?? 0,
+        monthlyElectricityPayment: parsedMonthlyPayment ?? 0,
+        electricityBillIncludesBonus,
+        updatedAt: new Date().toISOString(),
+      }, true);
+      setNotice({ kind: "success", message: text.saved, scope: "energy" });
+      setPrice(resolvedPrice);
+    } catch {
+      setNotice({ kind: "error", message: text.saveFailed, scope: "energy" });
+    }
+  }
+
+  function updateElectricityGoal(value: number) {
+    if (!profile || !Number.isFinite(value)) return;
+    try {
+      persistProfile({
+        ...profile,
+        savingsGoalPercent: Math.min(50, Math.max(1, value)),
+        updatedAt: new Date().toISOString(),
+      }, true);
+      if (notice?.scope === "goal") setNotice(null);
+    } catch {
+      setNotice({ kind: "error", message: text.saveFailed, scope: "goal" });
+    }
   }
 
   function exportHome() {
@@ -1281,7 +1330,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
     const backup = readHouseholdBackup(await file.text());
     if (!backup) {
-      setNotice(text.importHomeError);
+      setNotice({ kind: "error", message: text.importHomeError, scope: "home" });
       return;
     }
     if (!window.confirm(text.importHomeConfirm)) return;
@@ -1337,9 +1386,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setElectricityBillIncludesBonus(
       backup.profile.electricityBillIncludesBonus ?? false,
     );
-    setGoal(backup.profile.savingsGoalPercent);
     setSettingsOpen(false);
-    setNotice(text.importedHome);
+    setNotice({ kind: "success", message: text.importedHome, scope: "home" });
     window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
     track("Home Backup Imported", {
       locale,
@@ -1370,12 +1418,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setAnnualElectricityKwh("");
     setMonthlyElectricityPayment("");
     setElectricityBillIncludesBonus(false);
-    setGoal(10);
     setHomeTiles(defaultHomeTiles());
     setActiveTileId("default-costs");
     setCheckInFeedback(null);
     setSettingsOpen(false);
-    setNotice("");
+    setNotice(null);
     window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
     track("Home Reset", { locale, devices_preserved: savedDevices.length });
   }
@@ -1468,7 +1515,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-    setNotice(text.calendarReminderDownloaded);
+    setNotice({ kind: "success", message: text.calendarReminderDownloaded, scope: "home" });
     track("Home Monthly Reminder Downloaded", { locale, reminder_day: 5 });
   }
 
@@ -1511,7 +1558,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     );
     setHistory(nextHistory);
     if (editingMonth === entry.month) cancelMonthlyCheckInEdit();
-    setNotice("");
+    setNotice(null);
     setCheckInFeedback(null);
     setHistoryNotice(text.monthDeleted);
     track("Home Monthly Check In Deleted", { locale, month: entry.month });
@@ -1771,7 +1818,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--brand-green)]">MY HOME</p>
               {view === "overview" && <h1 className="mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>}
               <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} aria-controls="home-settings" className="home-settings-action">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 2 3-1 2 2 3-2 1-3 3-1 2-3-2-2 1-3-3-2-3 1-2-2Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11"/><circle cx="10" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/></svg>
                 {text.settings}
               </button>
               <p className="mx-auto mt-1 max-w-lg text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
@@ -1787,7 +1834,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }} className="grid gap-4 sm:grid-cols-4">
               <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
-              <details className="home-disclosure sm:col-span-4"><summary className="cursor-pointer text-[12px] font-semibold">{locale === "de" ? "Stromrechner · optionales Verbrauchsziel" : "Energy calculator · optional consumption goal"}</summary><label className="mt-2 grid max-w-sm gap-1.5 text-[12px]"><span>{locale === "de" ? "Stromverbrauch reduzieren um" : "Reduce electricity use by"}: {goal}%</span><input type="range" min="1" max="30" value={goal} onChange={(event) => setGoal(Number(event.target.value))} className="accent-[var(--brand-green)]" /></label><p className="mt-2 text-[12px] text-[#65716d]">{locale === "de" ? "Nur für die Stromauswertung. Dein Sparbetrag in Planen & sparen wird separat festgelegt." : "Only for electricity analysis. Set your savings amount separately in Plan & save."}</p></details>
               <button type="submit" className={`${homeDashboardActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
               </form>
               <div className="mt-4 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
@@ -1869,7 +1915,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
             </section>
           )}
-          {notice && view === "overview" && <p role="status" className="mt-3 text-center text-[13px] font-semibold text-[var(--brand-green)]">{notice}</p>}
+          {notice?.scope === "home" && view === "overview" && <p data-home-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-center text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
 
           <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
@@ -1889,7 +1935,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           {profile.overviewReviewed === true && !profile.backupReminderDismissed && <p className="mt-4 text-[12px] leading-5 text-[#65716d]">{locale === "de" ? "Deine Angaben bleiben in diesem Browser. Eine Sicherung schützt sie beim Gerätewechsel oder Löschen der Browserdaten." : "Your entries stay in this browser. A backup protects them when you switch devices or clear browser data."} <button type="button" onClick={exportHome} className="eavesence-pill-button home-dashboard-action">{text.exportHome}</button> <button type="button" onClick={() => persistProfile({...profile,backupReminderDismissed:true})} className="min-h-11 px-2 text-[12px] font-semibold">{locale === "de" ? "Später" : "Later"}</button></p>}
           <details data-cost-manager open={costManagerOpen} onToggle={event=>setCostManagerOpen(event.currentTarget.open)} className="home-disclosure home-tool-panel mt-5"><summary className="cursor-pointer text-[13px] font-semibold"><span>{locale === "de" ? "Kosten verwalten" : "Manage costs"}</span><span className="home-tool-description">{locale === "de" ? "Gespeicherte Kosten, Bereiche & Import" : "Saved costs, areas & import"}</span></summary>
-          <div className="border-t border-[#dfe5dd] p-4 sm:p-5" data-cost-area-overview>
+          <div data-cost-manager-content className="border-t border-[#dfe5dd] p-4 sm:p-5">
+          <div data-cost-area-overview>
           <nav aria-label={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} className="flex flex-wrap gap-2 rounded-t-xl bg-[#24272c] px-4 pt-3 pb-2">{homeTiles.map(tile => <button type="button" key={tile.id} aria-pressed={activeTileId === tile.id} onClick={() => {setCostRequest(null);setActiveTileId(tile.id);}} className={`min-h-11 rounded-full border px-4 text-[12px] font-semibold ${activeTileId === tile.id ? "border-[#72dca3] bg-[#dcfce8] text-[#17211f]" : "border-[#65716d] text-white"}`}><span className="flex items-center gap-2"><TileSymbol icon={iconForTile(tile)}/>{tile.title ?? text.tileTitles[tile.kind]}</span></button>)}</nav>
           <details className="home-disclosure home-cost-area-disclosure"><summary className="home-single-line-summary text-[13px] font-semibold"><span className="home-cost-area-control">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</span></summary>
           <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
@@ -2066,7 +2113,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </span>
               <span aria-hidden="true" className={`site-disclosure-icon inline-block shrink-0 text-lg text-[var(--brand-green)] ${calculatorOpen ? "-rotate-45" : "rotate-0"}`}>+</span>
             </button>
-            {calculatorOpen && <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }}>
+            {calculatorOpen && <form onSubmit={(event) => { event.preventDefault(); saveElectricitySettings(); }}>
             <div className="mt-4 grid grid-cols-3 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
               {([
                 ["price", text.energyPriceMode],
@@ -2083,7 +2130,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.annualBill}</span><input type="text" inputMode="decimal" value={annualElectricityBill} onChange={(event) => setAnnualElectricityBill(event.target.value)} className={homeFieldClass} /></label>
                 <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.annualKwh}</span><input type="text" inputMode="decimal" value={annualElectricityKwh} onChange={(event) => setAnnualElectricityKwh(event.target.value)} className={homeFieldClass} /></label>
-                {positiveNumber(annualElectricityBill) && positiveNumber(annualElectricityKwh) ? <p className="text-[13px] font-bold text-[var(--brand-green)] sm:col-span-2">{text.effectivePrice.replace("{price}", formatMoneyPrecise((positiveNumber(annualElectricityBill) ?? 0) / (positiveNumber(annualElectricityKwh) ?? 1), locale, currency))}</p> : null}
+                {positiveNumber(annualElectricityBill) && positiveNumber(annualElectricityKwh) ? <p className="text-[13px] font-bold text-[var(--brand-green)] sm:col-span-2">{text.effectivePrice.replace("{price}", formatMoneyPrecise((positiveNumber(annualElectricityBill) ?? 0) / (positiveNumber(annualElectricityKwh) ?? 1), locale, profile.currency))}</p> : null}
                 <label className="flex items-start gap-2 text-[11px] font-semibold leading-5 text-[#52605b] sm:col-span-2"><input type="checkbox" checked={electricityBillIncludesBonus} onChange={(event) => setElectricityBillIncludesBonus(event.target.checked)} className="mt-1 accent-[var(--brand-green)]" /><span>{text.bonusQuestion}{electricityBillIncludesBonus ? <span className="mt-1 block font-normal text-[#65716d]">{text.bonusHint}</span> : null}</span></label>
               </div>
             )}
@@ -2097,6 +2144,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <button type="submit" className={homeDashboardActionClass}>{text.saveEnergy}</button>
               <button type="button" onClick={openElectricityCost} className="eavesence-pill-link">{text.electricityCostAction}</button>
             </div>
+            {notice?.scope === "energy" && <p data-energy-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
             </form>}
           </section>
           <div id="energy-overview" className="mt-8 scroll-mt-24">
@@ -2116,6 +2164,25 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 {detail && <p className="mt-1 text-[11px] font-semibold text-[var(--brand-green)]">{detail}</p>}
               </article>
             ))}
+          </section>
+          <section data-electricity-goal aria-labelledby="electricity-goal-title" className="mt-4 grid gap-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-8">
+            <div>
+              <h2 id="electricity-goal-title" className="text-[14px] font-bold">{locale === "de" ? "Dein Strom-Sparziel" : "Your electricity savings goal"}</h2>
+              <div className="mt-3 flex items-center justify-between gap-3 text-[13px] font-semibold text-[#52605b]">
+                <label htmlFor="electricity-savings-goal">{locale === "de" ? "Stromverbrauch reduzieren um" : "Reduce electricity use by"}</label>
+                <output htmlFor="electricity-savings-goal" className="text-[var(--brand-green)]">{profile.savingsGoalPercent}%</output>
+              </div>
+              <input id="electricity-savings-goal" type="range" min="1" max="50" step="1" value={profile.savingsGoalPercent} onChange={(event) => updateElectricityGoal(Number(event.target.value))} className="h-11 w-full cursor-pointer accent-[var(--brand-green)]" />
+              <p className="text-[12px] leading-5 text-[#65716d]">{locale === "de" ? "Dein Ziel wird automatisch gespeichert." : "Your goal is saved automatically."}</p>
+              {notice?.scope === "goal" && <p role="alert" className="mt-2 text-[13px] font-semibold text-red-700">{notice.message}</p>}
+            </div>
+            <div className="border-t border-[#cce5d6] pt-4 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
+              {savedDevices.length > 0 ? <>
+                <p className="text-[13px] font-semibold text-[#52605b]">{locale === "de" ? "Mögliche Ersparnis pro Monat" : "Potential savings per month"}</p>
+                <p className="mt-2 text-xl font-extrabold tracking-[-0.035em] text-[var(--brand-green)]">{formatMoneyPrecise(monthlySavings, locale, profile.currency)}</p>
+                <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{locale === "de" ? "Schätzung für deine gespeicherten Geräte bei unverändertem Strompreis. Deine Haushaltskosten bleiben unverändert." : "Estimate for your saved devices at the same electricity price. Your household costs stay unchanged."}</p>
+              </> : <p className="text-[13px] leading-5 text-[#65716d]">{locale === "de" ? "Speichere ein Gerät im Stromrechner, um die mögliche Ersparnis zu sehen." : "Save a device in the calculator to see the potential savings."}</p>}
+            </div>
           </section>
           </>
           )}
@@ -2181,7 +2248,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           {activeTile?.kind === "energy" && openEnergyDetail === "monthly" && (
           <section id="energy-detail-monthly" className="mt-5 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-            <div id="monthly-check-in" className={`${homeSurfaceClass} scroll-mt-24 p-5`}>
+            <div id="monthly-check-in" className={`${homeSurfaceClass} min-w-0 scroll-mt-24 p-4 sm:p-5`}>
               <h2 className={homeSectionTitleClass}>{text.monthlyCheckIn}</h2>
               <p className="mt-2 text-[13px] leading-6 text-[#65716d]">{text.checkInText}</p>
               <div data-monthly-checkin-status className={`mt-4 rounded-xl border px-3 py-2.5 ${currentMonthEntry ? "border-[#b8efcc] bg-[#eefbf3]" : "border-amber-200 bg-amber-50"}`}>
@@ -2217,7 +2284,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
               </form>
             </div>
-            <div className={`${homeSurfaceClass} p-5`}>
+            <div className={`${homeSurfaceClass} min-w-0 p-4 sm:p-5`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className={homeSectionTitleClass}>{text.history}</h2>
                 {monthlyTrend && (
@@ -2232,7 +2299,26 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 )}
               </div>
               {historyNotice && <p role="status" className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-[13px] font-bold text-[var(--brand-green)]">{historyNotice}</p>}
-              {history.length === 0 ? <p className="mt-6 text-[13px] text-[#65716d]">{text.noHistory}</p> : <div className="mt-5 space-y-3">{history.slice(0, 6).map((entry, index) => <div key={entry.month} data-monthly-history-entry={entry.month} className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3"><div className="grid grid-cols-[1fr_auto_auto] items-center gap-4"><span className="text-[13px] font-semibold">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span><span className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span><span className="text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span></div><div className="mt-2 flex flex-wrap items-center justify-between gap-2">{index === 0 && monthlyTrend !== null ? <span className="text-[11px] text-[#65716d]">{text.comparedWithPrevious}</span> : <span />}<div className="flex gap-1.5"><button type="button" onClick={() => editMonthlyCheckIn(entry)} className={`${homeCompactActionClass} min-h-7 px-2.5`}>{text.editMonth}</button><button type="button" onClick={() => deleteMonthlyCheckIn(entry)} className={`${homeDangerActionClass} min-h-7 px-2.5`}><span aria-hidden="true">×</span>{text.deleteMonth}</button></div></div></div>)}</div>}
+              {history.length === 0 ? <p className="mt-6 text-[13px] text-[#65716d]">{text.noHistory}</p> : (
+                <div className="mt-5 space-y-3">
+                  {history.slice(0, 6).map((entry, index) => (
+                    <div key={entry.month} data-monthly-history-entry={entry.month} className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3">
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+                        <span className="col-span-2 text-[13px] font-semibold sm:col-span-1">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span>
+                        <span className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span>
+                        <span className="text-right text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                        {index === 0 && monthlyTrend !== null ? <span className="text-[11px] text-[#65716d]">{text.comparedWithPrevious}</span> : <span />}
+                        <div className="flex gap-1.5">
+                          <button type="button" onClick={() => editMonthlyCheckIn(entry)} className={`${homeCompactActionClass} min-h-7 px-2.5`}>{text.editMonth}</button>
+                          <button type="button" onClick={() => deleteMonthlyCheckIn(entry)} className={`${homeDangerActionClass} min-h-7 px-2.5`}><span aria-hidden="true">×</span>{text.deleteMonth}</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {monthlyGoalProgress && <div data-monthly-goal-progress className="mt-5 rounded-xl border border-[#dfe5dd] bg-white/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[13px] font-bold text-[#17211f]">{text.monthlyGoalTitle}</p><span className="text-[11px] font-bold text-[var(--brand-green)]">{monthlyGoalProgress.reached ? text.monthlyGoalReached : text.monthlyGoalProgress.replace("{percent}", formatNumber(monthlyGoalProgress.progressPercent, locale, 0))}</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)] transition-all" style={{ width: `${monthlyGoalProgress.progressPercent}%` }} /></div><p className="mt-2 text-[11px] leading-5 text-[#65716d]">{text.monthlyGoalValues.replace("{target}", formatMoney(monthlyGoalProgress.targetCost, locale, profile.currency)).replace("{current}", formatMoney(monthlyGoalProgress.currentCost, locale, profile.currency))}</p></div>}
               <MonthlyHistoryChart entries={history} locale={locale} currency={profile.currency} range={chartMonths} onRangeChange={setChartMonths} labels={{ title: text.chartTitle, consumption: text.chartConsumption, cost: text.chartCost, sixMonths: text.chartSixMonths, twelveMonths: text.chartTwelveMonths }} />
             </div>
@@ -2297,6 +2383,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
 
 
+          </div>
           </details>
 
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <HomeMemos data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale}/>}
