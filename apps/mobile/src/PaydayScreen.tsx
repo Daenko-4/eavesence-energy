@@ -96,75 +96,58 @@ export function PaydayScreen({
       : t("− Alltag (deine Eingabe)", "− Everyday spending (your entry)"), p.forecast.everyday],
     [t("− Reserve", "− Money kept in reserve"), p.cash!.protected],
   ] : [];
+  const expired = !!p.cash && p.cash.payday <= p.today;
+  const missingDates = p.forecast?.missingDates ?? 0;
+  const missingEveryday = p.forecast?.everyday === null;
+  const state = !p.cash ? "empty" : expired ? "expired" : p.stale ? "stale" : missingDates > 0 ? "dates" : missingEveryday ? "everyday" : complete ? "ready" : "incomplete";
+  const currentResult = complete && state === "ready";
+  const statusText = state === "empty"
+    ? t("Was bleibt nach Rechnungen und Alltag? Mit drei Angaben siehst du es.", "What is left after bills and everyday spending? Find out with three entries.")
+    : state === "expired"
+      ? t("Wähle den nächsten Gehaltstag und bestätige deinen Kontostand.", "Choose your next payday and confirm your account balance.")
+      : state === "stale"
+        ? p.cash?.needsRefresh
+          ? t("Zahlungen wurden geändert. Bestätige den Kontostand aus deiner Banking-App erneut.", "Payments changed. Confirm the balance from your banking app again.")
+          : t(`Kontostand vom ${day(p.cash!.asOf)}. Für heute bitte erneut bestätigen.`, `Balance from ${day(p.cash!.asOf)}. Please confirm it for today.`)
+        : missingDates > 0
+          ? t(`${missingDates} Kosten ohne Zahlungstermin. Ergänze sie für eine vollständige Rechnung.`, `${missingDates === 1 ? "1 cost has" : `${missingDates} costs have`} no payment date. Add ${missingDates === 1 ? "it" : "them"} for a complete calculation.`)
+          : missingEveryday
+            ? t("Wie viel brauchst du bis zum Gehalt noch für den Alltag? Auch 0 ist möglich.", "How much do you still need for everyday spending until payday? 0 is allowed.")
+            : shortfall
+              ? t("Prüfe offene Rechnungen und deine Alltagsschätzung.", "Review unpaid bills and your everyday estimate.")
+              : t("Rechnungen, Alltag und Reserve sind bereits abgezogen.", "Bills, everyday spending and reserve are already deducted.");
+  function editPlan() {
+    setOpen(true);
+    if (state === "expired") focusInvalid("payday");
+    else if (state === "everyday") focusInvalid("everyday");
+    else reviewBalance();
+  }
   return (
     <View style={styles.card}>
       <View ref={resultTarget} style={styles.dark}>
-        <Text style={styles.eyebrow}>
-          {complete
-            ? t("Bis zum nächsten Gehalt", "Until your next payday")
-            : t("Bis zum nächsten Gehalt", "Until your next payday")}
-        </Text>
-        <Text style={styles.title}>
-          {complete
-            ? t(
-                shortfall ? `Bis ${day(p.cash!.payday)} fehlen dir voraussichtlich` : `Bis ${day(p.cash!.payday)} kannst du zusätzlich ausgeben`,
-                shortfall ? `Estimated shortfall until ${day(p.cash!.payday)}` : `You can spend this extra until ${day(p.cash!.payday)}`,
-              )
-            : t("Was kann ich bis zum nächsten Gehalt ausgeben?", "What can I spend until my next payday?")}
-        </Text>
-        {(!open || p.forecast) && <Text style={[styles.amount, shortfall ? styles.shortfallAmount : styles.positive]} accessibilityLiveRegion="polite">
-          {complete
-            ? money(Math.abs(p.forecast!.remaining!))
-            : "—"}
-        </Text>}
-        <Text style={styles.light}>
-          {complete
-            ? t(
-                shortfall ? "Dein Kontostand reicht für die offenen Rechnungen, geplanten Alltagsausgaben und deine Reserve noch nicht aus." : `Für deinen Alltag sind ${money(p.forecast!.everyday!)} eingeplant. Rechnungen und Reserve sind ebenfalls abgezogen. Dieser Betrag bleibt zusätzlich übrig.`,
-                shortfall ? "Your balance does not cover unpaid bills, planned everyday spending and your reserve yet." : `Your everyday budget is ${money(p.forecast!.everyday!)}. Bills and reserve are also deducted. This amount is left on top.`,
-              )
-            : t(
-                p.cash && p.cash.payday <= p.today ? "Dein Gehaltstermin ist erreicht. Trage den aktuellen Kontostand und den nächsten Gehaltstag ein." : p.forecast ? `Dein Kontostand ist erfasst. Noch offen: ${[p.forecast.missingDates > 0 ? "Zahlungstermine" : "", p.forecast.everyday === null ? "Alltagsschätzung" : ""].filter(Boolean).join(" und ")}. Ergänze diese Angaben, um dein verfügbares Geld vollständig zu berechnen.` : "Kontostand eintragen, nächsten Gehaltstag wählen und Alltag bis dahin schätzen. Offene Rechnungen aus My Home berücksichtigen wir automatisch.",
-                p.cash && p.cash.payday <= p.today ? "Your payday has arrived. Enter your current balance and your next payday." : p.forecast ? `Your balance is recorded. Still missing: ${[p.forecast.missingDates > 0 ? "payment dates" : "", p.forecast.everyday === null ? "everyday-spending estimate" : ""].filter(Boolean).join(" and ")}. Add these to see a complete available budget.` : "Enter your account balance, choose your next payday and estimate everyday spending until then. We include unpaid bills from My Home automatically.",
-              )}
-        </Text>
-
-        {complete&&p.forecast!.estimatedBills>0&&<Text style={styles.light}>{t(`${p.forecast!.estimatedBills} Rechnungsbeträge noch geschätzt. Ergänze die tatsächlichen Beträge unter Monat.`,`${p.forecast!.estimatedBills} invoice amounts are still estimated. Add actual amounts under Month.`)}</Text>}
-        {complete && p.forecast!.remaining! < 0 && <Text style={styles.warning}>{t(`Es fehlen voraussichtlich ${money(-p.forecast!.remaining!)}. Prüfe offene Zahlungen und deine Alltagsschätzung.`, `Estimated shortfall: ${money(-p.forecast!.remaining!)}. Review pending payments and your everyday estimate.`)}</Text>}
-        {p.forecast && p.forecast.overdue > 0 && <Text style={styles.warning}>{t(`${p.forecast.overdue} frühere Zahlungen dieses Monats sind noch nicht abgehakt und deshalb enthalten. Bereits bezahlt? In der Monatscheckliste abhaken und Guthaben erneut bestätigen.`, `${p.forecast.overdue} earlier payments this month are still unchecked and included. Already paid? Check them off in the monthly checklist, then confirm your balance again.`)}</Text>}
-        {p.forecast && input.costs.filter(c => !c.nextDueDate).map(c => <Pressable key={c.id} accessibilityRole="button" style={styles.mintButton} onPress={() => onReviewCost?.(c)}><Text style={styles.mintText}>{c.name} · {t("Termin ergänzen", "Add date")}</Text></Pressable>)}
-        {p.forecast?.everyday === null && <Text style={styles.warning}>{t("Noch offen: Alltag bis zum Gehalt. Öffne die Rechnung und ergänze den Betrag; 0 ist möglich.", "Still missing: everyday spending until payday. Open the calculation and add an amount; 0 is allowed.")}</Text>}
-        {p.stale && (
-          <Text style={styles.warning}>
-            {t(
-              "Bitte aktualisiere deinen Kontostand. Seit dem letzten Tag oder einer abgehakten Zahlung kann er sich geändert haben.",
-              "Please update your account balance. It may have changed since the last day or a payment was checked off.",
-            )}
-          </Text>
-        )}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ expanded: open }}
-          style={styles.mintButton}
-          onPress={() => {setFocusBalance(!open);setOpen(!open);}}
-        >
-          <Text style={styles.mintText}>
-            {open
-              ? t("Einklappen", "Collapse")
-              : p.cash
-                ? t(
-                    "Kontostand aktualisieren",
-                    "Update account balance",
-                  )
-                : t("Verfügbares Geld berechnen", "Calculate available money")}
-          </Text>
+        <Text style={styles.eyebrow}>{!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} Tage`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} days`) : t("Dein Geld bis zum Gehalt", "Your money until payday")}</Text>
+        <Text accessibilityRole="header" style={styles.title}>{open ? t("Deine Angaben", "Your entries")
+          : currentResult ? shortfall ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Zusätzlich verfügbar", "Extra money available")
+          : state === "stale" ? t("Kontostand bestätigen", "Confirm account balance")
+          : state === "expired" ? t("Neuen Zeitraum planen", "Plan your next pay period")
+          : state === "dates" ? t("Zahlungstermine ergänzen", "Add payment dates")
+          : state === "everyday" ? t("Alltag noch einplanen", "Add everyday spending")
+          : t("Was bleibt bis zum Gehalt?", "What is left until payday?")}</Text>
+        {currentResult && !open && <Text style={[styles.amount,shortfall ? styles.shortfallAmount : styles.positive]} accessibilityLiveRegion="polite">{money(Math.abs(p.forecast!.remaining!))}</Text>}
+        {!open && <Text accessibilityLiveRegion="polite" style={[styles.light,(state === "stale" || state === "expired" || state === "dates") && styles.warning]}>{statusText}</Text>}
+        {state === "empty" && !open && <View style={styles.steps}>{[t("Kontostand", "Account balance"),t("Gehaltstag", "Payday"),t("Alltag", "Everyday spending")].map((label,index) => <Text key={label} style={styles.light}>{index+1} · {label}</Text>)}</View>}
+        {currentResult && !open && <View style={styles.deductions}>{[[t("Rechnungen", "Bills"),p.forecast!.fixed],[t("Alltag", "Everyday"),p.forecast!.everyday!],[t("Reserve", "Reserve"),p.cash!.protected]].map(([label,value]) => <View key={label} style={styles.deduction}><Text style={styles.light}>{label}</Text><Text style={styles.deductionAmount}>{money(Number(value))}</Text></View>)}</View>}
+        <Pressable accessibilityRole="button" accessibilityState={{expanded:open}} disabled={p.busy} style={styles.mintButton} onPress={() => open ? setOpen(false) : editPlan()}>
+          <Text style={styles.mintText}>{open ? t("Einklappen", "Collapse") : p.cash ? t("Kontostand aktualisieren", "Update account balance") : t("Verfügbares Geld berechnen", "Calculate available money")}</Text><DisclosureIcon open={open} color="#17211f"/>
         </Pressable>
+        {currentResult && !open && (p.forecast!.overdue > 0 || p.forecast!.estimatedBills > 0) && <Pressable accessibilityRole="button" style={styles.reviewPayments} onPress={reviewPayments}><Text style={styles.warning}>{[p.forecast!.overdue > 0 ? t(`${p.forecast!.overdue} frühere Zahlungen offen`, `${p.forecast!.overdue} earlier payments unchecked`) : "",p.forecast!.estimatedBills > 0 ? t(`${p.forecast!.estimatedBills} Beträge geschätzt`, `${p.forecast!.estimatedBills} estimated amounts`) : ""].filter(Boolean).join(" · ")}</Text></Pressable>}
       </View>
-      {!open && p.forecast && <View style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:calculationOpen}} onPress={()=>setCalculationOpen(!calculationOpen)} style={styles.disclosure}><Text style={styles.subTitle}>{t("So berechnen wir dein verfügbares Geld", "How your available money is calculated")}</Text><DisclosureIcon open={calculationOpen}/></Pressable>{calculationOpen&&<>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}<Text style={styles.subTitle}>{complete ? t("= Zusätzlich verfügbares Geld", "= Extra available") : t("= Angaben fehlen noch", "= Entries still missing")}: {complete ? money(p.forecast!.remaining!) : "—"}</Text><Text style={styles.note}>{complete&&p.forecast!.remaining!>=0?t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`):""}</Text></>}</View>}
+      {!open && missingDates > 0 && <View style={styles.form}>{input.costs.filter(c=>!c.nextDueDate).map(c=><Pressable key={c.id} accessibilityRole="button" style={styles.button} onPress={()=>onReviewCost?.(c)}><Text style={styles.buttonText}>{c.name} · {t("Termin ergänzen", "Add date")}</Text></Pressable>)}</View>}
+      {!open && p.forecast && !p.stale && <View style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:calculationOpen}} onPress={()=>setCalculationOpen(!calculationOpen)} style={styles.disclosure}><Text style={styles.subTitle}>{t("So berechnen wir dein verfügbares Geld", "How your available money is calculated")}</Text><DisclosureIcon open={calculationOpen}/></Pressable>{calculationOpen&&<>{calculationRows.map(([label, value]) => <Text key={String(label)} style={styles.note}>{label}: {value === null ? "—" : money(Number(value))}</Text>)}<Text style={styles.subTitle}>{complete ? t("= Zusätzlich verfügbares Geld", "= Extra available") : t("= Angaben fehlen noch", "= Entries still missing")}: {complete ? money(p.forecast!.remaining!) : "—"}</Text><Text style={styles.note}>{complete&&p.forecast!.remaining!>=0?t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`):""}</Text></>}</View>}
       {open && (
         <View ref={formTarget} onLayout={revealBalance}><FormSection style={styles.form} onSave={async()=>{const saved=await p.save(focusInvalid);if(saved){setOpen(false);requestAnimationFrame(()=>scrollTarget(resultTarget.current));}return saved;}} keyboardSaveLabel={t("Anzeigen","Show result")} saveLabel={t("Verfügbares Geld anzeigen", "Show available money")}>
           <Text style={styles.subTitle}>{t("1 · Dein Geld heute", "1 · Your money today")}</Text>
-          <Text style={styles.note}>{t("Übernimm den Kontostand von heute aus deiner Banking-App. Ziehe selbst noch nichts ab.", "Copy today's balance from your banking app. Do not deduct anything yourself.")}</Text>
+          <Text style={styles.note}>{t("Wie in deiner Banking-App – noch nichts abziehen. Das nächste Gehalt zählt erst danach.", "Use today's balance from your banking app, before any deductions. Your next salary is not included.")}</Text>
           <FormInput
             autoFocus={focusBalance}
             focusRequest={invalidFocus.field === "balance" ? invalidFocus.request : balanceFocusRequest}
@@ -254,21 +237,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#32363b",
   },
-  dark: { padding: 18, gap: 9, backgroundColor: "#24272c" },
+  dark: { padding: 18, gap: 12, alignItems: "center", backgroundColor: "#24272c" },
+  steps: { gap: 5, alignSelf: "stretch", marginVertical: 4 },
+  deductions: { flexDirection: "row", flexWrap: "wrap", gap: 12, alignSelf: "stretch", borderTopWidth: 1, borderColor: "#52605b", paddingTop: 14 },
+  deduction: { flexGrow: 1, flexBasis: 65, gap: 4 },
+  deductionAmount: { color: "#fff", fontSize: 13, fontWeight: "600" },
+  reviewPayments: { minHeight: 44, justifyContent: "center" },
   eyebrow: {
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1,
     color: "#72dca3",
   },
-  title: { fontSize: 20, fontWeight: "800", color: "#fff" },
+  title: { fontSize: 21, fontWeight: "700", color: "#fff", textAlign: "center" },
   amount: { fontSize: 28, fontWeight: "900", color: "#fff" },
   positive: {color:"#72dca3"},
   shortfallAmount: {color:"#ffd28c"},
   light: { fontSize: 13, lineHeight: 20, color: "#d1d7d4" },
   warning: { fontSize: 12, color: "#ffe1a8" },
   mintButton: {
-    alignSelf: "flex-start",
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     backgroundColor: "#72dca3",
     padding: 12,
     borderRadius: 22,

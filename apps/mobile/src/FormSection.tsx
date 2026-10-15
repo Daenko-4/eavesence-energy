@@ -43,9 +43,9 @@ const styles = StyleSheet.create({
 });
 
 /** Visible and keyboard buttons share one busy state and one error boundary. */
-export function FormSubmitButton({ label, style, textStyle }: { label: string; style?: ComponentProps<typeof Pressable>["style"]; textStyle?: ComponentProps<typeof Text>["style"] }) {
+export function FormSubmitButton({ label, disabled = false, style, textStyle }: { label: string; disabled?: boolean; style?: ComponentProps<typeof Pressable>["style"]; textStyle?: ComponentProps<typeof Text>["style"] }) {
   const form = useFormAction();
-  return <Pressable accessibilityRole="button" disabled={form?.busy} onPress={form?.submit} style={style}><Text style={textStyle}>{label}</Text></Pressable>;
+  return <Pressable accessibilityRole="button" disabled={disabled || form?.busy} onPress={form?.submit} style={style}><Text style={textStyle}>{label}</Text></Pressable>;
 }
 
 export function FormActionButton({ label, onPress, style, textStyle }: { label: string; onPress: () => unknown | Promise<unknown>; style?: ComponentProps<typeof Pressable>["style"]; textStyle?: ComponentProps<typeof Text>["style"] }) {

@@ -44,3 +44,12 @@ test("mobile backups preserve unfinished setup and reject unknown steps", () => 
   assert.equal(readMobileBackup(JSON.stringify(backup))?.profile.setupStep, "cost");
   assert.equal(readMobileBackup(JSON.stringify({ ...backup, profile: { ...backup.profile, setupStep: "unknown" } })), null);
 });
+
+test('mobile replacement rejects invalid currency, locale, money and timestamps while preserving legacy defaults', () => {
+  const backup = createMobileBackup({profile, devices:[], history:[], costs:[], tiles:defaultTiles(), betaInterested:false});
+  assert.ok(readMobileBackup(JSON.stringify(backup)));
+  for (const patch of [{currency:'USD'}, {locale:'fr'}, {createdAt:'not-a-date'}, {variableMonthly:-1}, {bufferMonthly:'50'}, {goalMonthly:null}]) {
+    assert.equal(readMobileBackup(JSON.stringify({...backup,profile:{...profile,...patch}})),null,JSON.stringify(patch));
+  }
+  assert.ok(readMobileBackup(JSON.stringify({...backup,profile:{...profile,currency:'CHF',locale:'en',variableMonthly:null,bufferMonthly:0,goalMonthly:0}})));
+});

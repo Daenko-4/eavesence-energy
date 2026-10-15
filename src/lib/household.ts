@@ -1,6 +1,6 @@
 import { tileIconMetadata } from '@eavesence/core/tileSymbols';
 import { readIncomeExtras, type IncomeExtra } from "@eavesence/core/income";
-import { readPlanningData, type PlanningData } from "@eavesence/core/planning";
+import { readPlanningBackup, readPlanningData, type PlanningData } from "@eavesence/core/planning";
 import type { SavedDevice, SavedDeviceCurrency } from "./savedDevices";
 import type { HouseholdCost } from "./householdCosts";
 import type { CostEvent } from "./householdInsights";
@@ -501,8 +501,13 @@ export function readHouseholdBackup(value: string): HouseholdBackup | null {
     if (
       backup.version !== 1 ||
       typeof backup.exportedAt !== "string" ||
+      !Number.isFinite(Date.parse(backup.exportedAt)) ||
       !Array.isArray(backup.devices) ||
-      !Array.isArray(backup.history)
+      !Array.isArray(backup.history) ||
+      (backup.costs !== undefined && !Array.isArray(backup.costs)) ||
+      (backup.costEvents !== undefined && !Array.isArray(backup.costEvents)) ||
+      (backup.tiles !== undefined && !Array.isArray(backup.tiles)) ||
+      (backup.profile?.planning !== undefined && !readPlanningBackup(backup.profile.planning))
     ) {
       return null;
     }

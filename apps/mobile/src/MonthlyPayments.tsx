@@ -7,8 +7,8 @@ import {usePaymentChecklist} from '@eavesence/core/usePaymentChecklist';
 import {paymentKey} from '@eavesence/core/paymentChecklist';
 import type {HouseholdCost} from '@eavesence/core/householdCosts';
 import type {PlanningData} from '@eavesence/core/planning';
-type Props={costs:HouseholdCost[];data?:PlanningData;onSave:(data:PlanningData)=>void|Promise<void>;locale:'de'|'en';currency:string;onEdit:(cost:HouseholdCost)=>void;onAdd:()=>void;onPlan?:()=>void};
-export function MonthlyPayments({costs,data,onSave,locale,currency,onEdit,onAdd,onPlan}:Props){
+type Props={open:boolean;onToggle:()=>void;costs:HouseholdCost[];data?:PlanningData;onSave:(data:PlanningData)=>void|Promise<void>;locale:'de'|'en';currency:string;onEdit:(cost:HouseholdCost)=>void;onAdd:()=>void;onPlan?:()=>void};
+export function MonthlyPayments({open,onToggle,costs,data,onSave,locale,currency,onEdit,onAdd,onPlan}:Props){
  const [reviewOpen,setReviewOpen]=useState(false);
  const [paidOpen,setPaidOpen]=useState(false),de=locale==='de',t=(a:string,b:string)=>de?a:b;
  const c=usePaymentChecklist(costs,data,onSave,de),paid=c.payments.filter(p=>c.isPaid(p));
@@ -25,6 +25,8 @@ export function MonthlyPayments({costs,data,onSave,locale,currency,onEdit,onAdd,
   <View style={s.monthRow}><Pressable accessibilityRole="button" accessibilityLabel={t('Vorheriger Monat','Previous month')} onPress={c.previous} style={s.arrow}><Text style={s.arrowText}>‹</Text></Pressable><Text accessibilityRole="header" style={s.title}>{monthLabel}</Text><Pressable accessibilityRole="button" accessibilityLabel={t('Nächster Monat','Next month')} onPress={c.next} style={s.arrow}><Text style={s.arrowText}>›</Text></Pressable></View>
   {c.month!==c.current&&<Pressable accessibilityRole="button" onPress={c.reset} style={s.today}><Text style={s.link}>{t('Zum aktuellen Monat','Back to this month')}</Text></Pressable>}
   <View style={s.summary}><View style={s.metric}><Text style={s.caption}>{t('Noch offen','Still unpaid')}{c.missing.length?` · ${t('unvollständig','incomplete')}`:''}</Text><Text style={s.amount} accessibilityLiveRegion="polite">{c.payments.length?money(c.closed?0:c.openTotal):'—'}</Text></View><View style={[s.metric,s.paidMetric]}><Text style={s.caption}>{t('Bezahlt','Paid')}</Text><Text style={s.amount}>{money(c.closed?.paid??c.paidTotal)}</Text></View></View>
+  <Pressable accessibilityRole="button" accessibilityState={{expanded:open}} onPress={onToggle} style={s.disclosure}><Text style={s.heading}>{t('Zahlungen abhaken','Check off payments')} · {paid.length}/{c.payments.length}</Text><DisclosureIcon open={open}/></Pressable>
+  {open && <>
   <Text style={s.small}>{t('Schon abgebucht oder bezahlt? Tippe auf das Kästchen. Die Zahlung wandert zu „Bezahlt“; nächsten Monat beginnt die Liste neu.','Already debited or paid? Tap the checkbox. The payment moves to Paid; next month starts a new checklist.')}</Text>
   <PaymentAmountEditor c={c} locale={locale}/>
   {c.closed?<Text style={s.note}>{t('Dieser Monat ist abgeschlossen. Der Rückblick bleibt gespeichert.','This month is closed. Its review has been saved.')}</Text>:<>
@@ -39,6 +41,7 @@ export function MonthlyPayments({costs,data,onSave,locale,currency,onEdit,onAdd,
   {c.payments.some(p=>!p.date)&&<Text style={s.note}>{t('Monatliche Kosten ohne Termin zählen einmal pro Monat.','Monthly costs without a date count once each month.')}</Text>}
   <Text style={s.small}>{t('Du markierst Zahlungen selbst. Kein Bankabgleich.','You mark payments yourself. No bank connection.')}</Text>
   {!costs.length&&<Pressable accessibilityRole="button" onPress={onAdd} style={s.today}><Text style={s.link}>{t('Kosten hinzufügen','Add cost')}</Text></Pressable>}
+  </>}
   </>}
   <Pressable accessibilityRole="button" accessibilityLabel={t('Monatsrückblick','Monthly review')} accessibilityState={{expanded:reviewOpen}} onPress={()=>setReviewOpen(!reviewOpen)} style={s.disclosure}><Text style={s.heading}>{t('Monatsrückblick','Monthly review')}{c.closed?` · ${t('abgeschlossen','closed')}`:''}</Text><DisclosureIcon open={reviewOpen}/></Pressable>
   {reviewOpen&&<View style={s.editor}><Text style={s.note}>{t('Geplant','Planned')}: {money(c.closed?.planned??c.review.planned)}</Text><Text style={s.note}>{t('Tatsächlich bezahlt','Actually paid')}: {money(c.closed?.paid??c.review.paid)}</Text>

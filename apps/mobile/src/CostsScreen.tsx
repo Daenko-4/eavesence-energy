@@ -129,6 +129,11 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
   const [moreOpen, setMoreOpen] = useState(false);
   const [incomeOpen, setIncomeOpen] = useState(initialAction === "income");
   const [feedback, setFeedback] = useState("");
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = setTimeout(() => setFeedback(""), 3000);
+    return () => clearTimeout(timer);
+  }, [feedback]);
   const [formOpen, setFormOpen] = useState(initialAction === "cost"||!!initialCost);
   useEffect(() => { onEditingChange?.(formOpen || incomeOpen || !!setup); return () => onEditingChange?.(false); }, [formOpen, incomeOpen, setup, onEditingChange]);
   const [name, setName] = useState(initialCost?.name??"");
@@ -288,7 +293,7 @@ export default function CostsScreen({ profile, costs, tiles, tileId, tileTitle, 
       <View style={styles.choices}>{suggestions.map((suggestion) => <Pressable key={suggestion[0]} onPress={() => openNew(suggestion)} style={styles.choice}><Text style={styles.choiceText}>{suggestion[1]}</Text></Pressable>)}</View>
     </View>}
 
-    {formOpen ? <CostEditor variableAmount={variableAmount} onVariableAmount={setVariableAmount} name={name} amount={amount} frequency={frequency} date={dueDate} deadline={deadline} category={category} editing={!!editingId} onName={value=>{setName(value);if(!editingId)setCategory(inferSetupCategory(value));}} onAmount={setAmount} onFrequency={setFrequency} onDate={setDueDate} onDeadline={setDeadline} onCategory={setCategory} onSave={save} onClose={()=>setFormOpen(false)}/> : <Pressable accessibilityRole="button" onPress={() => openNew()} style={styles.primary}><Text style={styles.primaryText}>Kosten hinzufügen</Text></Pressable>}
+    {formOpen ? <CostEditor variableAmount={variableAmount} onVariableAmount={setVariableAmount} name={name} amount={amount} frequency={frequency} date={dueDate} deadline={deadline} category={category} editing={!!editingId} onName={value=>{setName(value);if(!editingId)setCategory(inferSetupCategory(value));}} onAmount={setAmount} onFrequency={setFrequency} onDate={setDueDate} onDeadline={setDeadline} onCategory={setCategory} onSave={save} onClose={()=>setFormOpen(false)}/> : <Pressable accessibilityRole="button" onPress={() => openNew()} style={styles.addCost}><Text style={styles.choiceText}>Kosten hinzufügen</Text></Pressable>}
 
     {homeRelease.detailedInsights && visibleCosts.length > 0 && !formOpen && <>
       <Text style={styles.sectionTitle}>Kosten nach Kategorie</Text>
@@ -333,6 +338,7 @@ const styles = StyleSheet.create({
   label: { marginTop: 12, fontSize: 13, fontWeight: "700", color: "#52605b" },
   panel: { marginTop: 18, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22, backgroundColor: "#f6f6f0", padding: 16, gap: 12 },
   panelTitle: { fontSize: 17, fontWeight: "900", color: "#17211f" },
+  addCost: { minHeight: 44, alignSelf: "flex-start", marginTop: 12, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22, backgroundColor: "#ffffff", justifyContent: "center" },
   help: { fontSize: 13, lineHeight: 20, color: "#65716d" },
   dateSuggestions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
   dateSuggestion: { borderRadius: 16, backgroundColor: "#eef1ed", paddingHorizontal: 11, paddingVertical: 7 },
@@ -353,11 +359,11 @@ const styles = StyleSheet.create({
   categoryAmount: { marginTop: 7, fontSize: 14, fontWeight: "900", color: "#17211f" },
   search: {marginTop:12},
   costRow: {marginTop:8,borderWidth:1,borderColor:"#dfe5dd",borderRadius:14,backgroundColor:"#ffffff",overflow:"hidden"},
-  costHeader: {minHeight:76,flexDirection:"row",alignItems:"center",gap:12,padding:14},
+  costHeader: {minHeight:76,flexDirection:"row",alignItems:"center",gap:10,padding:16},
   costCopy: {flex:1,minWidth:0},
   costName: {fontSize:14,fontWeight:"600",color:"#17211f"},
-  costAmount: {fontSize:14,fontWeight:"600",color:"#17211f"},
-  costExpanded: {borderTopWidth:1,borderColor:"#dfe5dd",padding:14},
+  costAmount: {fontSize:14,fontWeight:"600",color:"#17211f",maxWidth:"40%",flexShrink:1},
+  costExpanded: {borderTopWidth:1,borderColor:"#dfe5dd",padding:16},
   costArea: { marginTop: 5, fontSize: 11, fontWeight: "800", color: "#087a45" },
   costDetail: { marginTop: 5, fontSize: 13, lineHeight: 20, color: "#65716d" },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },

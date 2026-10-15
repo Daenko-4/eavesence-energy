@@ -116,3 +116,39 @@ pay for. Do not promise automatic sync or bank-verified savings.
 
 Automated logic, storage-failure and web-flow checks do not replace native
 keyboard, signing or physical-device testing.
+
+## Native parity and free-core regression (October 2026)
+
+The native Month screen now groups the home name and Settings above separate
+Add cost / Edit income actions. The payment checklist starts collapsed; the
+payment link from payday planning opens it. Calculator preferences and the
+always-visible electricity target are in Energy. Target changes save directly;
+price changes have their own save action and do not change household bills.
+The compact payday result uses the same empty/incomplete/stale/ready states as
+the website. Older balances never display an apparently current result.
+
+Restore a backup is available on the welcome screen, including after reset.
+Malformed backups reject the complete replacement, including damaged planning
+rows, unknown currency/language and invalid timestamps. Loading damaged saved
+app data blocks setup and offers retry/import instead of creating an empty home.
+Website multi-key cost saves, imports and resets now keep a recovery journal;
+startup finishes a pending rollback before displaying the household.
+
+Automated regression uses production components and shared calculations, with
+native storage/file/notification boundaries substituted for browser testing:
+
+- Guided setup resumes at the first-cost step after a new app process.
+- 2,400 monthly income plus optional 13th/14th salary and a dated bonus keep the
+  regular monthly budget separate from annual averages.
+- Rent 800, internet 40, variable electricity plan 80 and annual insurance 240
+  give 940 monthly costs and 1,460 before everyday spending. An actual 76.40
+  invoice affects that occurrence only; its paid status survives restoration.
+- Export, invalid-file rejection, cancelled replacement, reset and restore from
+  the welcome screen preserve the full app profile, costs, notes and payments.
+- Storage failure preserves the entered draft and the previous persisted price;
+  price and target changes save independently, including a legacy 42% target.
+- Website cancellation/write-failure rollback and later successful import.
+
+Still required on a physical iPhone: keyboard/accessory clearance, native date
+picker, VoiceOver/large text, airplane-mode relaunch, Files share/import, and
+notification permissions. Browser component tests do not simulate these APIs.

@@ -16,7 +16,7 @@ const appModule={exports:{}};runInNewContext(compiled,{module:appModule,exports:
 const month=localToday().slice(0,7),costs=[{id:'rent',name:'Rent',category:'housing',frequency:'monthly',amount:900,nextDueDate:'',updatedAt:localToday()}];
 for(const locale of ['de','en'])test(`native month view keeps paid entries collapsed and shows clear totals in ${locale}`,()=>{
  const paid=togglePayment([],monthChecklist(costs,month).payments[0],new Date().toISOString());
- const html=renderToStaticMarkup(React.createElement(appModule.exports.MonthlyPayments,{costs,data:{goals:[],reserves:[],checks:[],paidPayments:paid},onSave:()=>{},onEdit:()=>{},onAdd:()=>{},locale,currency:'EUR'}));
+ const html=renderToStaticMarkup(React.createElement(appModule.exports.MonthlyPayments,{open:true,onToggle:()=>{},costs,data:{goals:[],reserves:[],checks:[],paidPayments:paid},onSave:()=>{},onEdit:()=>{},onAdd:()=>{},locale,currency:'EUR'}));
  assert.ok(!html.includes('role="checkbox"'));assert.match(html,/aria-expanded="false"/);
  assert.ok(html.includes(locale==='de'?'1 von 1 Zahlungen erledigt':'1 of 1 payments done'));
 
@@ -29,7 +29,7 @@ for(const locale of ['de','en'])test(`native month view keeps paid entries colla
 
 for(const locale of ['de','en'])test(`native month view exposes unpaid checkboxes once and separate edit actions in ${locale}`,()=>{
  const dated=[{...costs[0],nextDueDate:localToday()},{...costs[0],id:'net',name:'Internet',amount:40,nextDueDate:''}];
- const html=renderToStaticMarkup(React.createElement(appModule.exports.MonthlyPayments,{costs:dated,data:{},onSave:()=>{},onEdit:()=>{},onAdd:()=>{},locale,currency:'EUR'}));
+ const html=renderToStaticMarkup(React.createElement(appModule.exports.MonthlyPayments,{open:true,onToggle:()=>{},costs:dated,data:{},onSave:()=>{},onEdit:()=>{},onAdd:()=>{},locale,currency:'EUR'}));
  assert.equal((html.match(/role="checkbox"/g)||[]).length,2);
  assert.ok(html.includes(locale==='de'?'Nächste Zahlung':'Next payment'));
  assert.ok(html.includes(locale==='de'?'Rent · Bearbeiten':'Rent · Edit'));
