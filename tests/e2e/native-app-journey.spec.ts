@@ -228,7 +228,7 @@ for (const locale of ['de','en']) {
     await expect(page.getByRole('alert')).toContainText(t('Speichern fehlgeschlagen','Could not save'));
     await expect(price).toHaveValue('0.50');
     expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).electricityPrice)).toBe(.42);
-    await page.screenshot({path:info.outputPath(`native-energy-settings-${locale}-320.png`)});
+    await page.getByRole('heading',{name:t('Dein Strom-Sparziel','Your electricity savings target'),exact:true}).locator('..').screenshot({path:info.outputPath(`native-energy-settings-${locale}-320.png`)});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   });
 

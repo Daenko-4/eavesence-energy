@@ -953,29 +953,32 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     }
     window.addEventListener(HOUSEHOLD_CHANGED_EVENT, refreshProfile);
 
-    const now = new Date();
-    const existing = readVisitState(window.localStorage.getItem(HOUSEHOLD_VISIT_STORAGE_KEY));
-    const next: HouseholdVisitState = existing
-      ? { ...existing, lastVisitAt: now.toISOString(), visitCount: existing.visitCount + 1 }
-      : {
-          firstVisitAt: now.toISOString(),
-          lastVisitAt: now.toISOString(),
-          visitCount: 1,
-          trackedSevenDayReturn: false,
-          trackedThirtyDayReturn: false,
-          trackedThreeDeviceActivation: false,
-        };
-    const ageDays = (now.getTime() - new Date(next.firstVisitAt).getTime()) / 86_400_000;
-    if (ageDays >= 7 && !next.trackedSevenDayReturn) {
-      track("Home Returned", { window: "7_day", locale });
-      next.trackedSevenDayReturn = true;
-    }
-    if (ageDays >= 30 && !next.trackedThirtyDayReturn) {
-      track("Home Returned", { window: "30_day", locale });
-      next.trackedThirtyDayReturn = true;
-    }
-    if (!existing) track("Home Onboarding Started", { locale });
-    window.localStorage.setItem(HOUSEHOLD_VISIT_STORAGE_KEY, JSON.stringify(next));
+    try {
+      const now = new Date();
+      const existing = readVisitState(window.localStorage.getItem(HOUSEHOLD_VISIT_STORAGE_KEY));
+      const next: HouseholdVisitState = existing
+        ? { ...existing, lastVisitAt: now.toISOString(), visitCount: existing.visitCount + 1 }
+        : {
+            firstVisitAt: now.toISOString(),
+            lastVisitAt: now.toISOString(),
+            visitCount: 1,
+            trackedSevenDayReturn: false,
+            trackedThirtyDayReturn: false,
+            trackedThreeDeviceActivation: false,
+          };
+      const ageDays = (now.getTime() - new Date(next.firstVisitAt).getTime()) / 86_400_000;
+      if (ageDays >= 7 && !next.trackedSevenDayReturn) {
+        track("Home Returned", { window: "7_day", locale });
+        next.trackedSevenDayReturn = true;
+      }
+      if (ageDays >= 30 && !next.trackedThirtyDayReturn) {
+        track("Home Returned", { window: "30_day", locale });
+        next.trackedThirtyDayReturn = true;
+      }
+      if (!existing) track("Home Onboarding Started", { locale });
+      window.localStorage.setItem(HOUSEHOLD_VISIT_STORAGE_KEY, JSON.stringify(next));
+
+    } catch { /* Optional visit tracking must not block household access. */ }
 
     return () => {
       window.cancelAnimationFrame(initialFrame);

@@ -1,6 +1,7 @@
 import {StyleSheet,View} from 'react-native';
-export function NavIcon({name,color}:{name:'month'|'costs'|'plan'|'calculator'|'settings';color:string}){
+export function NavIcon({name,color}:{name:'month'|'costs'|'plan'|'calculator'|'settings'|'back';color:string}){
  const border={borderColor:color};
+ if(name==='back')return <View accessible={false} style={{width:9,height:9,borderLeftWidth:1.5,borderBottomWidth:1.5,borderColor:color,transform:[{rotate:'45deg'}]}}/>;
  if(name==='settings')return <View accessible={false} style={{width:24,height:24,justifyContent:'space-around',paddingVertical:2}}>{[5,13,8].map((left,i)=><View key={i} style={{height:1.5,backgroundColor:color}}><View style={{position:'absolute',left,top:-2.5,width:6,height:6,borderRadius:2,borderWidth:1.5,borderColor:color,backgroundColor:'#ffffff'}}/></View>)}</View>;
  if(name==='plan')return <View accessible={false} style={s.bars}>{[10,18,14].map((height,i)=><View key={i} style={[s.bar,border,{height}]}/>)}</View>;
  if(name==='month')return <View accessible={false} style={[s.calendar,border]}><View style={[s.calendarLine,{backgroundColor:color}]}/><View style={[s.ring,{left:4,backgroundColor:color}]}/><View style={[s.ring,{right:4,backgroundColor:color}]}/></View>;

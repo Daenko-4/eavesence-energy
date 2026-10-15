@@ -73,7 +73,7 @@ for(const locale of ['de','en'])test(`website backup replacement preserves the o
  backup.profile.name='Imported home';backup.profile.incomeAmount=3000;backup.costs[0].amount=50;
  const upload=page.locator('#home-settings input[type="file"]');
  const file={name:'eavesence-backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))};
- page.once('dialog',dialog=>void dialog.dismiss());await upload.setInputFiles(file);
+ const cancelled=page.waitForEvent('dialog');await upload.setInputFiles(file);await (await cancelled).dismiss();
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).incomeAmount)).toBe(2400);
  await page.evaluate(()=>{
   const original=Storage.prototype.setItem;
@@ -81,7 +81,7 @@ for(const locale of ['de','en'])test(`website backup replacement preserves the o
   Storage.prototype.setItem=function(key,value){if(key==='eavesence-home-costs-v1'&&JSON.parse(value)[0]?.amount===50)throw new DOMException('Storage full','QuotaExceededError');return original.call(this,key,value);};
  });
  page.once('dialog',dialog=>void dialog.accept());await upload.setInputFiles(file);
- await expect(page.getByRole('alert')).toContainText(de?'Import konnte nicht gespeichert':'Could not save the import');
+ await expect(page.locator('[data-home-notice]')).toContainText(de?'Import konnte nicht gespeichert':'Could not save the import');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).incomeAmount)).toBe(2400);
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!)[0].amount)).toBe(40);
  expect(await page.evaluate(()=>localStorage.getItem('eavesence-home-transaction-v1'))).toBeNull();
