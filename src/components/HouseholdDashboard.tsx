@@ -1,4 +1,5 @@
 "use client";
+import { recoverHomeStorage, writeHomeStorage } from "../lib/homeStorage";
 import { closeSavingsHistory } from "@eavesence/core/savingsPlan";
 
 import TileSymbol from "@/components/TileSymbol";
@@ -826,6 +827,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     scope: "home" | "energy" | "goal";
   } | null>(null);
   const preserveProfileDrafts = useRef(false);
+  const [storageFailed, setStorageFailed] = useState(false);
   const homeImportInputRef = useRef<HTMLInputElement>(null);
   const tileFormRef = useRef<HTMLDivElement>(null);
   const newTileButtonRef = useRef<HTMLButtonElement>(null);
@@ -876,64 +878,68 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }, [tileFormOpen, editingTileId, tileName]);
 
   const loadLocalData = useCallback(() => {
-    const storedProfile = readHouseholdProfile(
-      window.localStorage.getItem(HOUSEHOLD_PROFILE_STORAGE_KEY),
-    );
-    setProfile(storedProfile);
-    if (storedProfile) {
-      setIncomeValue(storedProfile.incomeAmount != null && (storedProfile.incomeAmount > 0 || storedProfile.incomeDeferred === false) ? String(storedProfile.incomeAmount) : "");
-      setIncomeFrequency(storedProfile.incomeFrequency ?? "monthly");
-      setIncomeExtras(incomeExtraDrafts(storedProfile.incomeExtras));
-      setName(localizeDefaultHouseholdName(storedProfile.name, locale));
-      setCurrency(storedProfile.currency);
-      setPrice(storedProfile.electricityPrice);
-      setElectricityInputMode(storedProfile.electricityInputMode ?? "price");
-      setAnnualElectricityBill(
-        storedProfile.annualElectricityBill
-          ? String(storedProfile.annualElectricityBill)
-          : "",
-      );
-      setAnnualElectricityKwh(
-        storedProfile.annualElectricityKwh
-          ? String(storedProfile.annualElectricityKwh)
-          : "",
-      );
-      setMonthlyElectricityPayment(
-        storedProfile.monthlyElectricityPayment
-          ? String(storedProfile.monthlyElectricityPayment)
-          : "",
-      );
-      setElectricityBillIncludesBonus(
-        storedProfile.electricityBillIncludesBonus ?? false,
-      );
-    }
-    setSavedDevices(readSavedDevices(window.localStorage.getItem(SAVED_DEVICES_STORAGE_KEY)));
-    setHistory(readMonthlyEnergyEntries(window.localStorage.getItem(HOUSEHOLD_HISTORY_STORAGE_KEY)));
-    const tiles = readHomeTiles(window.localStorage.getItem(HOME_TILES_STORAGE_KEY));
-    let costs = readHouseholdCosts(window.localStorage.getItem(HOUSEHOLD_COSTS_STORAGE_KEY));
-    if (storedProfile && !storedProfile.electricityCostMigrated) {
-      const amount = storedProfile.electricityInputMode === "monthly-payment"
-        ? storedProfile.monthlyElectricityPayment ?? 0
-        : storedProfile.electricityInputMode === "annual-bill"
-          ? (storedProfile.annualElectricityBill ?? 0) / 12 : 0;
-      const costTileId = tiles.find((tile) => tile.kind === "costs")?.id;
-      if (amount > 0 && costTileId && !costs.some((cost) => cost.category === "energy")) {
-        const electricity = createHouseholdCost({
-          id: "electricity-from-settings", name: locale === "de" ? "Strom" : "Electricity",
-          category: "energy", amount, frequency: "monthly", tileId: costTileId,
-        });
-        if (electricity) {
-          costs = [electricity, ...costs];
-          window.localStorage.setItem(HOUSEHOLD_COSTS_STORAGE_KEY, JSON.stringify(costs));
-        }
+    try {
+      recoverHomeStorage(window.localStorage);
+      const rawProfile = window.localStorage.getItem(HOUSEHOLD_PROFILE_STORAGE_KEY);
+      const storedProfile = readHouseholdProfile(rawProfile);
+      if (rawProfile !== null && !storedProfile) throw new Error("Invalid stored home profile");
+      setProfile(storedProfile);
+      if (storedProfile) {
+        setIncomeValue(storedProfile.incomeAmount != null && (storedProfile.incomeAmount > 0 || storedProfile.incomeDeferred === false) ? String(storedProfile.incomeAmount) : "");
+        setIncomeFrequency(storedProfile.incomeFrequency ?? "monthly");
+        setIncomeExtras(incomeExtraDrafts(storedProfile.incomeExtras));
+        setName(localizeDefaultHouseholdName(storedProfile.name, locale));
+        setCurrency(storedProfile.currency);
+        setPrice(storedProfile.electricityPrice);
+        setElectricityInputMode(storedProfile.electricityInputMode ?? "price");
+        setAnnualElectricityBill(
+          storedProfile.annualElectricityBill
+            ? String(storedProfile.annualElectricityBill)
+            : "",
+        );
+        setAnnualElectricityKwh(
+          storedProfile.annualElectricityKwh
+            ? String(storedProfile.annualElectricityKwh)
+            : "",
+        );
+        setMonthlyElectricityPayment(
+          storedProfile.monthlyElectricityPayment
+            ? String(storedProfile.monthlyElectricityPayment)
+            : "",
+        );
+        setElectricityBillIncludesBonus(
+          storedProfile.electricityBillIncludesBonus ?? false,
+        );
       }
-      const migratedProfile = { ...storedProfile, electricityCostMigrated: true };
-      window.localStorage.setItem(HOUSEHOLD_PROFILE_STORAGE_KEY, JSON.stringify(migratedProfile));
-      setProfile(migratedProfile);
-    }
-    setHouseholdCosts(costs);
-    setCostEvents(readCostEvents(window.localStorage.getItem(COST_EVENTS_STORAGE_KEY)));
-    setHomeTiles(tiles);
+      setSavedDevices(readSavedDevices(window.localStorage.getItem(SAVED_DEVICES_STORAGE_KEY)));
+      setHistory(readMonthlyEnergyEntries(window.localStorage.getItem(HOUSEHOLD_HISTORY_STORAGE_KEY)));
+      const tiles = readHomeTiles(window.localStorage.getItem(HOME_TILES_STORAGE_KEY));
+      let costs = readHouseholdCosts(window.localStorage.getItem(HOUSEHOLD_COSTS_STORAGE_KEY));
+      if (storedProfile && !storedProfile.electricityCostMigrated) {
+        const amount = storedProfile.electricityInputMode === "monthly-payment"
+          ? storedProfile.monthlyElectricityPayment ?? 0
+          : storedProfile.electricityInputMode === "annual-bill"
+            ? (storedProfile.annualElectricityBill ?? 0) / 12 : 0;
+        const costTileId = tiles.find((tile) => tile.kind === "costs")?.id;
+        if (amount > 0 && costTileId && !costs.some((cost) => cost.category === "energy")) {
+          const electricity = createHouseholdCost({
+            id: "electricity-from-settings", name: locale === "de" ? "Strom" : "Electricity",
+            category: "energy", amount, frequency: "monthly", tileId: costTileId,
+          });
+          if (electricity) {
+            costs = [electricity, ...costs];
+            window.localStorage.setItem(HOUSEHOLD_COSTS_STORAGE_KEY, JSON.stringify(costs));
+          }
+        }
+        const migratedProfile = { ...storedProfile, electricityCostMigrated: true };
+        window.localStorage.setItem(HOUSEHOLD_PROFILE_STORAGE_KEY, JSON.stringify(migratedProfile));
+        setProfile(migratedProfile);
+      }
+      setHouseholdCosts(costs);
+      setCostEvents(readCostEvents(window.localStorage.getItem(COST_EVENTS_STORAGE_KEY)));
+      setHomeTiles(tiles);
+      setStorageFailed(false);
+    } catch { setStorageFailed(true); }
   }, [locale]);
 
   useEffect(() => {
@@ -1073,16 +1079,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     const nextEvents = changes.length ? [...changes, ...costEvents].slice(0, 100) : costEvents;
     const actions = closeSavingsHistory(profile?.savingsActions ?? [], householdCosts, nextCosts, localToday());
     const nextProfile = confirmedProfile ?? (profile ? {...profile,savingsActions:actions} : null);
-    const keys = [HOUSEHOLD_COSTS_STORAGE_KEY,COST_EVENTS_STORAGE_KEY,HOUSEHOLD_PROFILE_STORAGE_KEY];
-    const previous = keys.map(key=>window.localStorage.getItem(key));
-    try {
-      window.localStorage.setItem(HOUSEHOLD_COSTS_STORAGE_KEY,JSON.stringify(nextCosts));
-      window.localStorage.setItem(COST_EVENTS_STORAGE_KEY,JSON.stringify(nextEvents));
-      if(nextProfile) window.localStorage.setItem(HOUSEHOLD_PROFILE_STORAGE_KEY,JSON.stringify(nextProfile));
-    } catch(error) {
-      keys.forEach((key,i)=>{if(previous[i]===null)window.localStorage.removeItem(key);else window.localStorage.setItem(key,previous[i]!);});
-      throw error;
-    }
+    writeHomeStorage(window.localStorage, [
+      [HOUSEHOLD_COSTS_STORAGE_KEY, JSON.stringify(nextCosts)],
+      [COST_EVENTS_STORAGE_KEY, JSON.stringify(nextEvents)],
+      ...(nextProfile ? [[HOUSEHOLD_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile)] as [string,string]] : []),
+    ]);
     if(nextProfile)setProfile(nextProfile);
     setCostEvents(nextEvents);setHouseholdCosts(nextCosts);
     window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
@@ -1328,34 +1329,28 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     event.target.value = "";
     if (!file) return;
 
-    const backup = readHouseholdBackup(await file.text());
+    let backup: ReturnType<typeof readHouseholdBackup>;
+    try { backup = readHouseholdBackup(await file.text()); }
+    catch { setNotice({kind:"error",message:text.importHomeError,scope:"home"}); return; }
     if (!backup) {
       setNotice({ kind: "error", message: text.importHomeError, scope: "home" });
       return;
     }
     if (!window.confirm(text.importHomeConfirm)) return;
 
-    window.localStorage.setItem(
-      HOUSEHOLD_PROFILE_STORAGE_KEY,
-      JSON.stringify(backup.profile),
-    );
-    window.localStorage.setItem(
-      SAVED_DEVICES_STORAGE_KEY,
-      JSON.stringify(backup.devices),
-    );
-    window.localStorage.setItem(
-      HOUSEHOLD_HISTORY_STORAGE_KEY,
-      JSON.stringify(backup.history),
-    );
-    window.localStorage.setItem(
-      HOUSEHOLD_COSTS_STORAGE_KEY,
-      JSON.stringify(backup.costs),
-    );
-    window.localStorage.setItem(COST_EVENTS_STORAGE_KEY, JSON.stringify(backup.costEvents ?? []));
-    window.localStorage.setItem(
-      HOME_TILES_STORAGE_KEY,
-      JSON.stringify(backup.tiles),
-    );
+    try {
+      writeHomeStorage(window.localStorage, [
+        [HOUSEHOLD_PROFILE_STORAGE_KEY, JSON.stringify(backup.profile)],
+        [SAVED_DEVICES_STORAGE_KEY, JSON.stringify(backup.devices)],
+        [HOUSEHOLD_HISTORY_STORAGE_KEY, JSON.stringify(backup.history)],
+        [HOUSEHOLD_COSTS_STORAGE_KEY, JSON.stringify(backup.costs)],
+        [COST_EVENTS_STORAGE_KEY, JSON.stringify(backup.costEvents ?? [])],
+        [HOME_TILES_STORAGE_KEY, JSON.stringify(backup.tiles)],
+      ]);
+    } catch {
+      setNotice({kind:"error",message:locale === "de" ? "Import konnte nicht gespeichert werden. Deine bisherigen Daten werden wiederhergestellt. Bitte erneut versuchen." : "Could not save the import. Your previous data is being restored. Please try again.",scope:"home"});
+      loadLocalData(); return;
+    }
     setProfile(backup.profile);
     setSavedDevices(backup.devices);
     setHistory(backup.history);
@@ -1398,13 +1393,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   function resetHome() {
     if (!window.confirm(text.resetHomeConfirm)) return;
-    window.localStorage.removeItem(HOUSEHOLD_PROFILE_STORAGE_KEY);
-    window.localStorage.removeItem(HOUSEHOLD_HISTORY_STORAGE_KEY);
-    window.localStorage.removeItem(HOUSEHOLD_COSTS_STORAGE_KEY);
-    window.localStorage.removeItem(COST_EVENTS_STORAGE_KEY);
-    window.localStorage.removeItem(HOUSEHOLD_VISIT_STORAGE_KEY);
-    window.localStorage.removeItem(BETA_INTEREST_STORAGE_KEY);
-    window.localStorage.removeItem(HOME_TILES_STORAGE_KEY);
+    try {
+      writeHomeStorage(window.localStorage, [HOUSEHOLD_PROFILE_STORAGE_KEY,HOUSEHOLD_HISTORY_STORAGE_KEY,HOUSEHOLD_COSTS_STORAGE_KEY,COST_EVENTS_STORAGE_KEY,HOUSEHOLD_VISIT_STORAGE_KEY,BETA_INTEREST_STORAGE_KEY,HOME_TILES_STORAGE_KEY].map(key => [key,null]));
+    } catch {
+      setNotice({kind:"error",message:locale === "de" ? "Zurücksetzen fehlgeschlagen. Deine Daten bleiben erhalten." : "Could not reset your home. Your data is being kept.",scope:"home"});
+      loadLocalData(); return;
+    }
     changeWorkspace("overview");
     setProfile(null);
     setHistory([]);
@@ -1564,6 +1558,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     track("Home Monthly Check In Deleted", { locale, month: entry.month });
   }
 
+  if (storageFailed) return <section className="mx-auto max-w-lg p-6" role="alert"><h1 className="text-xl font-semibold">{locale === "de" ? "Daten konnten nicht sicher geladen werden" : "Could not safely load your data"}</h1><p className="mt-3 text-sm leading-6">{locale === "de" ? "Deine bisherigen Daten bleiben erhalten. Gib bei vollem Browserspeicher etwas Platz frei und versuche es erneut." : "Your previous data is being kept. If browser storage is full, free some space and try again."}</p><button type="button" className="eavesence-pill-button mt-4" onClick={loadLocalData}>{locale === "de" ? "Erneut versuchen" : "Try again"}</button></section>;
   if (!ready) return <div className="min-h-screen bg-[var(--background)]" />;
 
   if (!profile) {

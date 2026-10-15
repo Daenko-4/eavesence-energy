@@ -100,11 +100,11 @@ for(const locale of ['de','en'])test(`native payday calls a deficit a shortfall 
  const payday=new Date(Date.parse(today)+14*86400000).toISOString().slice(0,10);
  const props={currency:'EUR',input:{incomeMonthly:2400,costs:[],variableMonthly:500,bufferMonthly:0,goalMonthly:0,startMonth:today.slice(0,7)},data:{cash:{balance:100,asOf:today,payday,protected:200,everydayRemaining:150}},onSave:noop};
  const html=render(PaydayScreen,props,locale);
- assert.match(html,locale==='de'?/fehlen dir voraussichtlich/:/Estimated shortfall until/);
+ assert.match(html,locale==='de'?/Voraussichtlich fehlen/:/Estimated shortfall/);
  assert.match(html,locale==='de'?/250,00/:/250.00/);
  assert.ok(!html.includes(locale==='de'?'kannst du zusätzlich ausgeben':'You can spend this extra'));
  const stale=render(PaydayScreen,{...props,data:{cash:{...props.data.cash,needsRefresh:true}}},locale);
- assert.ok(!stale.includes(locale==='de'?'250,00':'250.00'));assert.match(stale,locale==='de'?/aktualisiere deinen Kontostand/:/update your account balance/);
+ assert.ok(!stale.includes(locale==='de'?'250,00':'250.00'));assert.match(stale,locale==='de'?/Bestätige den Kontostand/:/Confirm the balance/);
 });
 
 test('dedicated cost editor validates and saves through the same production action',async()=>{

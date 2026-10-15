@@ -19,7 +19,7 @@ const {LocaleContext}=production('i18n.tsx');
 function render(component,props){return renderToStaticMarkup(React.createElement(LocaleContext.Provider,{value:locale},React.createElement(component,props)));}
 const {NavIcon}=production('NavIcon.tsx');
 const icon=name=>render(NavIcon,{name,color:'#65716d'});
-const monthHtml=render(production('MonthlyPayments.tsx').MonthlyPayments,{costs,data,onSave:noop,onEdit:noop,onAdd:noop,onPlan:noop,locale,currency:'EUR'});
+const monthHtml=render(production('MonthlyPayments.tsx').MonthlyPayments,{open:true,onToggle:noop,costs,data,onSave:noop,onEdit:noop,onAdd:noop,onPlan:noop,locale,currency:'EUR'});
 const costHtml=render(production('CostEditor.tsx').CostEditor,{name:'Internet',amount:'40,00',frequency:'monthly',date:'12.10.2026',deadline:'',category:'subscriptions',editing:false,onName:noop,onAmount:noop,onFrequency:noop,onDate:noop,onDeadline:noop,onCategory:noop,onSave:noop,onClose:noop});
 const style='<style>*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;background:#f7f8f4;color:#17211f}button,input{font:inherit;background:none;border:0;color:inherit;text-align:left}button{cursor:pointer}header{height:72px;padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e3e8e2;background:#fff;font-size:15px;font-weight:700}header img{height:30px;width:30px}main{padding:16px 20px 32px}nav{display:flex;justify-content:space-around;padding:16px;background:#fff;border-top:1px solid #e3e8e2;font-size:12px}.editor{height:852px;display:flex;flex-direction:column}</style>';
 const mark=readFileSync('apps/mobile/assets/brand-icon-safe.png').toString('base64');

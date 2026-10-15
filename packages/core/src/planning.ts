@@ -28,6 +28,19 @@ export function readPlanningData(value: unknown): PlanningData {
     checks: unique((Array.isArray(data.checks) ? data.checks : []).filter((c): c is MonthlyCheck => !!c && monthOK(c.month) && typeof c.checkedAt === 'string' && !Number.isNaN(Date.parse(c.checkedAt)) && nonnegative(c.incomeMonthly) && nonnegative(c.variableMonthly) && nonnegative(c.fixedMonthly) && typeof c.fingerprint === 'string'), c => c.month).sort((a,b) => b.month.localeCompare(a.month)).slice(0,24),
   };
 }
+/** Backup replacement must reject damaged rows instead of silently losing them. */
+export function readPlanningBackup(value: unknown): PlanningData | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const original = value as Partial<PlanningData>;
+  const planning = readPlanningData(original);
+  const collections = ["memos", "goals", "reserves", "checks", "reviews", "paidPayments", "actualPayments", "monthReviews", "subscriptionPlans"] as const;
+  if (collections.some(key => original[key] !== undefined &&
+    (!Array.isArray(original[key]) || original[key]!.length !== planning[key]?.length)) ||
+    (original.cash !== undefined && !planning.cash) ||
+    (original.quickCheck !== undefined && !planning.quickCheck)) return null;
+  return planning;
+}
+
 export function monthsBetween(start: string, end: string) {
   const [sy, sm] = start.split('-').map(Number); const [ey, em] = end.split('-').map(Number);
   return (ey - sy) * 12 + em - sm;

@@ -1,5 +1,5 @@
 import { readIncomeExtras } from "@eavesence/core/income";
-import { readPlanningData } from "@eavesence/core/planning";
+import { readPlanningBackup } from "@eavesence/core/planning";
 import { readHouseholdCosts, type HouseholdCost } from "@eavesence/core/householdCosts";
 import { readSavingsActions } from "@eavesence/core/savingsPlan";
 
@@ -26,6 +26,10 @@ function positive(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
+function timestamp(value: unknown) {
+  return typeof value === "string" && Number.isFinite(Date.parse(value));
+}
+
 export function readMobileBackup(json: string): MobileBackup | null {
   if (json.length > 2_000_000) return null;
   try {
@@ -36,10 +40,15 @@ export function readMobileBackup(json: string): MobileBackup | null {
     const tiles = parseTiles(data.tiles);
     if (data.format !== "eavesence-mobile-backup" || data.version !== 1 ||
       typeof data.exportedAt !== "string" || Number.isNaN(Date.parse(data.exportedAt)) ||
-      !profile || typeof profile.name !== "string" || !profile.name.trim() ||
+      !profile || typeof profile !== "object" || Array.isArray(profile) || typeof profile.name !== "string" || !profile.name.trim() ||
+      (profile.locale !== undefined && profile.locale !== "de" && profile.locale !== "en") ||
+      (profile.currency !== undefined && profile.currency !== "EUR" && profile.currency !== "CHF") ||
       !positive(profile.electricityPrice) || profile.electricityPrice === 0 ||
       !positive(profile.savingsGoalPercent) || profile.savingsGoalPercent < 1 || profile.savingsGoalPercent > 50 ||
-      typeof profile.createdAt !== "string" ||
+      !timestamp(profile.createdAt) ||
+      (profile.variableMonthly !== undefined && profile.variableMonthly !== null && !positive(profile.variableMonthly)) ||
+      (profile.bufferMonthly !== undefined && !positive(profile.bufferMonthly)) ||
+      (profile.goalMonthly !== undefined && !positive(profile.goalMonthly)) ||
       (profile.backupReminderDismissed !== undefined && typeof profile.backupReminderDismissed !== "boolean") ||
       (profile.setupStep !== undefined && !["income", "cost", "review", "complete"].includes(profile.setupStep)) ||
       (profile.incomeAmount !== undefined && !positive(profile.incomeAmount)) ||
@@ -56,13 +65,17 @@ export function readMobileBackup(json: string): MobileBackup | null {
       costs.some((cost) => cost.tileId && !tiles.some((tile) => tile.id === cost.tileId && tile.kind === "costs")) ||
       devices.some((device) => !device || typeof device.id !== "string" || !device.id || typeof device.name !== "string" || !device.name.trim() ||
         !positive(device.watts) || !positive(device.minutesPerUse) || !positive(device.usesPerWeek) ||
-        !positive(device.yearlyKwh) || !positive(device.yearlyCost) || !positive(device.monthlyCost) || typeof device.updatedAt !== "string") ||
+        !positive(device.yearlyKwh) || !positive(device.yearlyCost) || !positive(device.monthlyCost) || !timestamp(device.updatedAt)) ||
       new Set(devices.map((device) => device.id)).size !== devices.length ||
       history.some((entry) => !entry || typeof entry.month !== "string" || !/^\d{4}-(0[1-9]|1[0-2])$/.test(entry.month) ||
-        !positive(entry.kwh) || !positive(entry.cost) || typeof entry.updatedAt !== "string") ||
+        !positive(entry.kwh) || !positive(entry.cost) || !timestamp(entry.updatedAt)) ||
       new Set(history.map((entry) => entry.month)).size !== history.length) return null;
 
-    if (profile.planning !== undefined) profile.planning = readPlanningData(profile.planning);
+    if (profile.planning !== undefined) {
+      const planning = readPlanningBackup(profile.planning);
+      if (!planning) return null;
+      profile.planning = planning;
+    }
     return { ...data, format: "eavesence-mobile-backup", version: 1, profile, devices, history, costs, tiles, betaInterested: data.betaInterested, exportedAt: data.exportedAt };
   } catch {
     return null;
