@@ -5,15 +5,16 @@ import { paymentKey } from '@eavesence/core/paymentChecklist';
 import type { HouseholdCost } from '@eavesence/core/householdCosts';
 import type { PlanningData } from '@eavesence/core/planning';
 
-type Props = { costs:HouseholdCost[]; data?:PlanningData; onSave:(data:PlanningData)=>void|Promise<void>; locale:'de'|'en'; currency:string; onEdit:(cost:HouseholdCost)=>void; onAdd:()=>void };
-export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdit,onAdd}:Props) {
-  const [open,setOpen]=useState(false),bodyId=useId();
+type Props = { costs:HouseholdCost[]; data?:PlanningData; onSave:(data:PlanningData)=>void|Promise<void>; locale:'de'|'en'; currency:string; onEdit:(cost:HouseholdCost)=>void; onAdd:()=>void; expanded?:boolean; onExpandedChange?:(open:boolean)=>void };
+export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdit,onAdd,expanded,onExpandedChange}:Props) {
+  const [localOpen,setLocalOpen]=useState(false),bodyId=useId();
+  const open=expanded??localOpen,setOpen=onExpandedChange??setLocalOpen;
   const de = locale === 'de', t=(a:string,b:string)=>de?a:b;
   const c=usePaymentChecklist(costs,data,onSave,de);
   const money=(n:number)=>new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency}).format(n);
   const monthLabel=new Intl.DateTimeFormat(de?'de-AT':'en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${c.month}-01T00:00:00Z`));
   const dateLabel=(date:string)=>new Intl.DateTimeFormat(de?'de-AT':'en-GB',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(`${date}T00:00:00Z`));
-  return <section aria-label={t('Monatscheckliste','Monthly checklist')} className="mt-6 overflow-hidden rounded-2xl border border-[#dfe5dd] bg-white" data-month-checklist>
+  return <section aria-label={t('Monatscheckliste','Monthly checklist')} className="mt-6 scroll-mt-24 overflow-hidden rounded-2xl border border-[#dfe5dd] bg-white" data-month-checklist>
     <div className="bg-[#24272c] p-4 text-white sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div><p className="text-[13px] font-semibold text-[#d1d7d4]">{c.month===c.current?t('Dieser Monat','This month'):t('Zahlungen im Monat','Payments this month')}</p><h2 className="mt-1 text-[20px] font-bold tracking-[-.025em]" data-checklist-month>{monthLabel}</h2></div>

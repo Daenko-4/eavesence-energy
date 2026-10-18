@@ -5,14 +5,14 @@ export type PaidPayment = {
   costId: string; month: string; date: string | null; amount: number;
   frequency: HouseholdCostFrequency; anchor: string | null; paidAt: string;
 };
-export type ActualPayment = {costId:string;month:string;date:string|null;amount:number;plannedAmount:number;frequency:HouseholdCostFrequency;anchor:string|null;updatedAt:string};
+export type ActualPayment = {costId:string;month:string;date:string|null;amount:number;plannedAmount:number;frequency:HouseholdCostFrequency;anchor:string|null;updatedAt:string;estimated?:boolean};
 export type MonthReview = {month:string;planned:number;paid:number;count:number;closedAt:string};
 export type MonthPayment = { cost: HouseholdCost; month: string; date: string | null; plannedAmount?:number; estimated?:boolean };
 export function readActualPayments(value:unknown):ActualPayment[] {
   if(!Array.isArray(value))return [];
   const seen=new Set<string>();
   return value.filter((p):p is ActualPayment=>{
-    if(!p || !Number.isFinite(p.plannedAmount) || p.plannedAmount<=0 || !Number.isFinite(p.amount) || p.amount<0 || typeof p.updatedAt!=='string' || !Number.isFinite(Date.parse(p.updatedAt)))return false;
+    if(!p || (p.estimated!==undefined&&typeof p.estimated!=='boolean') || !Number.isFinite(p.plannedAmount) || p.plannedAmount<=0 || !Number.isFinite(p.amount) || p.amount<0 || typeof p.updatedAt!=='string' || !Number.isFinite(Date.parse(p.updatedAt)))return false;
     if(!readPaidPayments([{...p,paidAt:p.updatedAt}]).length)return false;
     const key=paymentKey(p);if(seen.has(key))return false;seen.add(key);return true;
   }).slice(-5000);
@@ -26,7 +26,7 @@ export function readMonthReviews(value:unknown):MonthReview[] {
 }
 export function resolvePayment(payment:MonthPayment,actual:ActualPayment[]=[]):MonthPayment {
   const found=actual.find(p=>paymentKey(p)===paymentKey({costId:payment.cost.id,month:payment.month,date:payment.date})&&p.frequency===payment.cost.frequency&&p.anchor===(payment.cost.nextDueDate||null));
-  return {...payment,plannedAmount:found?.plannedAmount??payment.cost.amount,estimated:!!payment.cost.variableAmount&&!found,cost:found?{...payment.cost,amount:found.amount}:payment.cost};
+  return {...payment,plannedAmount:found?.plannedAmount??payment.cost.amount,estimated:!!payment.cost.variableAmount&&(!found||found.estimated===true),cost:found?{...payment.cost,amount:found.amount}:payment.cost};
 }
 export function saveActualPayment(actual:ActualPayment[],payment:MonthPayment,amount:number,updatedAt:string) {
   if(!Number.isFinite(amount)||amount<0)throw new Error('Invalid actual amount');

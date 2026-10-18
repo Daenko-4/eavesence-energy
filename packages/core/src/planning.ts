@@ -1,3 +1,4 @@
+import {readSwitchPlans,type SwitchPlan} from "./proInsights.ts";
 import {readMemos,type HomeMemo} from './memos.ts';
 import { readActualPayments, readMonthReviews, readPaidPayments, type ActualPayment, type MonthReview, type PaidPayment } from './paymentChecklist.ts';
 import { readCashWindow, type CashWindow } from './homeValue.ts';
@@ -8,13 +9,14 @@ export type NamedGoal = { id: string; name: string; target: number; saved: numbe
 export type BillReserve = { costId: string; saved: number; dueDate?: string };
 export type MonthlyCheck = { month: string; checkedAt: string; incomeMonthly: number; variableMonthly: number; fixedMonthly: number; fingerprint: string };
 export type SubscriptionPlan = {id:string;costId:string;name:string;monthly:number;annual:number;start:string;remindAt:string;memoId?:string;confirmedAt?:string};
-export type PlanningData = { memos?:HomeMemo[]; goals: NamedGoal[]; reserves: BillReserve[]; checks: MonthlyCheck[]; cash?: CashWindow; paidPayments?: PaidPayment[]; actualPayments?:ActualPayment[]; monthReviews?:MonthReview[]; subscriptionPlans?:SubscriptionPlan[]; quickCheck?: {day:string;checkedAt:string;fingerprint:string}; reviews?: Array<{costId:string;updatedAt:string;until:string}> };
+export type PlanningData = { switchPlans?:SwitchPlan[]; memos?:HomeMemo[]; goals: NamedGoal[]; reserves: BillReserve[]; checks: MonthlyCheck[]; cash?: CashWindow; paidPayments?: PaidPayment[]; actualPayments?:ActualPayment[]; monthReviews?:MonthReview[]; subscriptionPlans?:SubscriptionPlan[]; quickCheck?: {day:string;checkedAt:string;fingerprint:string}; reviews?: Array<{costId:string;updatedAt:string;until:string}> };
 const monthOK = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(v);
 const nonnegative = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 export function readPlanningData(value: unknown): PlanningData {
   const data = value && typeof value === 'object' ? value as Partial<PlanningData> : {};
   const unique = <T>(rows: T[], key: (row: T) => string) => rows.filter((row, i) => rows.findIndex(r => key(r) === key(row)) === i);
   return {
+    ...(data.switchPlans !== undefined ? {switchPlans:readSwitchPlans(data.switchPlans)} : {}),
     ...(data.memos !== undefined ? {memos:readMemos(data.memos)} : {}),
     ...(data.actualPayments !== undefined ? {actualPayments:readActualPayments(data.actualPayments)} : {}),
     ...(data.monthReviews !== undefined ? {monthReviews:readMonthReviews(data.monthReviews)} : {}),
@@ -33,7 +35,7 @@ export function readPlanningBackup(value: unknown): PlanningData | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const original = value as Partial<PlanningData>;
   const planning = readPlanningData(original);
-  const collections = ["memos", "goals", "reserves", "checks", "reviews", "paidPayments", "actualPayments", "monthReviews", "subscriptionPlans"] as const;
+  const collections = ["memos", "goals", "reserves", "checks", "reviews", "paidPayments", "actualPayments", "monthReviews", "subscriptionPlans", "switchPlans"] as const;
   if (collections.some(key => original[key] !== undefined &&
     (!Array.isArray(original[key]) || original[key]!.length !== planning[key]?.length)) ||
     (original.cash !== undefined && !planning.cash) ||
