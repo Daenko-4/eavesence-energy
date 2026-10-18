@@ -20,6 +20,8 @@
     "./income": "./src/income.ts",
     "./memos": "./src/memos.ts",
     "./useMemos": "./src/useMemos.ts",
+    "./proInsights": "./src/proInsights.ts",
+    "./useProInsights": "./src/useProInsights.ts",
     "./proValue": "./src/proValue.ts",
     "./useProTools": "./src/useProTools.ts",
     "./useQuickCheck": "./src/useQuickCheck.ts"

@@ -1,3 +1,5 @@
+import { ProInsightsScreen } from "./src/ProInsightsScreen";
+import { applyVariablePlan, type VariablePlanSuggestion } from "@eavesence/core/proInsights";
 import {NavIcon} from "./src/NavIcon";
 import {SafeAreaProvider,SafeAreaView} from "react-native-safe-area-context";
 import { ProToolsScreen } from "./src/ProToolsScreen";
@@ -264,6 +266,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   const upcoming = forecast.next;
   const incomeSummary = summarizeIncome(profile ?? {});
   const monthlyIncome = incomeSummary.monthly;
+  const insightInput={incomeMonthly:incomeSummary.monthly,incomeKnown:profile?.incomeAmount!==undefined,incomeIsAnnualAverage:incomeSummary.annualAverage,incomeExtras:incomeSummary.extras,variableMonthly:profile?.variableMonthly??null,bufferMonthly:profile?.bufferMonthly??0,goalMonthly:profile?.goalMonthly??0,costs,startMonth:localToday().slice(0,7)};
   const hasIncome = typeof profile?.incomeAmount === "number" && Number.isFinite(profile.incomeAmount) && profile.incomeAmount >= 0;
   const hasCosts = costs.length > 0;
   const savingsPlan = createSavingsPlan({
@@ -353,6 +356,20 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
     if (!profile) return;
     const next = { ...profile, planning };
     await writeJson(PROFILE_KEY, next); setProfile(next);
+  }
+
+  async function applyPlanSuggestion(proposal: VariablePlanSuggestion) {
+    if(!profile) throw new Error("HOME_MISSING");
+    const next=applyVariablePlan(costs,profile.planning,proposal);
+    const nextProfile={...profile,planning:next.planning};
+    await writeAll([[PROFILE_KEY,nextProfile],[COSTS_KEY,next.costs]]);
+    setCosts(next.costs);setProfile(nextProfile);
+  }
+
+  async function saveEverydayEstimate(variableMonthly:number) {
+    if(!profile)throw new Error("HOME_MISSING");
+    const next={...profile,variableMonthly};
+    await writeJson(PROFILE_KEY,next);setProfile(next);setVariableBudget(String(variableMonthly));
   }
 
   async function confirmSaving(action: SavingsAction) {
@@ -984,6 +1001,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
             {(["payday", "savings", "progress"] as const).map((question, index) => <Pressable key={question} accessibilityRole="tab" accessibilityState={{ selected: planQuestion === question }} accessibilityLabel={question === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : question === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"} onPress={() => changePlanQuestion(question)} style={[styles.planTab, planQuestion === question && styles.planTabSelected]}><Text style={styles.planTabText}>{index + 1} · {question === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : question === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</Text></Pressable>)}
           </View>
           {planQuestion === "payday" && <PaydayScreen onPayments={()=>{setPaymentsOpen(true);selectTab("home");}} onSavings={()=>changePlanQuestion("savings")} onReviewCost={reviewCost} key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??"EUR"}/> }
+          {planQuestion === "payday" && <ProInsightsScreen mode="forecast" input={insightInput} data={profile.planning} onSave={savePlanning} onApply={applyPlanSuggestion} onEveryday={saveEverydayEstimate} onReview={reviewCost} onNavigate={changePlanQuestion} onEditIncome={()=>startWith("income")} onPayments={()=>{setPaymentsOpen(true);selectTab("home");}} currency={profile.currency??"EUR"}/>}
           {planQuestion === "savings" && <View style={{gap:14}}>
           {savingsPlan && <>
             {budgetOpen && <SavingsBudgetSummary input={{ incomeMonthly: monthlyIncome, incomeExtras: incomeSummary.extras, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} currency={profile.currency ?? "EUR"} />}
@@ -1000,6 +1018,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: reserveOptionsOpen }} onPress={() => setReserveOptionsOpen(!reserveOptionsOpen)} style={styles.financePill}><Text style={styles.financePillText}>{locale === "de" ? "Erweiterte Optionen: freiwillige Reserve" : "More options: optional reserve"}</Text></Pressable>
           {reserveOptionsOpen && <><Text style={styles.financeNote}>{locale === "de" ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</Text><Field label={locale === "de" ? "Freiwillige Reserve pro Monat" : "Optional reserve per month"} value={bufferBudget} onChangeText={setBufferBudget} keyboardType="decimal-pad" /></>}
           <PrimaryButton label="Plan speichern" onPress={saveBudget} /></FormSection></>}
+            <ProInsightsScreen mode="costs" input={insightInput} data={profile.planning} onSave={savePlanning} onApply={applyPlanSuggestion} onEveryday={saveEverydayEstimate} onReview={reviewCost} onNavigate={changePlanQuestion} onEditIncome={()=>startWith("income")} onPayments={()=>{setPaymentsOpen(true);selectTab("home");}} currency={profile.currency??"EUR"}/>
             <ProToolsScreen input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} onReview={reviewCost} currency={profile.currency??'EUR'}/>
 
             {homeRelease.advancedPlanning && <Pressable accessibilityRole="button" accessibilityState={{ expanded: scenarioOpen }} style={styles.financePill} onPress={() => setScenarioOpen(!scenarioOpen)}><Text style={styles.financePillText}>{locale === "de" ? "Eine Kostenänderung durchspielen" : "Try a cost change"}</Text></Pressable>}

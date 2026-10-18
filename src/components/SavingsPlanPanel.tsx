@@ -1,5 +1,7 @@
 "use client";
 import ProTools from "./ProTools";
+import ProInsights from "./ProInsights";
+import type { VariablePlanSuggestion } from "@eavesence/core/proInsights";
 
 import SavingsCoach from '@/components/SavingsCoach';
 import PlanningWorkbench from "@/components/PlanningWorkbench";
@@ -16,6 +18,8 @@ type Props = {
   section?: "savings" | "progress";
   onNavigate?: (question: "payday" | "savings" | "progress") => void;
   advanced?: boolean;
+  onApplyPlanSuggestion: (proposal: VariablePlanSuggestion) => void | Promise<void>;
+  onPayments: () => void;
   locale: Locale;
   currency: string;
   incomeMonthly: number;
@@ -35,8 +39,10 @@ type Props = {
   onSaveActions: (actions: SavingsAction[]) => void;
 };
 
-export default function SavingsPlanPanel({ section, onNavigate, advanced = true, locale, currency, incomeMonthly, incomeExtras = [], costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions, onConfirmAction, onReviewCost }: Props) {
+export default function SavingsPlanPanel({ section, onNavigate, onApplyPlanSuggestion, onPayments, advanced = true, locale, currency, incomeMonthly, incomeExtras = [], costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions, onConfirmAction, onReviewCost }: Props) {
   const [variable, setVariable] = useState(variableMonthly == null ? "" : String(variableMonthly));
+  const [storedVariable, setStoredVariable] = useState(variableMonthly);
+  if (storedVariable !== variableMonthly) { setStoredVariable(variableMonthly); setVariable(variableMonthly == null ? "" : String(variableMonthly)); }
   const [buffer, setBuffer] = useState(String(bufferMonthly ?? 0));
   const [goal, setGoal] = useState(String(goalMonthly ?? 0));
   const [error, setError] = useState("");
@@ -71,6 +77,7 @@ export default function SavingsPlanPanel({ section, onNavigate, advanced = true,
     {section && <><h2 className="site-section-title">{de ? "Kosten senken" : "Lower your costs"}</h2><p className="mt-2 text-[13px] leading-5 text-[#52605b]">{de ? "Vergleiche einen echten neuen Preis. Bestätige die Ersparnis erst nach der Umsetzung." : "Compare a real new price. Confirm the saving only after the change happens."}</p></>}
     {result && <>
       <SavingsCoach onNavigate={onNavigate} mode="opportunities" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>
+      <ProInsights mode="costs" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onApply={onApplyPlanSuggestion} onEveryday={variableMonthly=>onSave({variableMonthly,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0})} onReview={onReviewCost} onNavigate={question=>onNavigate?.(question)} onEditIncome={onEditIncome} onPayments={onPayments}/>
       <ProTools locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/>
       {!section && <SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>}
       {advanced && section === "savings" && <SavingsActionsPanel embedded locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />}

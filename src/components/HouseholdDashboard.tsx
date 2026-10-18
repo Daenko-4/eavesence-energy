@@ -1,4 +1,6 @@
 "use client";
+import ProInsights from "./ProInsights";
+import { applyVariablePlan, type VariablePlanSuggestion } from "@eavesence/core/proInsights";
 import { recoverHomeStorage, writeHomeStorage } from "../lib/homeStorage";
 import { closeSavingsHistory } from "@eavesence/core/savingsPlan";
 
@@ -810,6 +812,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [homeTiles, setHomeTiles] = useState<HomeTile[]>(defaultHomeTiles);
   const [activeTileId, setActiveTileId] = useState<string | null>("default-costs");
+  const [paymentsExpanded, setPaymentsExpanded] = useState(false);
   const [costRequest, setCostRequest] = useState<{ costId?: string; template?: HouseholdCostCategory; nonce: number } | null>(null);
   const [tileFormOpen, setTileFormOpen] = useState(false);
   const [editingTileId, setEditingTileId] = useState<string | null>(null);
@@ -1756,6 +1759,22 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     ]);
   }
 
+  function applyPlanSuggestion(proposal: VariablePlanSuggestion) {
+    if (!profile) throw new Error("HOME_MISSING");
+    const next = applyVariablePlan(householdCosts, profile.planning, proposal);
+    persistHouseholdCosts(next.costs, {...profile, planning:next.planning, updatedAt:new Date().toISOString()});
+  }
+
+  function showInvoiceChecklist() {
+    changeWorkspace("overview");
+    setPaymentsExpanded(true);
+    requestAnimationFrame(() => {
+      const section = document.querySelector<HTMLElement>("[data-month-checklist]");
+      section?.scrollIntoView({block:"start",behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});
+      section?.querySelector<HTMLButtonElement>("button[aria-expanded]")?.focus({preventScroll:true});
+    });
+  }
+
   function navigatePlanQuestion(question: "payday" | "savings" | "progress") {
     setPlanQuestion(question);
     requestAnimationFrame(() => {
@@ -1925,7 +1944,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           {notice?.scope === "home" && view === "overview" && <p data-home-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-center text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
 
           <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
-          {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
+          {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments expanded={paymentsExpanded} onExpandedChange={setPaymentsExpanded} costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
           <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} undatedCosts={householdCosts.filter(cost => !cost.nextDueDate)} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} upcomingOpen={upcomingOpen} onUpcoming={() => setUpcomingOpen(!upcomingOpen)} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Sonderzahlungen)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
@@ -2421,10 +2440,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
             <div hidden={planQuestion !== "payday"}>
           <PaydayPanel onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+          <ProInsights mode="forecast" locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,incomeKnown:profile.incomeAmount!==undefined&&!profile.incomeDeferred,incomeIsAnnualAverage:incomeSummary.annualAverage,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:localToday().slice(0,7)}} data={profile.planning} onSave={planning=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} onApply={applyPlanSuggestion} onEveryday={variableMonthly=>persistProfile({...profile,variableMonthly,updatedAt:new Date().toISOString()})} onReview={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} onNavigate={navigatePlanQuestion} onEditIncome={openIncomeForm} onPayments={showInvoiceChecklist}/>
             </div>
             <div hidden={planQuestion === "payday"}>
           <SavingsPlanPanel
             key={`savings-plan-${profile.createdAt}`}
+            onApplyPlanSuggestion={applyPlanSuggestion}
+            onPayments={showInvoiceChecklist}
             onNavigate={navigatePlanQuestion}
             section={planQuestion === "progress" ? "progress" : "savings"}
             advanced={homeRelease.advancedPlanning}

@@ -312,3 +312,32 @@ for(const locale of ['de','en'])for(const width of [320,390])test(`native connec
  await expect(page.getByText(t('Kontostand bestätigen','Confirm account balance'),{exact:true})).toBeVisible();
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning.cash.needsRefresh)).toBe(true);
 });
+
+for(const locale of ['de','en'])for(const width of [320,390])test(`native Pro forecasts invoice learning and switch costs ${locale} ${width}`,async({page},info)=>{
+ const t=(a:string,b:string)=>locale==='de'?a:b;await page.clock.setFixedTime(new Date('2026-10-18T12:00:00Z'));await show(page,locale,width,true);
+ await page.evaluate(()=>{
+  const p=JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!);
+  p.variableMonthly=500;p.incomeExtras=[{id:'bonus',kind:'salary14',amount:2000,month:11}];p.planning={cash:{balance:1000,asOf:'2026-10-18',payday:'2026-10-25',protected:100,everydayRemaining:70},actualPayments:[100,120,140].map((amount,i)=>({costId:'electric',month:`2026-0${i+7}`,date:`2026-0${i+7}-20`,amount,plannedAmount:80,frequency:'monthly',anchor:'2026-01-20',updatedAt:'2026-10-18T12:00:00Z'})),paidPayments:[{costId:'electric',month:'2026-10',date:'2026-10-20',amount:80,frequency:'monthly',anchor:'2026-01-20',paidAt:'2026-10-18T12:00:00Z'}]};
+  localStorage.setItem('eavesence-mobile-profile-v1',JSON.stringify(p));
+  localStorage.setItem('eavesence-mobile-costs-v1',JSON.stringify([{id:'electric',name:'Electricity',amount:80,variableAmount:true,category:'energy',frequency:'monthly',nextDueDate:'2026-01-20',updatedAt:'2026-10-18T12:00:00Z'},{id:'internet',name:'Internet',amount:40,category:'subscriptions',frequency:'monthly',nextDueDate:'2026-10-20',updatedAt:'2026-10-18T12:00:00Z'},{id:'rent',name:'Rent',amount:900,category:'housing',frequency:'monthly',nextDueDate:'2026-10-20',updatedAt:'2026-10-18T12:00:00Z'}]));
+ });await mountApp(page,locale);await page.getByRole('tab',{name:'Plan',exact:true}).click();
+ const forecast=page.getByRole('button',{name:t('Die nächsten 90 Tage','The next 90 days'),exact:true});await expect(forecast).toHaveAttribute('aria-expanded','false');await forecast.click();
+ await expect(page.getByText(new RegExp(t('Voraussichtlich knapp ab 20. Oktober','Potential shortfall from 20 October')))).toBeVisible();
+ await page.getByRole('textbox',{name:t('Alltagsausgaben pro Monat (90-Tage-Plan)','Everyday spending per month (90-day plan)'),exact:true}).fill('600');await page.getByRole('button',{name:t('Alltagsschätzung speichern','Save everyday estimate'),exact:true}).click();
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).variableMonthly)).toBe(600);
+ await forecast.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`native-pro-90days-${locale}-${width}.png`)});
+ await page.getByRole('tab',{name:t('Realistisch sparen','Find realistic savings'),exact:true}).click();
+ await page.getByRole('button',{name:t('Ab wann lohnt sich ein Wechsel?','When does switching pay off?'),exact:true}).click();
+ await page.getByRole('button',{name:t('Ausgabe für den Wechselvergleich','Cost for the switch comparison'),exact:true}).click();await page.getByRole('button',{name:/^Internet ·/}).click();
+ await page.getByRole('textbox',{name:t('Neuer monatlicher Preis','New monthly price'),exact:true}).fill('20');await page.getByRole('textbox',{name:t('Erste neue Zahlung am (TT.MM.JJJJ)','First new payment on (DD.MM.YYYY)'),exact:true}).fill('20.10.2026');
+ await page.getByRole('button',{name:t('Wechselgebühr & doppelte Monate (optional)','Switching fee & overlapping months (optional)'),exact:true}).click();
+ await page.getByRole('textbox',{name:t('Einmalige Wechselgebühr','One-off switching fee'),exact:true}).fill('60');await page.getByRole('textbox',{name:t('Alten Vertrag noch so viele Monate bezahlen','Months still paying the old contract'),exact:true}).fill('1');
+ await expect(page.getByText(new RegExp(t('Zusatzkosten ausgeglichen bis 19. März 2027','Additional costs recovered by 19 March 2027')))).toBeVisible();
+ const result=page.getByText(new RegExp(t('Zusatzkosten ausgeglichen','Additional costs recovered')));await result.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`native-pro-switch-${locale}-${width}.png`)});
+ await page.getByRole('button',{name:t('Vergleich merken','Save comparison'),exact:true}).click();await expect(page.getByText(t('Vergleich gemerkt. Deine laufenden Kosten bleiben unverändert.','Comparison saved. Your recurring costs stay unchanged.'),{exact:true})).toBeVisible();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning.switchPlans[0].fee)).toBe(60);
+ await page.getByRole('button',{name:t('Planbeträge aus deinen Rechnungen','Planning amounts from your invoices'),exact:true}).click();await page.getByRole('button',{name:t('Diesen Planbetrag übernehmen','Use this planning amount'),exact:true}).click();await expect(page.getByText(/Planbetrag angepasst|Planning amount updated/)).toBeVisible();
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!).find((c:{id:string})=>c.id==='electric').amount)).toBe(120);
+ await page.getByRole('button',{name:t('Rechnungsbeträge eintragen','Record invoice amounts'),exact:true}).click();await expect(page.getByRole('checkbox',{name:/^Electricity,/})).toHaveAttribute('aria-checked','true');
+ await mountApp(page,locale);await page.getByRole('tab',{name:'Plan',exact:true}).click();await page.getByRole('tab',{name:t('Realistisch sparen','Find realistic savings'),exact:true}).click();await page.getByRole('button',{name:t('Ab wann lohnt sich ein Wechsel?','When does switching pay off?'),exact:true}).click();await page.getByRole('button',{name:t('Gemerkte Wechselvergleiche','Saved switch comparisons'),exact:true}).click();await page.getByRole('button',{name:t('Vergleich öffnen','Open comparison'),exact:true}).click();
+ await expect(page.getByRole('textbox',{name:t('Neuer monatlicher Preis','New monthly price'),exact:true})).toHaveValue('20');expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).savingsActions??[])).toHaveLength(0);
+});
