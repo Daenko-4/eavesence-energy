@@ -69,7 +69,7 @@ export default function SavingsCoach({
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
     <section
-      className="mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"
+      className={mode === "opportunities" ? "mt-5 min-w-0" : "mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"}
       aria-label={mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
     >
       <h3 className="site-card-title">
@@ -188,7 +188,7 @@ export default function SavingsCoach({
             {p.cashImpact ? <><p className="mt-2">{t("Zusätzlich verfügbar", "Extra money available")}: {money(p.cashImpact.before)} → <strong>{money(p.cashImpact.after)}</strong></p><p className="mt-1 text-[#52605b]">{p.cashImpact.saving > 0 ? t(`Wenn die Änderung rechtzeitig umgesetzt wird: ${money(p.cashImpact.saving)} mehr bis zum Gehalt.`, `If the change happens in time: ${money(p.cashImpact.saving)} more until payday.`) : t("Bis zu diesem Gehalt ändert sich nichts. Bezahlte und bekannte Rechnungen bleiben gleich; spätere Termine zählen danach.", "No change before this payday. Paid and existing invoices stay the same; later payment dates count afterwards.")}</p></> : <><p className="mt-2 text-[#52605b]">{t("Für diesen Vergleich fehlen aktuelle Angaben unter „Bis zum Gehalt“. Dein Vorhaben kannst du trotzdem speichern.", "This comparison needs current entries under Until payday. You can still save your plan.")}</p></>}
             <p className="mt-2 text-[#52605b]">{t("Vorschau – dein Kontostand und deine Kosten bleiben unverändert.", "Preview — your balance and costs stay unchanged.")}</p>
           </div>}
-          {p.preview && <p role="status" className="rounded-xl bg-white p-3 text-[13px] sm:col-span-2">{t("In den nächsten 12 Planungsmonaten voraussichtlich", "Estimated over the next 12 planning months")}: <strong>{money(p.preview.totalDifference)}</strong> {t("weniger Ausgaben. Zahlungstermine und Startmonat sind berücksichtigt. Noch keine bestätigte Ersparnis.", "lower spending. Payment dates and the start month are included. This is not a confirmed saving yet.")}</p>}
+          {p.preview && <p role="status" className="rounded-xl bg-white p-3 text-[13px] sm:col-span-2">{t("In den nächsten 12 Planungsmonaten voraussichtlich", "Estimated over the next 12 planning months")}: <strong>{money(p.preview.totalDifference)}</strong> {t("weniger Ausgaben. Noch keine bestätigte Ersparnis.", "lower spending. Not a confirmed saving yet.")}</p>}
           <div className="flex flex-wrap gap-2">
             <button type="submit" className={button} disabled={p.busy}>
               {t("Änderung vormerken", "Save this plan")}
