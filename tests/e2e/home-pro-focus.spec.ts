@@ -344,6 +344,7 @@ for (const de of [false, true]) for (const width of [320,390,1365]) test(`connec
   await page.screenshot({path:info.outputPath(`connected-pro-action-${de?'de':'en'}-${width}.png`)});
   page.once('dialog',d=>void d.accept());await plans.getByRole('button',{name:t('Umgesetzt – Kosten aktualisieren','Done — update costs'),exact:true}).click();
   await coach.getByRole('button',{name:t('Ergebnis ansehen','See the result'),exact:true}).click();
+  await expect(page.locator('#home-plan h1')).toBeFocused();
   const progress=page.getByRole('region',{name:t('03 · Was habe ich tatsächlich eingespart?','03 · What have I actually saved?')});
   await expect(progress).toContainText(t('0,00','0.00'));await expect(progress).toContainText(t('19. Oktober','19 October'));
   await progress.getByRole('button',{name:t('Geld bis zum Gehalt neu prüfen','Review your money until payday'),exact:true}).click();
