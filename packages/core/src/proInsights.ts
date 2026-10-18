@@ -40,7 +40,7 @@ export function applyVariablePlan(costs:HouseholdCost[], value:PlanningData|unde
   const data=readPlanningData(value);
   const actualPayments=[...(data.actualPayments??[])];
   for(const paid of data.paidPayments??[]){
-    if(sameSchedule(paid,current.cost)&&!actualPayments.some(p=>paymentKey(p)===paymentKey(paid)&&sameSchedule(p,current.cost))){
+    if(sameSchedule(paid,current.cost)&&paid.amount===current.cost.amount&&!actualPayments.some(p=>paymentKey(p)===paymentKey(paid)&&sameSchedule(p,current.cost))){
       // A checked-off estimate stays paid, but never becomes a learning sample or a real invoice.
       actualPayments.push({costId:paid.costId,month:paid.month,date:paid.date,amount:paid.amount,plannedAmount:current.cost.amount,frequency:paid.frequency,anchor:paid.anchor,updatedAt:paid.paidAt,estimated:true});
     }

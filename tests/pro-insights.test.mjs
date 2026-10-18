@@ -126,3 +126,10 @@ test('changing a variable plan preserves checked-off estimates without turning t
  assert.equal(variablePlanSuggestions(next.costs,next.planning,'2026-10-22')[0].count,3);
  assert.equal(readPlanningBackup({...next.planning,actualPayments:[{...next.planning.actualPayments[0],estimated:'yes'}]}),null);
 });
+
+test('a plan suggestion never revalidates a checkmark invalidated by an earlier manual price change',()=>{
+ const c=cost({variableAmount:true,amount:90,nextDueDate:'2026-01-20'}),data=planning({actualPayments:invoices(c,[100,120,140])});
+ data.paidPayments=togglePayment([],monthChecklist([{...c,amount:80}],'2026-10').payments[0],stamp);
+ const s=variablePlanSuggestions([c],data,today)[0],next=applyVariablePlan([c],data,s,today);
+ assert.equal(monthChecklist(next.costs,'2026-10',next.planning.paidPayments,next.planning.actualPayments).open.length,1);
+});
