@@ -105,15 +105,15 @@ export function readSwitchPlans(value:unknown):SwitchPlan[]{
   if(!Array.isArray(value))return [];
   const seen=new Set<string>();
   return value.filter((p):p is SwitchPlan=>{
-    if(!p || typeof p.id!=='string'||!p.id||seen.has(p.id)||typeof p.costId!=='string'||!p.costId||typeof p.name!=='string'||!p.name.trim()||!validDay(p.anchor)||!validDay(p.start)||typeof p.originalAmount!=='number'||!Number.isFinite(p.originalAmount)||p.originalAmount<=0||typeof p.newAmount!=='number'||!Number.isFinite(p.newAmount)||p.newAmount<0||p.newAmount>=p.originalAmount||typeof p.fee!=='number'||!Number.isFinite(p.fee)||p.fee<0||!Number.isInteger(p.overlapMonths)||p.overlapMonths<0||p.overlapMonths>12||typeof p.updatedAt!=='string'||!Number.isFinite(Date.parse(p.updatedAt)))return false;
+    if(!p || typeof p.id!=='string'||!p.id||seen.has(p.id)||typeof p.costId!=='string'||!p.costId||typeof p.name!=='string'||!p.name.trim()||!validDay(p.anchor)||!validDay(p.start)||p.start>'9996-12-31'||typeof p.originalAmount!=='number'||!Number.isFinite(p.originalAmount)||p.originalAmount<=0||typeof p.newAmount!=='number'||!Number.isFinite(p.newAmount)||p.newAmount<0||p.newAmount>=p.originalAmount||typeof p.fee!=='number'||!Number.isFinite(p.fee)||p.fee<0||!Number.isInteger(p.overlapMonths)||p.overlapMonths<0||p.overlapMonths>12||typeof p.updatedAt!=='string'||!Number.isFinite(Date.parse(p.updatedAt)))return false;
     seen.add(p.id);return true;
   }).slice(-25);
 }
 /** Compare real scheduled charges over 24 contract months; fees and overlap are costs, not savings. */
 export function compareSwitch(input:SavingsPlanInput,value:PlanningData|undefined,draft:SwitchDraft,today=localToday()) {
   const cost=input.costs.find(c=>c.id===draft.costId), {newAmount,start,fee,overlapMonths}=draft;
-  if(!cost||cost.variableAmount||cost.frequency!=='monthly'||!validDay(cost.nextDueDate)||!validDay(today)||!validDay(start)||start<today||!Number.isFinite(newAmount)||newAmount<0||newAmount>=cost.amount||!Number.isFinite(fee)||fee<0||!Number.isInteger(overlapMonths)||overlapMonths<0||overlapMonths>12)return null;
-  const data=readPlanningData(value),end=plusDays(monthlyDate(start,24),-1),overlapEnd=monthlyDate(start,overlapMonths);
+  if(!cost||cost.variableAmount||cost.frequency!=='monthly'||!validDay(cost.nextDueDate)||!validDay(today)||!validDay(start)||start>'9996-12-31'||start<today||!Number.isFinite(newAmount)||newAmount<0||newAmount>=cost.amount||!Number.isFinite(fee)||fee<0||!Number.isInteger(overlapMonths)||overlapMonths<0||overlapMonths>12)return null;
+  const data=readPlanningData(value),comparisonEnd=plusDays(monthlyDate(start,24),-1),end=plusDays(monthlyDate(start,25),-1),overlapEnd=monthlyDate(start,overlapMonths);
   const delta=new Map<string,number>();
   const add=(date:string,amount:number)=>delta.set(date,(delta.get(date)??0)+amount);
   let overlapCost=0,knownInvoices=0;
@@ -128,18 +128,22 @@ export function compareSwitch(input:SavingsPlanInput,value:PlanningData|undefine
       add(raw.date,p.cost.amount);
     }
   }
-  for(let i=0;i<24;i++)add(monthlyDate(start,i),-newAmount);
+  for(let i=0;i<25;i++)add(monthlyDate(start,i),-newAmount);
   add(start,-fee);
   let total=0,untilPayday=0;
   const months:Array<{end:string;saving:number;cumulative:number}>=[];
+  const ledger:Array<{date:string;cumulative:number}>=[];
   let cursor=start;
-  for(let i=0;i<24;i++){
+  for(let i=0;i<25;i++){
     const monthEnd=plusDays(monthlyDate(start,i+1),-1);let saving=0;
-    while(cursor<=monthEnd){const change=delta.get(cursor)??0;saving+=change;if(data.cash&&cursor<data.cash.payday)untilPayday+=change;cursor=plusDays(cursor,1);}
+    while(cursor<=monthEnd){const change=delta.get(cursor)??0;saving+=change;if(data.cash&&cursor<data.cash.payday)untilPayday+=change;ledger.push({date:cursor,cumulative:cents(total+saving)});cursor=plusDays(cursor,1);}
     total+=saving;months.push({end:monthEnd,saving:cents(saving),cumulative:cents(total)});
   }
-  const breakEven=months.find((month,index)=>month.cumulative>=-.005 && months.slice(index).every(m=>m.cumulative>=-.005))??null;
+  // Include one extra billing cycle so a temporary crossing between two due dates
+  // is not mistaken for recovered costs. Report the actual date, not a month-end proxy.
+  let futureMinimum=Infinity;let breakEven:string|null=null;
+  for(let i=ledger.length-1;i>=0;i--){futureMinimum=Math.min(futureMinimum,ledger[i].cumulative);if(ledger[i].date<=comparisonEnd&&futureMinimum>=-.005)breakEven=ledger[i].date;}
   const forecast=paydayForecast(input.costs,data.cash,input.variableMonthly,today,data.paidPayments,data.actualPayments);
   const complete=forecast&&forecast.remaining!==null&&forecast.missingDates===0;
-  return {monthlySaving:cents(cost.amount-newAmount),fee,overlapCost:cents(overlapCost),knownInvoices,firstYear:cents(months[11].cumulative),secondYear:cents(months[23].cumulative),breakEven:breakEven?.end??null,months,before:complete?forecast.remaining:null,after:complete?cents(forecast.remaining!+untilPayday):null,payday:data.cash?.payday??null};
+  return {monthlySaving:cents(cost.amount-newAmount),fee,overlapCost:cents(overlapCost),knownInvoices,firstYear:cents(months[11].cumulative),secondYear:cents(months[23].cumulative),breakEven,months:months.slice(0,24),before:complete?forecast.remaining:null,after:complete?cents(forecast.remaining!+untilPayday):null,payday:data.cash?.payday??null};
 }

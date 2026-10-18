@@ -79,10 +79,10 @@ const draft=(patch={})=>({costId:'internet',newAmount:20,start:'2026-10-20',fee:
 test('switch comparison includes fees, overlap, payoff and immediate cash impact without mutating plans',()=>{
  const c=cost(),i=input([c]),data=planning(),before=JSON.stringify({i,data});
  const r=compareSwitch(i,data,draft(),today);
- assert.equal(r.firstYear,180);assert.equal(r.secondYear,420);assert.equal(r.breakEven,'2027-01-19');
+ assert.equal(r.firstYear,180);assert.equal(r.secondYear,420);assert.equal(r.breakEven,'2026-12-20');
  assert.equal(r.before,860);assert.equal(r.after,820); // old40 replaced by new20 + fee60
  const overlap=compareSwitch(i,data,draft({overlapMonths:1}),today);
- assert.equal(overlap.overlapCost,40);assert.equal(overlap.firstYear,140);assert.equal(overlap.breakEven,'2027-03-19');assert.equal(overlap.after,780);
+ assert.equal(overlap.overlapCost,40);assert.equal(overlap.firstYear,140);assert.equal(overlap.breakEven,'2027-02-20');assert.equal(overlap.after,780);
  assert.equal(JSON.stringify({i,data}),before);
 });
 test('switch previews preserve paid and recorded invoices and never apply retrospective credits',()=>{
@@ -97,7 +97,7 @@ test('switch previews preserve paid and recorded invoices and never apply retros
 });
 test('switch inputs validate amounts, dates, intervals and applicable cost schedules',()=>{
  const i=input([cost()]);
- for(const patch of [{newAmount:40},{newAmount:-1},{newAmount:NaN},{fee:-1},{overlapMonths:13},{overlapMonths:.5},{start:'2026-02-31'},{start:'2026-10-17'}])assert.equal(compareSwitch(i,planning(),draft(patch),today),null);
+ for(const patch of [{newAmount:40},{newAmount:-1},{newAmount:NaN},{fee:-1},{overlapMonths:13},{overlapMonths:.5},{start:'2026-02-31'},{start:'2026-10-17'},{start:'9999-12-31'}])assert.equal(compareSwitch(i,planning(),draft(patch),today),null);
  for(const patch of [{variableAmount:true},{frequency:'yearly'},{nextDueDate:''}])assert.equal(compareSwitch(input([cost(patch)]),planning(),draft(),today),null);
 });
 test('saved comparisons validate strictly and travel through backups without touching savings history',async()=>{
@@ -132,4 +132,11 @@ test('a plan suggestion never revalidates a checkmark invalidated by an earlier 
  data.paidPayments=togglePayment([],monthChecklist([{...c,amount:80}],'2026-10').payments[0],stamp);
  const s=variablePlanSuggestions([c],data,today)[0],next=applyVariablePlan([c],data,s,today);
  assert.equal(monthChecklist(next.costs,'2026-10',next.planning.paidPayments,next.planning.actualPayments).open.length,1);
+});
+
+test('switch recovery uses the exact date and cannot disappear at the next new-contract charge',()=>{
+ const c=cost(),data=planning(),r=compareSwitch(input([c]),data,draft({start:'2026-10-18',newAmount:30,fee:0}),today);
+ assert.equal(r.breakEven,'2026-12-20');
+ const late=compareSwitch(input([c]),data,draft({start:'2026-10-18',newAmount:39,fee:0}),today);
+ assert.equal(late.breakEven,null);
 });

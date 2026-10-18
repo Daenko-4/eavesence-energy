@@ -27,7 +27,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`Pro invoice
  await comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true}).fill('20');await comparison.getByLabel(t('Erste neue Zahlung am','First new payment on'),{exact:true}).fill('2026-10-20');
  await comparison.getByText(t('Wechselgebühr & doppelte Monate (optional)','Switching fee & overlapping months (optional)'),{exact:true}).click();
  await comparison.getByLabel(t('Einmalige Wechselgebühr','One-off switching fee'),{exact:true}).fill('60');await comparison.getByLabel(t('Alten Vertrag noch so viele Monate bezahlen','Months still paying the old contract'),{exact:true}).fill('1');
- await expect(comparison.locator('[data-switch-result]')).toContainText(t('140,00','140.00'));await expect(comparison.locator('[data-switch-result]')).toContainText(t('19. März 2027','19 March 2027'));
+ await expect(comparison.locator('[data-switch-result]')).toContainText(t('140,00','140.00'));await expect(comparison.locator('[data-switch-result]')).toContainText(t('20. Februar 2027','20 February 2027'));
  await comparison.locator('[data-switch-result]').scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`pro-switch-${de?'de':'en'}-${width}.png`)});
  await comparison.getByRole('button',{name:t('Vergleich merken','Save comparison'),exact:true}).click();
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning.switchPlans[0].fee)).toBe(60);
@@ -38,7 +38,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`Pro invoice
  await proposals.getByRole('button',{name:t('Rechnungsbeträge eintragen','Record invoice amounts'),exact:true}).click();await expect(page.locator('[data-month-checklist]').getByRole('checkbox',{name:/^Electricity ·/})).toBeChecked();
  await page.reload();await homeWorkspace(page,'plan');await page.getByRole('group',{name:/Choose planning question|Planungsfrage wählen/}).getByRole('button',{name:/Find realistic savings|Realistisch sparen/}).click();
  await comparison.locator('summary').first().click();await comparison.getByText(t('Gemerkte Wechselvergleiche','Saved switch comparisons'),{exact:false}).click();await comparison.getByRole('button',{name:t('Vergleich öffnen','Open comparison'),exact:true}).click();
- await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toHaveValue('20');await expect(comparison.locator('[data-switch-result]')).toContainText(t('zuerst „Bis zum Gehalt“ aktualisieren','Update Until payday first'));
+ await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toHaveValue('20');await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toBeFocused();await expect(comparison.getByLabel(t('Einmalige Wechselgebühr','One-off switching fee'),{exact:true})).toHaveValue('60');await expect(comparison.locator('[data-switch-result]')).toContainText(t('zuerst „Bis zum Gehalt“ aktualisieren','Update Until payday first'));
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 test('incomplete forecasts guide to existing inputs and failed comparison writes keep the offer',async({page})=>{

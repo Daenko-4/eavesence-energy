@@ -31,9 +31,10 @@ export function useProInsights(input:ForecastInput,value:PlanningData|undefined,
   }
   function choose(id:string){setCostId(id);setAmount('');setFee('');setOverlap('');setStart(today);setError('');setNotice('');}
   function load(plan:SwitchPlan){
+    setNotice('');
     const current=choices.find(c=>c.id===plan.costId);
-    if(!current || current.amount!==plan.originalAmount || current.nextDueDate!==plan.anchor){setError(de?'Die Kostenbasis hat sich geändert. Wähle die Ausgabe für einen neuen Vergleich aus.':'The original cost changed. Select the cost to start a new comparison.');return;}
-    setCostId(plan.costId);setAmount(String(plan.newAmount));setFee(String(plan.fee));setOverlap(String(plan.overlapMonths));setStart(plan.start);setError('');setNotice('');
+    if(!current || current.amount!==plan.originalAmount || current.nextDueDate!==plan.anchor){setError(de?'Die Kostenbasis hat sich geändert. Wähle die Ausgabe für einen neuen Vergleich aus.':'The original cost changed. Select the cost to start a new comparison.');return false;}
+    setCostId(plan.costId);setAmount(String(plan.newAmount));setFee(String(plan.fee));setOverlap(String(plan.overlapMonths));setStart(plan.start);setError('');setNotice('');return true;
   }
   async function saveComparison(){
     if(!comparison||!selected){setError(de?'Bitte einen niedrigeren Betrag ab 0, einen Start ab heute und höchstens 12 doppelte Monate eingeben.':'Enter a lower non-negative amount, a start from today and at most 12 overlapping months.');return false;}
