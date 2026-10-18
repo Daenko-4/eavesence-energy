@@ -1756,10 +1756,19 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     ]);
   }
 
+  function navigatePlanQuestion(question: "payday" | "savings" | "progress") {
+    setPlanQuestion(question);
+    requestAnimationFrame(() => {
+      const section = document.getElementById("home-plan");
+      section?.querySelector("h1")?.focus({preventScroll: true});
+      section?.scrollIntoView({block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
+    });
+  }
+
   function confirmSaving(action: SavingsAction) {
-    const next=confirmSavingsChange(householdCosts,profile?.savingsActions??[],action,localToday());
+    const next=confirmSavingsChange(householdCosts,profile?.savingsActions??[],action,localToday(),profile?.planning);
     if(!profile)return;
-    persistHouseholdCosts(next.costs,{...profile,savingsActions:next.actions,updatedAt:new Date().toISOString()});
+    persistHouseholdCosts(next.costs,{...profile,savingsActions:next.actions,planning:next.planning,updatedAt:new Date().toISOString()});
   }
 
   function openIncomeForm() {
@@ -2393,7 +2402,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
             <div className="text-center">
               <p className="text-[11px] font-bold uppercase tracking-[.1em] text-[var(--brand-green)]">{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</p>
-              {view === "plan" && <h1 className="mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
+              {view === "plan" && <h1 tabIndex={-1} className="outline-none mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
             </div>
             <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="pro-question-navigation mt-6">
               {(["payday", "savings", "progress"] as const).map((item) => (
@@ -2402,7 +2411,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   key={item}
                   aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
                   aria-pressed={planQuestion === item}
-                  onClick={() => setPlanQuestion(item)}
+                  onClick={() => navigatePlanQuestion(item)}
                   className="pro-question-button"
                 >
                   <span>{item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
@@ -2411,12 +2420,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               ))}
             </div>
             <div hidden={planQuestion !== "payday"}>
-          <PaydayPanel onSavings={()=>setPlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+          <PaydayPanel onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
             </div>
             <div hidden={planQuestion === "payday"}>
           <SavingsPlanPanel
             key={`savings-plan-${profile.createdAt}`}
-            onNavigate={setPlanQuestion}
+            onNavigate={navigatePlanQuestion}
             section={planQuestion === "progress" ? "progress" : "savings"}
             advanced={homeRelease.advancedPlanning}
             locale={locale}

@@ -9,6 +9,7 @@ import {
   type HouseholdCostFrequency,
 } from "./householdCosts.ts";
 import { savingsActionKey, type SavingsAction } from "./savingsPlan.ts";
+import { readPlanningData, type PlanningData } from "./planning.ts";
 
 export const validDay = (v: unknown): v is string =>
   typeof v === "string" &&
@@ -353,13 +354,13 @@ export function savingsToDate(actions: SavingsAction[], today: string) {
       let cursor = a.effectiveMonth;
       while (cursor <= today.slice(0, 7)) {
         scheduled += paymentsForMonth([c], cursor)
-          .payments.filter((p) => p.date <= today && (!a.endedOn || p.date <= a.endedOn))
+          .payments.filter((p) => p.date <= today && (!a.savingsFrom || p.date >= a.savingsFrom) && !a.excludedDates?.includes(p.date) && (!a.endedOn || p.date <= a.endedOn))
           .reduce((sum, p) => sum + p.cost.amount, 0);
         const [y, m] = cursor.split("-").map(Number);
         cursor = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 7);
       }
     } else {
-      const start = Date.parse(`${a.effectiveMonth}-01`);
+      const start = Date.parse(a.savingsFrom && a.savingsFrom > `${a.effectiveMonth}-01` ? a.savingsFrom : `${a.effectiveMonth}-01`);
       estimated +=
         ((monthlyCost(a.originalAmount - a.newAmount, a.frequency) * 12) /
           365.25) *
@@ -373,12 +374,13 @@ export function confirmSavingsChange(
   actions: SavingsAction[],
   action: SavingsAction,
   today: string,
+  planning?: PlanningData,
 ) {
-  if (!actions.some(a=>savingsActionKey(a)===savingsActionKey(action))) throw new Error("ACTION_STALE");
+  if (!validDay(today) || !actions.some(a=>savingsActionKey(a)===savingsActionKey(action) && a.status === "planned" && a.originalAmount === action.originalAmount && a.newAmount === action.newAmount && a.effectiveMonth === action.effectiveMonth && a.frequency === action.frequency && (a.nextDueDate || "") === (action.nextDueDate || ""))) throw new Error("ACTION_STALE");
   if (action.status !== "planned" || action.effectiveMonth > today.slice(0, 7))
     throw new Error("ACTION_NOT_DUE");
   const cost = costs.find((c) => c.id === action.costId);
-  if(cost?.variableAmount)throw new Error("ACTION_STALE");
+  if(cost?.variableAmount || (cost && (cost.nextDueDate || "") !== (action.nextDueDate || "")))throw new Error("ACTION_STALE");
   const applied =
     (cost?.amount === action.newAmount && cost.frequency === action.frequency) || (!cost && action.newAmount === 0);
   if (
@@ -388,13 +390,32 @@ export function confirmSavingsChange(
       cost.frequency !== action.frequency)
   )
     throw new Error("ACTION_STALE");
+  const data = readPlanningData(planning);
+  const earlier = cost ? paymentsForMonth([cost], today.slice(0,7)).payments.filter(p => p.date < today).map(p => ({...p, month: today.slice(0,7)})) : [];
+  if (action.newAmount === 0 && earlier.some(p => !paymentIsPaid(resolvePayment(p, data.actualPayments), data.paidPayments ?? []))) throw new Error("ACTION_UNPAID_HISTORY");
+  // Keep paid occurrences at their paid price when the recurring price changes.
+  const paid = (data.paidPayments ?? []).filter(p => p.costId === action.costId && p.frequency === action.frequency && p.anchor === (cost?.nextDueDate || null));
+  const actualPayments = [...(data.actualPayments ?? [])];
+  for (const payment of earlier) {
+    if (!actualPayments.some(p => p.costId === payment.cost.id && p.month === payment.month && p.date === payment.date && p.frequency === payment.cost.frequency && p.anchor === (payment.cost.nextDueDate || null))) {
+      actualPayments.push({costId: payment.cost.id, month: payment.month, date: payment.date, frequency: payment.cost.frequency, anchor: payment.cost.nextDueDate || null, amount: payment.cost.amount, plannedAmount: payment.cost.amount, updatedAt: new Date().toISOString()});
+    }
+  }
+  for (const payment of paid) {
+    if (!actualPayments.some(p => p.costId === payment.costId && p.month === payment.month && p.date === payment.date && p.frequency === payment.frequency && p.anchor === payment.anchor)) {
+      actualPayments.push({...payment, plannedAmount: payment.amount || action.originalAmount, updatedAt: payment.paidAt});
+    }
+  }
   const confirmed = {
     ...action,
+    savingsFrom: today,
+    excludedDates: [...new Set([...paid, ...(data.actualPayments ?? []).filter(p => p.costId === action.costId && p.frequency === action.frequency && p.anchor === (cost?.nextDueDate || null))].flatMap(p => p.date ? [p.date] : []))],
     nextDueDate: action.nextDueDate || cost?.nextDueDate,
     status: "confirmed" as const,
     confirmedAt: new Date().toISOString(),
   };
   return {
+    planning: {...data, actualPayments, ...(data.cash ? {cash: {...data.cash, needsRefresh: true}} : {})},
     costs:
       action.newAmount === 0
         ? costs.filter((c) => c.id !== action.costId)

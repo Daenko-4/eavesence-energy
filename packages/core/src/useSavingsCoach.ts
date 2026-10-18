@@ -11,6 +11,7 @@ import {
   type SavingsPlanInput,
 } from "./savingsPlan.ts";
 import { monthlyCost, type HouseholdCost } from "./householdCosts.ts";
+import { savingsPaydayImpact } from "./proValue.ts";
 export function useSavingsCoach(
   input: SavingsPlanInput,
   actions: SavingsAction[],
@@ -28,6 +29,7 @@ export function useSavingsCoach(
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false), [justConfirmed, setJustConfirmed] = useState(false);
   const saving = useRef(false);
   const tasks = savingsReviewCandidates(input.costs, today)
     .filter(
@@ -41,7 +43,8 @@ export function useSavingsCoach(
         ),
     )
     .slice(0, 3);
-  const outdated = actions.filter(a => a.status === "planned" && !input.costs.some(c => !c.variableAmount && c.id === a.costId && c.amount === a.originalAmount && c.frequency === a.frequency));
+  const reviewable = input.costs.filter(c => !c.variableAmount);
+  const outdated = actions.filter(a => a.status === "planned" && !reviewable.some(c => c.id === a.costId && c.amount === a.originalAmount && c.frequency === a.frequency && (c.nextDueDate || "") === (a.nextDueDate || "")));
   const totals = savingsToDate(actions, today);
   async function run(work: () => void | Promise<void>) {
     if (saving.current) return false;
@@ -52,9 +55,11 @@ export function useSavingsCoach(
     try {
       await work();
       return true;
-    } catch {
+    } catch (error) {
       setError(
-        de
+        error instanceof Error && error.message === "ACTION_UNPAID_HISTORY"
+          ? de ? "Prüfe vor dem Beenden die früheren Zahlungen dieser Ausgabe in My Home und hake bezahlte Rechnungen ab. Offene Rechnungen dürfen nicht verschwinden." : "Before ending this cost, review its earlier payments in My Home and check off paid bills. Unpaid bills must not disappear."
+          : de
           ? "Speichern fehlgeschlagen oder Angaben inzwischen geändert. Bitte prüfen."
           : "Could not save or the entries have changed. Please review.",
       );
@@ -78,18 +83,20 @@ export function useSavingsCoach(
     const action = selected
       ? createSavingsAction(selected, parseMoney(amount, de ? "de" : "en"), effective)
       : null;
-    if (!action || actions.some(a=>a.costId===action.costId && a.status==="confirmed" && a.effectiveMonth>action.effectiveMonth)) {
+    if (!action || effective < today.slice(0,7) || actions.some(a=>a.costId===action.costId && a.status==="confirmed" && a.effectiveMonth>action.effectiveMonth)) {
       setError(
         de
-          ? "Neuen Betrag ab 0, kleiner als bisher, und einen Monat ab der letzten bestätigten Änderung eingeben."
-          : "Enter a non-negative amount lower than before and a month from the last confirmed change onwards.",
+          ? "Neuen Betrag ab 0, kleiner als bisher, und den aktuellen oder einen späteren Monat eingeben."
+          : "Enter a non-negative amount lower than before and the current or a later month.",
       );
       return;
     }
     return run(async () => {
       await onActions(upsertSavingsPlan(actions, action));
       setSelected(null);
-      setNotice(de ? "Änderung vorgemerkt. Deine Kosten bleiben bis zur Bestätigung unverändert." : "Change planned. Your costs stay unchanged until you confirm it happened.");
+      setDetailsOpen(true);
+      setJustConfirmed(false);
+      setNotice(de ? "Vorhaben gespeichert. Sobald es umgesetzt ist, bestätige es unten. Bis dahin bleiben deine Kosten unverändert." : "Plan saved. Once it happens, confirm it below. Until then your costs stay unchanged.");
     });
   }
   function later(c: HouseholdCost) {
@@ -107,8 +114,11 @@ export function useSavingsCoach(
     );
   }
   const candidate = selected ? createSavingsAction(selected, parseMoney(amount, de ? "de" : "en"), effective) : null;
-  const preview = candidate ? compareSavingsActions(input, [candidate]) : null;
+  const preview = candidate ? compareSavingsActions(input, [{...candidate, savingsFrom: today, excludedDates: [...(p.paidPayments ?? []), ...(p.actualPayments ?? [])].filter(row=>row.costId===candidate.costId && row.frequency===candidate.frequency && row.anchor===(candidate.nextDueDate||null)).flatMap(row=>row.date?[row.date]:[])}]) : null;
   return {
+    detailsOpen, setDetailsOpen, justConfirmed, reviewable,
+    cashImpact: candidate ? savingsPaydayImpact(input, p, candidate, today) : null,
+    planned: actions.filter(a => a.status === "planned"),
     notice,
     plannedMonthly: actions.filter(a => a.status === "planned" && !outdated.includes(a)).reduce((sum,a) => sum + monthlyCost(a.originalAmount-a.newAmount,a.frequency),0),
     confirmedMonthly: actions.filter(a => a.status === "confirmed" && (!a.endedOn || a.endedOn > today)).reduce((sum,a) => sum + monthlyCost(a.originalAmount-a.newAmount,a.frequency),0),
@@ -128,7 +138,7 @@ export function useSavingsCoach(
     later,
     today,
     cancel: () => setSelected(null),
-    confirm: (a: SavingsAction) => run(async () => { await onConfirm(a); setNotice(de ? "Umsetzung bestätigt und laufende Kosten aktualisiert. Die Ersparnis findest du unter Erspart." : "Change confirmed and recurring costs updated. Find the savings under Saved."); }),
+    confirm: (a: SavingsAction) => run(async () => { await onConfirm(a); setJustConfirmed(true); setNotice(de ? "Umsetzung bestätigt, Kosten aktualisiert. Die Ersparnis zählt ab heute zu den passenden Zahlungsterminen; bereits bezahlte Rechnungen bleiben ausgenommen." : "Change confirmed, costs updated. Savings count from today on the relevant payment dates; bills already paid are excluded."); }),
     discard: (a: SavingsAction) =>
       run(() => onActions(actions.filter((item) => savingsActionKey(item) !== savingsActionKey(a)))),
   };

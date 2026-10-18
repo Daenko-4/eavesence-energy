@@ -1,4 +1,5 @@
 "use client";
+import { useRef } from "react";
 import { savingsActionKey } from "@eavesence/core/savingsPlan";
 import { nextSavingsPayment } from "@eavesence/core/proValue";
 import { useSavingsCoach } from "@eavesence/core/useSavingsCoach";
@@ -35,7 +36,7 @@ export default function SavingsCoach({
   onActions: (a: SavingsAction[]) => void | Promise<void>;
   onConfirm: (a: SavingsAction) => void | Promise<void>;
   onReview: (c: HouseholdCost) => void;
-  onNavigate?: (question: "savings" | "progress") => void;
+  onNavigate?: (question: "payday" | "savings" | "progress") => void;
   currency: string;
   mode?: "all" | "opportunities" | "progress";
   locale: "de" | "en";
@@ -61,18 +62,27 @@ export default function SavingsCoach({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   const cadence = (frequency: HouseholdCost["frequency"]) => (de ? {weekly:"pro Woche",monthly:"pro Monat",quarterly:"alle 3 Monate","half-yearly":"alle 6 Monate",yearly:"pro Jahr"} : {weekly:"per week",monthly:"per month",quarterly:"every 3 months","half-yearly":"every 6 months",yearly:"per year"})[frequency];
+  const changes = useRef<HTMLDetailsElement>(null), confirmedResult = useRef<HTMLDivElement>(null);
+  async function confirmAndReveal(action: SavingsAction) { if (await p.confirm(action)) requestAnimationFrame(()=>{confirmedResult.current?.scrollIntoView({block:"center",behavior:"instant"});confirmedResult.current?.querySelector("button")?.focus({preventScroll:true});}); }
+  function reviewPlans() { p.setDetailsOpen(true); requestAnimationFrame(() => { changes.current?.scrollIntoView({block:"center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"}); changes.current?.querySelector("summary")?.focus({preventScroll:true}); }); }
   const nextSaving = nextSavingsPayment(actions,p.today);
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
     <section
-      className="mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"
+      className={mode === "opportunities" ? "mt-5 min-w-0" : "mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"}
       aria-label={mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
     >
       <h3 className="site-card-title">
         {mode === "progress" ? t("Deine bestätigte Ersparnis", "Your confirmed savings") : t("Welche Kosten möchtest du senken?", "Which cost would you like to lower?")}
       </h3>
       {mode !== "progress" && <p className="mt-1 text-[13px] text-[#52605b]">{t("Starte mit dem Vorschlag oder wähle einen anderen Kostenposten.", "Start with the suggestion or choose another cost.")}</p>}
-      {mode !== "progress" && p.plannedMonthly > 0 && <div className="mt-3 rounded-xl bg-[#eefbf3] p-3 text-[13px]"><p className="font-semibold">{t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: {money(p.plannedMonthly)} {t("pro Monat", "per month")}</p><p className="mt-1">{t("Noch nicht erreicht. Bestätige jede Änderung erst nach der Umsetzung.", "Not achieved yet. Confirm each change only after it happens.")}</p></div>}
+      {mode !== "progress" && p.planned.length > 0 && <div className="mt-3 rounded-xl border border-[#bfd3c5] bg-[#f4f6f2] p-4 text-[13px]" data-pro-next-step>
+        <p className="font-semibold">{t("Dein nächster Schritt", "Your next step")}: {t("Vorhaben umsetzen", "Put your plan into action")}</p>
+        <p className="mt-1">{p.planned[0].name}{p.planned.length > 1 ? ` + ${p.planned.length - 1}` : ""}{p.plannedMonthly > 0 ? ` · ${t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: ${money(p.plannedMonthly)} ${t("pro Monat im Durchschnitt", "per month on average")}` : ""}</p>
+        <p className="mt-1 text-[#52605b]">{t("Erst Tarif ändern oder kündigen. Bestätige danach die Umsetzung – vorher zählt nichts als eingespart.", "Change the plan or cancel the cost first. Then confirm it happened — nothing counts as saved beforehand.")}</p>
+        <button type="button" className={`${button} mt-3`} onClick={reviewPlans}>{t("Vorgemerkte Änderung prüfen", "Review planned change")}</button>
+      </div>}
+      {p.justConfirmed && mode !== "progress" && onNavigate && <div ref={confirmedResult} className="mt-3 rounded-xl bg-[#eefbf3] p-4 text-[13px]"><p className="font-semibold">{t("Jetzt siehst du, wann die Ersparnis zählt.", "Now see when the saving counts.")}</p><button type="button" className={`${button} mt-3`} onClick={()=>onNavigate("progress")}>{t("Ergebnis ansehen", "See the result")}</button></div>}
       {p.notice && <p role="status" className="mt-3 text-[13px] text-[#087a45]">{p.notice}</p>}
       {mode === "progress" && !shownActions.length && <p className="mt-3 text-[13px] text-[#52605b]">{t("Noch keine bestätigte Ersparnis. Plane eine konkrete Kostenänderung und bestätige sie erst nach der Umsetzung.", "No confirmed savings yet. Plan a specific cost change and confirm it after it happens.")}</p>}
       {p.outdated.some(a => shownActions.includes(a)) && (
@@ -110,7 +120,7 @@ export default function SavingsCoach({
           )}
         </p>
       )}
-      {mode !== "progress" && input.costs.length > 0 && <p className="mt-4 text-[13px] font-semibold">{t("1 · Kostenposten auswählen", "1 · Choose one cost")}</p>}
+      {mode !== "progress" && p.reviewable.length > 0 && <p className="mt-4 text-[13px] font-semibold">{t("1 · Kostenposten auswählen", "1 · Choose one cost")}</p>}
       <div className="mt-3 grid max-w-lg items-start gap-3">
         {(mode === "progress" || p.selected ? [] : p.tasks.slice(0,1)).map((c) => (
           <article
@@ -131,13 +141,13 @@ export default function SavingsCoach({
           </article>
         ))}
       </div>
-      {mode !== "progress" && input.costs.length > 0 && <label className="mt-4 grid max-w-lg gap-1 text-[13px] font-semibold">{t("Kostenänderung testen · Kosten auswählen", "Test a cost change · choose a cost")}<select className={field} value={p.selected?.id ?? ""} onChange={e => {const cost=input.costs.find(c=>c.id===e.target.value);if(cost)p.choose(cost);else p.cancel();}}><option value="">{t("Kosten auswählen", "Choose a cost")}</option>{input.costs.map(c=><option key={c.id} value={c.id}>{c.name} · {money(c.amount)}</option>)}</select></label>}
+      {mode !== "progress" && p.reviewable.length > 0 && <label className="mt-4 grid max-w-lg gap-1 text-[13px] font-semibold">{t("Kostenänderung testen · Kosten auswählen", "Test a cost change · choose a cost")}<select className={field} value={p.selected?.id ?? ""} onChange={e => {const cost=input.costs.find(c=>c.id===e.target.value);if(cost)p.choose(cost);else p.cancel();}}><option value="">{t("Kosten auswählen", "Choose a cost")}</option>{p.reviewable.map(c=><option key={c.id} value={c.id}>{c.name} · {money(c.amount)}</option>)}</select></label>}
       {mode !== "progress" && p.selected && <p className="mt-4 text-[13px] font-semibold">{t("2 · Neuen Betrag prüfen und vormerken", "2 · Check a new amount and save the plan")}</p>}
       {mode !== "progress" && p.selected && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            void p.plan();
+            void p.plan().then(saved => { if (saved) reviewPlans(); });
           }}
           className="mt-3 grid gap-3 rounded-xl bg-[#eefbf3] p-3 sm:grid-cols-2"
         >
@@ -161,6 +171,7 @@ export default function SavingsCoach({
             {t("Wirksam ab Monat", "Effective from month")}
             <input
               type="month"
+              min={p.today.slice(0,7)}
               className={field}
               value={p.effective}
               onChange={(e) => p.setEffective(e.target.value)}
@@ -172,7 +183,12 @@ export default function SavingsCoach({
               "This starts as a plan. Your recurring costs change only after you confirm it happened.",
             )}
           </p>
-          {p.preview && <p role="status" className="rounded-xl bg-white p-3 text-[13px] sm:col-span-2">{t("In den nächsten 12 Planungsmonaten voraussichtlich", "Estimated over the next 12 planning months")}: <strong>{money(p.preview.totalDifference)}</strong> {t("weniger Ausgaben. Zahlungstermine und Startmonat sind berücksichtigt. Noch keine bestätigte Ersparnis.", "lower spending. Payment dates and the start month are included. This is not a confirmed saving yet.")}</p>}
+          {p.preview && <div className="rounded-xl border border-[#cddbd0] bg-white p-3 text-[13px] sm:col-span-2" data-pro-payday-impact>
+            <p className="font-semibold">{t("Hilft das schon bis zum nächsten Gehalt?", "Will this help before your next payday?")}</p>
+            {p.cashImpact ? <><p className="mt-2">{t("Zusätzlich verfügbar", "Extra money available")}: {money(p.cashImpact.before)} → <strong>{money(p.cashImpact.after)}</strong></p><p className="mt-1 text-[#52605b]">{p.cashImpact.saving > 0 ? t(`Wenn die Änderung rechtzeitig umgesetzt wird: ${money(p.cashImpact.saving)} mehr bis zum Gehalt.`, `If the change happens in time: ${money(p.cashImpact.saving)} more until payday.`) : t("Bis zu diesem Gehalt ändert sich nichts. Bezahlte und bekannte Rechnungen bleiben gleich; spätere Termine zählen danach.", "No change before this payday. Paid and existing invoices stay the same; later payment dates count afterwards.")}</p></> : <><p className="mt-2 text-[#52605b]">{t("Für diesen Vergleich fehlen aktuelle Angaben unter „Bis zum Gehalt“. Dein Vorhaben kannst du trotzdem speichern.", "This comparison needs current entries under Until payday. You can still save your plan.")}</p></>}
+            <p className="mt-2 text-[#52605b]">{t("Vorschau – dein Kontostand und deine Kosten bleiben unverändert.", "Preview — your balance and costs stay unchanged.")}</p>
+          </div>}
+          {p.preview && <p role="status" className="rounded-xl bg-white p-3 text-[13px] sm:col-span-2">{t("In den nächsten 12 Planungsmonaten voraussichtlich", "Estimated over the next 12 planning months")}: <strong>{money(p.preview.totalDifference)}</strong> {t("weniger Ausgaben. Noch keine bestätigte Ersparnis.", "lower spending. Not a confirmed saving yet.")}</p>}
           <div className="flex flex-wrap gap-2">
             <button type="submit" className={button} disabled={p.busy}>
               {t("Änderung vormerken", "Save this plan")}
@@ -186,6 +202,7 @@ export default function SavingsCoach({
       {mode !== "progress" && shownActions.length > 0 && <p className="mt-4 text-[13px] font-semibold">{t("3 · Erst nach der Umsetzung bestätigen", "3 · Confirm only after it happens")}</p>}
       {shownActions.length > 0 && (
         <details
+          ref={changes} open={p.detailsOpen} onToggle={e=>p.setDetailsOpen(e.currentTarget.open)}
           className="home-disclosure mt-3 rounded-xl border border-[#dfe5dd] p-3"
         >
           <summary className="cursor-pointer text-[13px] font-bold">
@@ -216,6 +233,7 @@ export default function SavingsCoach({
                         "Planned, no confirmed saving yet",
                       )}
               </p>
+              {a.status === "planned" && a.effectiveMonth > p.today.slice(0,7) && <p className="mt-2 text-[#52605b]">{t("Bestätigen ist ab dem gewählten Monat möglich. Bis dahin bleiben deine laufenden Kosten unverändert.", "Confirmation becomes available in the chosen month. Your recurring costs stay unchanged until then.")}</p>}
               {a.endedOn && <p className="mt-2 text-[#52605b]">{t("Historie: bis", "History: until")} {a.endedOn}. {t("Spätere Kostenänderung; bisherige Ersparnis bleibt erhalten.", "Later cost change; earlier savings are preserved.")}</p>}
               {p.outdated.includes(a) && input.costs.some(c => c.id === a.costId) && (
                 <button
@@ -254,7 +272,7 @@ export default function SavingsCoach({
                           ),
                         )
                       )
-                        void p.confirm(a);
+                        void confirmAndReveal(a);
                     }}
                   >
                     {t(
@@ -269,6 +287,7 @@ export default function SavingsCoach({
       {mode === "progress" && p.confirmedMonthly > 0 && <p className="mt-2 text-[13px] text-[#52605b]">{t("Deine bestätigten Änderungen senken die laufenden Kosten durchschnittlich um", "Your confirmed changes reduce recurring costs by an average of")} {money(p.confirmedMonthly)} {t("pro Monat. Das ist kein zusätzlich bereits angesparter Betrag.", "per month. This is not extra money already saved.")}</p>}
         </details>
       )}
+      {mode === "progress" && onNavigate && <button type="button" className={`${button} mt-3 mr-2`} onClick={()=>onNavigate("payday")}>{t("Geld bis zum Gehalt neu prüfen", "Review your money until payday")}</button>}
       {onNavigate && mode !== "all" && <button type="button" className={`${button} mt-3`} onClick={() => onNavigate(mode === "progress" ? "savings" : "progress")}>{mode === "progress" ? t("Eine Sparmöglichkeit prüfen", "Review a savings opportunity") : t("Erreichte Ersparnis ansehen", "View achieved savings")}</button>}
       {p.error && (
         <p role="alert" className="mt-2 text-[13px] text-red-700">

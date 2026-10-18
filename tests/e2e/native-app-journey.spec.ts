@@ -280,3 +280,35 @@ for(const locale of ['de','en'])test(`native payday links open payments and requ
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning.paidPayments.length)).toBe(1);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+
+for(const locale of ['de','en'])for(const width of [320,390])test(`native connected Pro journey ${locale} ${width}`,async({page},info)=>{
+ const t=(a:string,b:string)=>locale==='de'?a:b;
+ await page.clock.setFixedTime(new Date('2026-10-13T12:00:00Z'));
+ await show(page,locale,width,true);
+ await page.evaluate(()=>{
+  const p=JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!);
+  p.planning={cash:{balance:1000,asOf:'2026-10-13',payday:'2026-10-31',protected:100,everydayRemaining:200}};
+  localStorage.setItem('eavesence-mobile-profile-v1',JSON.stringify(p));
+  localStorage.setItem('eavesence-mobile-costs-v1',JSON.stringify([{id:'internet',name:'Internet',amount:40,category:'subscriptions',frequency:'monthly',nextDueDate:'2026-10-19',updatedAt:'2026-10-13T08:00:00Z'}]));
+ });await mountApp(page,locale);
+ await page.getByRole('tab',{name:'Plan',exact:true}).click();
+ await page.getByRole('button',{name:t('Nächster Schritt: Kosten senken','Next step: lower a cost'),exact:true}).click();
+ await page.getByRole('button',{name:t('Änderung planen','Plan change'),exact:true}).click();
+ await page.getByRole('textbox',{name:t('Neuer Betrag je Zahlung (0 = fällt weg)','New amount per payment (0 = ends)'),exact:true}).fill('30');
+ await expect(page.getByText(/660.*670/)).toBeVisible();
+ await page.screenshot({path:info.outputPath(`native-connected-preview-${locale}-${width}.png`)});
+ await page.getByRole('button',{name:t('Änderung vormerken','Save this plan'),exact:true}).click();
+ const disclosure=page.getByRole('button',{name:new RegExp('^'+t('Vorgemerkte Änderungen','Planned changes'))});
+ await expect(disclosure).toHaveAttribute('aria-expanded','true');
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!)[0].amount)).toBe(40);
+ await disclosure.click();await page.getByRole('button',{name:t('Vorgemerkte Änderung prüfen','Review planned change'),exact:true}).click();
+ await expect(disclosure).toHaveAttribute('aria-expanded','true');
+ await page.getByRole('button',{name:t('Umgesetzt – Kosten aktualisieren','Done — update costs'),exact:true}).click();
+ await alertAction(page,1);
+ await page.getByRole('button',{name:t('Ergebnis ansehen','See the result'),exact:true}).click();
+ await expect(page.getByText(t('Nächste berechnete Ersparnis','Next calculated saving'),{exact:false})).toContainText(t('19. Oktober','19 October'));
+ await page.screenshot({path:info.outputPath(`native-connected-result-${locale}-${width}.png`)});
+ await page.getByRole('button',{name:t('Geld bis zum Gehalt neu prüfen','Review your money until payday'),exact:true}).click();
+ await expect(page.getByText(t('Kontostand bestätigen','Confirm account balance'),{exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning.cash.needsRefresh)).toBe(true);
+});
