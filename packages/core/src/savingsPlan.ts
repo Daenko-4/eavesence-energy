@@ -23,9 +23,13 @@ export type SavingsAction = {
   status: "planned" | "confirmed";
   confirmedAt?: string;
   nextDueDate?: string;
+  /** New confirmations never infer savings before implementation. */
+  savingsFrom?: string;
+  excludedDates?: string[];
 };
 
 const validMonth = (value: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+const validDate = (value: unknown): value is string => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0,10) === value;
 
 export function createSavingsAction(cost: HouseholdCost, newAmount: number, effectiveMonth: string): SavingsAction | null {
   if (cost.variableAmount || !validMonth(effectiveMonth) || !Number.isFinite(newAmount) || newAmount < 0 || newAmount >= cost.amount) return null;
@@ -38,6 +42,8 @@ export function readSavingsActions(value: unknown): SavingsAction[] {
     (item.id === undefined || (typeof item.id === "string" && item.id.length > 0)) &&
     (item.endedOn === undefined || (typeof item.endedOn === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.endedOn) && Number.isFinite(Date.parse(item.endedOn)) && new Date(`${item.endedOn}T00:00:00Z`).toISOString().slice(0,10) === item.endedOn)) &&
     typeof item.costId === "string" && item.costId.length > 0 &&
+    (item.savingsFrom === undefined || validDate(item.savingsFrom)) &&
+    (item.excludedDates === undefined || (Array.isArray(item.excludedDates) && item.excludedDates.length <= 5000 && item.excludedDates.every(validDate))) &&
     typeof item.name === "string" && item.name.trim().length > 0 &&
     ["weekly", "monthly", "quarterly", "half-yearly", "yearly"].includes(item.frequency) &&
     typeof item.originalAmount === "number" && Number.isFinite(item.originalAmount) && item.originalAmount > 0 &&
@@ -65,18 +71,17 @@ export function compareSavingsActions(input: SavingsPlanInput, actions: SavingsA
   const baseline = createSavingsPlan(input);
   if (!baseline) return null;
   const valid = readSavingsActions(actions).filter((action) =>
-    input.costs.some((cost) => !cost.variableAmount && cost.id === action.costId && cost.amount === action.originalAmount));
+    input.costs.some((cost) => !cost.variableAmount && cost.id === action.costId && cost.amount === action.originalAmount && cost.frequency === action.frequency && (cost.nextDueDate || "") === (action.nextDueDate || "")));
   const unique = valid.filter((action, index) => valid.findIndex((item) => item.costId === action.costId) === index);
   const months = baseline.months.map((month) => {
-    const changed = input.costs.map((cost) => {
-      const action = unique.find((item) => item.costId === cost.id && item.effectiveMonth <= month.month);
-      return action ? { ...cost, amount: action.newAmount } : cost;
-    }).filter((cost) => cost.amount > 0);
-    const dated = paymentsForMonth(changed, month.month).total;
-    const undated = changed.filter((cost) => !cost.nextDueDate)
-      .reduce((sum, cost) => sum + monthlyCost(cost.amount, cost.frequency), 0);
-    const fixed = dated + undated;
-    const saved = month.fixed - fixed;
+    const saved = unique.filter(action => action.effectiveMonth <= month.month).reduce((sum, action) => {
+      const cost = input.costs.find(c => c.id === action.costId)!;
+      const delta = action.originalAmount - action.newAmount;
+      if (!cost.nextDueDate) return sum + (action.savingsFrom && month.month < action.savingsFrom.slice(0,7) ? 0 : monthlyCost(delta, cost.frequency));
+      const dates = paymentsForMonth([cost], month.month).payments.filter(p => (!action.savingsFrom || p.date >= action.savingsFrom) && !action.excludedDates?.includes(p.date));
+      return sum + dates.length * delta;
+    }, 0);
+    const fixed = month.fixed - saved;
     return { ...month, fixed, remaining: month.remaining + saved, afterGoal: month.afterGoal + saved, saved };
   });
   return {

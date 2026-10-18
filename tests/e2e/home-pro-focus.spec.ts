@@ -318,3 +318,36 @@ for (const de of [false, true]) {
     });
   }
 }
+
+for (const de of [false, true]) for (const width of [320,390,1365]) test(`connected Pro journey preserves proposals and counts savings on payment dates ${de?'de':'en'} ${width}`, async({page},info)=>{
+  const t=(a:string,b:string)=>de?a:b;
+  await page.setViewportSize({width,height:900});await seed(page,de);
+  await page.evaluate(()=>{
+    const p=JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);
+    p.planning={cash:{balance:1000,asOf:'2026-10-13',payday:'2026-10-31',protected:100,everydayRemaining:200}};
+    localStorage.setItem('eavesence-home-profile-v1',JSON.stringify(p));
+  });await page.reload();await homeWorkspace(page,'plan');
+  await page.getByRole('button',{name:t('Nächster Schritt: Kosten senken','Next step: lower a cost'),exact:true}).click();
+  const coach=page.getByRole('region',{name:t('02 · Wo kann ich realistisch sparen?','02 · Where can I realistically save?')});
+  await coach.getByLabel(t('Kostenänderung testen · Kosten auswählen','Test a cost change · choose a cost')).selectOption('internet');
+  await coach.getByLabel(t('Neuer Betrag je Zahlung (0 = fällt weg)','New amount per payment (0 = ends)')).fill('30');
+  await expect(coach.locator('[data-pro-payday-impact]')).toContainText(t('660,00','660.00'));
+  await expect(coach.locator('[data-pro-payday-impact]')).toContainText(t('670,00','670.00'));
+  await coach.locator('[data-pro-payday-impact]').scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`connected-pro-preview-${de?'de':'en'}-${width}.png`)});
+  await coach.getByRole('button',{name:t('Änderung vormerken','Save this plan'),exact:true}).click();
+  const plans=coach.locator('details').filter({has:page.locator('summary').filter({hasText:t('Vorgemerkte Änderungen','Planned changes')})});
+  await expect(plans).toHaveAttribute('open','');
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!)[0].amount)).toBe(40);
+  await plans.locator('summary').click();
+  await coach.getByRole('button',{name:t('Vorgemerkte Änderung prüfen','Review planned change'),exact:true}).click();
+  await expect(plans).toHaveAttribute('open','');
+  await page.screenshot({path:info.outputPath(`connected-pro-action-${de?'de':'en'}-${width}.png`)});
+  page.once('dialog',d=>void d.accept());await plans.getByRole('button',{name:t('Umgesetzt – Kosten aktualisieren','Done — update costs'),exact:true}).click();
+  await coach.getByRole('button',{name:t('Ergebnis ansehen','See the result'),exact:true}).click();
+  const progress=page.getByRole('region',{name:t('03 · Was habe ich tatsächlich eingespart?','03 · What have I actually saved?')});
+  await expect(progress).toContainText(t('0,00','0.00'));await expect(progress).toContainText(t('19. Oktober','19 October'));
+  await progress.getByRole('button',{name:t('Geld bis zum Gehalt neu prüfen','Review your money until payday'),exact:true}).click();
+  await expect(page.locator('[data-payday-state]')).toHaveAttribute('data-payday-state','stale');
+  await expect(page.locator('[data-payday-result]')).toHaveCount(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});

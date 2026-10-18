@@ -1757,9 +1757,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function confirmSaving(action: SavingsAction) {
-    const next=confirmSavingsChange(householdCosts,profile?.savingsActions??[],action,localToday());
+    const next=confirmSavingsChange(householdCosts,profile?.savingsActions??[],action,localToday(),profile?.planning);
     if(!profile)return;
-    persistHouseholdCosts(next.costs,{...profile,savingsActions:next.actions,updatedAt:new Date().toISOString()});
+    persistHouseholdCosts(next.costs,{...profile,savingsActions:next.actions,planning:next.planning,updatedAt:new Date().toISOString()});
   }
 
   function openIncomeForm() {

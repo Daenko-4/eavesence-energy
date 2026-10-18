@@ -4,6 +4,18 @@ import { resolvePayment, paymentIsPaid } from './paymentChecklist.ts';
 import { monthsBetween, readPlanningData, shiftPlanningMonth, type PlanningData } from './planning.ts';
 import type { SavingsAction, SavingsPlanInput } from './savingsPlan.ts';
 
+/** Preview only. A proposal never changes the stored balance or payment checklist. */
+export function savingsPaydayImpact(input: SavingsPlanInput, value: PlanningData | undefined, action: SavingsAction, today=localToday()) {
+  const data = readPlanningData(value);
+  const cost = input.costs.find(c => c.id === action.costId);
+  if (!cost || cost.variableAmount || cost.amount !== action.originalAmount || cost.frequency !== action.frequency || (cost.nextDueDate || '') !== (action.nextDueDate || '') || !Number.isFinite(action.newAmount) || action.newAmount < 0 || action.newAmount >= action.originalAmount) return null;
+  const forecast = paydayForecast(input.costs, data.cash, input.variableMonthly, today, data.paidPayments, data.actualPayments);
+  if (!forecast || forecast.remaining === null || forecast.missingDates) return null;
+  const affected = forecast.payments.filter(p => p.cost.id === action.costId && p.date >= today && p.date.slice(0,7) >= action.effectiveMonth && !(data.actualPayments ?? []).some(a => a.costId === p.cost.id && a.month === p.month && a.date === p.date && a.frequency === p.cost.frequency && a.anchor === (p.cost.nextDueDate || null)));
+  const saving = Math.round(affected.reduce((sum,p) => sum + Math.max(0,p.cost.amount - action.newAmount),0) * 100) / 100;
+  return {before: forecast.remaining, after: forecast.remaining + saving, saving, payday: data.cash!.payday};
+}
+
 export function upcomingBillReserves(costs: HouseholdCost[], value: PlanningData | undefined, today=localToday()) {
   const data=readPlanningData(value);
   return costs.filter(c=>['quarterly','half-yearly','yearly'].includes(c.frequency)).map(cost=>{
@@ -41,7 +53,7 @@ export function nextSavingsPayment(actions: SavingsAction[], today=localToday())
     for(let i=0;i<13;i++) {
       const month=shiftPlanningMonth(today.slice(0,7),i);
       if(month<a.effectiveMonth) continue;
-      const payment=paymentsForMonth([cost],month).payments.find(p=>p.date>today);
+      const payment=paymentsForMonth([cost],month).payments.find(p=>p.date>today && (!a.savingsFrom || p.date >= a.savingsFrom) && !a.excludedDates?.includes(p.date));
       if(payment){upcoming.push({date:payment.date,amount:payment.cost.amount});break;}
     }
   }

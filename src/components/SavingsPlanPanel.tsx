@@ -14,7 +14,7 @@ import SavingsActionsPanel from "@/components/SavingsActionsPanel";
 
 type Props = {
   section?: "savings" | "progress";
-  onNavigate?: (question: "savings" | "progress") => void;
+  onNavigate?: (question: "payday" | "savings" | "progress") => void;
   advanced?: boolean;
   locale: Locale;
   currency: string;
@@ -66,7 +66,7 @@ export default function SavingsPlanPanel({ section, onNavigate, advanced = true,
     } catch { setError(de ? "Speichern fehlgeschlagen. Deine Eingaben bleiben erhalten." : "Could not save. Your entries have been kept."); }
     finally { saving.current = false; setBusy(false); }
   }
-  if (section === "progress") return <section className="mt-5"><ProTools progressOnly locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/><SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/></section>;
+  if (section === "progress") return <section className="mt-5"><SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/><ProTools progressOnly locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/></section>;
   return <section id="savings-plan" className="mt-5 rounded-[1.45rem] border border-[#dfe5dd] bg-white p-5 sm:p-6" data-pro-savings>
     {section && <><h2 className="site-section-title">{de ? "Kosten senken" : "Lower your costs"}</h2><p className="mt-2 text-[13px] leading-5 text-[#52605b]">{de ? "Vergleiche einen echten neuen Preis. Bestätige die Ersparnis erst nach der Umsetzung." : "Compare a real new price. Confirm the saving only after the change happens."}</p></>}
     {result && <>

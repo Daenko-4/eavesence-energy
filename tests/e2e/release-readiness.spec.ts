@@ -32,7 +32,7 @@ for(const de of [false,true])for(const width of [390,1365])test(`free overview t
  const progress=page.getByRole('region',{name:de?'03 · Was habe ich tatsächlich eingespart?':'03 · What have I actually saved?'});
  await expect(progress).toContainText(de?'Noch keine bestätigte Ersparnis':'No confirmed savings yet');
  await progress.getByRole('button',{name:de?'Eine Sparmöglichkeit prüfen':'Review a savings opportunity'}).click();
- await coach.getByText(de?/Vorgemerkte Änderungen/:/Planned changes/).click();page.once('dialog',d=>void d.accept());await coach.getByRole('button',{name:de?'Umgesetzt – Kosten aktualisieren':'Done — update costs'}).click();
+ const plannedDetails=coach.locator('details').filter({has:page.locator('summary').filter({hasText:de?'Vorgemerkte Änderungen':'Planned changes'})});if(!await plannedDetails.evaluate(el=>el.hasAttribute('open')))await plannedDetails.locator('summary').click();page.once('dialog',d=>void d.accept());await coach.getByRole('button',{name:de?'Umgesetzt – Kosten aktualisieren':'Done — update costs'}).click();
  await expect(coach).toContainText(de?'Umsetzung bestätigt':'Change confirmed');
  await coach.getByRole('button',{name:de?'Erreichte Ersparnis ansehen':'View achieved savings',exact:true}).click();
  await expect(progress).toContainText(de?'18,00':'18.00');await expect(progress).toContainText(de?'Zahlungstermine':'payment dates');
