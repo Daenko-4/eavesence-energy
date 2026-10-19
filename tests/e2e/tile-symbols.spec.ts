@@ -15,7 +15,7 @@ for(const de of [false,true])for(const width of [320,1365])test(`cost area icons
   await page.reload();
   async function areas(){
     await homeDetail(page, 'costs');
-    await page.getByText(de?'Kostenbereiche organisieren':'Organize cost areas',{exact:true}).click();
+    await expect(page.locator('[data-home-tiles]')).toBeVisible();
   }
   await areas();
   await page.getByRole('button',{name:de?'Neue Kachel':'New tile',exact:false}).click();

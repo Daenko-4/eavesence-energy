@@ -16,7 +16,7 @@ async function openCostManager(page: Page) {
 }
 async function openCostAreas(page: Page) {
   await openCostManager(page);
-  if (!await page.locator("[data-home-tiles]").isVisible()) await page.getByText(/^(Organize cost areas|Kostenbereiche organisieren)$/).click();
+  await expect(page.locator("[data-home-tiles]")).toBeVisible();
 }
 
 async function openEnergyTile(page: Page) {

@@ -238,7 +238,7 @@ for (const de of [false, true]) {
       await assertInset('#household-costs');
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       await page.screenshot({ path: info.outputPath(`inset-costs-${de ? 'de' : 'en'}-${width}.png`), fullPage: true });
-      const energyButton = page.locator('[data-cost-area-overview] nav').getByRole('button', { name: t('Strom & Geräte', 'Electricity & devices'), exact: true });
+      const energyButton = page.locator('[data-home-tiles] article').filter({ hasText: t('Strom & Geräte', 'Electricity & devices') }).getByRole('button').first();
       await energyButton.click();
       await assertInset('#home-devices');
       const goal = page.locator('[data-electricity-goal]');

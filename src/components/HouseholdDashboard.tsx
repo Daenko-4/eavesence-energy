@@ -191,7 +191,7 @@ const copy = {
     financeNoDates: "Trage bei Kosten ein Fälligkeitsdatum ein, um die nächsten Zahlungen zu sehen.",
     workspaceTitle: "Bereiche in deinem Zuhause",
     workspaceText:
-      "Nutze Kostenbereiche nur, wenn du deine Einträge gruppieren möchtest. Eine Liste reicht für den Start.",
+      "Wähle eine Kachel, um ihre Kosten anzusehen. Mit „Neue Kachel“ kannst du sie in eigene Bereiche gruppieren.",
     workspaceEmpty: "Lege deine erste Kachel an und wähle aus, welches Werkzeug sich dahinter verbergen soll.",
     addTile: "Neue Kachel",
     addTileHint: "Eigenen Bereich anlegen",
@@ -449,7 +449,7 @@ const copy = {
     financeNoDates: "Add due dates to your costs to see upcoming payments.",
     workspaceTitle: "Sections in your home",
     workspaceText:
-      "Use cost areas only if you want to group your entries. One list is enough to start.",
+      "Choose a tile to view its costs. Use “New tile” to group them into your own areas.",
     workspaceEmpty: "Create your first tile and choose which tool it should contain.",
     addTile: "New tile",
     addTileHint: "Create your own section",
@@ -1970,12 +1970,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <div className="px-4 pt-4 sm:px-5 sm:pt-5"><h2 id="home-costs-heading" className="site-card-title">{locale === "de" ? "Kosten verwalten" : "Manage costs"}</h2><p className="mt-1 text-[13px] text-[#65716d]">{locale === "de" ? "Gespeicherte Kosten, Bereiche & Import" : "Saved costs, areas & import"}</p></div>
           <div data-cost-manager-content className="p-4 sm:p-5">
           <div data-cost-area-overview>
-          <nav aria-label={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} className="flex flex-wrap gap-2 rounded-t-xl bg-[#24272c] px-4 pt-3 pb-2">{homeTiles.map(tile => <button type="button" key={tile.id} aria-pressed={activeTileId === tile.id} onClick={() => {setCostRequest(null);setActiveTileId(tile.id);}} className={`min-h-11 rounded-full border px-4 text-[12px] font-semibold ${activeTileId === tile.id ? "border-[#72dca3] bg-[#dcfce8] text-[#17211f]" : "border-[#65716d] text-white"}`}><span className="flex items-center gap-2"><TileSymbol icon={iconForTile(tile)}/>{tile.title ?? text.tileTitles[tile.kind]}</span></button>)}</nav>
-          <details className="home-disclosure home-cost-area-disclosure"><summary className="home-single-line-summary text-[13px] font-semibold"><span className="home-cost-area-control">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</span></summary>
-          <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
+          <section className="rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-3 sm:p-4" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
-              <h2 id="home-workspace-title" className={`mt-1 ${homeSectionTitleClass}`}>{text.workspaceTitle}</h2>
+              <h2 id="home-workspace-title" className={homeSectionTitleClass}>{text.workspaceTitle}</h2>
               <p className="mt-1 text-[13px] leading-6 text-[#65716d]">{text.workspaceText}</p>
             </div>
 
@@ -2047,7 +2044,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             )}
             {!homeTiles.some(tile => tile.kind === "energy") && <p className="mt-4 text-[11px] leading-relaxed text-[#65716d]">{locale === "de" ? "Stromkosten genauer ansehen?" : "Want to explore device electricity costs?"}{" "}<a href={locale === "de" ? "/de/rechner#rechner" : "/calculator#rechner"} className="eavesence-pill-link">{locale === "de" ? "Zum Stromrechner" : "Open energy calculator"}</a>{" "}{locale === "de" ? "Dort kannst du Geräte speichern und freiwillig als eigene Kachel übernehmen." : "Save devices there and optionally add them as a dedicated tile."}</p>}
           </section>
-          </details>
 
           </div>
 

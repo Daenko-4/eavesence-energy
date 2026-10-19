@@ -25,7 +25,7 @@ test('missing dates identify the cost and open its existing edit form', async ({
   await expect(page.locator('#household-costs')).toContainText('Edit');
 });
 
-test('calculator uses the home tariff and area navigation stays available when organizer is closed', async ({page}) => {
+test('calculator uses the home tariff and large tiles are the only cost-area selection', async ({page}) => {
   await page.goto('/home');
   await page.getByRole('button',{name:'Create my home',exact:true}).click();
   await page.evaluate(() => {
@@ -36,12 +36,18 @@ test('calculator uses the home tariff and area navigation stays available when o
   });
   await page.reload();
   await homeDetail(page, 'costs');
-  const areas=page.getByRole('navigation',{name:'Choose cost area',exact:true});
+  const areas=page.locator('[data-home-tiles]');
   await expect(areas).toBeVisible();
-  await areas.getByRole('button',{name:'Electricity',exact:true}).click();
-  await expect(areas.getByRole('button',{name:'Electricity',exact:true})).toHaveAttribute('aria-pressed','true');
-  await areas.getByRole('button',{name:'Household costs',exact:true}).click();
-  await expect(areas.getByRole('button',{name:'Household costs',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('[data-cost-area-overview] nav')).toHaveCount(0);
+  const energy=areas.locator('article').filter({hasText:'Electricity'}).getByRole('button').first();
+  const costs=areas.locator('article').filter({hasText:'Household costs'}).getByRole('button').first();
+  await energy.click();
+  await expect(energy).toHaveAttribute('aria-expanded','true');
+  await expect(page.locator('#home-devices')).toBeVisible();
+  await costs.click();
+  await expect(costs).toHaveAttribute('aria-expanded','true');
+  await expect(energy).toHaveAttribute('aria-expanded','false');
+  await expect(areas.getByRole('button',{name:/New tile/})).toBeVisible();
   await page.goto('/calculator');
   await expect(page.getByLabel('Electricity price',{exact:true})).toHaveValue('0.27');
 });
