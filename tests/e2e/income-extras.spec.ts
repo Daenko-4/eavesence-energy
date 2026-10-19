@@ -1,4 +1,4 @@
-import { homeWorkspace, homeDetail } from './home-navigation';
+import { homeWorkspace, homeDetail, planningPeriod } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
 for (const locale of ['de', 'en'] as const) {
@@ -54,7 +54,7 @@ for (const locale of ['de', 'en'] as const) {
 
       await homeWorkspace(page, 'plan');
       await page.getByRole('button', { name: 'Find realistic savings', exact: true }).click();
-      await page.getByRole('button', { name: 'Add a monthly budget (optional)', exact: true }).click();
+      await planningPeriod(page, 'budget');
       await page.getByLabel('Everyday spending per month (estimate)', { exact: true }).fill('500');
       await page.getByRole('button', { name: 'Save plan', exact: true }).click();
       await page.getByText('View 12 months', { exact: true }).click();

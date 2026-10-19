@@ -30,6 +30,7 @@ import PaydayPanel from '@/components/PaydayPanel';
 import {confirmSavingsChange,localToday} from '@eavesence/core/homeValue';
 import type {SavingsAction} from '@eavesence/core/savingsPlan';
 import SavingsPlanPanel from "@/components/SavingsPlanPanel";
+import PlanningNavigation, { type PlanningPeriod, type SavingsTool } from "@/components/PlanningNavigation";
 import HomeMemos from "@/components/HomeMemos";
 import MonthlyPayments from "@/components/MonthlyPayments";
 import HomeCoreOverview from "@/components/HomeCoreOverview";
@@ -788,6 +789,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [incomeError, setIncomeError] = useState("");
   const [view, setView] = useState<"overview" | "plan">("overview");
   useEffect(() => { window.dispatchEvent(new CustomEvent("eavesence:home-view", { detail: view })); }, [view]);
+  const [planTool,setPlanTool] = useState<SavingsTool>("change");
+  const [planPeriod, setPlanPeriod] = useState<PlanningPeriod>("payday");
   const [planQuestion, setPlanQuestion] = useState<"payday" | "savings" | "progress">("payday");
   const [name, setName] = useState(locale === "de" ? "Mein Zuhause" : "My home");
   const [currency, setCurrency] = useState<SavedDeviceCurrency>("EUR");
@@ -1779,6 +1782,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   function navigatePlanQuestion(question: "payday" | "savings" | "progress") {
     setPlanQuestion(question);
+    if (question === "payday") setPlanPeriod("payday");
+    if (question === "savings") setPlanTool("change");
     requestAnimationFrame(() => {
       const section = document.getElementById("home-plan");
       section?.querySelector("h1")?.focus({preventScroll: true});
@@ -2432,27 +2437,35 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <button
                   type="button"
                   key={item}
-                  aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
+                  aria-label={item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
                   aria-pressed={planQuestion === item}
                   onClick={() => navigatePlanQuestion(item)}
                   className="pro-question-button"
                 >
-                  <span>{item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
+                  <span>{item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
                   <span className="pro-question-description">{item === "payday" ? locale === "de" ? "Verfügbares Geld" : "Available money" : item === "savings" ? locale === "de" ? "Änderungen vergleichen" : "Compare changes" : locale === "de" ? "Fortschritt verfolgen" : "Track progress"}</span>
                 </button>
               ))}
             </div>
             <div hidden={planQuestion !== "payday"}>
+              <PlanningNavigation locale={locale} kind="period" value={planPeriod} onChange={setPlanPeriod}/>
+              <div hidden={planPeriod !== "payday"} data-planning-period="payday">
           <PaydayPanel onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+              </div>
+              <div hidden={planPeriod !== "forecast"} data-planning-period="forecast">
           <ProInsights mode="forecast" locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,incomeKnown:profile.incomeAmount!==undefined&&!profile.incomeDeferred,incomeIsAnnualAverage:incomeSummary.annualAverage,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:localToday().slice(0,7)}} data={profile.planning} onSave={planning=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} onApply={applyPlanSuggestion} onEveryday={variableMonthly=>persistProfile({...profile,variableMonthly,updatedAt:new Date().toISOString()})} onReview={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} onNavigate={navigatePlanQuestion} onEditIncome={openIncomeForm} onPayments={showInvoiceChecklist}/>
+              </div>
             </div>
-            <div hidden={planQuestion === "payday"}>
+            <div hidden={planQuestion === "payday" && planPeriod !== "budget"}>
           <SavingsPlanPanel
             key={`savings-plan-${profile.createdAt}`}
             onApplyPlanSuggestion={applyPlanSuggestion}
             onPayments={showInvoiceChecklist}
             onNavigate={navigatePlanQuestion}
-            section={planQuestion === "progress" ? "progress" : "savings"}
+            tool={planTool}
+            onTool={setPlanTool}
+            onBudget={() => {navigatePlanQuestion("payday");setPlanPeriod("budget");}}
+            section={planQuestion === "payday" ? "budget" : planQuestion === "progress" ? "progress" : "savings"}
             advanced={homeRelease.advancedPlanning}
             locale={locale}
             currency={profile.currency}

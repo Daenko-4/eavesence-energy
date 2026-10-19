@@ -1,4 +1,4 @@
-import { homeWorkspace } from './home-navigation';
+import { homeWorkspace, planningPeriod } from './home-navigation';
 import {test,expect,type Page} from '@playwright/test';
 async function seed(page:Page,de:boolean){
  await page.clock.install({time:new Date('2026-10-04T12:00:00Z')});
@@ -32,7 +32,7 @@ for(const de of [false,true])for(const width of [390,1365])test(`free overview t
  const progress=page.getByRole('region',{name:de?'03 · Was habe ich tatsächlich eingespart?':'03 · What have I actually saved?'});
  await expect(progress).toContainText(de?'Noch keine bestätigte Ersparnis':'No confirmed savings yet');
  await progress.getByRole('button',{name:de?'Eine Sparmöglichkeit prüfen':'Review a savings opportunity'}).click();
- const plannedDetails=coach.locator('details').filter({has:page.locator('summary').filter({hasText:de?'Vorgemerkte Änderungen':'Planned changes'})});if(!await plannedDetails.evaluate(el=>el.hasAttribute('open')))await plannedDetails.locator('summary').click();page.once('dialog',d=>void d.accept());await coach.getByRole('button',{name:de?'Umgesetzt – Kosten aktualisieren':'Done — update costs'}).click();
+ await expect(coach.locator('[data-savings-changes]')).toBeVisible();page.once('dialog',d=>void d.accept());await coach.getByRole('button',{name:de?'Umgesetzt – Kosten aktualisieren':'Done — update costs'}).click();
  await expect(coach).toContainText(de?'Umsetzung bestätigt':'Change confirmed');
  await coach.getByRole('button',{name:de?'Erreichte Ersparnis ansehen':'View achieved savings',exact:true}).click();
  await expect(progress).toContainText(de?'18,00':'18.00');await expect(progress).toContainText(de?'Zahlungstermine':'payment dates');
@@ -41,7 +41,7 @@ for(const de of [false,true])for(const width of [390,1365])test(`free overview t
 });
 for(const de of [false,true])test(`failed monthly budget write keeps draft and shows no false success ${de?'de':'en'}`,async({page})=>{
  await seed(page,de);await pro(page);await page.getByRole('group',{name:/Planungsfrage wählen|Choose planning question/}).getByRole('button',{name:/Realistisch sparen|Find realistic savings/}).click();
- await page.getByRole('button',{name:/Monatsbudget ergänzen|Add a monthly budget/}).click();
+ await planningPeriod(page, 'budget');
  const input=page.getByLabel(de?'Alltagsausgaben pro Monat (geschätzt)':'Everyday spending per month (estimate)',{exact:true});await input.fill(de?'1.234,50':'1,234.50');
  await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='eavesence-home-profile-v1')throw new DOMException('Storage full','QuotaExceededError');return original.call(this,key,value);};});
  await page.getByRole('button',{name:de?'Plan speichern':'Save plan',exact:true}).click();await expect(page.locator('#savings-plan').getByRole('alert')).toContainText(de?'Speichern fehlgeschlagen':'Could not save');await expect(input).toHaveValue(de?'1.234,50':'1,234.50');await expect(page.getByText(de?'Sparplan gespeichert.':'Savings plan saved.',{exact:true})).toHaveCount(0);
