@@ -287,6 +287,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdOverview.getByLabel("Period").selectOption("yearly");
   await householdOverview.getByLabel(/Regular monthly net income|Total annual net income/).press("Enter");
   await expect(householdOverview).toContainText("€2,000.00");
+  await homeDetail(page, 'budget');
   const financeCards = householdOverview.locator("article");
   await expect(financeCards.nth(0)).toContainText("Net income · monthly average");
   await expect(financeCards.nth(1)).toContainText("Recurring costs / month");
@@ -294,8 +295,10 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   const collapsedHeights = await financeCards.evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height));
   expect(new Set(collapsedHeights).size).toBe(1);
   await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Edit income" }).click();
-  expect(await financeCards.evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height))).toEqual(collapsedHeights);
+  await expect(page.locator("[data-home-monthly-budget]")).toBeHidden();
   await householdOverview.getByLabel(/Regular monthly net income|Total annual net income/).press("Enter");
+  await homeDetail(page, 'budget');
+  expect(await financeCards.evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height))).toEqual(collapsedHeights);
   await openEnergyTile(page);
   await expect(page.getByRole("button", { name: /Monthly values & history/ })).toBeVisible();
   await openCostAreas(page);
@@ -1704,6 +1707,8 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   await page.getByRole("button", { name: "Add income", exact: true }).first().click();
   await page.getByLabel("Regular monthly net income (excluding extras)", { exact: true }).first().fill("2500");
   await page.getByLabel("Regular monthly net income (excluding extras)", { exact: true }).first().press("Enter");
+  await expect(page.locator("[data-cost-manager]")).toBeHidden();
+  await openCostAreas(page);
   await expect(costsTile).toHaveAttribute("aria-expanded", "true");
   await page.reload();
   await expect(tiles).toHaveCount(2);

@@ -760,7 +760,7 @@ a {
 .home-section-navigation > button:hover { background: #f4f6f2; color: #17211f; }
 .home-section-navigation > button[aria-expanded="true"] { background: #eefbf3; color: #17211f; }
 .home-section-navigation > button:focus-visible { outline: 2px solid var(--brand-green); outline-offset: 2px; }
-.home-section-navigation .site-disclosure-icon { flex-shrink: 0; color: #28734d; font-size: 18px; font-weight: 300; }
+.home-section-navigation .site-disclosure-icon { transform: rotate(0deg); flex-shrink: 0; color: #28734d; font-size: 18px; font-weight: 300; }
 .home-section-navigation > button[aria-expanded="true"] .site-disclosure-icon { transform: rotate(-45deg); }
 .home-section-due { display: inline-flex; min-width: 20px; min-height: 20px; margin-left: 6px; align-items: center; justify-content: center; border-radius: 50%; background: #dcfce8; color: #28734d; font-size: 11px; }
 .home-detail-panel { margin-top: 12px; padding: 20px; border: 1px solid #dfe5dd; border-radius: 16px; background: #fff; }

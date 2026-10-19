@@ -36,7 +36,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
     </div>}
     {incomeOpen && incomeForm}
     {navigation}
-    <section id="home-detail-budget" data-home-monthly-budget hidden={activeSection !== "budget" && (activeSection !== null || count > 0 || !needsReview)} className="home-detail-panel" aria-labelledby="home-budget-heading">
+    <section id="home-detail-budget" data-home-monthly-budget hidden={activeSection !== "budget"} className="home-detail-panel" aria-labelledby="home-budget-heading">
     <h2 id="home-budget-heading" className="site-card-title">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
     <div className="mt-3 grid items-start gap-3 md:grid-cols-3">
       {cards.map(card => <article key={card.label} className={`min-w-0 rounded-2xl border p-4 ${card.emphasis ? "border-[#32363b] bg-[#24272c] text-white" : "border-[#dfe5dd] bg-white text-[#17211f]"}`}>
