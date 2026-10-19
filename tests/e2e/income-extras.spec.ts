@@ -1,4 +1,4 @@
-import { homeWorkspace } from './home-navigation';
+import { homeWorkspace, homeDetail } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
 for (const locale of ['de', 'en'] as const) {
@@ -30,7 +30,7 @@ for (const locale of ['de', 'en'] as const) {
     await expect(overview.locator('article').first()).toContainText(de ? '2.400,00' : '2,400.00');
     await expect(overview.locator('article').nth(2)).toContainText(de ? '2.360,00' : '2,360.00');
     const summary = page.locator('[data-income-extras-summary]');
-    await summary.locator('summary').click();
+    await homeDetail(page, 'extras');
     await expect(summary).toContainText(de ? '33.800,00' : '33,800.00');
     await expect(summary).toContainText(de ? '2.816,67' : '2,816.67');
     await expect(summary).toContainText(de ? 'kein heute verfügbares Geld' : 'not money available today');

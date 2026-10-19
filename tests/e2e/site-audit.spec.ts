@@ -1,3 +1,4 @@
+import { homeDetail } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
 test('all published sitemap routes respond and missing routes stay 404', async ({ request }) => {
@@ -60,7 +61,7 @@ for (const locale of ['en', 'de'] as const) for (const width of [320, 390, 1365]
     await expect(overview.locator('article')).toHaveCount(3);
     await expect(page.locator('[data-home-setup]')).toBeVisible();
     await expect(page.locator('[data-home-plan-content]')).toBeHidden();
-    await page.locator('[data-cost-manager] > summary').click();
+    await homeDetail(page, 'costs');
     const organizer = page.getByText(de ? 'Kostenbereiche organisieren' : 'Organize cost areas', { exact: true });
     await organizer.click();
     const summary = page.locator('summary').filter({hasText: de ? 'Kostenbereiche organisieren' : 'Organize cost areas'});

@@ -1,3 +1,4 @@
+import { homeDetail } from './home-navigation';
 import {test,expect} from '@playwright/test';
 for(const locale of ['de','en']) test(`recorded zero income completes website setup ${locale}`,async({page})=>{
   const de=locale==='de',t=(a:string,b:string)=>de?a:b;
@@ -17,7 +18,7 @@ for(const locale of ['de','en']) test(`recorded zero income completes website se
   await page.getByRole('button',{name:t('Übersicht geprüft','Overview checked'),exact:true}).click();
   await page.reload();
   await expect(setup).toHaveCount(0);
-  await page.locator('[data-home-monthly-budget] summary').click();
+  await homeDetail(page, 'budget');
   const budget=page.locator('[data-home-monthly-budget]');
   await expect(budget.locator('article').first()).toContainText(de?'0,00':'0.00');
   await expect(budget.locator('article').last()).toContainText(new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency:'EUR'}).format(-40));
