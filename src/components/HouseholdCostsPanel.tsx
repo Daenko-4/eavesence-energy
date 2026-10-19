@@ -18,7 +18,7 @@ import {
 import type { SavedDeviceCurrency } from "@/lib/savedDevices";
 
 const fieldClass =
-  "home-field min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
+  "home-field min-h-10 min-w-0 w-full max-w-full rounded-xl border border-slate-300 bg-white px-3 text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
 const pillClass =
   "eavesence-pill-button home-dashboard-action active:scale-[0.98]";
 const addCostClass =
@@ -372,19 +372,19 @@ export default function HouseholdCostsPanel({
           <h3 className="text-[14px] font-bold">
             {editingId ? text.formEdit : text.formNew}
           </h3>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b] lg:col-span-2">
+          <div className="mt-4 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b] lg:col-span-2">
               {text.name}
               <input id="household-cost-name" value={name} onChange={(event) => setName(event.target.value)} onBlur={() => { if (!editingId && category === "housing") { const value = name.toLowerCase(); if (/internet|abo|stream|telefon/.test(value)) setCategory("subscriptions"); else if (/strom|heiz|electric|gas/.test(value)) setCategory("energy"); else if (/versicherung|insurance/.test(value)) setCategory("insurance"); } }} className={fieldClass} />
             </label>
-            <div className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
+            <div className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b]">
               <label htmlFor="household-cost-amount">{text.amount}</label>
               <input id="household-cost-amount" value={amount} onChange={event=>setAmount(event.target.value)} inputMode="decimal" className={fieldClass}/>
               <label className="flex min-h-11 items-center gap-2 text-[13px] font-normal"><input type="checkbox" checked={variableAmount} onChange={e=>setVariableAmount(e.target.checked)} className="h-4 w-4 accent-[#28734d]"/>{locale==='de'?'Betrag variiert':'Amount varies'}</label>
               {variableAmount&&<p className="text-[12px] font-normal leading-5 text-[#65716d]">{locale==='de'?'Üblicher Planbetrag. Die tatsächliche Rechnung trägst du in der Monatscheckliste ein.':'Usual planning amount. Enter the actual invoice in the monthly checklist.'}</p>}
             </div>
 
-            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
+            <label className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b]">
               {text.frequency}
               <select aria-label={text.frequency} value={frequency} onChange={(event) => setFrequency(event.target.value as HouseholdCostFrequency)} className={fieldClass}>
                 {frequencies.map((item) => <option key={item} value={item}>{text.frequencies[item]}</option>)}
@@ -393,20 +393,20 @@ export default function HouseholdCostsPanel({
 
           </div>
           <div className="mt-3 grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
-            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
+            <label className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b]">
               {text.due}
               <input type="date" value={nextDueDate} onChange={(event) => setNextDueDate(event.target.value)} className={fieldClass} />
             </label>            <p className="text-[13px] font-normal leading-5">{locale === "de" ? "Mit Datum erscheint die Zahlung im richtigen Monat und im Plan bis zum Gehalt." : "A date puts this payment in the correct month and in your plan until payday."}</p>
           </div>
           <details open={Boolean(editingId)} className="home-disclosure mt-3 text-[13px]"><summary className="cursor-pointer font-semibold">{locale === "de" ? "Weitere Angaben: Kategorie und Kündigung" : "More details: category and cancellation"}</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">
+            <label className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b]">
               {text.category}
               <select value={category} onChange={(event) => setCategory(event.target.value as HouseholdCostCategory)} className={fieldClass}>
                 {categories.map((item) => <option key={item} value={item}>{text.categories[item]}</option>)}
               </select>
             </label>
 
-            <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b] sm:col-span-2">
+            <label className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b] sm:col-span-2">
               {text.deadline}
               <input type="date" value={cancellationDeadline} onChange={(event) => setCancellationDeadline(event.target.value)} className={fieldClass} />
             </label>

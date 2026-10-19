@@ -54,6 +54,16 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(notes).toBeHidden();
     await expect(panels).toHaveCount(1);
     await expect(page.locator('#household-costs')).toContainText('Internet');
+    await page.getByRole('group', { name: de ? 'Aktionen für dein Zuhause' : 'Home actions', exact: true }).getByRole('button', { name: de ? 'Kosten hinzufügen' : 'Add cost', exact: true }).click();
+    const costForm = page.locator('#household-cost-form');
+    await expect(costForm).toBeVisible();
+    const bounds = (await costForm.boundingBox())!;
+    for (const field of await costForm.locator('input:not([type=checkbox]), select').all()) {
+      if (!await field.isVisible()) continue;
+      const box = (await field.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(bounds.x + 12);
+      expect(box.x + box.width).toBeLessThanOrEqual(bounds.x + bounds.width - 12);
+    }
     await homeDetail(page, 'notes');
     await expect(draft).toHaveValue('Keep this draft while reviewing costs');
     await nav.locator('[data-home-section=notes]').press('Enter');
