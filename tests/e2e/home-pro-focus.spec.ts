@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { homeWorkspace } from './home-navigation';
+import { homeWorkspace, homeDetail } from './home-navigation';
 
 async function seed(page: Page, de: boolean) {
   await page.clock.setFixedTime(new Date('2026-10-13T12:00:00Z'));
@@ -33,10 +33,10 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await settings.getByRole('button', { name: de ? 'Einstellungen speichern' : 'Save settings', exact: true }).click();
     await expect(heading.getByRole('heading')).toHaveText(de ? 'Unser Zuhause' : 'Our home');
     const budget = page.locator('[data-home-monthly-budget]');
-    await budget.locator('summary').click();
+    await homeDetail(page, 'budget');
     await expect(budget.locator('article').nth(2)).toHaveCSS('background-color', 'rgb(36, 39, 44)');
     await expect(budget.locator('article').nth(2)).toContainText(de ? '2.360,00' : '2,360.00');
-    await expect(page.locator('[data-cost-manager]')).not.toHaveAttribute('open', '');
+    await expect(page.locator('[data-cost-manager]')).toBeHidden();
     await expect(page.locator('[data-cost-manager]')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(page.locator('[data-home-memos]')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await page.evaluate(() => scrollTo(0, 0));
@@ -143,7 +143,7 @@ test('standalone CSS and bottom navigation keep home, costs and Pro connected', 
   await nav.getByRole('link', { name: 'Plan', exact: true }).click();
   await expect(page.locator('[data-home-plan-content]')).toBeVisible();
   await nav.getByRole('link', { name: 'Costs', exact: true }).click();
-  await expect(page.locator('[data-cost-manager]')).toHaveAttribute('open', '');
+  await expect(page.locator('[data-cost-manager]')).toBeVisible();
   await expect(page.locator('#household-costs')).toBeVisible();
   await nav.getByRole('link', { name: 'Overview', exact: true }).click();
   await expect(page.locator('[data-home-heading]')).toBeVisible();
@@ -228,7 +228,7 @@ for (const de of [false, true]) {
       await page.clock.install({ time: new Date('2026-10-13T12:00:00Z') });
       const costsBefore = await page.evaluate(() => localStorage.getItem('eavesence-home-costs-v1'));
       const manager = page.locator('[data-cost-manager]');
-      await manager.locator(':scope > summary').click();
+      await homeDetail(page, 'costs');
       const assertInset = async (selector: string) => {
         const outer = (await manager.boundingBox())!;
         const inner = (await page.locator(selector).boundingBox())!;
@@ -286,7 +286,7 @@ for (const de of [false, true]) {
       await page.clock.fastForward(3100);
       await expect(energyNotice).toHaveCount(0);
       await page.reload();
-      await manager.locator(':scope > summary').click();
+      await homeDetail(page, 'costs');
       await energyButton.click();
       await expect(slider).toHaveValue('26');
       const profile = await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!));

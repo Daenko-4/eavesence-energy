@@ -1,3 +1,4 @@
+import { homeDetail } from './home-navigation';
 import {test,expect} from '@playwright/test';
 
 for(const de of [false,true])for(const width of [320,1365])test(`cost area icons stay optional, localized and persistent ${de?'de':'en'} ${width}px`,async({page},info)=>{
@@ -13,7 +14,7 @@ for(const de of [false,true])for(const width of [320,1365])test(`cost area icons
   });
   await page.reload();
   async function areas(){
-    await page.locator('[data-cost-manager] > summary').click();
+    await homeDetail(page, 'costs');
     await page.getByText(de?'Kostenbereiche organisieren':'Organize cost areas',{exact:true}).click();
   }
   await areas();

@@ -1,4 +1,4 @@
-import { homeWorkspace } from './home-navigation';
+import { homeWorkspace, homeDetail } from './home-navigation';
 import {test, expect} from '@playwright/test';
 
 test('missing dates identify the cost and open its existing edit form', async ({page}) => {
@@ -35,7 +35,7 @@ test('calculator uses the home tariff and area navigation stays available when o
     localStorage.setItem('eavesence-home-tiles-v1',JSON.stringify([{id:'default-costs',kind:'costs',title:'Household costs'},{id:'default-energy',kind:'energy',title:'Electricity'}]));
   });
   await page.reload();
-  await page.locator('[data-cost-manager] > summary').click();
+  await homeDetail(page, 'costs');
   const areas=page.getByRole('navigation',{name:'Choose cost area',exact:true});
   await expect(areas).toBeVisible();
   await areas.getByRole('button',{name:'Electricity',exact:true}).click();
@@ -58,7 +58,7 @@ test('income can be deferred without inventing a remainder or blocking setup', a
   await page.locator('#household-costs').getByLabel('Amount',{exact:true}).fill('800');
   await page.locator('#household-costs').getByRole('button',{name:'Save',exact:true}).click();
   await page.locator('[data-home-review]').getByRole('button',{name:'Overview checked',exact:true}).click();
-  await expect(page.locator('[data-home-monthly-budget]')).not.toHaveAttribute('open','');
+  await expect(page.locator('[data-home-monthly-budget]')).toBeHidden();
   await page.reload();
   await expect(page.locator('[data-home-setup]')).toHaveCount(0);
   await expect(page.getByRole('region',{name:'Your household at a glance'}).locator('article').nth(2)).toContainText('—');

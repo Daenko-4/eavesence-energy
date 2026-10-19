@@ -727,3 +727,44 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .site-disclosure-icon { transition: none !important; }
 }
+
+/* My Home: one quiet navigation row and one selected detail panel. */
+.home-section-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 20px;
+  padding: 6px;
+  border: 1px solid #dfe5dd;
+  border-radius: 16px;
+  background: #fff;
+}
+.home-section-navigation > button {
+  display: flex;
+  flex: 1 1 120px;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #52605b;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: color 180ms ease, background-color 180ms ease;
+}
+.home-section-navigation > button:hover { background: #f4f6f2; color: #17211f; }
+.home-section-navigation > button[aria-expanded="true"] { background: #eefbf3; color: #17211f; }
+.home-section-navigation > button:focus-visible { outline: 2px solid var(--brand-green); outline-offset: 2px; }
+.home-section-navigation .site-disclosure-icon { flex-shrink: 0; color: #28734d; font-size: 18px; font-weight: 300; }
+.home-section-navigation > button[aria-expanded="true"] .site-disclosure-icon { transform: rotate(-45deg); }
+.home-section-due { display: inline-flex; min-width: 20px; min-height: 20px; margin-left: 6px; align-items: center; justify-content: center; border-radius: 50%; background: #dcfce8; color: #28734d; font-size: 11px; }
+.home-detail-panel { margin-top: 12px; padding: 20px; border: 1px solid #dfe5dd; border-radius: 16px; background: #fff; }
+.home-detail-panel:not([hidden]) { animation: home-detail-enter 200ms ease-out; }
+@keyframes home-detail-enter { from { opacity: .4; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 639px) { .home-detail-panel { padding: 16px; } }
+@media (prefers-reduced-motion: reduce) { .home-detail-panel:not([hidden]) { animation: none; } .home-section-navigation > button { transition: none; } }

@@ -1,4 +1,4 @@
-import { homeWorkspace } from './home-navigation';
+import { homeWorkspace, homeDetail } from './home-navigation';
 import { expect, test, type Page } from "@playwright/test";
 
 async function disableHeaderIntro(page: Page) {
@@ -12,7 +12,7 @@ async function openPlan(page: Page, question: "payday" | "savings" | "progress" 
 }
 async function openCostManager(page: Page) {
   await homeWorkspace(page, 'overview');
-  if (!await page.locator("[data-cost-manager]").evaluate(el => (el as HTMLDetailsElement).open)) await page.locator("[data-cost-manager] > summary").click();
+  await homeDetail(page, 'costs');
 }
 async function openCostAreas(page: Page) {
   await openCostManager(page);
@@ -335,9 +335,9 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await installCard.getByRole("button", { name: "Maybe later" }).click();
   await expect(installCard).toHaveCount(0);
 
-  await householdOverview.getByRole("button", { name: /Payments next month/ }).click();
+  await homeDetail(page, 'upcoming');
   await expect(householdOverview).toContainText("All recorded costs have a payment date.");
-  await page.locator('[data-home-monthly-budget] > summary').click();
+  await homeDetail(page, 'budget');
   await expect(page.getByText("Recurring costs / month")).toBeVisible();
   await openCostManager(page);
   await expect(householdCosts.getByText("€900.00", { exact: true }).filter({ visible: true }).first()).toBeVisible();
@@ -633,9 +633,9 @@ test("My home distinguishes annual monthly averages from dated payment forecasts
   await costs.getByRole("button", { name: "Save", exact: true }).click();
   const overview = page.getByRole("region", { name: "Your household at a glance" });
   await expect(overview.locator("article").nth(1)).toContainText("€50.00");
-  await overview.getByRole("button", { name: /Payments next month/ }).click();
+  await homeDetail(page, 'upcoming');
   await expect(overview).toContainText("€600.00"); await expect(overview).toContainText("15 Oct");
-  await page.reload(); await page.locator("[data-cost-manager] > summary").click(); await expect(page.locator("#household-costs")).toContainText("Insurance");
+  await page.reload(); await homeDetail(page, 'costs'); await expect(page.locator("#household-costs")).toContainText("Insurance");
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-costs-v1")!)[0].cancellationDeadline)).toBe("2026-09-28");
 });
 

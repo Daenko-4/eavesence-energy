@@ -478,7 +478,7 @@ function HeaderContent({
                   {text.household}
                 </NavigationLink>
                 <NavigationLink href={planningHref} active={activeNavigation === "planning"} navigationKey="planning">
-                  {text.planning}<span className="navigation-pro-label">Pro</span>
+                  {text.planning}
                 </NavigationLink>
                 <NavigationLink href={calculatorHref} active={activeNavigation === "calculator"} navigationKey="calculator">
                   {text.calculator}
@@ -543,7 +543,6 @@ function HeaderContent({
                 >
                   <span className="header-navigation-label">
                     {label}
-                    {navigationKey === "planning" && <span className="navigation-pro-label">Pro</span>}
                   </span>
                   <span className="navigation-indicator site-disclosure-icon" aria-hidden="true">+</span>
                 </a>
