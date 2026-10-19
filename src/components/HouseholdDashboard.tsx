@@ -1020,7 +1020,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       if (!hash) { lastRequestedHash.current = null; return; }
       if (lastRequestedHash.current === hash) return;
       lastRequestedHash.current = hash;
-      if (["#savings-plan", "#home-plan", "#payday-plan"].includes(hash)) { setView("plan"); setSettingsOpen(false); setPlanQuestion(hash === "#savings-plan" ? "savings" : "payday"); }
+      if (["#savings-plan", "#home-plan", "#payday-plan"].includes(hash)) { setView("plan"); setSettingsOpen(false); setPlanQuestion(hash === "#savings-plan" ? "savings" : "payday"); if (hash === "#savings-plan") setPlanTool("change"); else setPlanPeriod("payday"); }
       else if (hash.startsWith("#home-") || hash === "#household-costs") setView("overview");
       const requestedKind: HomeTileKind | null =
         hash === "#household-costs"

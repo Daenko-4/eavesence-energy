@@ -3,8 +3,8 @@ import {useRef,useState} from "react";
 import { useProInsights, type ProInsightsProps } from '@eavesence/core/useProInsights';
 const button='eavesence-pill-button home-dashboard-action';
 const field='home-planning-field min-h-11 min-w-0 w-full rounded-xl border border-[#cddbd0] bg-white px-3';
-const panel='min-w-0 rounded-xl border border-[#dfe5dd] bg-white p-4';
 export default function ProInsights(props:ProInsightsProps & {locale:'de'|'en';costView?:'invoices'|'switch'}) {
+  const panel=props.mode==='forecast'?'min-w-0 rounded-xl border border-[#dfe5dd] bg-white p-4':'min-w-0';
   const de=props.locale==='de',t=(a:string,b:string)=>de?a:b,p=useProInsights(props.input,props.data,props,de);
   const money=(n:number)=>new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency:props.currency}).format(n);
   const available=(n:number)=>`${money(Math.abs(Math.round(n*100)/100))} ${n<-.005?t('fehlen','short'):t('verfügbar','available')}`;

@@ -71,7 +71,10 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(comparison.getByLabel(t('Einmalige Wechselgebühr', 'One-off switching fee'), { exact: true })).toHaveValue('15');
     await page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ }).getByRole('button', { name: /Erreichte Ersparnis|Savings achieved/ }).click();
     await expect(page.getByRole('region', { name: /03 ·/ })).toContainText(t('Noch keine bestätigte Ersparnis', 'No confirmed savings yet'));
-    await planningPeriod(page, 'payday');
+    await planningPeriod(page, 'forecast');
+    await page.evaluate(() => { window.location.hash = 'payday-plan'; });
+    await expect(page.locator('[data-planning-navigation=period] [data-planning-choice=payday]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(payday).toBeVisible();
     await expect(payday.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true })).toHaveValue('1250');
     await planningPeriod(page, 'budget');
     await expect(budget.getByLabel(t('Alltagsausgaben pro Monat (geschätzt)', 'Everyday spending per month (estimate)'), { exact: true })).toHaveValue('350');
