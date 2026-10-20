@@ -30,6 +30,7 @@ import PaydayPanel from '@/components/PaydayPanel';
 import {confirmSavingsChange,localToday} from '@eavesence/core/homeValue';
 import type {SavingsAction} from '@eavesence/core/savingsPlan';
 import SavingsPlanPanel from "@/components/SavingsPlanPanel";
+import PlanningNavigation, { type PlanningPeriod, type SavingsTool } from "@/components/PlanningNavigation";
 import HomeMemos from "@/components/HomeMemos";
 import MonthlyPayments from "@/components/MonthlyPayments";
 import HomeCoreOverview from "@/components/HomeCoreOverview";
@@ -190,7 +191,7 @@ const copy = {
     financeNoDates: "Trage bei Kosten ein Fälligkeitsdatum ein, um die nächsten Zahlungen zu sehen.",
     workspaceTitle: "Bereiche in deinem Zuhause",
     workspaceText:
-      "Nutze Kostenbereiche nur, wenn du deine Einträge gruppieren möchtest. Eine Liste reicht für den Start.",
+      "Wähle eine Kachel, um ihre Kosten anzusehen. Mit „Neue Kachel“ kannst du sie in eigene Bereiche gruppieren.",
     workspaceEmpty: "Lege deine erste Kachel an und wähle aus, welches Werkzeug sich dahinter verbergen soll.",
     addTile: "Neue Kachel",
     addTileHint: "Eigenen Bereich anlegen",
@@ -448,7 +449,7 @@ const copy = {
     financeNoDates: "Add due dates to your costs to see upcoming payments.",
     workspaceTitle: "Sections in your home",
     workspaceText:
-      "Use cost areas only if you want to group your entries. One list is enough to start.",
+      "Choose a tile to view its costs. Use “New tile” to group them into your own areas.",
     workspaceEmpty: "Create your first tile and choose which tool it should contain.",
     addTile: "New tile",
     addTileHint: "Create your own section",
@@ -788,6 +789,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [incomeError, setIncomeError] = useState("");
   const [view, setView] = useState<"overview" | "plan">("overview");
   useEffect(() => { window.dispatchEvent(new CustomEvent("eavesence:home-view", { detail: view })); }, [view]);
+  const [planTool,setPlanTool] = useState<SavingsTool>("change");
+  const [planPeriod, setPlanPeriod] = useState<PlanningPeriod>("payday");
   const [planQuestion, setPlanQuestion] = useState<"payday" | "savings" | "progress">("payday");
   const [name, setName] = useState(locale === "de" ? "Mein Zuhause" : "My home");
   const [currency, setCurrency] = useState<SavedDeviceCurrency>("EUR");
@@ -1017,7 +1020,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       if (!hash) { lastRequestedHash.current = null; return; }
       if (lastRequestedHash.current === hash) return;
       lastRequestedHash.current = hash;
-      if (["#savings-plan", "#home-plan", "#payday-plan"].includes(hash)) { setView("plan"); setSettingsOpen(false); setPlanQuestion(hash === "#savings-plan" ? "savings" : "payday"); }
+      if (["#savings-plan", "#home-plan", "#payday-plan"].includes(hash)) { setView("plan"); setSettingsOpen(false); setPlanQuestion(hash === "#savings-plan" ? "savings" : "payday"); if (hash === "#savings-plan") setPlanTool("change"); else setPlanPeriod("payday"); }
       else if (hash.startsWith("#home-") || hash === "#household-costs") setView("overview");
       const requestedKind: HomeTileKind | null =
         hash === "#household-costs"
@@ -1779,6 +1782,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   function navigatePlanQuestion(question: "payday" | "savings" | "progress") {
     setPlanQuestion(question);
+    if (question === "payday") setPlanPeriod("payday");
+    if (question === "savings") setPlanTool("change");
     requestAnimationFrame(() => {
       const section = document.getElementById("home-plan");
       section?.querySelector("h1")?.focus({preventScroll: true});
@@ -1965,12 +1970,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <div className="px-4 pt-4 sm:px-5 sm:pt-5"><h2 id="home-costs-heading" className="site-card-title">{locale === "de" ? "Kosten verwalten" : "Manage costs"}</h2><p className="mt-1 text-[13px] text-[#65716d]">{locale === "de" ? "Gespeicherte Kosten, Bereiche & Import" : "Saved costs, areas & import"}</p></div>
           <div data-cost-manager-content className="p-4 sm:p-5">
           <div data-cost-area-overview>
-          <nav aria-label={locale === "de" ? "Kostenbereich auswählen" : "Choose cost area"} className="flex flex-wrap gap-2 rounded-t-xl bg-[#24272c] px-4 pt-3 pb-2">{homeTiles.map(tile => <button type="button" key={tile.id} aria-pressed={activeTileId === tile.id} onClick={() => {setCostRequest(null);setActiveTileId(tile.id);}} className={`min-h-11 rounded-full border px-4 text-[12px] font-semibold ${activeTileId === tile.id ? "border-[#72dca3] bg-[#dcfce8] text-[#17211f]" : "border-[#65716d] text-white"}`}><span className="flex items-center gap-2"><TileSymbol icon={iconForTile(tile)}/>{tile.title ?? text.tileTitles[tile.kind]}</span></button>)}</nav>
-          <details className="home-disclosure home-cost-area-disclosure"><summary className="home-single-line-summary text-[13px] font-semibold"><span className="home-cost-area-control">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</span></summary>
-          <section className="mt-7 rounded-[1.45rem] border border-[#dfe5dd] bg-[#f4f6f2] p-5 sm:p-6" aria-labelledby="home-workspace-title">
+          <section className="rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-3 sm:p-4" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.workspaceEyebrow}</p>
-              <h2 id="home-workspace-title" className={`mt-1 ${homeSectionTitleClass}`}>{text.workspaceTitle}</h2>
+              <h2 id="home-workspace-title" className={homeSectionTitleClass}>{text.workspaceTitle}</h2>
               <p className="mt-1 text-[13px] leading-6 text-[#65716d]">{text.workspaceText}</p>
             </div>
 
@@ -2042,7 +2044,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             )}
             {!homeTiles.some(tile => tile.kind === "energy") && <p className="mt-4 text-[11px] leading-relaxed text-[#65716d]">{locale === "de" ? "Stromkosten genauer ansehen?" : "Want to explore device electricity costs?"}{" "}<a href={locale === "de" ? "/de/rechner#rechner" : "/calculator#rechner"} className="eavesence-pill-link">{locale === "de" ? "Zum Stromrechner" : "Open energy calculator"}</a>{" "}{locale === "de" ? "Dort kannst du Geräte speichern und freiwillig als eigene Kachel übernehmen." : "Save devices there and optionally add them as a dedicated tile."}</p>}
           </section>
-          </details>
 
           </div>
 
@@ -2432,27 +2433,35 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <button
                   type="button"
                   key={item}
-                  aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt ausgeben" : "Spend until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
+                  aria-label={item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
                   aria-pressed={planQuestion === item}
                   onClick={() => navigatePlanQuestion(item)}
                   className="pro-question-button"
                 >
-                  <span>{item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
+                  <span>{item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
                   <span className="pro-question-description">{item === "payday" ? locale === "de" ? "Verfügbares Geld" : "Available money" : item === "savings" ? locale === "de" ? "Änderungen vergleichen" : "Compare changes" : locale === "de" ? "Fortschritt verfolgen" : "Track progress"}</span>
                 </button>
               ))}
             </div>
             <div hidden={planQuestion !== "payday"}>
+              <PlanningNavigation locale={locale} kind="period" value={planPeriod} onChange={setPlanPeriod}/>
+              <div hidden={planPeriod !== "payday"} data-planning-period="payday">
           <PaydayPanel onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+              </div>
+              <div hidden={planPeriod !== "forecast"} data-planning-period="forecast">
           <ProInsights mode="forecast" locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,incomeKnown:profile.incomeAmount!==undefined&&!profile.incomeDeferred,incomeIsAnnualAverage:incomeSummary.annualAverage,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:localToday().slice(0,7)}} data={profile.planning} onSave={planning=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} onApply={applyPlanSuggestion} onEveryday={variableMonthly=>persistProfile({...profile,variableMonthly,updatedAt:new Date().toISOString()})} onReview={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} onNavigate={navigatePlanQuestion} onEditIncome={openIncomeForm} onPayments={showInvoiceChecklist}/>
+              </div>
             </div>
-            <div hidden={planQuestion === "payday"}>
+            <div hidden={planQuestion === "payday" && planPeriod !== "budget"}>
           <SavingsPlanPanel
             key={`savings-plan-${profile.createdAt}`}
             onApplyPlanSuggestion={applyPlanSuggestion}
             onPayments={showInvoiceChecklist}
             onNavigate={navigatePlanQuestion}
-            section={planQuestion === "progress" ? "progress" : "savings"}
+            tool={planTool}
+            onTool={setPlanTool}
+            onBudget={() => {navigatePlanQuestion("payday");setPlanPeriod("budget");}}
+            section={planQuestion === "payday" ? "budget" : planQuestion === "progress" ? "progress" : "savings"}
             advanced={homeRelease.advancedPlanning}
             locale={locale}
             currency={profile.currency}

@@ -657,64 +657,6 @@ a {
 /* A single-line cost-area label needs one grid row for a centered plus. */
 .home-disclosure > summary.home-single-line-summary::after { grid-row: 1; }
 
-/* Area selection and organization form one dark navigation surface. */
-
-.home-cost-area-disclosure {
-  display: flow-root;
-  overflow: clip;
-  border-radius: 0 0 0.75rem 0.75rem;
-  background: #24272c;
-}
-.home-cost-area-disclosure > summary {
-  position: relative;
-  display: block;
-  padding: 4px 16px 12px;
-  background: #24272c;
-  color: #b8efcc;
-}
-.home-cost-area-control {
-  display: flex;
-  align-items: center;
-  min-height: 48px;
-  padding: 6px 56px 6px 16px;
-  border: 1px solid #45574f;
-  border-radius: 10px;
-  background: #2d3432;
-  transition: background 180ms ease, border-color 180ms ease;
-}
-.home-cost-area-disclosure > summary:hover .home-cost-area-control,
-.home-cost-area-disclosure[open] .home-cost-area-control {
-  border-color: #72dca3;
-  background: #343f39;
-}
-.home-cost-area-disclosure > summary:focus-visible { outline: none; }
-.home-cost-area-disclosure > summary:focus-visible .home-cost-area-control {
-  outline: 2px solid #72dca3;
-  outline-offset: 1px;
-}
-.home-cost-area-disclosure > summary::after {
-  position: absolute;
-  top: calc(50% - 18px);
-  right: 33px;
-  display: flex;
-  width: 28px;
-  height: 28px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #3b4a41;
-  color: #72dca3;
-}
-.home-cost-area-disclosure[open] { background: transparent; }
-.home-cost-area-disclosure > section {
-  margin-top: 0;
-  border-top: 0;
-  border-radius: 0 0 0.75rem 0.75rem;
-}
-@media (prefers-reduced-motion: reduce) {
-  .home-cost-area-control { transition: none; }
-}
-
 /* Keep the same visible counterclockwise opening and clockwise closing everywhere.
    Rotation classes express state; this shared rule owns timing, including rotate. */
 .site-disclosure-icon {
@@ -768,3 +710,11 @@ a {
 @keyframes home-detail-enter { from { opacity: .4; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 639px) { .home-detail-panel { padding: 16px; } }
 @media (prefers-reduced-motion: reduce) { .home-detail-panel:not([hidden]) { animation: none; } .home-section-navigation > button { transition: none; } }
+
+/* A selected planning task shows its content directly, without an accordion stack. */
+.planning-detail-navigation { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 20px; padding-bottom: 8px; border-bottom: 1px solid #dfe5dd; }
+.planning-detail-navigation > button { display: flex; flex: 1 1 100px; min-width: 0; min-height: 44px; align-items: center; justify-content: center; padding: 10px 12px; border-radius: 10px; color: #65716d; font-size: 13px; font-weight: 600; line-height: 1.4; text-align: center; cursor: pointer; transition: background-color 180ms ease, color 180ms ease; }
+.planning-detail-navigation > button:hover { background: #f4f6f2; color: #17211f; }
+.planning-detail-navigation > button[aria-pressed="true"] { background: #eefbf3; color: #1e6843; }
+.planning-detail-navigation > button:focus-visible { outline: 2px solid #28734d; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .planning-detail-navigation > button { transition: none; } }

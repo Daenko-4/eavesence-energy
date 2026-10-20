@@ -238,7 +238,7 @@ for (const de of [false, true]) {
       await assertInset('#household-costs');
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       await page.screenshot({ path: info.outputPath(`inset-costs-${de ? 'de' : 'en'}-${width}.png`), fullPage: true });
-      const energyButton = page.locator('[data-cost-area-overview] nav').getByRole('button', { name: t('Strom & Geräte', 'Electricity & devices'), exact: true });
+      const energyButton = page.locator('[data-home-tiles] article').filter({ hasText: t('Strom & Geräte', 'Electricity & devices') }).getByRole('button').first();
       await energyButton.click();
       await assertInset('#home-devices');
       const goal = page.locator('[data-electricity-goal]');
@@ -335,12 +335,11 @@ for (const de of [false, true]) for (const width of [320,390,1365]) test(`connec
   await expect(coach.locator('[data-pro-payday-impact]')).toContainText(t('670,00','670.00'));
   await coach.locator('[data-pro-payday-impact]').scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`connected-pro-preview-${de?'de':'en'}-${width}.png`)});
   await coach.getByRole('button',{name:t('Änderung vormerken','Save this plan'),exact:true}).click();
-  const plans=coach.locator('details').filter({has:page.locator('summary').filter({hasText:t('Vorgemerkte Änderungen','Planned changes')})});
-  await expect(plans).toHaveAttribute('open','');
+  const plans=coach.locator('[data-savings-changes]');
+  await expect(plans).toBeVisible();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!)[0].amount)).toBe(40);
-  await plans.locator('summary').click();
   await coach.getByRole('button',{name:t('Vorgemerkte Änderung prüfen','Review planned change'),exact:true}).click();
-  await expect(plans).toHaveAttribute('open','');
+  await expect(plans).toBeVisible();
   await page.screenshot({path:info.outputPath(`connected-pro-action-${de?'de':'en'}-${width}.png`)});
   page.once('dialog',d=>void d.accept());await plans.getByRole('button',{name:t('Umgesetzt – Kosten aktualisieren','Done — update costs'),exact:true}).click();
   await coach.getByRole('button',{name:t('Ergebnis ansehen','See the result'),exact:true}).click();

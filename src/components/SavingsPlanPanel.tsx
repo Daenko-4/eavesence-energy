@@ -1,5 +1,6 @@
 "use client";
 import ProTools from "./ProTools";
+import PlanningNavigation, { type SavingsTool } from "./PlanningNavigation";
 import ProInsights from "./ProInsights";
 import type { VariablePlanSuggestion } from "@eavesence/core/proInsights";
 
@@ -15,7 +16,9 @@ import type { Locale } from "@/i18n/config";
 import SavingsActionsPanel from "@/components/SavingsActionsPanel";
 
 type Props = {
-  section?: "savings" | "progress";
+  section?: "savings" | "progress" | "budget";
+  onBudget?: () => void;
+  tool: SavingsTool; onTool: (tool: SavingsTool) => void;
   onNavigate?: (question: "payday" | "savings" | "progress") => void;
   advanced?: boolean;
   onApplyPlanSuggestion: (proposal: VariablePlanSuggestion) => void | Promise<void>;
@@ -39,7 +42,7 @@ type Props = {
   onSaveActions: (actions: SavingsAction[]) => void;
 };
 
-export default function SavingsPlanPanel({ section, onNavigate, onApplyPlanSuggestion, onPayments, advanced = true, locale, currency, incomeMonthly, incomeExtras = [], costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions, onConfirmAction, onReviewCost }: Props) {
+export default function SavingsPlanPanel({ section, tool, onTool, onBudget, onNavigate, onApplyPlanSuggestion, onPayments, advanced = true, locale, currency, incomeMonthly, incomeExtras = [], costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions, onConfirmAction, onReviewCost }: Props) {
   const [variable, setVariable] = useState(variableMonthly == null ? "" : String(variableMonthly));
   const [storedVariable, setStoredVariable] = useState(variableMonthly);
   if (storedVariable !== variableMonthly) { setStoredVariable(variableMonthly); setVariable(variableMonthly == null ? "" : String(variableMonthly)); }
@@ -49,7 +52,6 @@ export default function SavingsPlanPanel({ section, onNavigate, onApplyPlanSugge
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
-  const [budgetOpen, setBudgetOpen] = useState(false);
   const de = locale === "de";
   const money = (value: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(value);
   const date = new Date();
@@ -72,26 +74,30 @@ export default function SavingsPlanPanel({ section, onNavigate, onApplyPlanSugge
     } catch { setError(de ? "Speichern fehlgeschlagen. Deine Eingaben bleiben erhalten." : "Could not save. Your entries have been kept."); }
     finally { saving.current = false; setBusy(false); }
   }
-  if (section === "progress") return <section className="mt-5"><SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/><ProTools progressOnly locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/></section>;
-  return <section id="savings-plan" className="mt-5 rounded-[1.45rem] border border-[#dfe5dd] bg-white p-5 sm:p-6" data-pro-savings>
-    {section && <><h2 className="site-section-title">{de ? "Kosten senken" : "Lower your costs"}</h2><p className="mt-2 text-[13px] leading-5 text-[#52605b]">{de ? "Vergleiche einen echten neuen Preis. Bestätige die Ersparnis erst nach der Umsetzung." : "Compare a real new price. Confirm the saving only after the change happens."}</p></>}
-    {result && <>
-      <SavingsCoach onNavigate={onNavigate} mode="opportunities" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>
-      <ProInsights mode="costs" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onApply={onApplyPlanSuggestion} onEveryday={variableMonthly=>onSave({variableMonthly,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0})} onReview={onReviewCost} onNavigate={question=>onNavigate?.(question)} onEditIncome={onEditIncome} onPayments={onPayments}/>
-      <ProTools locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/>
+  return <div>
+    <div hidden={section !== "progress"}><section className="mt-5"><SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/><ProTools progressOnly locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/></section></div>
+<section hidden={section === "progress"} id="savings-plan" className="mt-5 rounded-[1.45rem] border border-[#dfe5dd] bg-white p-5 sm:p-6" data-pro-savings>
+    {section !== "budget" && <><h2 className="site-section-title">{de ? "Kosten senken" : "Lower your costs"}</h2><p className="mt-2 text-[13px] leading-5 text-[#52605b]">{de ? "Prüfe Kosten, vergleiche Angebote oder bereite größere Rechnungen vor." : "Review costs, compare offers or prepare for larger bills."}</p></>}
+    {section !== "budget" && <PlanningNavigation locale={locale} kind="tool" value={tool} onChange={onTool}/>}
+    {result && <div hidden={section === "budget"}>
+      <div hidden={tool !== "change"} data-planning-tool="change"><SavingsCoach onNavigate={onNavigate} mode="opportunities" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>
+      </div>
+      <div hidden={tool !== "invoices" && tool !== "switch"} data-planning-tool="insights"><ProInsights costView={tool === "invoices" ? "invoices" : "switch"} mode="costs" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onApply={onApplyPlanSuggestion} onEveryday={variableMonthly=>onSave({variableMonthly,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0})} onReview={onReviewCost} onNavigate={question=>onNavigate?.(question)} onEditIncome={onEditIncome} onPayments={onPayments}/>
+      </div>
+      <div hidden={!["change","annual","reserves"].includes(tool)} data-planning-tool="bills"><ProTools tool={tool === "annual" ? "annual" : tool === "reserves" ? "reserves" : "changes"} locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/>
+      </div>
       {!section && <SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>}
       {advanced && section === "savings" && <SavingsActionsPanel embedded locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />}
       {advanced && <PlanningWorkbench input={{ incomeMonthly, incomeExtras, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} costChange={<SavingsActionsPanel embedded locale={locale} currency={currency} input={{ incomeMonthly, incomeExtras, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />} />}
-    </>}
-    {section && <button type="button" className="eavesence-pill-button home-dashboard-action mt-5" aria-expanded={budgetOpen} onClick={() => setBudgetOpen(!budgetOpen)}>{de ? "Monatsbudget ergänzen (optional)" : "Add a monthly budget (optional)"}<span aria-hidden="true" className={`site-disclosure-icon ml-2 text-lg ${budgetOpen ? "-rotate-45" : "rotate-0"}`}>+</span></button>}
-    <div hidden={!!section && !budgetOpen}>
-    <p className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--brand-green)]">{de ? "PRO-VORSCHAU · KOSTENLOS TESTEN" : "PRO PREVIEW · FREE TO TRY"}</p>
-    <h2 className="mt-2 text-xl font-extrabold">{de ? "Deine monatliche Planungsbasis" : "Your monthly planning basics"}</h2>
+    </div>}
+    {section === "savings" && onBudget && <button type="button" className="eavesence-pill-button home-dashboard-action mt-5" onClick={onBudget}>{de ? "Monatsbudget planen" : "Plan a monthly budget"}</button>}
+    <div hidden={section !== "budget" && !!section} data-planning-budget>
+    <h2 className="mt-2 text-xl font-extrabold">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
     <p className="mt-1 text-[13px] text-[#52605b]">{de ? "Einkommen und Fixkosten sind schon übernommen. Schätze noch deine übrigen Alltagsausgaben – daraus berechnen wir, was dir im Monat bleibt." : "Income and fixed costs are already included. Estimate your other everyday spending to see what is left each month."}</p>
     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-      {[[de ? "Alltagsausgaben pro Monat (geschätzt)" : "Everyday spending per month (estimate)", variable, setVariable], [de ? "Gewünschter Sparbetrag pro Monat (optional)" : "Desired savings per month (optional)", goal, setGoal]].map(([label, value, setter], index) => <label key={label as string} className="grid gap-1 text-[12px] font-semibold text-[#52605b]">{label as string}<input aria-label={label as string} id={index === 0 ? "savings-budget-input" : undefined} inputMode="decimal" value={value as string} onChange={(event) => (setter as (value: string) => void)(event.target.value)} className="home-planning-field min-h-11 rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder={index === 0 ? de ? "z. B. 500" : "e.g. 500" : "0"} /><span className="font-normal">{index === 0 ? de ? "Zum Beispiel Lebensmittel und Freizeit. Nur Ausgaben, die noch nicht in deinen Fixkosten stehen." : "For example groceries and leisure. Only spending not already in your fixed costs." : de ? "Geld, das du vom verbleibenden Budget zurücklegen möchtest – nachdem Fixkosten und Alltagsausgaben bezahlt sind." : "Money you want to set aside from what is left after fixed costs and everyday spending."}</span></label>)}
+      {[[de ? "Alltagsausgaben pro Monat (geschätzt)" : "Everyday spending per month (estimate)", variable, setVariable], [de ? "Gewünschter Sparbetrag pro Monat (optional)" : "Desired savings per month (optional)", goal, setGoal]].map(([label, value, setter], index) => <label key={label as string} className="grid gap-1 text-[12px] font-semibold text-[#52605b]">{label as string}<input aria-label={label as string} id={index === 0 ? "savings-budget-input" : undefined} inputMode="decimal" value={value as string} onChange={(event) => (setter as (value: string) => void)(event.target.value)} className="home-planning-field min-h-11 min-w-0 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder={index === 0 ? de ? "z. B. 500" : "e.g. 500" : "0"} /><span className="font-normal">{index === 0 ? de ? "Zum Beispiel Lebensmittel und Freizeit. Nur Ausgaben, die noch nicht in deinen Fixkosten stehen." : "For example groceries and leisure. Only spending not already in your fixed costs." : de ? "Geld, das du vom verbleibenden Budget zurücklegen möchtest – nachdem Fixkosten und Alltagsausgaben bezahlt sind." : "Money you want to set aside from what is left after fixed costs and everyday spending."}</span></label>)}
     </div>
-    <details className="home-disclosure mt-3 text-[12px] text-[#52605b]"><summary className="cursor-pointer font-semibold">{de ? "Erweiterte Optionen: freiwillige Reserve" : "More options: optional reserve"}</summary><p className="mt-2">{de ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</p><label className="mt-2 grid max-w-xs gap-1 font-semibold">{de ? "Freiwillige Reserve pro Monat" : "Optional reserve per month"}<input inputMode="decimal" value={buffer} onChange={(event) => setBuffer(event.target.value)} className="home-planning-field min-h-11 rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder="0" /></label></details>
+    <div className="mt-4 rounded-xl bg-[#f4f6f2] p-3 text-[12px] text-[#52605b]"><p className="font-semibold">{de ? "Freiwillige Reserve (optional)" : "Optional reserve"}</p><p className="mt-2">{de ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</p><label className="mt-2 grid max-w-xs gap-1 font-semibold">{de ? "Freiwillige Reserve pro Monat" : "Optional reserve per month"}<input inputMode="decimal" value={buffer} onChange={(event) => setBuffer(event.target.value)} className="home-planning-field min-h-11 min-w-0 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder="0" /></label></div>
     <button type="button" onClick={() => void save()} disabled={busy} className="eavesence-pill-button home-primary-action mt-4">{de ? "Plan speichern" : "Save plan"}</button>
     {notice && <p role="status" className="mt-2 text-[12px] font-semibold text-[#087a45]">{notice}</p>}
     {error && <p role="alert" className="mt-2 text-[12px] text-red-700">{error}</p>}
@@ -116,5 +122,6 @@ export default function SavingsPlanPanel({ section, onNavigate, onApplyPlanSugge
 
     </>}
     </div>
-  </section>;
+  </section>
+  </div>;
 }

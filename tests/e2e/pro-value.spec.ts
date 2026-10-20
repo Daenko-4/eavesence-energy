@@ -1,4 +1,4 @@
-import { homeWorkspace } from './home-navigation';
+import { homeWorkspace, savingsTool } from './home-navigation';
 import { test, expect } from '@playwright/test';
 for (const de of [false, true]) for (const width of [390, 1365]) {
   test(`Pro reserves, subscription preview and quick check survive reload ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
@@ -36,11 +36,11 @@ for (const de of [false, true]) for (const width of [390, 1365]) {
     await expect(payday.getByRole('button', { name: /^(Review plan|Plan prüfen)/ })).toContainText(t('heute erledigt', 'done today'));
     await questions.getByRole('button', { name: /Find realistic savings|Realistisch sparen/ }).click();
     const tools = page.getByRole('region', { name: t('Rechnungen und Abos planen', 'Plan bills and subscriptions') });
-    await tools.getByText(t('Jahreskosten rechtzeitig vorbereiten', 'Prepare for annual bills'), { exact: true }).click();
+    await savingsTool(page, 'reserves');
     await tools.getByLabel(t('Für diese Rechnung reserviertes Geld', 'Money reserved for this bill')).fill('200');
     await tools.getByRole('button', { name: t('Rücklage speichern', 'Save reserve') }).click();
     await expect(tools).toContainText(t('133,34', '133.34'));
-    await tools.getByText(t('Monatsabo oder Jahresabo?', 'Monthly or annual subscription?'), { exact: true }).click();
+    await savingsTool(page, 'annual');
     await tools.getByLabel(t('Abo auswählen', 'Choose subscription')).selectOption('stream');
     await tools.getByLabel(t('Angebot: voller Jahrespreis', 'Offer: full annual price')).fill('180');
     await tools.getByLabel(t('Jahreszahlung am', 'Annual payment on')).fill('2026-10-07');
@@ -52,7 +52,7 @@ for (const de of [false, true]) for (const width of [390, 1365]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.reload(); await plan();
     await questions.getByRole('button', { name: /Find realistic savings|Realistisch sparen/ }).click();
-    await tools.getByText(t('Jahreskosten rechtzeitig vorbereiten', 'Prepare for annual bills'), { exact: true }).click();
+    await savingsTool(page, 'reserves');
     await expect(tools.getByLabel(t('Für diese Rechnung reserviertes Geld', 'Money reserved for this bill'))).toHaveValue('200');
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning);
     expect(saved.reserves[0].dueDate).toBe('2026-12-10'); expect(saved.memos).toHaveLength(1);

@@ -1,4 +1,4 @@
-import { homeWorkspace, homeDetail } from './home-navigation';
+import { homeWorkspace, homeDetail, planningPeriod, savingsTool } from './home-navigation';
 import { expect, test, type Page } from "@playwright/test";
 
 async function disableHeaderIntro(page: Page) {
@@ -7,8 +7,8 @@ async function disableHeaderIntro(page: Page) {
 
 async function openPlan(page: Page, question: "payday" | "savings" | "progress" = "savings", budget = false) {
   await homeWorkspace(page, 'plan');
-  await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Spend until payday|Bis zum Gehalt ausgeben/ : question === "savings" ? /Find realistic savings|Realistisch sparen/ : /Savings achieved|Erreichte Ersparnis/ }).click();
-  if (budget && !await page.getByLabel(/Everyday spending per month|Alltagsausgaben pro Monat/).isVisible()) await page.getByRole("button", { name: /Add a monthly budget|Monatsbudget ergänzen/ }).click();
+  await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Plan money|Geld planen/ : question === "savings" ? /Find realistic savings|Realistisch sparen/ : /Savings achieved|Erreichte Ersparnis/ }).click();
+  if (budget) await planningPeriod(page, "budget");
 }
 async function openCostManager(page: Page) {
   await homeWorkspace(page, 'overview');
@@ -16,7 +16,7 @@ async function openCostManager(page: Page) {
 }
 async function openCostAreas(page: Page) {
   await openCostManager(page);
-  if (!await page.locator("[data-home-tiles]").isVisible()) await page.getByText(/^(Organize cost areas|Kostenbereiche organisieren)$/).click();
+  await expect(page.locator("[data-home-tiles]")).toBeVisible();
 }
 
 async function openEnergyTile(page: Page) {
@@ -234,6 +234,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   await expect(panel).toContainText("Estimated amount left");
   await expect(panel).toContainText("€1,360.00");
 
+  await savingsTool(page, "change");
   await panel.getByLabel("Test a cost change · choose a cost").selectOption("internet");
   await panel.getByLabel("New amount per payment (0 = ends)").fill("25");
   await expect(panel).toContainText("Estimated over the next 12 planning months");
@@ -519,9 +520,8 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
 
   await openPlan(page, "savings", true);
   const savingsPlan = page.locator("#savings-plan");
-  await expect(savingsPlan.getByRole("heading", { name: "Your monthly planning basics" })).toBeVisible();
+  await expect(savingsPlan.getByRole("heading", { name: "Your monthly budget" })).toBeVisible();
   await savingsPlan.getByLabel("Everyday spending per month (estimate)").fill("500");
-  await savingsPlan.getByText("More options: optional reserve", { exact: true }).click();
   await savingsPlan.getByLabel("Optional reserve per month").fill("100");
   await savingsPlan.getByLabel("Desired savings per month (optional)").fill("200");
   await savingsPlan.getByRole("button", { name: "Save plan" }).click();
@@ -1294,7 +1294,7 @@ test.describe("mobile", () => {
 
     await openPlan(page, "savings", true);
     await expect(
-      page.getByRole("heading", { name: "Your monthly planning basics" }),
+      page.getByRole("heading", { name: "Your monthly budget" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Reserve a beta place" }),
