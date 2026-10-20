@@ -285,7 +285,7 @@ export default function SavingsCoach({
       {mode === "progress" && p.confirmedMonthly > 0 && <p className="mt-2 text-[13px] text-[#52605b]">{t("Deine bestätigten Änderungen senken die laufenden Kosten durchschnittlich um", "Your confirmed changes reduce recurring costs by an average of")} {money(p.confirmedMonthly)} {t("pro Monat. Das ist kein zusätzlich bereits angesparter Betrag.", "per month. This is not extra money already saved.")}</p>}
         </section>
       )}
-      {mode === "progress" && onNavigate && <div className="planning-detail-navigation">
+      {mode === "progress" && onNavigate && <div className="planning-detail-navigation planning-progress-navigation">
         <button type="button" onClick={()=>onNavigate("payday")}>{t("Geld bis zum Gehalt neu prüfen", "Review your money until payday")}</button>
         <button type="button" onClick={()=>onNavigate("savings")}>{t("Eine Sparmöglichkeit prüfen", "Review a savings opportunity")}</button>
       </div>}
