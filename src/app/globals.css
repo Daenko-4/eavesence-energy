@@ -700,6 +700,7 @@ a {
   transition: color 180ms ease, background-color 180ms ease;
 }
 .home-section-navigation > button { flex-basis: auto; }
+.planning-progress-navigation > button { flex-basis: 200px; }
 .home-section-navigation > button:hover,
 .planning-detail-navigation > button:hover { background: #f4f6f2; color: #17211f; }
 .home-section-navigation > button[aria-expanded="true"],
