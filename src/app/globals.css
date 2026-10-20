@@ -670,77 +670,52 @@ a {
   .site-disclosure-icon { transition: none !important; }
 }
 
-/* My Home: one quiet navigation row and one selected detail panel. */
-.home-section-navigation {
+/* One link-row style for My Home details and all planning tools. */
+.home-section-navigation,
+.planning-detail-navigation {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 4px 8px;
   margin-top: 20px;
-  padding: 6px;
-  border: 1px solid #dfe5dd;
-  border-radius: 16px;
-  background: #fff;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #dfe5dd;
 }
-.home-section-navigation > button {
+.home-section-navigation > button,
+.planning-detail-navigation > button {
   display: flex;
-  flex: 1 1 120px;
+  flex: 1 1 100px;
   min-width: 0;
   min-height: 44px;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 8px;
   padding: 10px 12px;
   border-radius: 10px;
-  color: #52605b;
-  text-align: left;
+  color: #65716d;
+  text-align: center;
   font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
   cursor: pointer;
   transition: color 180ms ease, background-color 180ms ease;
 }
-.home-section-navigation > button:hover { background: #f4f6f2; color: #17211f; }
-.home-section-navigation > button[aria-expanded="true"] { background: #eefbf3; color: #17211f; }
-.home-section-navigation > button:focus-visible { outline: 2px solid var(--brand-green); outline-offset: 2px; }
+.home-section-navigation > button { flex-basis: auto; }
+.planning-progress-navigation > button { flex-basis: 200px; }
+.home-section-navigation > button:hover,
+.planning-detail-navigation > button:hover { background: #f4f6f2; color: #17211f; }
+.home-section-navigation > button[aria-expanded="true"],
+.planning-detail-navigation > button[aria-pressed="true"] { background: #24272c; color: #72dca3; }
+.home-section-navigation > button:focus-visible,
+.planning-detail-navigation > button:focus-visible { outline: 2px solid #28734d; outline-offset: 2px; }
 .home-section-navigation .site-disclosure-icon { transform: rotate(0deg); flex-shrink: 0; color: #28734d; font-size: 18px; font-weight: 300; }
-.home-section-navigation > button[aria-expanded="true"] .site-disclosure-icon { transform: rotate(-45deg); }
+.home-section-navigation > button[aria-expanded="true"] .site-disclosure-icon { transform: rotate(-45deg); color: #72dca3; }
 .home-section-due { display: inline-flex; min-width: 20px; min-height: 20px; margin-left: 6px; align-items: center; justify-content: center; border-radius: 50%; background: #dcfce8; color: #28734d; font-size: 11px; }
 .home-detail-panel { margin-top: 12px; padding: 20px; border: 1px solid #dfe5dd; border-radius: 16px; background: #fff; }
 .home-detail-panel:not([hidden]) { animation: home-detail-enter 200ms ease-out; }
 @keyframes home-detail-enter { from { opacity: .4; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 639px) { .home-detail-panel { padding: 16px; } }
-@media (prefers-reduced-motion: reduce) { .home-detail-panel:not([hidden]) { animation: none; } .home-section-navigation > button { transition: none; } }
-
-/* A selected planning task shows its content directly, without an accordion stack. */
-.planning-detail-navigation { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 20px; padding-bottom: 8px; border-bottom: 1px solid #dfe5dd; }
-.planning-detail-navigation > button { display: flex; flex: 1 1 100px; min-width: 0; min-height: 44px; align-items: center; justify-content: center; padding: 10px 12px; border-radius: 10px; color: #65716d; font-size: 13px; font-weight: 600; line-height: 1.4; text-align: center; cursor: pointer; transition: background-color 180ms ease, color 180ms ease; }
-.planning-detail-navigation > button:hover { background: #f4f6f2; color: #17211f; }
-.planning-detail-navigation > button[aria-pressed="true"] { background: #eefbf3; color: #1e6843; }
-.planning-detail-navigation > button:focus-visible { outline: 2px solid #28734d; outline-offset: 2px; }
-
-/* Keep the planning horizon visible as one compact, connected selector. */
-.planning-detail-navigation[data-planning-navigation="period"] {
-  gap: 4px;
-  padding: 6px;
-  border: 1px solid #dfe5dd;
-  border-radius: 14px;
-  background: #f4f6f2;
+@media (prefers-reduced-motion: reduce) {
+  .home-detail-panel:not([hidden]) { animation: none; }
+  .home-section-navigation > button,
+  .planning-detail-navigation > button { transition: none; }
 }
-.planning-detail-navigation[data-planning-navigation="period"] > button {
-  min-height: 48px;
-  padding: 10px 8px;
-  border: 1px solid transparent;
-  color: #3c4943;
-  font-weight: 700;
-}
-.planning-detail-navigation[data-planning-navigation="period"] > button:hover {
-  background: #e8eee7;
-  color: #17211f;
-}
-.planning-detail-navigation[data-planning-navigation="period"] > button[aria-pressed="true"] {
-  border-color: #24272c;
-  background: #24272c;
-  color: #72dca3;
-}
-
-@media (prefers-reduced-motion: reduce) { .planning-detail-navigation > button { transition: none; } }

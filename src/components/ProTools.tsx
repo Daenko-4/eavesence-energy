@@ -7,7 +7,7 @@ const field='home-planning-field min-h-11 w-full min-w-0 rounded-xl border borde
 const button='eavesence-pill-button home-dashboard-action';
 export default function ProTools({input,data,onSave,onReview,currency,locale,progressOnly=false,tool}:{input:SavingsPlanInput;data?:PlanningData;onSave:(p:PlanningData)=>void|Promise<void>;onReview:(c:SavingsPlanInput['costs'][number])=>void;currency:string;locale:'de'|'en';progressOnly?:boolean;tool?:'changes'|'reserves'|'annual'}) {
   const de=locale==='de',t=(a:string,b:string)=>de?a:b,p=useProTools(input,data,onSave,de);
-  const panel=tool?"min-w-0":"min-w-0 rounded-xl border border-[#dfe5dd] bg-white p-4";
+  const panel=tool||progressOnly?"min-w-0":"min-w-0 rounded-xl border border-[#dfe5dd] bg-white p-4";
   const [feedbackTool,setFeedbackTool]=useState<'reserves'|'annual'>();
   const showFeedback=!tool || tool===feedbackTool;
   const money=(n:number)=>new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency}).format(n);

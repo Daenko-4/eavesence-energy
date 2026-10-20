@@ -69,12 +69,10 @@ export default function SavingsCoach({
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
     <section
-      className={mode === "opportunities" ? "mt-5 min-w-0" : "mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"}
+      className={mode === "progress" ? "min-w-0" : mode === "opportunities" ? "mt-5 min-w-0" : "mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"}
       aria-label={mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
     >
-      <h3 className="site-card-title">
-        {mode === "progress" ? t("Deine bestätigte Ersparnis", "Your confirmed savings") : t("Welche Kosten möchtest du senken?", "Which cost would you like to lower?")}
-      </h3>
+      {mode === "progress" ? <h2 className="site-section-title">{t("Deine bestätigte Ersparnis", "Your confirmed savings")}</h2> : <h3 className="site-card-title">{t("Welche Kosten möchtest du senken?", "Which cost would you like to lower?")}</h3>}
       {mode !== "progress" && <p className="mt-1 text-[13px] text-[#52605b]">{t("Starte mit dem Vorschlag oder wähle einen anderen Kostenposten.", "Start with the suggestion or choose another cost.")}</p>}
       {mode !== "progress" && p.planned.length > 0 && <div className="mt-3 rounded-xl border border-[#bfd3c5] bg-[#f4f6f2] p-4 text-[13px]" data-pro-next-step>
         <p className="font-semibold">{t("Dein nächster Schritt", "Your next step")}: {t("Vorhaben umsetzen", "Put your plan into action")}</p>
@@ -203,7 +201,7 @@ export default function SavingsCoach({
       {shownActions.length > 0 && (
         <section
           ref={changes} data-savings-changes
-          className="mt-3 rounded-xl border border-[#dfe5dd] p-3"
+          className={mode === "progress" ? "mt-4 border-t border-[#dfe5dd] pt-4" : "mt-3 rounded-xl border border-[#dfe5dd] p-3"}
         >
           <h4 tabIndex={-1} className="text-[13px] font-bold outline-none">
             {mode === "progress" ? t("Bestätigte Änderungen & Schätzungen", "Confirmed changes & estimates") : t("Vorgemerkte Änderungen", "Planned changes")}{" "}
@@ -212,7 +210,7 @@ export default function SavingsCoach({
           {shownActions.map((a) => (
             <article
               key={savingsActionKey(a)}
-              className="mt-3 rounded-xl border border-[#dfe5dd] p-3 text-[13px]"
+              className={mode === "progress" ? "mt-3 rounded-xl bg-[#f4f6f2] p-3 text-[13px]" : "mt-3 rounded-xl border border-[#dfe5dd] p-3 text-[13px]"}
             >
               <strong>{a.name}</strong>
               <p className="mt-1">
@@ -287,8 +285,11 @@ export default function SavingsCoach({
       {mode === "progress" && p.confirmedMonthly > 0 && <p className="mt-2 text-[13px] text-[#52605b]">{t("Deine bestätigten Änderungen senken die laufenden Kosten durchschnittlich um", "Your confirmed changes reduce recurring costs by an average of")} {money(p.confirmedMonthly)} {t("pro Monat. Das ist kein zusätzlich bereits angesparter Betrag.", "per month. This is not extra money already saved.")}</p>}
         </section>
       )}
-      {mode === "progress" && onNavigate && <button type="button" className={`${button} mt-3 mr-2`} onClick={()=>onNavigate("payday")}>{t("Geld bis zum Gehalt neu prüfen", "Review your money until payday")}</button>}
-      {onNavigate && mode !== "all" && <button type="button" className={`${button} mt-3`} onClick={() => onNavigate(mode === "progress" ? "savings" : "progress")}>{mode === "progress" ? t("Eine Sparmöglichkeit prüfen", "Review a savings opportunity") : t("Erreichte Ersparnis ansehen", "View achieved savings")}</button>}
+      {mode === "progress" && onNavigate && <div className="planning-detail-navigation planning-progress-navigation">
+        <button type="button" onClick={()=>onNavigate("payday")}>{t("Geld bis zum Gehalt neu prüfen", "Review your money until payday")}</button>
+        <button type="button" onClick={()=>onNavigate("savings")}>{t("Eine Sparmöglichkeit prüfen", "Review a savings opportunity")}</button>
+      </div>}
+      {onNavigate && mode === "opportunities" && <button type="button" className={`${button} mt-3`} onClick={() => onNavigate("progress")}>{t("Erreichte Ersparnis ansehen", "View achieved savings")}</button>}
       {p.error && (
         <p role="alert" className="mt-2 text-[13px] text-red-700">
           {p.error}
