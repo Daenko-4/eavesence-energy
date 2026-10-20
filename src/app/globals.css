@@ -720,8 +720,6 @@ a {
 
 /* Keep the planning horizon visible as one compact, connected selector. */
 .planning-detail-navigation[data-planning-navigation="period"] {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   padding: 6px;
   border: 1px solid #dfe5dd;
