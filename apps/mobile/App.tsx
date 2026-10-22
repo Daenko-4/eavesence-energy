@@ -1008,6 +1008,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           <PlanNavigation kind="goal" value={planQuestion} onChange={changePlanQuestion}/>
           <View style={styles.planSurface}>
             <PlanView visible={planQuestion === "payday"}>
+              <Text accessibilityRole="header" style={styles.planSectionTitle}>{locale === "de" ? "Dein Geld planen" : "Plan your money"}</Text>
+              <Text style={styles.financeNote}>{locale === "de" ? "Plane bis zum nächsten Gehalt, für 90 Tage oder mit einem Monatsbudget." : "Plan until payday, look ahead 90 days or set a monthly budget."}</Text>
               <PlanNavigation kind="period" value={planPeriod} onChange={setPlanPeriod}/>
               <PlanView visible={planPeriod === "payday"}><PaydayScreen embedded onPayments={()=>{setPaymentsOpen(true);selectTab("home");}} onSavings={()=>changePlanQuestion("savings")} onReviewCost={reviewCost} key={`payday-${profile.createdAt}`} input={{incomeMonthly:monthlyIncome,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs,startMonth:upcoming.month}} data={profile.planning} onSave={savePlanning} currency={profile.currency??"EUR"}/></PlanView>
               <PlanView visible={planPeriod === "forecast"}><ProInsightsScreen mode="forecast" view="forecast" input={insightInput} data={profile.planning} onSave={savePlanning} onApply={applyPlanSuggestion} onEveryday={saveEverydayEstimate} onReview={reviewCost} onNavigate={changePlanQuestion} onEditIncome={()=>startWith("income")} onPayments={()=>{setPaymentsOpen(true);selectTab("home");}} currency={profile.currency??"EUR"}/></PlanView>

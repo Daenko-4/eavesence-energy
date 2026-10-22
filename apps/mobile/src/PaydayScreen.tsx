@@ -103,6 +103,7 @@ export function PaydayScreen({
   const missingEveryday = p.forecast?.everyday === null;
   const state = !p.cash ? "empty" : expired ? "expired" : p.stale ? "stale" : missingDates > 0 ? "dates" : missingEveryday ? "everyday" : complete ? "ready" : "incomplete";
   const currentResult = complete && state === "ready";
+  const lightHero = open || !currentResult;
   const statusText = state === "empty"
     ? t("Was bleibt nach Rechnungen und Alltag? Mit drei Angaben siehst du es.", "What is left after bills and everyday spending? Find out with three entries.")
     : state === "expired"
@@ -125,10 +126,10 @@ export function PaydayScreen({
     else reviewBalance();
   }
   return (
-    <View style={[styles.card, embedded && styles.embedded]}>
-      <View ref={resultTarget} style={[styles.dark, embedded && styles.embeddedDark]}>
-        <Text style={styles.eyebrow}>{!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} Tage`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} days`) : t("Dein Geld bis zum Gehalt", "Your money until payday")}</Text>
-        <Text accessibilityRole="header" style={styles.title}>{open ? t("Deine Angaben", "Your entries")
+    <View style={[styles.card, lightHero && styles.setupCard, embedded && styles.embedded]}>
+      <View ref={resultTarget} style={[styles.dark, embedded && styles.embeddedDark, lightHero && styles.setup]}>
+        <Text style={[styles.eyebrow, lightHero && styles.setupEyebrow]}>{!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} Tage`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} days`) : t("Dein Geld bis zum Gehalt", "Your money until payday")}</Text>
+        <Text accessibilityRole="header" style={[styles.title, lightHero && styles.setupTitle]}>{open ? t("Deine Angaben", "Your entries")
           : currentResult ? shortfall ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Zusätzlich verfügbar", "Extra money available")
           : state === "stale" ? t("Kontostand bestätigen", "Confirm account balance")
           : state === "expired" ? t("Neuen Zeitraum planen", "Plan your next pay period")
@@ -136,10 +137,10 @@ export function PaydayScreen({
           : state === "everyday" ? t("Alltag noch einplanen", "Add everyday spending")
           : t("Was bleibt bis zum Gehalt?", "What is left until payday?")}</Text>
         {currentResult && !open && <Text style={[styles.amount,shortfall ? styles.shortfallAmount : styles.positive]} accessibilityLiveRegion="polite">{money(Math.abs(p.forecast!.remaining!))}</Text>}
-        {!open && <Text accessibilityLiveRegion="polite" style={[styles.light,(state === "stale" || state === "expired" || state === "dates") && styles.warning]}>{statusText}</Text>}
-        {state === "empty" && !open && <View style={styles.steps}>{[t("Kontostand", "Account balance"),t("Gehaltstag", "Payday"),t("Alltag", "Everyday spending")].map((label,index) => <Text key={label} style={styles.light}>{index+1} · {label}</Text>)}</View>}
+        {!open && <Text accessibilityLiveRegion="polite" style={[styles.light,(state === "stale" || state === "expired" || state === "dates") && styles.warning, lightHero && styles.setupNote]}>{statusText}</Text>}
+        {state === "empty" && !open && <View style={styles.steps}>{[t("Kontostand", "Account balance"),t("Gehaltstag", "Payday"),t("Alltag", "Everyday spending")].map((label,index) => <Text key={label} style={[styles.light, lightHero && styles.setupNote]}>{index+1} · {label}</Text>)}</View>}
         {currentResult && !open && <View style={styles.deductions}>{[[t("Rechnungen", "Bills"),p.forecast!.fixed],[t("Alltag", "Everyday"),p.forecast!.everyday!],[t("Reserve", "Reserve"),p.cash!.protected]].map(([label,value]) => <View key={label} style={styles.deduction}><Text style={styles.light}>{label}</Text><Text style={styles.deductionAmount}>{money(Number(value))}</Text></View>)}</View>}
-        <Pressable accessibilityRole="button" accessibilityState={{expanded:open}} disabled={p.busy} style={styles.mintButton} onPress={() => open ? setOpen(false) : editPlan()}>
+        <Pressable accessibilityRole="button" accessibilityState={{expanded:open}} disabled={p.busy} style={[styles.mintButton, lightHero && styles.setupButton]} onPress={() => open ? setOpen(false) : editPlan()}>
           <Text style={styles.mintText}>{open ? t("Einklappen", "Collapse") : p.cash ? t("Kontostand aktualisieren", "Update account balance") : t("Verfügbares Geld berechnen", "Calculate available money")}</Text><DisclosureIcon open={open} color="#17211f"/>
         </Pressable>
         {currentResult && !open && (p.forecast!.overdue > 0 || p.forecast!.estimatedBills > 0) && <Pressable accessibilityRole="button" style={styles.reviewPayments} onPress={reviewPayments}><Text style={styles.warning}>{[p.forecast!.overdue > 0 ? t(`${p.forecast!.overdue} frühere Zahlungen offen`, `${p.forecast!.overdue} earlier payments unchecked`) : "",p.forecast!.estimatedBills > 0 ? t(`${p.forecast!.estimatedBills} Beträge geschätzt`, `${p.forecast!.estimatedBills} estimated amounts`) : ""].filter(Boolean).join(" · ")}</Text></Pressable>}
@@ -243,6 +244,12 @@ const styles = StyleSheet.create({
     borderColor: "#32363b",
   },
   dark: { padding: 18, gap: 12, alignItems: "center", backgroundColor: "#24272c" },
+  setupCard: { borderColor: "#dfe5dd" },
+  setup: { backgroundColor: "#f4f6f2" },
+  setupEyebrow: { color: "#28734d" },
+  setupTitle: { color: "#17211f" },
+  setupNote: { color: "#52605b" },
+  setupButton: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#aebbb2" },
   steps: { gap: 5, alignSelf: "stretch", marginVertical: 4 },
   deductions: { flexDirection: "row", flexWrap: "wrap", gap: 12, alignSelf: "stretch", borderTopWidth: 1, borderColor: "#52605b", paddingTop: 14 },
   deduction: { flexGrow: 1, flexBasis: 65, gap: 4 },
