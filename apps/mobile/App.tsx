@@ -1000,9 +1000,11 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
         </>}
 
         {(tab === "pro" || planVisited) && <PlanView visible={tab === "pro"}>
-          <Text style={styles.eyebrow}>{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</Text>
-          <Text accessibilityRole="header" style={styles.planPageTitle}>{locale === "de" ? "Planen & sparen" : "Plan & save"}</Text>
-          <Text style={styles.financeNote}>{locale === "de" ? "Plane dein Geld, prüfe Kosten und sieh, was du gespart hast." : "Plan your money, review costs and track what you save."}</Text>
+          <View style={styles.homeIdentity}>
+            <Text style={[styles.eyebrow,styles.planIntro]}>{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</Text>
+            <Text accessibilityRole="header" style={styles.homeName}>{locale === "de" ? "Planen & sparen" : "Plan & save"}</Text>
+            <Text style={[styles.financeNote,styles.planIntro]}>{locale === "de" ? "Plane dein Geld, prüfe Kosten und sieh, was du gespart hast." : "Plan your money, review costs and track what you save."}</Text>
+          </View>
           <PlanNavigation kind="goal" value={planQuestion} onChange={changePlanQuestion}/>
           <View style={styles.planSurface}>
             <PlanView visible={planQuestion === "payday"}>
@@ -1096,8 +1098,8 @@ const styles = StyleSheet.create({
   areaDisclosure: { borderWidth: 1, borderColor: "transparent", paddingHorizontal: 16, minHeight: 48, marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   areaDisclosureText: { flex: 1, fontSize: 13, fontWeight: "700", color: "#17211f" },
   disclosureIcon: { fontSize: 22, color: "#087a45" },
-  planPageTitle: { marginTop: 8, marginBottom: 6, fontSize: 28, lineHeight: 34, fontWeight: "800", letterSpacing: -0.8, color: "#24272c" },
-  planSurface: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 18, padding: 16 },
+  planIntro: { textAlign: "center" },
+  planSurface: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 16, padding: 16 },
   planSectionTitle: { fontSize: 20, lineHeight: 26, fontWeight: "700", color: "#24272c", marginBottom: 6 },
   planTabs: { flexDirection: "row", gap: 8, marginVertical: 16 },
   planTab: { flex: 1, minHeight: 52, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 12, backgroundColor: "#ffffff", padding: 10, justifyContent: "center" },
