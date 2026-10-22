@@ -100,7 +100,7 @@ export default function SavingsPlanPanel({ section, tool, onTool, onBudget, onNa
     </div>
     <div className="mt-4 rounded-xl bg-[#f4f6f2] p-3 text-[12px] text-[#52605b]"><p className="font-semibold">{de ? "Freiwillige Reserve (optional)" : "Optional reserve"}</p><p className="mt-2">{de ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</p><label className="mt-2 grid max-w-xs gap-1 font-semibold">{de ? "Freiwillige Reserve pro Monat" : "Optional reserve per month"}<input inputMode="decimal" value={buffer} onChange={(event) => setBuffer(event.target.value)} className="home-planning-field min-h-11 min-w-0 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder="0" /></label></div>
     <button type="button" onClick={() => void save()} disabled={busy} className="eavesence-pill-button home-primary-action mt-4">{de ? "Plan speichern" : "Save plan"}</button>
-    {notice && !budgetDirty && <p role="status" className="mt-2 text-[12px] font-semibold text-[#087a45]">{notice}</p>}
+    {notice && !budgetDirty && budgetDraft && <p role="status" className="mt-2 text-[12px] font-semibold text-[#087a45]">{notice}</p>}
     {error && <p role="alert" className="mt-2 text-[12px] text-red-700">{error}</p>}
     </div><div className="planning-budget-results">
     {result && <>

@@ -1563,11 +1563,11 @@ test('photo recognition runs locally and proposes the labelled invoice total',as
 for(const width of [320,1365])test(`payday overview stays readable and recalculates at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
  await openPlan(page, 'payday');const panel=page.getByRole('region',{name:'Your available budget',exact:true});await panel.getByRole('button',{name:'Calculate available money'}).click();
- const fields=await panel.locator('form input:visible').evaluateAll(inputs=>inputs.map(input=>{const box=input.getBoundingClientRect();return {top:box.top,height:box.height,fontSize:getComputedStyle(input).fontSize};}));
+ const fields=await panel.locator('form input:visible').evaluateAll(inputs=>inputs.map(input=>{const box=input.getBoundingClientRect();return {top:box.top,left:box.left,width:box.width,height:box.height,fontSize:getComputedStyle(input).fontSize};}));
  expect(fields).toHaveLength(3);
  await expect(panel.getByLabel('Money to keep in reserve (optional)',{exact:true})).toBeHidden();
  for(const field of fields){expect(field.height).toBe(44);expect(field.fontSize).toBe(width<768?'16px':'13px');}
- if(width>=640){expect(Math.abs(fields[0].top-fields[1].top)).toBeLessThan(1);}
+ if(width>=1180){expect(fields[1].top).toBeGreaterThan(fields[0].top+fields[0].height);expect(Math.abs(fields[0].left-fields[1].left)).toBeLessThan(1);expect(Math.abs(fields[0].width-fields[1].width)).toBeLessThan(1);}else if(width>=640){expect(Math.abs(fields[0].top-fields[1].top)).toBeLessThan(1);}
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
  await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await panel.getByLabel('Next payday',{exact:true}).fill(day);await panel.getByText('Keep some money in reserve (optional)',{exact:true}).click();await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await panel.getByLabel('Everyday spending until payday',{exact:true}).fill('150');await panel.getByRole('button',{name:'Show available money'}).click();
  await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel.locator('h2')).toHaveText('Extra money available');await expect(panel.locator('[data-payday-hero]')).toContainText('Until');
