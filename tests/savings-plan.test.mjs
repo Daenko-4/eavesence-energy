@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { compareSavingsActions, createSavingsAction, createSavingsPlan, readSavingsActions } from "../packages/core/src/savingsPlan.ts";
+import { parseBudgetDraft, compareSavingsActions, createSavingsAction, createSavingsPlan, readSavingsActions } from "../packages/core/src/savingsPlan.ts";
 import { convertWebBackup } from "../apps/mobile/src/webBackup.ts";
 
 const cost = (id, amount, frequency, nextDueDate, category = "insurance") => ({
@@ -73,4 +73,18 @@ test("website backups import with income, CHF, custom tiles and consumption devi
   assert.equal(backup.devices[0].calculationType, "consumption");
   assert.equal(backup.costs.length, 1);
   assert.equal(convertWebBackup(file.replace('"currency":"CHF"', '"currency":"GBP"')), null);
+});
+
+
+test("budget preview and explicit save accept the same localized inputs and distinguish zero from missing", () => {
+  assert.deepEqual(parseBudgetDraft({variable:"1.234,50",buffer:"100,25",goal:"50"},"de"),{variableMonthly:1234.5,bufferMonthly:100.25,goalMonthly:50});
+  assert.deepEqual(parseBudgetDraft({variable:"1,234.50",buffer:"100.25",goal:"50"},"en"),{variableMonthly:1234.5,bufferMonthly:100.25,goalMonthly:50});
+  assert.deepEqual(parseBudgetDraft({variable:" ",buffer:" ",goal:""},"en"),{variableMonthly:null,bufferMonthly:0,goalMonthly:0});
+  assert.equal(parseBudgetDraft({variable:"0",buffer:"0",goal:"0"},"de").variableMonthly,0);
+});
+
+test("invalid budget drafts cannot become a new calculation or a saved budget", () => {
+  for(const field of ["variable","buffer","goal"])for(const value of ["-1","not a number","1e3"]){
+    assert.equal(parseBudgetDraft({variable:"400",buffer:"0",goal:"0",[field]:value},"en"),null);
+  }
 });

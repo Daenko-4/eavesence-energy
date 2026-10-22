@@ -1,4 +1,4 @@
-import { extraIncomeForMonth, readIncomeExtras, type IncomeExtra } from "./income.ts";
+import { parseIncomeAmount, extraIncomeForMonth, readIncomeExtras, type IncomeExtra } from "./income.ts";
 import { monthlyCost, paymentsForMonth, type HouseholdCost, type HouseholdCostFrequency } from "./householdCosts.ts";
 
 export type SavingsPlanInput = {
@@ -10,6 +10,17 @@ export type SavingsPlanInput = {
   costs: HouseholdCost[];
   startMonth: string;
 };
+
+export type BudgetValues = Pick<SavingsPlanInput, "variableMonthly" | "bufferMonthly" | "goalMonthly">;
+
+/** The same validated values drive the live preview and an explicit save. */
+export function parseBudgetDraft(draft: { variable: string; buffer: string; goal: string }, locale: "de" | "en"): BudgetValues | null {
+  const variableMonthly = draft.variable.trim() === "" ? null : parseIncomeAmount(draft.variable, locale);
+  const bufferMonthly = parseIncomeAmount(draft.buffer.trim() || "0", locale);
+  const goalMonthly = parseIncomeAmount(draft.goal.trim() || "0", locale);
+  if ([bufferMonthly, goalMonthly, ...(variableMonthly === null ? [] : [variableMonthly])].some(value => !Number.isFinite(value) || value < 0)) return null;
+  return { variableMonthly, bufferMonthly, goalMonthly };
+}
 
 export type SavingsAction = {
   id?: string;

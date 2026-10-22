@@ -752,3 +752,15 @@ a {
   .home-section-navigation > button,
   .planning-detail-navigation > button { transition: none; }
 }
+
+.planning-budget-layout { display: grid; grid-template-columns: minmax(0,1fr); gap: 18px; }
+.planning-budget-inputs, .planning-budget-results { min-width: 0; }
+.planning-budget-results [data-budget-live-preview] { margin-top: 16px; }
+.planning-budget-total { padding: 16px; border: 0; border-radius: 12px; background: #24272c; }
+.planning-budget-total > p { color: #d1d7d4; }
+.planning-budget-total > p.text-xl { color: #72dca3; font-size: 26px; }
+.planning-budget-results details > div.grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+@media (min-width: 1180px) {
+  .planning-budget-layout { grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr); gap: 24px; align-items: start; }
+  .planning-budget-inputs > div.grid { grid-template-columns: minmax(0,1fr); }
+}

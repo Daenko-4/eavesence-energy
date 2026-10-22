@@ -359,6 +359,8 @@ for (const locale of ['de','en']) for (const width of [320,390]) {
     await period.getByRole('tab',{name:t('Monatsbudget','Monthly budget'),exact:true}).click();
     const everyday=page.getByRole('textbox',{name:t('Alltagsausgaben pro Monat (geschätzt)','Everyday spending per month (estimate)'),exact:true});
     await everyday.fill('350');
+    await expect(page.getByText(t('950,00','950.00'),{exact:false})).toBeVisible();
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).variableMonthly)).toBeUndefined();
     await goal.getByRole('tab',{name:t('Realistisch sparen','Find realistic savings'),exact:true}).click();
     const tools=page.getByRole('tablist',{name:t('Sparwerkzeug wählen','Choose savings tool'),exact:true});
     await tools.getByRole('tab',{name:t('Jahresabo','Annual plans'),exact:true}).click();

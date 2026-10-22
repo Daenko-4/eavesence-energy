@@ -27,6 +27,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     const surface=(await page.locator('.planning-workspace-content').boundingBox())!;
     if(width>=1024)expect(navigation.x+navigation.width).toBeLessThanOrEqual(surface.x-12);
     else expect(navigation.y+navigation.height).toBeLessThanOrEqual(surface.y-8);
+    const savedBudgetBefore = await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!).variableMonthly);
     const costsBefore = await page.evaluate(() => localStorage.getItem('eavesence-home-costs-v1'));
     const payday = page.locator('[data-payday-state]');
     await payday.getByRole('button', { name: t('Verfügbares Geld berechnen', 'Calculate available money'), exact: true }).click();
@@ -44,6 +45,8 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await planningPeriod(page, 'budget');
     const budget = page.locator('[data-planning-budget]');
     await budget.getByLabel(t('Alltagsausgaben pro Monat (geschätzt)', 'Everyday spending per month (estimate)'), { exact: true }).fill('350');
+    await expect(budget.locator('[data-budget-live-preview]')).toContainText(t('1.960,00','1,960.00'));
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).variableMonthly)).toBe(savedBudgetBefore);
     await expect(budget.getByLabel(t('Freiwillige Reserve pro Monat', 'Optional reserve per month'), { exact: true })).toBeVisible();
     await expect(forecast).toBeHidden();
     await page.screenshot({ fullPage: true, path: info.outputPath(`planning-monthly-${de ? 'de' : 'en'}-${width}.png`) });

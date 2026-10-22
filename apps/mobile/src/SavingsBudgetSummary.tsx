@@ -17,7 +17,7 @@ export function SavingsBudgetSummary({ input, currency }: { input: SavingsPlanIn
     <Row label={de ? "− Fixkosten (Durchschnitt)" : "− Fixed costs (average)"} value={money(result.averageFixed)} />
     <Row label={de ? "− Alltag (deine Schätzung)" : "− Everyday spending (estimate)"} value={missingEveryday ? de ? "Noch offen" : "Not estimated yet" : money(input.variableMonthly!)} />
     {input.bufferMonthly > 0 && <Row label={de ? "− Freiwillige Reserve" : "− Optional reserve"} value={money(input.bufferMonthly)} />}
-    <View style={styles.total}><Text style={styles.note}>{missingEveryday ? input.bufferMonthly > 0 ? de ? "Rest nach Fixkosten und Reserve" : "Left after fixed costs and reserve" : de ? "Rest nach Fixkosten" : "Left after fixed costs" : de ? "Verbleibender Spielraum (geschätzt)" : "Estimated amount left"}</Text><Text style={styles.amount}>{hasIncome ? money(result.averageRoom) : "—"}</Text></View>
+    <View style={styles.total}><Text style={[styles.note,styles.totalLabel]}>{missingEveryday ? input.bufferMonthly > 0 ? de ? "Rest nach Fixkosten und Reserve" : "Left after fixed costs and reserve" : de ? "Rest nach Fixkosten" : "Left after fixed costs" : de ? "Verbleibender Spielraum (geschätzt)" : "Estimated amount left"}</Text><Text style={styles.amount}>{hasIncome ? money(result.averageRoom) : "—"}</Text></View>
     <Text style={styles.note}>{!hasIncome ? de ? "Trage dein Einkommen in My Home ein, damit wir den Spielraum berechnen können." : "Add income in My Home to calculate what is left." : missingEveryday ? de ? "Davon gehen deine Alltagsausgaben noch ab. Dieser Rest ist noch kein Sparbetrag." : "Everyday spending still comes out of this amount. It is not a savings amount yet." : de ? "Deine Schätzung kann von den tatsächlichen Ausgaben abweichen." : "Your estimate may differ from actual spending."}</Text>
     {hasIncome && !missingEveryday && input.goalMonthly > 0 && <Text style={styles.goal}>{de ? `Du möchtest pro Monat ${money(input.goalMonthly)} zurücklegen. Nach dem Zurücklegen bleiben ${money(result.averageRoom - input.goalMonthly)}.` : `You want to set aside ${money(input.goalMonthly)} each month. After setting it aside, you have ${money(result.averageRoom - input.goalMonthly)}.`}</Text>}
     <Text style={styles.note}>{de ? "Jahresrechnungen sind im Fixkosten-Durchschnitt enthalten. Im Zahlungsmonat kann der Rest niedriger sein." : "Annual bills are included in the fixed-cost average. The amount left may be lower when a bill is due."}</Text>
@@ -31,13 +31,14 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { marginTop: 10, borderRadius: 15, padding: 14, backgroundColor: "#ffffff", gap: 10 },
+  container: { marginTop: 10, borderRadius: 15, padding: 14, backgroundColor: "#f4f6f2", gap: 10 },
   heading: { fontSize: 15, fontWeight: "900", color: "#17211f" },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 },
   label: { flex: 1, fontSize: 12, lineHeight: 18, color: "#52605b" },
   value: { flexShrink: 1, textAlign: "right", fontSize: 13, lineHeight: 18, fontWeight: "700", color: "#17211f" },
-  total: { borderTopWidth: 1, borderColor: "#dfe5dd", paddingTop: 12, gap: 3 },
-  amount: { fontSize: 27, fontWeight: "900", color: "#17211f" },
+  total: { borderRadius: 12, backgroundColor: "#24272c", padding: 14, gap: 6 },
+  totalLabel: { color: "#d1d7d4" },
+  amount: { fontSize: 27, fontWeight: "900", color: "#72dca3" },
   note: { fontSize: 12, lineHeight: 18, color: "#52605b" },
   goal: { fontSize: 12, lineHeight: 18, fontWeight: "700", color: "#17211f" },
   toggle: { minHeight: 44, justifyContent: "center", alignSelf: "flex-start" },

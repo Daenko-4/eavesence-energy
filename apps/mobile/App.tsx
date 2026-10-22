@@ -8,7 +8,7 @@ import { closeSavingsHistory } from "@eavesence/core/savingsPlan";
 import { TileSymbol, TileSymbolPicker } from "./src/TileSymbol";
 import { iconForTile, type TileSymbol as SymbolKey } from "@eavesence/core/tileSymbols";
 import { BrandMotion, DisclosureIcon } from "./src/BrandMotion";
-import { parseIncomeAmount, summarizeIncome, type IncomeExtra } from "@eavesence/core/income";
+import { summarizeIncome, type IncomeExtra } from "@eavesence/core/income";
 import { IncomeExtrasSummary } from "./src/IncomeExtrasSummary";
 import appConfig from "./app.json";
 import { HomeSetupForm } from "./src/HomeSetupForm";
@@ -22,7 +22,7 @@ import {CostImportScreen} from './src/CostImportScreen';
 import {SavingsCoachScreen} from './src/SavingsCoachScreen';
 import {confirmSavingsChange,localToday} from '@eavesence/core/homeValue';
 import { calculateEnergyCosts } from "@eavesence/core";
-import { createSavingsPlan, readSavingsActions, type SavingsAction } from "@eavesence/core/savingsPlan";
+import { parseBudgetDraft, createSavingsPlan, readSavingsActions, type SavingsAction } from "@eavesence/core/savingsPlan";
 import {
   forecastHouseholdCosts,
   monthlyCost,
@@ -272,6 +272,9 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
   const insightInput={incomeMonthly:incomeSummary.monthly,incomeKnown:profile?.incomeAmount!==undefined,incomeIsAnnualAverage:incomeSummary.annualAverage,incomeExtras:incomeSummary.extras,variableMonthly:profile?.variableMonthly??null,bufferMonthly:profile?.bufferMonthly??0,goalMonthly:profile?.goalMonthly??0,costs,startMonth:localToday().slice(0,7)};
   const hasIncome = typeof profile?.incomeAmount === "number" && Number.isFinite(profile.incomeAmount) && profile.incomeAmount >= 0;
   const hasCosts = costs.length > 0;
+  const budgetDraft = parseBudgetDraft({ variable: variableBudget, buffer: bufferBudget, goal: savingsGoal }, locale);
+  const budgetValues = budgetDraft ?? { variableMonthly: profile?.variableMonthly ?? null, bufferMonthly: profile?.bufferMonthly ?? 0, goalMonthly: profile?.goalMonthly ?? 0 };
+  const budgetDirty = !!budgetDraft && (budgetDraft.variableMonthly !== (profile?.variableMonthly ?? null) || budgetDraft.bufferMonthly !== (profile?.bufferMonthly ?? 0) || budgetDraft.goalMonthly !== (profile?.goalMonthly ?? 0));
   const savingsPlan = createSavingsPlan({
     incomeMonthly: monthlyIncome, incomeExtras: incomeSummary.extras,
     variableMonthly: profile?.variableMonthly ?? null,
@@ -331,14 +334,11 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
   async function saveBudget() {
     if (!profile) return;
-    const variable = variableBudget.trim() ? parseIncomeAmount(variableBudget, locale) : null;
-    const buffer = parseIncomeAmount(bufferBudget || "0", locale);
-    const target = parseIncomeAmount(savingsGoal || "0", locale);
-    if ((variable !== null && (!Number.isFinite(variable) || variable < 0)) ||
-      !Number.isFinite(buffer) || buffer < 0 || !Number.isFinite(target) || target < 0) {
+    const draft = parseBudgetDraft({ variable: variableBudget, buffer: bufferBudget, goal: savingsGoal }, locale);
+    if (!draft) {
       showLocalizedAlert(locale,"Beträge prüfen", "Gib Beträge ab 0 ein. Alltagsausgaben dürfen offen bleiben."); return;
     }
-    const next = { ...profile, variableMonthly: variable, bufferMonthly: buffer, goalMonthly: target };
+    const next = { ...profile, ...draft };
     try { await writeJson(PROFILE_KEY, next); setProfile(next); Keyboard.dismiss(); showLocalizedAlert(locale,"Gespeichert", "Dein Sparplan wurde aktualisiert."); }
     catch { showLocalizedAlert(locale,"Speichern fehlgeschlagen", "Bitte versuche es erneut."); }
   }
@@ -1018,7 +1018,8 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: reserveOptionsOpen }} onPress={() => setReserveOptionsOpen(!reserveOptionsOpen)} style={styles.financePill}><Text style={styles.financePillText}>{locale === "de" ? "Erweiterte Optionen: freiwillige Reserve" : "More options: optional reserve"}</Text></Pressable>
           {reserveOptionsOpen && <><Text style={styles.financeNote}>{locale === "de" ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</Text><Field label={locale === "de" ? "Freiwillige Reserve pro Monat" : "Optional reserve per month"} value={bufferBudget} onChangeText={setBufferBudget} keyboardType="decimal-pad" /></>}
           <PrimaryButton label="Plan speichern" onPress={saveBudget} /></FormSection>
-                <SavingsBudgetSummary input={{ incomeMonthly: monthlyIncome, incomeExtras: incomeSummary.extras, variableMonthly: profile.variableMonthly ?? null, bufferMonthly: profile.bufferMonthly ?? 0, goalMonthly: profile.goalMonthly ?? 0, costs, startMonth: upcoming.month }} currency={profile.currency ?? "EUR"} />
+                {(budgetDirty || !budgetDraft) && <Text accessibilityLiveRegion="polite" style={styles.financeNote}>{!budgetDraft ? locale === "de" ? "Vorschau pausiert: Bitte gültige Beträge eingeben. Darunter bleibt der gespeicherte Stand sichtbar." : "Preview paused: enter valid amounts. Your saved values are shown below." : locale === "de" ? "Vorschau – erst mit „Plan speichern“ werden deine Änderungen übernommen." : "Preview — use Save plan to keep your changes."}</Text>}
+                <SavingsBudgetSummary input={{ incomeMonthly: monthlyIncome, incomeExtras: incomeSummary.extras, ...budgetValues, costs, startMonth: upcoming.month }} currency={profile.currency ?? "EUR"} />
               </View></PlanView>
             </PlanView>
             <PlanView visible={planQuestion === "savings"}>
