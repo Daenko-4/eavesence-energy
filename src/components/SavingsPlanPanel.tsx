@@ -74,7 +74,7 @@ export default function SavingsPlanPanel({ section, tool, onTool, onBudget, onNa
     } catch { setError(de ? "Speichern fehlgeschlagen. Deine Eingaben bleiben erhalten." : "Could not save. Your entries have been kept."); }
     finally { saving.current = false; setBusy(false); }
   }
-  const panelClass = "mt-5 rounded-[1.45rem] border border-[#dfe5dd] bg-white p-5 sm:p-6";
+  const panelClass = "planning-surface";
   return <div>
     <div hidden={section !== "progress"}><section className={panelClass}><SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/><ProTools progressOnly locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/></section></div>
 <section hidden={section === "progress"} id="savings-plan" className={panelClass} data-pro-savings>

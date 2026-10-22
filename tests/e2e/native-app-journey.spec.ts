@@ -341,3 +341,58 @@ for(const locale of ['de','en'])for(const width of [320,390])test(`native Pro fo
  await mountApp(page,locale);await page.getByRole('tab',{name:'Plan',exact:true}).click();await page.getByRole('tab',{name:t('Realistisch sparen','Find realistic savings'),exact:true}).click();await page.getByRole('button',{name:t('Ab wann lohnt sich ein Wechsel?','When does switching pay off?'),exact:true}).click();await page.getByRole('button',{name:t('Gemerkte Wechselvergleiche','Saved switch comparisons'),exact:true}).click();await page.getByRole('button',{name:t('Vergleich öffnen','Open comparison'),exact:true}).click();
  await expect(page.getByRole('textbox',{name:t('Neuer monatlicher Preis','New monthly price'),exact:true})).toHaveValue('20');await expect(page.getByRole('textbox',{name:t('Neuer monatlicher Preis','New monthly price'),exact:true})).toBeFocused();await expect(page.getByRole('textbox',{name:t('Einmalige Wechselgebühr','One-off switching fee'),exact:true})).toHaveValue('60');expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).savingsActions??[])).toHaveLength(0);
 });
+
+for (const locale of ['de','en']) for (const width of [320,390]) {
+  test(`native planning keeps drafts across periods tools and app tabs ${locale} ${width}`, async ({page},info) => {
+    const t=(a:string,b:string)=>locale==='de'?a:b;
+    await show(page,locale,width,true);
+    await page.getByRole('tab',{name:'Plan',exact:true}).click();
+    const period=page.getByRole('tablist',{name:t('Planungszeitraum wählen','Choose planning period'),exact:true});
+    const goal=page.getByRole('tablist',{name:t('Planungsfrage wählen','Choose planning question'),exact:true});
+    await page.getByRole('button',{name:t('Verfügbares Geld berechnen','Calculate available money'),exact:true}).click();
+    const balance=page.getByRole('textbox',{name:t('Aktueller Kontostand','Current account balance'),exact:true});
+    await balance.fill('1250');
+    await page.getByRole('textbox',{name:t('Alltagsausgaben bis zum Gehalt','Everyday spending until payday'),exact:true}).fill('180');
+    await period.getByRole('tab',{name:t('90-Tage-Vorschau','90-day outlook'),exact:true}).click();
+    await expect(page.getByRole('button',{name:t('Die nächsten 90 Tage','The next 90 days'),exact:true})).toHaveCount(0);
+    await expect(page.getByRole('button',{name:t('Kontostand & Gehaltstag prüfen','Review balance & payday'),exact:true})).toBeVisible();
+    await period.getByRole('tab',{name:t('Monatsbudget','Monthly budget'),exact:true}).click();
+    const everyday=page.getByRole('textbox',{name:t('Alltagsausgaben pro Monat (geschätzt)','Everyday spending per month (estimate)'),exact:true});
+    await everyday.fill('350');
+    await goal.getByRole('tab',{name:t('Realistisch sparen','Find realistic savings'),exact:true}).click();
+    const tools=page.getByRole('tablist',{name:t('Sparwerkzeug wählen','Choose savings tool'),exact:true});
+    await tools.getByRole('tab',{name:t('Jahresabo','Annual plans'),exact:true}).click();
+    await expect(page.getByRole('button',{name:t('Monatsabo oder Jahresabo?','Monthly or annual subscription?'),exact:true})).toHaveCount(0);
+    await page.getByRole('button',{name:t('Abo auswählen','Choose subscription'),exact:true}).click();
+    await page.getByRole('button',{name:/^Internet ·/}).click();
+    const annual=page.getByRole('textbox',{name:t('Angebot: voller Jahrespreis','Offer: full annual price'),exact:true});
+    await annual.fill('240');
+    await tools.getByRole('tab',{name:t('Rücklagen','Bill reserves'),exact:true}).click();
+    await expect(annual).toBeHidden();
+    await tools.getByRole('tab',{name:t('Jahresabo','Annual plans'),exact:true}).click();
+    await expect(annual).toHaveValue('240');
+    await tools.getByRole('tab',{name:t('Tarifwechsel','Switch plans'),exact:true}).click();
+    await page.getByRole('button',{name:t('Ausgabe für den Wechselvergleich','Cost for the switch comparison'),exact:true}).click();
+    await page.getByRole('button',{name:/^Internet ·/}).click();
+    const price=page.getByRole('textbox',{name:t('Neuer monatlicher Preis','New monthly price'),exact:true});
+    await price.fill('20');
+    await tools.getByRole('tab',{name:t('Planbeträge','Invoice amounts'),exact:true}).click();
+    await expect(price).toBeHidden();
+    await tools.getByRole('tab',{name:t('Tarifwechsel','Switch plans'),exact:true}).click();
+    await expect(price).toHaveValue('20');
+    await goal.getByRole('tab',{name:t('Bis zum Gehalt ausgeben','Spend until payday'),exact:true}).click();
+    await expect(balance).toHaveValue('1250');
+    await page.getByRole('tablist',{name:t('App-Navigation','App navigation'),exact:true}).getByRole('tab',{name:t('Kosten','Costs'),exact:true}).click();
+    await page.getByRole('tab',{name:'Plan',exact:true}).click();
+    await expect(balance).toHaveValue('1250');
+    await period.getByRole('tab',{name:t('Monatsbudget','Monthly budget'),exact:true}).click();
+    await expect(everyday).toHaveValue('350');
+    await goal.getByRole('tab',{name:t('Erreichte Ersparnis','Savings achieved'),exact:true}).click();
+    await expect(page.getByText(t('Bis heute eingespart','Saved so far'),{exact:true})).toBeVisible();
+    await page.screenshot({path:info.outputPath(`native-plan-progress-${locale}-${width}.png`),fullPage:true});
+    await goal.getByRole('tab',{name:t('Bis zum Gehalt ausgeben','Spend until payday'),exact:true}).click();
+    await page.screenshot({path:info.outputPath(`native-plan-draft-${locale}-${width}.png`),fullPage:true});
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning?.cash)).toBeUndefined();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  });
+}

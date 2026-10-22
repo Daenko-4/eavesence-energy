@@ -99,6 +99,7 @@ export default function PaydayPanel({
       className="mt-5 min-w-0 overflow-hidden rounded-[1.45rem] border border-[#dfe5dd] bg-white"
       aria-label={t("Dein verfügbarer Spielraum", "Your available budget")}
       data-payday-state={state}
+      data-editor-open={open}
     >
       <div className="bg-[#24272c] p-5 text-center text-white sm:p-6" data-payday-hero>
         <p className="text-[11px] font-semibold uppercase tracking-[.1em] text-[#b8efcc]">
@@ -129,11 +130,11 @@ export default function PaydayPanel({
       {!open && p.forecast && !p.stale && <details data-payday-calculation className="home-disclosure bg-white p-4 sm:p-5"><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{t("So entsteht dein Spielraum", "How your available money is calculated")}</summary><dl className="space-y-2 text-[13px]">{calculationRows.map(([label, value]) => <div key={String(label)} className="flex justify-between gap-3"><dt>{label}</dt><dd className="shrink-0 font-semibold">{value === null ? "—" : money(Number(value))}</dd></div>)}<div className="flex justify-between gap-3 border-t border-[#dfe5dd] pt-2 font-semibold"><dt>{complete ? t("= Zusätzlicher Spielraum", "= Extra available") : t("= Angaben fehlen noch", "= Entries still missing")}</dt><dd className="shrink-0">{complete ? money(p.forecast!.remaining!) : "—"}</dd></div></dl>{complete&&p.forecast!.remaining!>=0&&<p className="mt-3 text-[13px] text-[#52605b]">{t(`Rechnerisch zusätzlich ${money(p.forecast!.remaining!/p.forecast!.days)} pro Tag. Alltag ist schon abgezogen.`,`Equivalent to ${money(p.forecast!.remaining!/p.forecast!.days)} extra per day. Everyday spending is already deducted.`)}</p>}</details>}
       {currentResult && !open && onSavings && <div className="border-t border-[#dfe5dd] bg-[#f4f6f2] p-4 text-[13px] sm:p-5"><p className="font-semibold">{t("Mehr übrig behalten? Prüfe eine konkrete Ausgabe.", "Want more left over? Review one specific cost.")}</p><button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={onSavings}>{t("Nächster Schritt: Kosten senken", "Next step: lower a cost")}</button></div>}
       {open && (
-        <div id={editorId} className="space-y-3 bg-white p-4 sm:p-5">
+        <div id={editorId} data-payday-editor className="space-y-3 bg-white p-4 sm:p-5">
           <form noValidate onSubmit={async (e) => {
             e.preventDefault();
             if (await p.save(focusInvalid)) { setOpen(false); requestAnimationFrame(() => { resultHeading.current?.focus({preventScroll:true}); resultHeading.current?.scrollIntoView({block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"}); }); }
-          }} className="space-y-5" data-payday-form>
+          }} className="payday-editor space-y-5" data-payday-form>
             <fieldset className="min-w-0">
               <legend className="mb-3 text-[14px] font-semibold">{t("1 · Kontostand & Gehaltstag", "1 · Balance & payday")}</legend>
               <div className="grid items-start gap-4 sm:grid-cols-2">
@@ -146,6 +147,7 @@ export default function PaydayPanel({
                   <input ref={paydayInput} aria-invalid={p.errorField === "payday"} className={field} type="date" min={new Date(Date.parse(p.today) + 86400000).toISOString().slice(0,10)} max={new Date(Date.parse(p.today) + 90 * 86400000).toISOString().slice(0,10)} value={p.payday} onChange={e => p.setPayday(e.target.value)}/>
                 </label>
               </div>
+              <div className="payday-date-shortcuts" role="group" aria-label={t("Gehaltstag schnell wählen", "Choose payday quickly")}>{[7,14,28].map(days=><button key={days} type="button" onClick={()=>p.setPayday(new Date(Date.parse(p.today)+days*86400000).toISOString().slice(0,10))}>{t(`In ${days} Tagen`, `In ${days} days`)}</button>)}</div>
               <p id="payday-balance-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Wie in deiner Banking-App – noch nichts abziehen. Das nächste Gehalt zählt erst danach.", "Use today's balance from your banking app, before any deductions. Your next salary is not included.")}</p>
             </fieldset>
             <fieldset className="min-w-0 rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-4">

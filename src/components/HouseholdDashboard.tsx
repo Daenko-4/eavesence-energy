@@ -30,6 +30,7 @@ import PaydayPanel from '@/components/PaydayPanel';
 import {confirmSavingsChange,localToday} from '@eavesence/core/homeValue';
 import type {SavingsAction} from '@eavesence/core/savingsPlan';
 import SavingsPlanPanel from "@/components/SavingsPlanPanel";
+import PlanningIcon from "@/components/PlanningIcon";
 import PlanningNavigation, { type PlanningPeriod, type SavingsTool } from "@/components/PlanningNavigation";
 import HomeMemos from "@/components/HomeMemos";
 import MonthlyPayments from "@/components/MonthlyPayments";
@@ -1829,7 +1830,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   function homeTileSummary(tile: HomeTile) {
     if (tile.kind === "costs") {
       const count = costsForTile(tile.id).length;
-      return text.tileCountCosts.replace("{count}", formatNumber(count, locale));
+      return count === 1 ? locale === "de" ? "1 Kostenposten angelegt" : "1 cost added" : text.tileCountCosts.replace("{count}", formatNumber(count, locale));
     }
     return `${text.tileCountDevices.replace(
       "{count}",
@@ -2424,11 +2425,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </div>
           <div id="home-plan" hidden={view !== "plan"} data-home-plan-content className="mx-auto max-w-5xl scroll-mt-24">
 
-            <div className="text-center">
-              <p className="text-[11px] font-bold uppercase tracking-[.1em] text-[var(--brand-green)]">{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</p>
+            <div className="planning-page-heading">
+              <p className="planning-preview-label">{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</p>
               {view === "plan" && <h1 tabIndex={-1} className="outline-none mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
+              <p className="planning-page-intro">{locale === "de" ? "Plane dein Geld, prüfe Kosten und sieh, was du gespart hast." : "Plan your money, review costs and track what you save."}</p>
             </div>
-            <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="pro-question-navigation mt-6">
+            <div className="planning-workspace">
+            <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="pro-question-navigation">
               {(["payday", "savings", "progress"] as const).map((item) => (
                 <button
                   type="button"
@@ -2438,11 +2441,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   onClick={() => navigatePlanQuestion(item)}
                   className="pro-question-button"
                 >
-                  <span>{item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
-                  <span className="pro-question-description">{item === "payday" ? locale === "de" ? "Verfügbares Geld" : "Available money" : item === "savings" ? locale === "de" ? "Änderungen vergleichen" : "Compare changes" : locale === "de" ? "Fortschritt verfolgen" : "Track progress"}</span>
+                  <PlanningIcon kind={item}/>
+                  <span className="planning-job-copy"><span>{item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
+                  <span className="pro-question-description">{item === "payday" ? locale === "de" ? "Verfügbares Geld" : "Available money" : item === "savings" ? locale === "de" ? "Änderungen vergleichen" : "Compare changes" : locale === "de" ? "Fortschritt verfolgen" : "Track progress"}</span></span>
                 </button>
               ))}
             </div>
+            <div className="planning-workspace-content">
             <div hidden={planQuestion !== "payday"}>
               <PlanningNavigation locale={locale} kind="period" value={planPeriod} onChange={setPlanPeriod}/>
               <div hidden={planPeriod !== "payday"} data-planning-period="payday">
@@ -2496,6 +2501,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </details>
 
             </>}
+            </div>
+            </div>
           </div>
         </div>
       </main>

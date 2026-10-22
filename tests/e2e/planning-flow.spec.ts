@@ -23,10 +23,18 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     const t = (a: string, b: string) => de ? a : b;
     await page.setViewportSize({ width, height: 900 });
     await seed(page, de);
+    const navigation=(await page.locator('.pro-question-navigation').boundingBox())!;
+    const surface=(await page.locator('.planning-workspace-content').boundingBox())!;
+    if(width>=1024)expect(navigation.x+navigation.width).toBeLessThanOrEqual(surface.x-12);
+    else expect(navigation.y+navigation.height).toBeLessThanOrEqual(surface.y-8);
     const costsBefore = await page.evaluate(() => localStorage.getItem('eavesence-home-costs-v1'));
     const payday = page.locator('[data-payday-state]');
     await payday.getByRole('button', { name: t('Verfügbares Geld berechnen', 'Calculate available money'), exact: true }).click();
     await payday.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true }).fill('1250');
+    await payday.getByRole('button',{name:t('In 14 Tagen','In 14 days'),exact:true}).click();
+    await expect(payday.getByLabel(t('Nächstes Gehalt am','Next payday'),{exact:true})).toHaveValue('2026-11-02');
+    await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+    await page.screenshot({fullPage:true,path:info.outputPath(`planning-money-${de?'de':'en'}-${width}.png`)});
     await planningPeriod(page, 'forecast');
     const forecast = page.locator('[data-pro-forecast]');
     await expect(forecast).toBeVisible();
