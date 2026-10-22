@@ -629,26 +629,16 @@ a {
 .home-tool-panel > summary { min-height: 72px; padding: 12px 20px; }
 .home-tool-description { margin-top: 4px; color: #65716d; font-size: 13px; font-weight: 400; }
 
-/* Planning is one workspace: navigation beside a single working surface. */
-.planning-page-heading { text-align: left; }
-.planning-preview-label { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 9px; border-radius: 7px; background: #e8f4eb; color: #28734d; font-size: 10px; font-weight: 700; letter-spacing: .06em; }
-.planning-page-intro { margin-top: 10px; color: #65716d; font-size: 14px; line-height: 1.6; }
-.planning-workspace { display: grid; grid-template-columns: minmax(0,1fr); align-items: start; gap: 16px; margin-top: 26px; }
-.pro-question-navigation { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; padding: 4px; border-radius: 15px; background: #e9ede7; }
-.pro-question-button { display: flex; min-width: 0; min-height: 64px; align-items: center; justify-content: center; gap: 10px; padding: 12px; border-radius: 11px; color: #52605b; text-align: left; font-size: 13px; font-weight: 600; line-height: 1.4; transition: background 180ms ease,color 180ms ease; }
-.planning-job-icon { width: 22px; height: 22px; flex-shrink: 0; }
-.planning-job-copy { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
-.pro-question-description { color: #65716d; font-size: 12px; font-weight: 400; }
-.pro-question-button:hover { background: #dfe7df; color: #17211f; }
-.pro-question-button[aria-pressed="true"] { background: #24272c; color: #72dca3; }
-.pro-question-button[aria-pressed="true"] .pro-question-description { color: #c3cbc7; }
-.pro-question-button:focus-visible { outline: 2px solid #28734d; outline-offset: 2px; }
-.planning-workspace-content { min-width: 0; padding: 24px; border: 1px solid #dfe5dd; border-radius: 22px; background: #fff; }
+/* Planning shares My Home's centered identity, link row and detail surface. */
+.planning-page-heading { text-align: center; }
+.planning-preview-label { color: var(--brand-green); font-size: 11px; font-weight: 700; letter-spacing: .16em; }
+.planning-page-intro { max-width: 512px; margin: 4px auto 0; color: #65716d; font-size: 14px; line-height: 24px; }
+.planning-workspace { margin-top: 24px; }
+.planning-workspace > .pro-question-navigation { margin-top: 0; }
+.planning-workspace-content { min-width: 0; }
 .planning-surface { min-width: 0; margin: 0; }
-.planning-workspace-content .planning-detail-navigation { gap: 4px; margin-top: 18px; margin-bottom: 4px; padding-bottom: 0; }
+.planning-workspace-content .planning-detail-navigation { margin-top: 18px; margin-bottom: 16px; }
 .planning-workspace-content [data-planning-navigation="period"] { margin-top: 0; }
-.planning-workspace-content .planning-detail-navigation > button { flex: 0 1 auto; padding: 10px 12px; border-radius: 8px 8px 0 0; }
-.planning-workspace-content .planning-detail-navigation > button[aria-pressed="true"] { background: #eefbf3; color: #1e6843; box-shadow: inset 0 -2px #28734d; }
 .planning-workspace-content .planning-progress-navigation > button { flex: 1 1 200px; }
 .planning-workspace-content [data-payday-state] { margin-top: 20px; border: 0; border-radius: 0; overflow: visible; }
 .planning-workspace-content [data-payday-hero] { padding: 24px; border-radius: 16px; text-align: left; }
@@ -666,11 +656,6 @@ a {
 .payday-date-shortcuts > button { min-height: 36px; padding: 6px 10px; border: 1px solid #dfe5dd; border-radius: 8px; color: #28734d; font-size: 12px; font-weight: 600; }
 .payday-date-shortcuts > button:hover { background: #eefbf3; }
 .payday-editor > button[type="submit"] { min-height: 44px; padding: 10px 18px; border-radius: 10px; background: #24272c; color: #72dca3; }
-@media (min-width: 1024px) {
-  .planning-workspace { grid-template-columns: 192px minmax(0,1fr); gap: 24px; }
-  .pro-question-navigation { position: sticky; top: 100px; grid-template-columns: minmax(0,1fr); gap: 8px; padding: 0; background: transparent; }
-  .pro-question-button { min-height: 76px; justify-content: flex-start; padding: 14px; }
-}
 @media (min-width: 1180px) {
   .payday-editor { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr); align-items: start; gap: 22px; }
   .payday-editor > * { grid-column: 1; margin-top: 0 !important; }
@@ -678,17 +663,11 @@ a {
   .payday-editor > fieldset:first-child > div.grid { grid-template-columns: minmax(0,1fr); }
 }
 @media (max-width: 639px) {
-  .planning-workspace { gap: 12px; margin-top: 20px; }
-  .planning-workspace-content { padding: 16px; border-radius: 18px; }
-  .pro-question-button { flex-direction: column; gap: 5px; padding: 10px 6px; text-align: center; font-size: 12px; }
-  .planning-job-icon { width: 20px; height: 20px; }
-  .pro-question-description { display: none; }
-  .planning-workspace-content .planning-detail-navigation > button { flex: 1 1 100px; padding-inline: 8px; font-size: 12px; }
-  .planning-workspace-content .planning-progress-navigation > button { flex-basis: 200px; }
+  .planning-workspace { margin-top: 20px; }
   .planning-workspace-content [data-payday-hero] { padding: 18px; }
   .home-tool-panel > summary { padding-inline: 16px; }
 }
-@media (prefers-reduced-motion: reduce) { .home-settings-action, .pro-question-button { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .home-settings-action { transition: none; } }
 
 /* Keep the same visible counterclockwise opening and clockwise closing everywhere.
    Rotation classes express state; this shared rule owns timing, including rotate. */
@@ -737,11 +716,13 @@ a {
 .home-section-navigation > button:hover,
 .planning-detail-navigation > button:hover { background: #f4f6f2; color: #17211f; }
 .home-section-navigation > button[aria-expanded="true"],
+.home-section-navigation > button[aria-pressed="true"],
 .planning-detail-navigation > button[aria-pressed="true"] { background: #24272c; color: #72dca3; }
 .home-section-navigation > button:focus-visible,
 .planning-detail-navigation > button:focus-visible { outline: 2px solid #28734d; outline-offset: 2px; }
 .home-section-navigation .site-disclosure-icon { transform: rotate(0deg); flex-shrink: 0; color: #28734d; font-size: 18px; font-weight: 300; }
-.home-section-navigation > button[aria-expanded="true"] .site-disclosure-icon { transform: rotate(-45deg); color: #72dca3; }
+.home-section-navigation > button[aria-expanded="true"] .site-disclosure-icon,
+.home-section-navigation > button[aria-pressed="true"] .site-disclosure-icon { transform: rotate(-45deg); color: #72dca3; }
 .home-section-due { display: inline-flex; min-width: 20px; min-height: 20px; margin-left: 6px; align-items: center; justify-content: center; border-radius: 50%; background: #dcfce8; color: #28734d; font-size: 11px; }
 .home-detail-panel { margin-top: 12px; padding: 20px; border: 1px solid #dfe5dd; border-radius: 16px; background: #fff; }
 .home-detail-panel:not([hidden]) { animation: home-detail-enter 200ms ease-out; }
