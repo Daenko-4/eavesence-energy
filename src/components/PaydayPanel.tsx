@@ -101,7 +101,7 @@ export default function PaydayPanel({
       data-payday-state={state}
       data-editor-open={open}
     >
-      <div className="bg-[#24272c] p-5 text-center text-white sm:p-6" data-payday-hero>
+      <div className="bg-[#24272c] p-5 text-center text-white sm:p-6" data-payday-hero data-payday-tone={currentResult && !open ? "result" : "setup"}>
         <p className="text-[11px] font-semibold uppercase tracking-[.1em] text-[#b8efcc]">
           {!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} ${p.forecast.days === 1 ? "Tag" : "Tage"}`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} ${p.forecast.days === 1 ? "day" : "days"}`) : t("Dein Geld bis zum Gehalt", "Your money until payday")}
         </p>
@@ -119,7 +119,7 @@ export default function PaydayPanel({
         {state === "empty" && !open && <ol className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[12px] text-[#d1d7d4]" aria-label={t("Drei Angaben", "Three entries")}>{[t("Kontostand", "Account balance"),t("Gehaltstag", "Payday"),t("Alltag", "Everyday spending")].map((label,index)=><li key={label} className="flex items-center gap-2"><span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#65716d] text-[11px]" aria-hidden="true">{index+1}</span>{label}</li>)}</ol>}
         {currentResult && !open && <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-white/15 pt-3 text-[12px]" data-payday-summary>{[[t("Rechnungen", "Bills"),p.forecast!.fixed],[t("Alltag", "Everyday"),p.forecast!.everyday!],[t("Reserve", "Reserve"),p.cash!.protected]].map(([label,value])=><div key={label}><dt className="text-[#b8c4bf]">{label}</dt><dd className="mt-1 break-words text-[13px] font-semibold">{money(Number(value))}</dd></div>)}</dl>}
         <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-          <button type="button" aria-expanded={open} aria-controls={editorId} className="inline-flex min-h-11 items-center gap-3 rounded-full bg-[#72dca3] px-4 text-[13px] font-semibold text-[#17211f]" onClick={() => open ? setOpen(false) : editPlan()}>
+          <button type="button" aria-expanded={open} aria-controls={editorId} data-payday-edit-action className="inline-flex min-h-11 items-center gap-3 rounded-full bg-[#72dca3] px-4 text-[13px] font-semibold text-[#17211f]" onClick={() => open ? setOpen(false) : editPlan()}>
             {open ? t("Einklappen", "Collapse") : p.cash ? t("Kontostand aktualisieren", "Update account balance") : t("Verfügbares Geld berechnen", "Calculate available money")}
             <span aria-hidden="true" className={`site-disclosure-icon text-lg ${open ? "-rotate-45" : ""}`}>+</span>
           </button>

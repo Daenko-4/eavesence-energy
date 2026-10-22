@@ -34,6 +34,9 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(primaryChoices.locator('.site-disclosure-icon')).toHaveCount(3);
     const styles=await page.locator('[data-home-section-navigation] > button, .pro-question-navigation > button').evaluateAll(buttons=>buttons.map(button=>{const style=getComputedStyle(button);return [style.fontSize,style.fontWeight,style.minHeight,style.padding,style.borderRadius];}));
     for(const style of styles)expect(style).toEqual(styles[0]);
+    const moneyHeading=page.locator('[data-plan-money-heading]');
+    await expect(moneyHeading).toHaveText(t('Dein Geld planen','Plan your money'));
+    expect((await moneyHeading.boundingBox())!.y).toBeLessThan((await page.locator('[data-planning-navigation="period"]').boundingBox())!.y);
     const savedBudgetBefore = await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!).variableMonthly);
     const costsBefore = await page.evaluate(() => localStorage.getItem('eavesence-home-costs-v1'));
     const payday = page.locator('[data-payday-state]');

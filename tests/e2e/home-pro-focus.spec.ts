@@ -68,12 +68,16 @@ for (const de of [false, true]) {
     await panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true }).fill('200');
     await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
     await expect(panel).toHaveAttribute('data-payday-state', 'ready');
+    await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(36, 39, 44)');
     await expect(panel.locator('[data-payday-result]')).toContainText(t('760,00', '760.00'));
     await expect(panel.locator('[data-payday-summary]')).toContainText(t('40,00', '40.00'));
     await page.screenshot({ path: info.outputPath(`focused-pro-result-${de ? 'de' : 'en'}.png`) });
     await panel.getByRole('button', { name: /Zahlungen bis zum Gehalt abhaken|Check off payments until payday/ }).click();
     await panel.getByRole('checkbox', { name: /^Internet ·/ }).check();
     await expect(panel).toHaveAttribute('data-payday-state', 'stale');
+    await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(244, 246, 242)');
+    await expect(panel.locator('[data-payday-status]')).toHaveCSS('color','rgb(82, 96, 91)');
+    await page.screenshot({path:info.outputPath(`focused-pro-confirm-balance-${de?'de':'en'}.png`)});
     await expect(panel.locator('[data-payday-result]')).toHaveCount(0);
     await expect(panel.locator('[data-payday-status]')).toContainText(t('Zahlungen wurden geändert', 'Payments changed'));
     await panel.getByRole('button', { name: t('Kontostand aktualisieren', 'Update account balance'), exact: true }).click();

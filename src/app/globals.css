@@ -638,7 +638,7 @@ a {
 .planning-workspace-content { min-width: 0; }
 .planning-surface { min-width: 0; margin: 0; }
 .planning-workspace-content .planning-detail-navigation { margin-top: 18px; margin-bottom: 16px; }
-.planning-workspace-content [data-planning-navigation="period"] { margin-top: 0; }
+
 .planning-workspace-content .planning-progress-navigation > button { flex: 1 1 200px; }
 .planning-workspace-content [data-payday-state] { margin-top: 20px; border: 0; border-radius: 0; overflow: visible; }
 .planning-workspace-content [data-payday-hero] { padding: 24px; border-radius: 16px; text-align: left; }
@@ -652,6 +652,13 @@ a {
 .planning-workspace-content [data-editor-open="true"] [data-payday-hero] button { gap: 8px; padding-inline: 10px; font-size: 12px; }
 .planning-workspace-content [data-payday-editor] { padding: 20px 0 0; }
 .planning-workspace-content [data-pro-forecast] { border: 0; border-radius: 0; padding: 0; }
+/* Entry and balance confirmation stay quiet; completed results retain contrast. */
+[data-payday-tone="setup"] { border: 1px solid #dfe5dd; background: #f4f6f2; color: #17211f; }
+[data-payday-tone="setup"] > p:first-child { color: #28734d; }
+[data-payday-tone="setup"] [data-payday-status],
+[data-payday-tone="setup"] > ol { color: #52605b; }
+[data-payday-tone="setup"] [data-payday-edit-action] { border: 1px solid #aebbb2; background: #fff; color: #24272c; }
+[data-payday-tone="setup"] [data-payday-edit-action]:hover { border-color: #28734d; background: #eefbf3; }
 .payday-date-shortcuts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .payday-date-shortcuts > button { min-height: 36px; padding: 6px 10px; border: 1px solid #dfe5dd; border-radius: 8px; color: #28734d; font-size: 12px; font-weight: 600; }
 .payday-date-shortcuts > button:hover { background: #eefbf3; }
