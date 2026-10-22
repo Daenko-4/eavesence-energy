@@ -31,7 +31,9 @@ export function SavingsCoachScreen({
   onNavigate,
   currency,
   mode = "all",
+  embedded = false,
 }: {
+  embedded?: boolean;
   input: SavingsPlanInput;
   actions: SavingsAction[];
   data?: PlanningData;
@@ -102,7 +104,7 @@ export function SavingsCoachScreen({
   const nextSaving = nextSavingsPayment(actions,p.today);
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, embedded && styles.embedded]}>
       <Text style={styles.title}>
         {mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
       </Text>
@@ -293,6 +295,7 @@ export function SavingsCoachScreen({
   );
 }
 const styles = StyleSheet.create({
+  embedded: {marginTop:0,padding:0,borderWidth:0},
   disclosure: {minHeight:44,flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:10},
   card: {
     marginTop: 14,

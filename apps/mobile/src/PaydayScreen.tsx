@@ -22,7 +22,9 @@ export function PaydayScreen({
   onReviewCost,
   onSavings,
   onPayments,
+  embedded = false,
 }: {
+  embedded?: boolean;
   input: SavingsPlanInput;
   data?: PlanningData;
   onSave: (p: PlanningData) => Promise<void>;
@@ -123,8 +125,8 @@ export function PaydayScreen({
     else reviewBalance();
   }
   return (
-    <View style={styles.card}>
-      <View ref={resultTarget} style={styles.dark}>
+    <View style={[styles.card, embedded && styles.embedded]}>
+      <View ref={resultTarget} style={[styles.dark, embedded && styles.embeddedDark]}>
         <Text style={styles.eyebrow}>{!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} Tage`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} days`) : t("Dein Geld bis zum Gehalt", "Your money until payday")}</Text>
         <Text accessibilityRole="header" style={styles.title}>{open ? t("Deine Angaben", "Your entries")
           : currentResult ? shortfall ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Zusätzlich verfügbar", "Extra money available")
@@ -226,6 +228,8 @@ export function PaydayScreen({
   );
 }
 const styles = StyleSheet.create({
+  embedded: {marginVertical:0,borderWidth:0},
+  embeddedDark: {borderRadius:14,alignItems:"flex-start"},
   disclosure: {minHeight:44,flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:10},
   payment: {minHeight:48,flexDirection:"row",alignItems:"center",gap:10},
   paymentName: {fontSize:12,color:"#24272c",flex:1},
