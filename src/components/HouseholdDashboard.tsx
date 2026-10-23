@@ -35,6 +35,7 @@ import HomeMemos from "@/components/HomeMemos";
 import MonthlyPayments from "@/components/MonthlyPayments";
 import HomeCoreOverview from "@/components/HomeCoreOverview";
 import HomeSectionNavigation, { type HomeSection } from "@/components/HomeSectionNavigation";
+import DisclosureMark from "@/components/DisclosureMark";
 import { homeRelease } from "@/lib/homeRelease";
 import ConnectivityStatus from "@/components/ConnectivityStatus";
 import MyDevicesPanel, {
@@ -2446,7 +2447,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   className="pro-question-button"
                 >
                   <span>{item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
-                  <span aria-hidden="true" className="site-disclosure-icon">+</span>
+                  <DisclosureMark />
                 </button>
               ))}
             </div>
