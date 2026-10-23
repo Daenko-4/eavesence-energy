@@ -37,7 +37,16 @@ export default function PlanningNavigation<T extends PlanningPeriod | SavingsToo
       ? de ? "Möchtest du länger vorausplanen? Wähle genau eine Ansicht." : "Want to plan further ahead? Choose one view."
       : de ? "Nur bei Bedarf: ein konkretes Angebot vergleichen oder eine größere Rechnung vorbereiten." : "When needed: compare a specific offer or prepare for a larger bill."}</p>
     <div role="group" aria-label={kind === "period" ? de ? "Planungszeitraum wählen" : "Choose planning period" : de ? "Sparwerkzeug wählen" : "Choose savings tool"} className="planning-detail-navigation" data-planning-navigation={kind}>
-      {choices.map(([key,label]) => <button type="button" key={key} aria-pressed={value === key} data-planning-choice={key} onClick={() => { onChange(key as T); if (chooser.current) { chooser.current.open = false; chooser.current.querySelector("summary")?.focus(); } }}>{label}</button>)}
+      {choices.map(([key,label]) => <button type="button" key={key} aria-pressed={value === key} data-planning-choice={key} onClick={() => {
+        onChange(key as T);
+        if (chooser.current) chooser.current.open = false;
+        requestAnimationFrame(() => {
+          const surface = chooser.current?.closest<HTMLElement>(".planning-workspace-content");
+          const heading = Array.from(surface?.querySelectorAll<HTMLElement>("h2, h3") ?? []).find(element => element.getClientRects().length > 0);
+          if (heading) { heading.tabIndex = -1; heading.focus({preventScroll: true}); }
+          surface?.scrollIntoView({block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
+        });
+      }}>{label}</button>)}
     </div>
   </details>;
 }
