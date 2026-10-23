@@ -2459,8 +2459,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
             <div className="planning-workspace-content home-detail-panel" data-plan-question={planQuestion}>
             <div hidden={planQuestion !== "payday"}>
-              <h2 hidden={planPeriod !== "payday"} className="site-section-title" data-plan-money-heading>{locale === "de" ? "Dein Geld planen" : "Plan your money"}</h2>
-              <p hidden={planPeriod !== "payday"} className="mt-2 text-[13px] leading-5 text-[#52605b]">{locale === "de" ? "Rechne mit deinem aktuellen Kontostand. Offene Rechnungen aus My Home werden automatisch berücksichtigt." : "Start with your current account balance. Unpaid bills from My Home are included automatically."}</p>
+              <header hidden={planPeriod !== "payday"} className="planning-section-intro"><h2 className="site-section-title" data-plan-money-heading>{locale === "de" ? "Dein Geld planen" : "Plan your money"}</h2>
+              <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{locale === "de" ? "Rechne mit deinem aktuellen Kontostand. Offene Rechnungen aus My Home werden automatisch berücksichtigt." : "Start with your current account balance. Unpaid bills from My Home are included automatically."}</p></header>
               <div hidden={planPeriod !== "payday"} data-planning-period="payday">
           <PaydayPanel onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
               </div>
