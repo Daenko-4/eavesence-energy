@@ -75,6 +75,7 @@ for (const de of [false, true]) {
     await panel.getByRole('button', { name: /Zahlungen bis zum Gehalt abhaken|Check off payments until payday/ }).click();
     await panel.getByRole('checkbox', { name: /^Internet ·/ }).check();
     await expect(panel).toHaveAttribute('data-payday-state', 'stale');
+    await expect(panel.locator("[data-payday-hero] + *")).toHaveCSS("border-top-width", "0px");
     await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(244, 246, 242)');
     await expect(panel.locator('[data-payday-status]')).toHaveCSS('color','rgb(82, 96, 91)');
     await page.screenshot({path:info.outputPath(`focused-pro-confirm-balance-${de?'de':'en'}.png`)});

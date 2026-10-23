@@ -72,6 +72,18 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     const coach = page.getByRole('region', { name: /02 ·/ });
     await coach.getByLabel(t('Kostenänderung testen · Kosten auswählen', 'Test a cost change · choose a cost')).selectOption('internet');
     await coach.getByLabel(t('Neuer Betrag je Zahlung (0 = fällt weg)', 'New amount per payment (0 = ends)')).fill('30');
+    const costReview = (await page.locator('#savings-plan').boundingBox())!;
+    expect(Math.abs(costReview.x + costReview.width / 2 - (surface.x + surface.width / 2))).toBeLessThan(1);
+    expect(costReview.width).toBeLessThanOrEqual(960);
+    const costChoice = (await coach.locator('.savings-choice').boundingBox())!;
+    const costEditor = (await coach.locator('.savings-edit').boundingBox())!;
+    if (width >= 1024) {
+      expect(Math.abs(costChoice.y - costEditor.y)).toBeLessThan(1);
+      expect(costEditor.x).toBeGreaterThan(costChoice.x + costChoice.width);
+    } else {
+      expect(costEditor.y).toBeGreaterThanOrEqual(costChoice.y + costChoice.height);
+    }
+
     await savingsTool(page, 'switch');
     const comparison = page.locator('[data-switch-comparison]');
     await expect(coach).toBeHidden();
