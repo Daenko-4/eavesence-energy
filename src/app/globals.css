@@ -586,7 +586,8 @@ a {
 .planning-page-heading { text-align: center; }
 .planning-page-intro { max-width: 512px; margin: 14px auto 0; color: #666; font-size: 14px; line-height: 24px; }
 .planning-workspace { margin-top: 24px; }
-.planning-workspace > .pro-question-navigation { margin-top: 0; }
+.planning-workspace > .pro-question-navigation { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: 0; }
+.pro-question-navigation > button > span:first-child { min-width: 0; }
 .planning-workspace-content { min-width: 0; }
 .planning-surface { min-width: 0; margin: 0; }
 .planning-workspace-content .planning-detail-navigation { margin-top: 18px; margin-bottom: 16px; }

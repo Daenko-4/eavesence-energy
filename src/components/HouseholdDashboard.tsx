@@ -2452,7 +2452,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   onClick={() => navigatePlanQuestion(item)}
                   className="pro-question-button"
                 >
-                  <span>{item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
+                  <span>{item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings"}</span>
                   <DisclosureMark />
                 </button>
               ))}
