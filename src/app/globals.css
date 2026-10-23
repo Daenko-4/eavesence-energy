@@ -586,8 +586,9 @@ a {
 .planning-page-heading { text-align: center; }
 .planning-page-intro { max-width: 512px; margin: 14px auto 0; color: #666; font-size: 14px; line-height: 24px; }
 .planning-workspace { margin-top: 24px; }
-.planning-workspace > .pro-question-navigation { margin-top: 0; }
-.planning-workspace-content { min-width: 0; }
+.planning-workspace > .pro-question-navigation { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: 0; }
+.pro-question-navigation > button > span:first-child { min-width: 0; }
+.planning-workspace-content { min-width: 0; scroll-margin-top: 96px; }
 .planning-surface { min-width: 0; margin: 0; }
 .planning-workspace-content .planning-detail-navigation { margin-top: 18px; margin-bottom: 16px; }
 
@@ -706,13 +707,23 @@ a {
   .planning-budget-inputs > div.grid { grid-template-columns: minmax(0,1fr); }
 }
 
-/* A compact, quieter second level inside Plan money. */
-.planning-workspace-content [data-planning-navigation="period"] { gap: 4px 24px; padding-bottom: 0; }
-.planning-workspace-content [data-planning-navigation="period"] > button { flex: 0 1 auto; padding: 12px 2px; border-radius: 0; background: transparent; font-weight: 500; }
-.planning-workspace-content [data-planning-navigation="period"] > button:hover { background: transparent; color: #222; }
-.planning-workspace-content [data-planning-navigation="period"] > button[aria-pressed="true"] { background: transparent; color: var(--brand-green-dark); box-shadow: inset 0 -2px var(--brand-green); }
+/* Pro follows My Home: one overview, one task row, one working surface. */
+.pro-overview { display: grid; grid-template-columns: minmax(0,1.3fr) minmax(0,1fr); align-items: center; gap: 32px; margin-top: 24px; padding: 28px; border-radius: 20px; background: #24272c; color: #fff; }
+.pro-overview h2 { max-width: 440px; margin-top: 8px; font-size: 22px; font-weight: 600; line-height: 1.3; }
+.pro-overview p { margin-top: 10px; color: #d1d7d4; font-size: 13px; line-height: 1.6; }
+.pro-overview .pro-overview-label { margin-top: 0; color: #72dca3; font-size: 12px; font-weight: 600; }
+.pro-overview dl { display: grid; gap: 18px; padding-left: 28px; border-left: 1px solid #ffffff26; }
+.pro-overview dt { color: #d1d7d4; font-size: 12px; }
+.pro-overview dd { margin-top: 4px; font-size: 22px; font-weight: 700; color: #72dca3; }
+.planning-options { margin-top: 24px; padding-top: 12px; border-top: 1px solid #dfe5dd; }
+.planning-options > summary { min-height: 44px; font-size: 13px; font-weight: 600; }
+.planning-options-hint { max-width: 640px; margin-top: 8px; font-size: 13px; line-height: 1.6; color: #52605b; }
+.planning-workspace-content .planning-options .planning-detail-navigation { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-block: 12px 0; border: 0; padding: 0; }
+.planning-options .planning-detail-navigation > button { justify-content: flex-start; padding: 12px; border: 1px solid #dfe5dd; text-align: left; color: #222; }
+.planning-options .planning-detail-navigation > button[aria-pressed="true"] { color: #72dca3; }
 @media (max-width: 639px) {
-  .planning-workspace-content [data-planning-navigation="period"] { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; }
-  .planning-workspace-content [data-planning-navigation="period"] > button { padding-inline: 1px; font-size: 12px; }
+  .pro-overview { grid-template-columns: minmax(0,1fr); gap: 20px; padding: 20px; border-radius: 16px; }
+  .pro-overview h2 { font-size: 20px; }
+  .pro-overview dl { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; padding: 16px 0 0; border-left: 0; border-top: 1px solid #ffffff26; }
+  .pro-overview dd { font-size: 19px; overflow-wrap: anywhere; }
 }
-@media (max-width: 359px) { .planning-workspace-content [data-planning-navigation="period"] > button { font-size: 11px; } }

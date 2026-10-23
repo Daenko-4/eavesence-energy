@@ -2433,8 +2433,14 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <span className="home-preview-note">{locale === "de" ? "Vorschau · derzeit kostenlos" : "Preview · currently free"}</span>
               </div>
               {view === "plan" && <h1 tabIndex={-1} className="home-name outline-none">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
-              <p className="planning-page-intro">{locale === "de" ? "Plane dein Geld, prüfe Kosten und sieh, was du gespart hast." : "Plan your money, review costs and track what you save."}</p>
             </div>
+            <section className="pro-overview" aria-label={locale === "de" ? "Deine Planungsgrundlage" : "Your planning starting point"} data-pro-overview>
+              <div><p className="pro-overview-label">{locale === "de" ? "Aus My Home übernommen" : "Already included from My Home"}</p>
+              <h2>{locale === "de" ? "Dein monatlicher Überblick" : "Your monthly overview"}</h2>
+              </div>
+              <dl><div><dt>{locale === "de" ? incomeSummary.annualAverage ? "Nettoeinkommen · Monatsdurchschnitt" : "Nettoeinkommen pro Monat" : incomeSummary.annualAverage ? "Net income · monthly average" : "Net income per month"}</dt><dd>{profile.incomeAmount !== undefined && !profile.incomeDeferred ? new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:profile.currency}).format(monthlyIncome) : "—"}</dd></div>
+              <div><dt>{locale === "de" ? "Fixkosten · Monatsdurchschnitt" : "Fixed costs · monthly average"}</dt><dd>{new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:profile.currency}).format(householdCostSummary.monthlyTotal)}</dd></div></dl>
+            </section>
             <div className="planning-workspace">
             <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="home-section-navigation pro-question-navigation">
               {(["payday", "savings", "progress"] as const).map((item) => (
@@ -2446,16 +2452,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   onClick={() => navigatePlanQuestion(item)}
                   className="pro-question-button"
                 >
-                  <span>{item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings achieved"}</span>
+                  <span>{item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings"}</span>
                   <DisclosureMark />
                 </button>
               ))}
             </div>
             <div className="planning-workspace-content home-detail-panel">
             <div hidden={planQuestion !== "payday"}>
-              <h2 className="site-section-title" data-plan-money-heading>{locale === "de" ? "Dein Geld planen" : "Plan your money"}</h2>
-              <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{locale === "de" ? "Plane bis zum nächsten Gehalt, für 90 Tage oder mit einem Monatsbudget." : "Plan until payday, look ahead 90 days or set a monthly budget."}</p>
-              <PlanningNavigation locale={locale} kind="period" value={planPeriod} onChange={setPlanPeriod}/>
+              <h2 hidden={planPeriod !== "payday"} className="site-section-title" data-plan-money-heading>{locale === "de" ? "Dein Geld planen" : "Plan your money"}</h2>
+              <p hidden={planPeriod !== "payday"} className="mt-2 text-[13px] leading-5 text-[#52605b]">{locale === "de" ? "Rechne mit deinem aktuellen Kontostand. Offene Rechnungen aus My Home werden automatisch berücksichtigt." : "Start with your current account balance. Unpaid bills from My Home are included automatically."}</p>
               <div hidden={planPeriod !== "payday"} data-planning-period="payday">
           <PaydayPanel onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
               </div>
@@ -2471,7 +2476,6 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             onNavigate={navigatePlanQuestion}
             tool={planTool}
             onTool={setPlanTool}
-            onBudget={() => {navigatePlanQuestion("payday");setPlanPeriod("budget");}}
             section={planQuestion === "payday" ? "budget" : planQuestion === "progress" ? "progress" : "savings"}
             advanced={homeRelease.advancedPlanning}
             locale={locale}
@@ -2493,6 +2497,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             onSaveActions={(savingsActions) => persistProfile({ ...profile, savingsActions, updatedAt: new Date().toISOString() })}
           />
             </div>
+            {planQuestion === "payday" && <PlanningNavigation locale={locale} kind="period" value={planPeriod} onChange={setPlanPeriod}/>}
             {homeRelease.detailedInsights && <>
           <details className="home-disclosure mt-5 rounded-xl border border-[#dfe5dd] p-4"><summary className="cursor-pointer text-[14px] font-bold">{locale === "de" ? "Zahlungsvorschau und Auswertungen ansehen" : "View payment forecast and insights"}</summary>
           <HouseholdInsightsPanel
