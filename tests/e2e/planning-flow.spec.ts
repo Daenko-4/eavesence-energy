@@ -37,6 +37,8 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     const moneyHeading=page.locator('[data-plan-money-heading]');
     await expect(moneyHeading).toHaveText(t('Dein Geld planen','Plan your money'));
     await expect(page.locator('[data-pro-overview]')).toContainText(t('Aus My Home übernommen', 'Already included from My Home'));
+    await expect(page.locator('[data-pro-overview]')).toContainText(t('2.400,00', '2,400.00'));
+    await expect(page.locator('[data-pro-overview]')).toContainText(t('90,00', '90.00'));
     await expect(page.locator('[data-planning-navigation="period"]')).toBeHidden();
     await expect(page.locator('[data-planning-options="period"]')).not.toHaveAttribute('open');
     const savedBudgetBefore = await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!).variableMonthly);

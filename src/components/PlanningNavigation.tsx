@@ -20,10 +20,10 @@ export default function PlanningNavigation<T extends PlanningPeriod | SavingsToo
     ["budget", de ? "Monatsbudget" : "Monthly budget"],
   ] : [
     ["change", de ? "Kosten prüfen" : "Review costs"],
-    ["switch", de ? "Tarifwechsel" : "Switch plans"],
-    ["annual", de ? "Jahresabo" : "Annual plans"],
-    ["reserves", de ? "Rücklagen" : "Bill reserves"],
-    ["invoices", de ? "Planbeträge" : "Invoice amounts"],
+    ["switch", de ? "Neues Angebot vergleichen" : "Compare a new offer"],
+    ["annual", de ? "Monats- oder Jahresabo?" : "Monthly or annual plan?"],
+    ["reserves", de ? "Für Jahresrechnungen zurücklegen" : "Set money aside for annual bills"],
+    ["invoices", de ? "Variable Rechnungen einschätzen" : "Estimate variable bills"],
   ];
   const selected = choices.find(([key]) => key === value)?.[1];
   const defaultChoice = kind === "period" ? "payday" : "change";

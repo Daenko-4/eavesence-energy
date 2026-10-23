@@ -34,6 +34,8 @@ export async function planningPeriod(page: Page, period: 'payday' | 'forecast' |
   if (await question.getAttribute('aria-pressed') !== 'true') await question.click();
   await page.locator('[data-planning-options="period"] > summary').click();
   await page.locator(`[data-planning-navigation=period] [data-planning-choice=${period}]`).click();
+  await expect(page.locator('[data-planning-options="period"]')).not.toHaveAttribute("open");
+  await expect(page.locator('[data-planning-options="period"] > summary')).toBeFocused();
 }
 
 export async function savingsTool(page: Page, tool: 'change' | 'switch' | 'annual' | 'reserves' | 'invoices') {
@@ -41,4 +43,6 @@ export async function savingsTool(page: Page, tool: 'change' | 'switch' | 'annua
   if (await question.getAttribute('aria-pressed') !== 'true') await question.click();
   await page.locator('[data-planning-options="tool"] > summary').click();
   await page.locator(`[data-planning-navigation=tool] [data-planning-choice=${tool}]`).click();
+  await expect(page.locator('[data-planning-options="tool"]')).not.toHaveAttribute("open");
+  await expect(page.locator('[data-planning-options="tool"] > summary')).toBeFocused();
 }

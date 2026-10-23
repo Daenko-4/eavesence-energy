@@ -2433,12 +2433,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <span className="home-preview-note">{locale === "de" ? "Vorschau · derzeit kostenlos" : "Preview · currently free"}</span>
               </div>
               {view === "plan" && <h1 tabIndex={-1} className="home-name outline-none">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
-              <p className="planning-page-intro">{locale === "de" ? "Ein Plan. Eine Kostenänderung. Ein sichtbares Ergebnis." : "One plan. One cost change. A result you can see."}</p>
             </div>
             <section className="pro-overview" aria-label={locale === "de" ? "Deine Planungsgrundlage" : "Your planning starting point"} data-pro-overview>
               <div><p className="pro-overview-label">{locale === "de" ? "Aus My Home übernommen" : "Already included from My Home"}</p>
-              <h2>{locale === "de" ? "Was möchtest du mit deinem Geld erreichen?" : "What would you like to do with your money?"}</h2>
-              <p>{locale === "de" ? "Wähle unten eine Aufgabe. Du bearbeitest immer nur einen Bereich." : "Choose one task below. Work on one thing at a time."}</p></div>
+              <h2>{locale === "de" ? "Dein monatlicher Überblick" : "Your monthly overview"}</h2>
+              </div>
               <dl><div><dt>{locale === "de" ? incomeSummary.annualAverage ? "Nettoeinkommen · Monatsdurchschnitt" : "Nettoeinkommen pro Monat" : incomeSummary.annualAverage ? "Net income · monthly average" : "Net income per month"}</dt><dd>{profile.incomeAmount !== undefined && !profile.incomeDeferred ? new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:profile.currency}).format(monthlyIncome) : "—"}</dd></div>
               <div><dt>{locale === "de" ? "Fixkosten · Monatsdurchschnitt" : "Fixed costs · monthly average"}</dt><dd>{new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:profile.currency}).format(householdCostSummary.monthlyTotal)}</dd></div></dl>
             </section>
