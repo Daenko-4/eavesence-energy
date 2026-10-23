@@ -51,7 +51,11 @@ jobs:
       - name: Install WebKit for Safari home journeys
         run: |
           # Avoid slow Azure mirror downloads exhausting the browser-test time budget.
-          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
+          for ubuntu_source_file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if [ -f "$ubuntu_source_file" ]; then
+              sudo sed -i -E 's|https?://azure[.]archive[.]ubuntu[.]com/ubuntu|https://archive.ubuntu.com/ubuntu|g' "$ubuntu_source_file"
+            fi
+          done
           npx playwright install --with-deps webkit
 
       - name: Run browser tests
