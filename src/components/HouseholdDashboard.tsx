@@ -1879,7 +1879,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <span className="block">{text.dataText}</span>
                     <span className="block">{text.dataPrivacy}</span>
                   </p>
-                  <div className="flex flex-wrap items-start gap-2 lg:-mt-[5px] lg:flex-nowrap lg:whitespace-nowrap">
+                  <div className="flex flex-wrap items-start gap-2 lg:-mt-[3px] lg:flex-nowrap lg:whitespace-nowrap">
                     <input
                       ref={homeImportInputRef}
                       type="file"
