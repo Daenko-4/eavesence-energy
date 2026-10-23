@@ -36,7 +36,9 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     for(const style of styles)expect(style).toEqual(styles[0]);
     const moneyHeading=page.locator('[data-plan-money-heading]');
     await expect(moneyHeading).toHaveText(t('Dein Geld planen','Plan your money'));
-    expect((await moneyHeading.boundingBox())!.y).toBeLessThan((await page.locator('[data-planning-navigation="period"]').boundingBox())!.y);
+    await expect(page.locator('[data-pro-overview]')).toContainText(t('Aus My Home übernommen', 'Already included from My Home'));
+    await expect(page.locator('[data-planning-navigation="period"]')).toBeHidden();
+    await expect(page.locator('[data-planning-options="period"]')).not.toHaveAttribute('open');
     const savedBudgetBefore = await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!).variableMonthly);
     const costsBefore = await page.evaluate(() => localStorage.getItem('eavesence-home-costs-v1'));
     const payday = page.locator('[data-payday-state]');
@@ -64,6 +66,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await savingsTool(page, 'change');
     await expect(primaryChoices.getByRole('button',{name:t('Realistisch sparen','Find realistic savings')}).locator('.site-disclosure-icon')).toHaveCSS('transform','matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)');
     await expect(primaryChoices.getByRole('button',{name:t('Geld planen','Plan money')}).locator('.site-disclosure-icon')).toHaveCSS('transform','matrix(1, 0, 0, 1, 0, 0)');
+    await expect(page.locator('[data-planning-navigation="tool"]')).toBeHidden();
     const coach = page.getByRole('region', { name: /02 ·/ });
     await coach.getByLabel(t('Kostenänderung testen · Kosten auswählen', 'Test a cost change · choose a cost')).selectOption('internet');
     await coach.getByLabel(t('Neuer Betrag je Zahlung (0 = fällt weg)', 'New amount per payment (0 = ends)')).fill('30');
@@ -96,6 +99,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(page.getByRole('region', { name: /03 ·/ })).toContainText(t('Noch keine bestätigte Ersparnis', 'No confirmed savings yet'));
     await planningPeriod(page, 'forecast');
     await page.evaluate(() => { window.location.hash = 'payday-plan'; });
+    await expect(page.locator('[data-planning-options="period"]')).not.toHaveAttribute("open");
     await expect(page.locator('[data-planning-navigation=period] [data-planning-choice=payday]')).toHaveAttribute('aria-pressed', 'true');
     await expect(payday).toBeVisible();
     await expect(payday.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true })).toHaveValue('1250');
