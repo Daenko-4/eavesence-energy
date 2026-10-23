@@ -745,3 +745,7 @@ a {
   .savings-review-layout[data-has-selection="true"] { display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.4fr); align-items: start; gap: 24px; max-width: none; }
   .savings-review-layout[data-has-selection="true"] .savings-edit { margin-top: 0; }
 }
+
+/* All three Pro tasks share the quiet, light Plan money treatment. */
+.home-section-navigation.pro-question-navigation > button { background: #f4f6f2; color: #17211f; }
+.home-section-navigation.pro-question-navigation > button .site-disclosure-icon { color: #28734d; }
