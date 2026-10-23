@@ -1849,13 +1849,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         <div className="mx-auto max-w-7xl">
           <section hidden={view !== "overview"} data-home-heading className="home-heading">
             <div data-home-identity>
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--brand-green)]">MY HOME</p>
-              {view === "overview" && <h1 className="mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{localizeDefaultHouseholdName(profile.name, locale)}</h1>}
+              <div className="home-identity-row" data-home-title-row>
+                <p className="home-section-label">MY HOME</p>
               <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} aria-controls="home-settings" className="home-settings-action">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11"/><circle cx="10" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/></svg>
                 {text.settings}
               </button>
-              <p className="mx-auto mt-1 max-w-lg text-[14px] leading-6 text-[#65716d]">{text.pageSubtitle}</p>
+              </div>
+              {view === "overview" && <h1 className="home-name">{localizeDefaultHouseholdName(profile.name, locale)}</h1>}
+              <p className="home-subtitle">{text.pageSubtitle}</p>
             </div>
             <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className="home-entry-actions">
               <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
@@ -2425,8 +2427,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <div id="home-plan" hidden={view !== "plan"} data-home-plan-content className="scroll-mt-24">
 
             <div className="home-heading planning-page-heading">
-              <p className="planning-preview-label">{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</p>
-              {view === "plan" && <h1 tabIndex={-1} className="outline-none mt-2 break-words text-[clamp(1.8rem,3.3vw,2.6rem)] font-extrabold leading-tight tracking-[-0.04em]">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
+              <div className="home-identity-row" data-plan-title-row>
+                <p className="home-section-label">PRO</p>
+                <span className="home-preview-note">{locale === "de" ? "Vorschau · derzeit kostenlos" : "Preview · currently free"}</span>
+              </div>
+              {view === "plan" && <h1 tabIndex={-1} className="home-name outline-none">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
               <p className="planning-page-intro">{locale === "de" ? "Plane dein Geld, prüfe Kosten und sieh, was du gespart hast." : "Plan your money, review costs and track what you save."}</p>
             </div>
             <div className="planning-workspace">

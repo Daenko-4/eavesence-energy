@@ -863,8 +863,12 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
       <ScrollTargetContext.Provider value={target=>revealSection(scrollRef.current,target)}><KeyboardScrollContext.Provider value={(input) => revealInput(scrollRef.current,input)}><ScrollView ref={scrollRef} style={styles.scrollSurface} contentContainerStyle={styles.content} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         {tab === "home" && <>
           <View style={styles.homeIdentity}>
+            <View style={styles.identityRow}>
+              <Text style={styles.identityLabel}>MY HOME</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel={localize(locale,"Einstellungen")} onPress={openSettings} style={styles.homeSettings}><NavIcon name="settings" color="#666666"/><Text style={styles.outlinedText}>{locale === "de" ? "Einstellungen" : "Settings"}</Text></Pressable>
+            </View>
             <Text accessibilityRole="header" style={styles.homeName}>{profile.name === "Mein Zuhause" || profile.name === "My home" ? locale === "de" ? "Mein Zuhause" : "My Home" : profile.name}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel={localize(locale,"Einstellungen")} onPress={openSettings} style={styles.homeSettings}><NavIcon name="settings" color="#52605b"/><Text style={styles.outlinedText}>{locale === "de" ? "Einstellungen" : "Settings"}</Text></Pressable>
+            <Text style={[styles.financeNote,styles.planIntro]}>{locale === "de" ? "Was steht diesen Monat noch an? Bezahlte Kosten abhaken." : "What is still due this month? Check off paid costs."}</Text>
           </View>
           <View style={styles.homeActions}>
             <Pressable accessibilityRole="button" onPress={() => startWith("cost")} style={styles.homeAction}><Text style={styles.outlinedText}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</Text></Pressable>
@@ -1001,7 +1005,7 @@ function AppContent({ locale, setLocale }: { locale: MobileLocale; setLocale: (v
 
         {(tab === "pro" || planVisited) && <PlanView visible={tab === "pro"}>
           <View style={styles.homeIdentity}>
-            <Text style={[styles.eyebrow,styles.planIntro]}>{locale === "de" ? "PRO-VORSCHAU · DERZEIT KOSTENLOS" : "PRO PREVIEW · CURRENTLY FREE"}</Text>
+            <View style={styles.identityRow}><Text style={styles.identityLabel}>PRO</Text><Text style={styles.identityPreview}>{locale === "de" ? "Vorschau · derzeit kostenlos" : "Preview · currently free"}</Text></View>
             <Text accessibilityRole="header" style={styles.homeName}>{locale === "de" ? "Planen & sparen" : "Plan & save"}</Text>
             <Text style={[styles.financeNote,styles.planIntro]}>{locale === "de" ? "Plane dein Geld, prüfe Kosten und sieh, was du gespart hast." : "Plan your money, review costs and track what you save."}</Text>
           </View>
@@ -1144,11 +1148,14 @@ const styles = StyleSheet.create({
   addTileText: { fontSize: 13, fontWeight: "800", color: "#087a45" },
   tileForm: { borderWidth: 1, borderColor: "#b8efcc", borderRadius: 14, backgroundColor: "#eefbf3", padding: 14, gap: 10 },
   presetRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
-  homeIdentity: { alignItems: "center", gap: 4, marginBottom: 12 },
+  identityRow: { alignSelf: "stretch", flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44, gap: 12 },
+  identityLabel: { color: "#087a45", fontSize: 11, fontWeight: "700", letterSpacing: 1.5 },
+  identityPreview: { color: "#777777", fontSize: 11, flexShrink: 1, textAlign: "right" },
+  homeIdentity: { alignItems: "center", gap: 12, marginBottom: 18 },
   restoreBackup: { minHeight: 44, alignSelf: "center", justifyContent: "center", paddingHorizontal: 12 },
-  homeName: { fontSize: 24, lineHeight: 30, fontWeight: "700", textAlign: "center", color: "#24272c" },
-  homeSettings: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12 },
-  homeActions: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 20 },
+  homeName: { fontSize: 23, lineHeight: 29, fontWeight: "500", textAlign: "center", color: "#222222" },
+  homeSettings: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 7 },
+  homeActions: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 12, marginBottom: 20, paddingTop: 16, borderTopWidth: 1, borderColor: "#dedede" },
   homeAction: { minHeight: 44, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 22, paddingHorizontal: 10, paddingVertical: 10, backgroundColor: "#ffffff", justifyContent: "center" },
   devicePanel: { marginTop: 20, borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 14, backgroundColor: "#ffffff", padding: 16 },
   devicePanelTitle: { fontSize: 17, fontWeight: "700", color: "#24272c" },
@@ -1199,7 +1206,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   safe: { flex: 1, backgroundColor: "#ffffff" },
   onboardingSafe: { backgroundColor: "#f6f7f2" },
-  scrollSurface: { backgroundColor: "#f6f7f2" },
+  scrollSurface: { backgroundColor: "#f3f3f3" },
   loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#f6f7f2" },
   onboarding: { flexGrow: 1, justifyContent: "center", padding: 24, gap: 18 },
   incomeAction:{minHeight:48,flexDirection:"row",justifyContent:"space-between",alignItems:"center"},

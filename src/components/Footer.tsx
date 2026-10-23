@@ -102,7 +102,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
   const privacyHref = getPrivacyHref(locale);
 
   return (
-    <footer className="border-t border-slate-200/70 bg-[var(--background)]">
+    <footer className="border-t border-[#dedede] bg-[var(--background)]">
       <div className="mx-auto max-w-7xl px-5 py-6 sm:px-6">
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-[minmax(300px,1fr)_auto_auto] lg:gap-10">
           <div>
@@ -121,23 +121,23 @@ export default function Footer({ locale = "de" }: FooterProps) {
               />
             </Link>
 
-            <p className="mt-3 max-w-sm text-[13px] leading-5 text-slate-500">
+            <p className="mt-3 max-w-sm text-[13px] leading-5 text-[#707070]">
               {text.description}
             </p>
           </div>
 
           <nav aria-label={text.explore}>
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#858585]">
               {text.explore}
             </p>
-            <div className="grid gap-1.5 text-[12px] font-medium leading-5 text-slate-500">
-              <Link href={getHouseholdHref(locale)} className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900">{locale === "de" ? "Mein Zuhause" : "My home"}</Link>
+            <div className="grid gap-1.5 text-[12px] font-medium leading-5 text-[#707070]">
+              <Link href={getHouseholdHref(locale)} className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-[#222222]">{locale === "de" ? "Mein Zuhause" : "My home"}</Link>
               <Link
                 href={calculatorHref}
                 onClick={(event) =>
                   handleInternalNavigation(event, calculatorHref)
                 }
-                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-[#222222]"
               >
                 {text.calculator}
               </Link>
@@ -147,7 +147,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 onClick={(event) =>
                   handleInternalNavigation(event, devicesHref)
                 }
-                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-[#222222]"
               >
                 {text.devices}
               </Link>
@@ -157,7 +157,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 onClick={(event) =>
                   handleInternalNavigation(event, howItWorksHref)
                 }
-                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-[#222222]"
               >
                 {locale === "de" ? "So funktioniert's" : "How it works"}
               </Link>
@@ -167,7 +167,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 onClick={(event) =>
                   handleInternalNavigation(event, faqHref)
                 }
-                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-[#222222]"
               >
                 {text.faq}
               </Link>
@@ -175,16 +175,16 @@ export default function Footer({ locale = "de" }: FooterProps) {
           </nav>
 
           <nav aria-label={text.company}>
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#858585]">
               {text.company}
             </p>
-            <div className="grid gap-1.5 text-[12px] font-medium leading-5 text-slate-500">
+            <div className="grid gap-1.5 text-[12px] font-medium leading-5 text-[#707070]">
               <Link
                 href={imprintHref}
                 onClick={(event) =>
                   handleInternalNavigation(event, imprintHref)
                 }
-                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-[#222222]"
               >
                 {text.imprint}
               </Link>
@@ -194,7 +194,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
                 onClick={(event) =>
                   handleInternalNavigation(event, privacyHref)
                 }
-                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-slate-900"
+                className="-my-2 inline-flex min-h-9 items-center py-2 transition hover:text-[#222222]"
               >
                 {text.privacy}
               </Link>
@@ -202,7 +202,7 @@ export default function Footer({ locale = "de" }: FooterProps) {
           </nav>
         </div>
 
-        <div className="mt-6 flex flex-col gap-1 border-t border-slate-200/70 pt-4 text-[11px] leading-4 text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col gap-1 border-t border-[#dedede] pt-4 text-[11px] leading-4 text-[#858585] sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} EAVESENCE</span>
           <span>{text.privateProject}</span>
         </div>

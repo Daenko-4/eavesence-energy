@@ -19,29 +19,30 @@ for (const de of [false, true]) for (const width of [320, 1365]) test(`minimal h
   await page.reload();
   const header = page.locator('header');
   if (width < 1024) await header.getByRole('button', { name: t('Navigation öffnen', 'Open navigation') }).click();
-  await header.getByRole('link', { name: /Planen & sparen|Plan & save/ }).click();
+  await header.getByRole('link', { name: /^Pro$/ }).click();
   await expect(page.locator('[data-home-plan-content]')).toBeVisible();
-  if (width >= 1024) await expect(header.getByRole('link', { name: /Planen & sparen|Plan & save/ })).toHaveAttribute('aria-current', 'location');
+  if (width >= 1024) await expect(header.getByRole('link', { name: /^Pro$/ })).toHaveAttribute('aria-current', 'location');
   if (width >= 1024) {
     // The hidden animated wordmark must not intercept the first navigation link.
     await header.locator('[data-navigation-key="household"]').click({ position: { x: 22, y: 19 } });
     await expect(page.locator('[data-home-plan-content]')).toBeHidden();
-    await header.getByRole('link', { name: /Planen & sparen|Plan & save/ }).click();
+    await header.getByRole('link', { name: /^Pro$/ }).click();
     await expect(page.locator('[data-home-plan-content]')).toBeVisible();
   }
   const language = header.locator('[data-header-language]');
   await expect(language).toHaveAttribute('data-active-language', de ? 'de' : 'en');
   await expect(language.locator('[data-active="true"]')).toHaveText(de ? 'DE' : 'EN');
-  await expect(language.locator('svg')).toHaveCount(0);
+  await expect(language.locator('svg, .navigation-indicator, .site-disclosure-icon')).toHaveCount(0);
+  await expect(language).toContainText('EN');
+  await expect(language).toContainText('DE');
   await expect(language).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   if (width >= 1024) await expect(header.locator('.header-navigation-links')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   if (width < 1024) {
     await header.getByRole('button', { name: t('Navigation öffnen', 'Open navigation') }).click();
     const menu = header.locator('.header-navigation-links-mobile');
-    await expect(menu.locator('.navigation-indicator')).toHaveCount(4);
-    await expect(menu.locator('.navigation-indicator')).toHaveText(['+', '+', '+', '+']);
-    await expect(menu.locator('[aria-current] .navigation-indicator')).toHaveCSS('rotate', '-45deg');
-    await expect(menu.getByRole('link', { name: /Stromkosten-Rechner|Electricity Calculator/ }).locator('.navigation-indicator')).toHaveCSS('rotate', '0deg');
+    await expect(menu.locator('.navigation-indicator, .site-disclosure-icon')).toHaveCount(0);
+    await expect(menu.locator('[aria-current]')).toHaveCSS('color','rgb(6, 95, 59)');
+    expect(await menu.locator('[aria-current]').evaluate(el=>getComputedStyle(el,'::after').transform)).toBe('matrix(1, 0, 0, 1, 0, 0)');
     await page.screenshot({ path: info.outputPath(`header-menu-${de ? 'de' : 'en'}-${width}.png`) });
     await header.getByRole('button', { name: t('Navigation schließen', 'Close navigation') }).click();
   }

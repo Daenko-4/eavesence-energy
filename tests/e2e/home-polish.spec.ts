@@ -6,10 +6,6 @@ for (const width of [1365, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.addInitScript(() => {
       document.addEventListener('animationstart', event => {
-        if (event instanceof AnimationEvent && event.animationName === 'header-language-toggle') {
-          const element=event.target as HTMLElement, angles:number[]=[], start=performance.now();
-          const sample=()=>{angles.push(parseFloat(getComputedStyle(element).rotate));if(performance.now()-start<900)requestAnimationFrame(sample);else element.dataset.replayAngles=JSON.stringify(angles);};sample();
-        }
         if (event instanceof AnimationEvent && event.animationName === 'eavesence-logo-load') {
           document.documentElement.dataset.logoAnimationLocale = document.documentElement.lang;
         }
@@ -26,12 +22,8 @@ for (const width of [1365, 390]) {
         await expect(page).toHaveURL(path);
         await expect(page.locator('header .eavesence-logo-load-animation')).toHaveCount(2);
         await expect.poll(() => page.locator('html').getAttribute('data-logo-animation-locale')).toBe(locale);
-        const indicator=page.locator('[data-header-language] .header-language-indicator');
-        await expect.poll(()=>indicator.getAttribute('data-replay-angles')).not.toBeNull();
-        const angles:number[]=JSON.parse((await indicator.getAttribute('data-replay-angles'))!);
-        expect(Math.max(...angles)).toBeGreaterThan(-8);
-        expect(Math.min(...angles)).toBeLessThan(-38);
-        await expect(indicator).toHaveCSS('rotate','-45deg');
+        await expect(page.locator('header .navigation-indicator, header .site-disclosure-icon')).toHaveCount(0);
+        await expect(page.locator('[data-header-language] [data-active="true"]')).toHaveText(locale.toUpperCase());
         if (width >= 1024) {
           await expect(page.locator('header a[aria-expanded]').first()).toHaveAttribute('aria-expanded', 'true', { timeout: 4000 });
         }
@@ -50,7 +42,7 @@ test('language intro respects reduced motion and keeps navigation available', as
   await expect(page).toHaveURL('/de/zuhause');
   await expect(page.locator('header a[aria-expanded]').first()).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('header .eavesence-logo-load-animation')).toHaveCount(2);
-  expect(await page.locator('[data-header-language] .header-language-indicator').evaluate(el=>el.getAnimations().length)).toBe(0);
+  expect(await page.locator('[data-header-language]').evaluate(el=>el.getAnimations().length)).toBe(0);
   expect(await page.locator('header .eavesence-logo-load-animation').first().evaluate(el => el.getAnimations().length)).toBe(0);
 });
 
@@ -75,6 +67,17 @@ for (const width of [1365, 390]) {
       expect(Math.abs(headingBox.x + headingBox.width / 2 - width / 2)).toBeLessThan(2);
       await expect(heading.locator('[data-home-identity]').getByRole('button')).toHaveText(de ? 'Einstellungen' : 'Settings');
       await expect(heading.getByRole('group').getByRole('button')).toHaveCount(2);
+      const row=heading.locator('[data-home-title-row]');
+      const label=(await row.locator('.home-section-label').boundingBox())!;
+      const settings=(await row.getByRole('button').boundingBox())!;
+      const name=(await heading.locator('h1').boundingBox())!;
+      expect(Math.abs(label.x-headingBox.x)).toBeLessThan(1);
+      expect(Math.abs(settings.x+settings.width-headingBox.x-headingBox.width)).toBeLessThan(1);
+      expect(Math.abs(label.y+label.height/2-settings.y-settings.height/2)).toBeLessThan(1);
+      expect(name.y).toBeGreaterThanOrEqual((await row.boundingBox())!.y+(await row.boundingBox())!.height);
+      expect(Math.abs(name.x+name.width/2-headingBox.x-headingBox.width/2)).toBeLessThan(1);
+      expect(await heading.locator('h1').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeLessThanOrEqual(32);
+
       await heading.screenshot({ path: info.outputPath(`home-heading-${locale}-${width}.png`) });
       await homeWorkspace(page, 'plan');
       await expect(page.locator('[data-home-heading]')).toBeHidden();
