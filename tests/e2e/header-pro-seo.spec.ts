@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-for (const de of [false, true]) for (const width of [320, 1365]) test(`minimal header and clear payday setup ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
+for (const de of [false, true]) for (const width of [320, 1024, 1365]) test(`minimal header and clear payday setup ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
   const t = (a: string, b: string) => de ? a : b;
   await page.setViewportSize({ width, height: 940 });
   await page.clock.setFixedTime(new Date('2026-10-11T12:00:00Z'));
@@ -47,8 +47,11 @@ for (const de of [false, true]) for (const width of [320, 1365]) test(`minimal h
     await header.getByRole('button', { name: t('Navigation schließen', 'Close navigation') }).click();
   }
   await header.screenshot({ path: info.outputPath(`header-minimal-${de ? 'de' : 'en'}-${width}.png`) });
+  const logo = header.locator(width < 1024 ? '[data-header-mobile-logo]' : '[data-header-desktop-logo]');
+  const contentLeft = await page.locator('#home-overview > div').first().evaluate(el => el.getBoundingClientRect().left);
+  expect(Math.abs((await logo.boundingBox())!.x - contentLeft)).toBeLessThan(1);
   if (width === 320) {
-    const boxes = await header.evaluate(el => ['[data-header-menu-button]', '[data-header-mobile-logo]', '[data-header-language]'].map(s => { const r = el.querySelector(s)!.getBoundingClientRect(); return { left: r.left, right: r.right }; }));
+    const boxes = await header.evaluate(el => ['[data-header-mobile-logo]', '[data-header-menu-button]', '[data-header-language]'].map(s => { const r = el.querySelector(s)!.getBoundingClientRect(); return { left: r.left, right: r.right }; }));
     expect(boxes[0].right).toBeLessThan(boxes[1].left);
     expect(boxes[1].right).toBeLessThan(boxes[2].left);
   }

@@ -397,24 +397,13 @@ function HeaderContent({
       ref={headerRef}
       className="sticky top-0 z-[100] border-b border-slate-200/70 bg-white/92 backdrop-blur-xl"
     >
-      <div className="relative mx-auto max-w-7xl px-5 sm:px-6">
-        <div className="relative flex min-h-[68px] items-center justify-between">
-          <button
-            data-header-menu-button
-            type="button"
-            onClick={() => setMenuOpen((current) => !current)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-[#24272c] lg:hidden"
-            aria-label={menuOpen ? text.closeNavigation : text.openNavigation}
-            aria-expanded={menuOpen}
-          >
-            <span className="text-xl leading-none">{menuOpen ? "×" : "☰"}</span>
-          </button>
-
+      <div className="relative px-5 sm:px-6">
+        <div data-header-content-row className="relative mx-auto flex min-h-[68px] max-w-7xl items-center justify-between">
           <Link
             data-header-mobile-logo
             href={homeHref}
             onClick={handleLogoClick}
-            className="absolute left-1/2 top-1/2 flex h-[68px] -translate-x-1/2 -translate-y-1/2 items-center lg:hidden"
+            className="flex h-[68px] items-center lg:hidden"
             aria-label={text.homeLabel}
           >
             <BrandLogo
@@ -424,14 +413,15 @@ function HeaderContent({
             />
           </Link>
 
-          <div aria-hidden="true" className="hidden h-10 w-10 lg:block" />
+          <div aria-hidden="true" className="hidden h-10 w-52 lg:block" />
 
           <div
             onMouseLeave={handleDesktopNavigationMouseLeave}
             onFocusCapture={openDesktopNavigation}
-            className="absolute left-1/2 top-1/2 hidden h-[68px] w-[760px] -translate-x-1/2 -translate-y-1/2 lg:block"
+            className="pointer-events-none absolute inset-x-0 top-0 hidden h-[68px] lg:block"
           >
             <Link
+              data-header-desktop-logo
               href={homeHref}
               onClick={handleLogoClick}
               onMouseEnter={openDesktopNavigationFromPointer}
@@ -440,10 +430,10 @@ function HeaderContent({
               style={{
                 transform: desktopNavigationOpen
                   ? "translate3d(0, -50%, 0)"
-                  : "translate3d(285px, -50%, 0)",
+                  : "translate3d(calc(min(640px, 50vw - 24px) - 102.5px), -50%, 0)",
                 width: desktopNavigationOpen ? "2rem" : "205px",
               }}
-              className={`absolute left-0 top-1/2 z-20 flex h-full items-center gap-2.5 overflow-visible transition-[transform,width] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-transform motion-reduce:transition-none ${
+              className={`pointer-events-auto absolute left-0 top-1/2 z-20 flex h-full items-center gap-2.5 overflow-visible transition-[transform,width] duration-[1000ms] ease-[cubic-bezier(.4,0,.2,1)] will-change-transform motion-reduce:transition-none ${
                 desktopNavigationOpen
                   ? "delay-0"
                   : "delay-[250ms]"
@@ -466,9 +456,9 @@ function HeaderContent({
 
             <nav
               aria-label={text.openNavigation}
-              className={`absolute inset-y-0 left-10 right-10 flex items-center justify-center transition-[opacity,visibility] duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
+              className={`absolute inset-y-0 left-56 right-56 flex items-center justify-center transition-[opacity,visibility] duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                 desktopNavigationOpen
-                  ? "visible opacity-100 delay-[650ms]"
+                  ? "pointer-events-auto visible opacity-100 delay-[650ms]"
                   : "invisible pointer-events-none opacity-0 delay-0"
               }`}
             >
@@ -494,6 +484,17 @@ function HeaderContent({
               </div>
             </nav>
           </div>
+
+          <button
+            data-header-menu-button
+            type="button"
+            onClick={() => setMenuOpen((current) => !current)}
+            className="ml-auto mr-3 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-[#24272c] lg:hidden"
+            aria-label={menuOpen ? text.closeNavigation : text.openNavigation}
+            aria-expanded={menuOpen}
+          >
+            <span className="text-xl leading-none">{menuOpen ? "×" : "☰"}</span>
+          </button>
 
           <Link
             data-header-language
