@@ -680,9 +680,7 @@ a {
 .home-section-navigation > button:focus-visible,
 .planning-detail-navigation > button:focus-visible { outline: 2px solid #28734d; outline-offset: 2px; }
 .home-section-navigation .site-disclosure-icon { position: relative; display: inline-block; width: 10px; height: 10px; transform: rotate(0deg); flex-shrink: 0; color: #28734d; font-size: 0; line-height: 0; }
-.home-section-navigation .site-disclosure-icon::before, .home-section-navigation .site-disclosure-icon::after { position: absolute; inset: 0; margin: auto; background: currentColor; content: ""; }
-.home-section-navigation .site-disclosure-icon::before { width: 9px; height: 1.5px; }
-.home-section-navigation .site-disclosure-icon::after { width: 1.5px; height: 9px; }
+.home-section-navigation .site-disclosure-icon > svg { display: block; width: 10px; height: 10px; }
 .home-section-navigation > button[aria-expanded="true"] .site-disclosure-icon,
 .home-section-navigation > button[aria-pressed="true"] .site-disclosure-icon { transform: rotate(-45deg); color: #72dca3; }
 .home-section-due { display: inline-flex; min-width: 20px; min-height: 20px; margin-left: 6px; align-items: center; justify-content: center; border-radius: 50%; background: #dcfce8; color: #28734d; font-size: 11px; }
