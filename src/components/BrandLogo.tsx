@@ -41,7 +41,7 @@ export default function BrandLogo({
       <BrandMark className={markClassName} />
       {showWordmark && (
         <span
-          className={`${wordmarkClassName} whitespace-nowrap font-extrabold leading-none tracking-[-0.065em] text-[#10283a]`}
+          className={`brand-wordmark ${wordmarkClassName} whitespace-nowrap font-extrabold leading-none tracking-[-0.065em] text-[#10283a]`}
         >
           EAVESENCE
         </span>

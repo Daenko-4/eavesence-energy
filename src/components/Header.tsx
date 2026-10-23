@@ -32,7 +32,7 @@ const navigation = {
   de: {
     calculator: "Stromkosten-Rechner",
     household: "Mein Zuhause",
-    planning: "Planen & sparen",
+    planning: "Pro",
     faq: "FAQ",
     homeLabel: "EAVESENCE Startseite",
     openNavigation: "Navigation öffnen",
@@ -41,7 +41,7 @@ const navigation = {
   en: {
     calculator: "Electricity Calculator",
     household: "My Home",
-    planning: "Plan & save",
+    planning: "Pro",
     faq: "FAQ",
     homeLabel: "EAVESENCE home",
     openNavigation: "Open navigation",
@@ -68,7 +68,6 @@ function NavigationLink({
       className="header-navigation-link"
     >
       <span className="header-navigation-label">{children}</span>
-      <span className="navigation-indicator site-disclosure-icon" aria-hidden="true">+</span>
     </a>
   );
 }
@@ -455,7 +454,7 @@ function HeaderContent({
                 className={`${languageIntro ? "eavesence-logo-load-animation " : ""}h-8 w-8 shrink-0`}
               />
               <span
-                className={`shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
+                className={`brand-wordmark shrink-0 whitespace-nowrap text-[1.25rem] font-extrabold leading-none tracking-[-0.065em] text-[#10283a] transition-opacity duration-[450ms] ease-[cubic-bezier(.4,0,.2,1)] motion-reduce:transition-none ${
                   desktopNavigationOpen
                     ? "opacity-0 pointer-events-none"
                     : "opacity-100 delay-[650ms]"
@@ -515,8 +514,9 @@ function HeaderContent({
               locale === "de" ? "Aktuelle Sprache: Deutsch. Zu Englisch wechseln." : "Current language: English. Switch to German."
             }
           >
-            <span lang={locale} data-active="true">{locale.toUpperCase()}</span>
-            <span className={`navigation-indicator site-disclosure-icon header-language-indicator ${languageIntro ? "header-language-replay" : ""}`} aria-hidden="true">+</span>
+            <span lang="en" data-active={locale === "en"}>EN</span>
+            <span className="header-language-divider" aria-hidden="true">/</span>
+            <span lang="de" data-active={locale === "de"}>DE</span>
           </Link>
         </div>
 
@@ -544,7 +544,6 @@ function HeaderContent({
                   <span className="header-navigation-label">
                     {label}
                   </span>
-                  <span className="navigation-indicator site-disclosure-icon" aria-hidden="true">+</span>
                 </a>
               ))}
             </div>

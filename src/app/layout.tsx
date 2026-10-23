@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 
 import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 
 import BrandStructuredData from "@/components/BrandStructuredData";
@@ -16,6 +17,14 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const uiSans = localFont({
+  src: "./fonts/InterVariable.woff2",
+  variable: "--font-ui-sans",
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
 });
 
 const siteUrl = "https://eavesence.com";
@@ -118,7 +127,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable}`}
+        className={`${uiSans.variable} ${geistSans.variable} ${geistMono.variable}`}
       >
         <BrandStructuredData />
         {children}

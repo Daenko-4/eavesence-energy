@@ -542,8 +542,10 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   );
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
+  const settingsAction = page.getByRole("button", { name: "Settings", exact: true });
+  await expect(settingsAction).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(settingsAction).toHaveCSS("font-size", "12px");
   const compactActions = [
-    { action: page.getByRole("button", { name: "Settings", exact: true }), fontSize: "12px", background: "rgb(238, 251, 243)" },
     { action: page.getByRole("button", { name: "Save settings" }), fontSize: "11px", background: "rgb(221, 248, 233)" },
     { action: page.locator("[data-manage-data-import]"), fontSize: "11px", background: "rgb(221, 248, 233)" },
   ];
@@ -1087,7 +1089,7 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
   // Active links use anthracite; link typography and positions stay consistent.
   expect(navigationStyles).toHaveLength(3);
   expect(navigationStyles[0].color).toBe(navigationStyles[1].color);
-  await expect(calculatorLink).toHaveCSS("color", "rgb(36, 39, 44)");
+  await expect(calculatorLink).toHaveCSS("color", "rgb(6, 95, 59)");
   expect(
     new Set(navigationStyles.map(({ fontWeight }) => fontWeight)).size,
   ).toBe(1);
@@ -1104,24 +1106,20 @@ test("header labels keep a fixed horizontal axis while staying open", async ({
 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const planLink = page.locator('[data-navigation-key="planning"]');
-  const planIndicator = planLink.locator(".navigation-indicator");
   const planBefore = (await planLink.boundingBox())!.x;
-  await expect(planIndicator).toHaveText("+");
-  await expect(planIndicator).toHaveCSS("rotate", "0deg");
-  await expect(calculatorLink.locator(".navigation-indicator")).toHaveCSS("rotate", "-45deg");
+  await expect(page.locator('header .navigation-indicator, header .site-disclosure-icon')).toHaveCount(0);
+  expect(await planLink.evaluate(el=>getComputedStyle(el,'::after').transform)).toBe('matrix(0, 0, 0, 1, 0, 0)');
   await planLink.hover();
-  await expect(planIndicator).toHaveCSS("transition-duration", "0.36s");
-  await expect(planIndicator).toHaveCSS("rotate", "-45deg");
+  await expect.poll(()=>planLink.evaluate(el=>getComputedStyle(el,'::after').transform)).toBe('matrix(1, 0, 0, 1, 0, 0)');
   expect(Math.abs((await planLink.boundingBox())!.x - planBefore)).toBeLessThan(0.5);
   await page.mouse.move(10, 180);
-  await expect(planIndicator).toHaveCSS("rotate", "0deg");
+  await expect.poll(()=>planLink.evaluate(el=>getComputedStyle(el,'::after').transform)).toBe('matrix(0, 0, 0, 1, 0, 0)');
   await page.locator('[data-navigation-key="household"]').focus();
   await page.keyboard.press("Tab");
   await expect(planLink).toBeFocused();
-  await expect(planIndicator).toHaveCSS("rotate", "-45deg");
   expect(Math.abs((await planLink.boundingBox())!.x - planBefore)).toBeLessThan(0.5);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(planIndicator).toHaveCSS("transition-duration", "0s");
+  expect(await planLink.evaluate(el=>getComputedStyle(el,'::after').transitionDuration)).toBe('0s');
 
   const logo = page.locator('a[aria-expanded]').first();
   await expect(logo).toHaveAttribute("aria-expanded", "true");

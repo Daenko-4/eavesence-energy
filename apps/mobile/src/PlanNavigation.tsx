@@ -28,10 +28,10 @@ export function PlanNavigation<T extends PlanPeriod | PlanTool | PlanGoal>({ kin
     {key:'reserves',label:de?'Rücklagen':'Bill reserves'},
     {key:'invoices',label:de?'Planbeträge':'Invoice amounts'},
   ];
-  return <View accessibilityRole="tablist" accessibilityLabel={kind==='goal' ? de?'Planungsfrage wählen':'Choose planning question' : kind==='period' ? de?'Planungszeitraum wählen':'Choose planning period' : de?'Sparwerkzeug wählen':'Choose savings tool'} style={[styles.row,kind==='goal'&&styles.goals]}>
-    {items.map(item => <Pressable key={item.key} accessibilityRole="tab" accessibilityLabel={item.accessible??item.label} accessibilityState={{selected:value===item.key}} onPress={()=>{Keyboard.dismiss();onChange(item.key as T);}} style={[styles.choice,kind==='goal'&&styles.goal,value===item.key&&(kind==='goal'?styles.goalSelected:styles.selected)]}>
-      <Text style={[styles.label,kind==='goal'&&styles.goalLabel,value===item.key&&(kind==='goal'?styles.goalLabelSelected:styles.labelSelected)]}>{item.label}</Text>
-      {kind==='goal'&&<DisclosureIcon open={value===item.key} color={value===item.key?'#72dca3':'#28734d'}/>}
+  return <View accessibilityRole="tablist" accessibilityLabel={kind==='goal' ? de?'Planungsfrage wählen':'Choose planning question' : kind==='period' ? de?'Planungszeitraum wählen':'Choose planning period' : de?'Sparwerkzeug wählen':'Choose savings tool'} style={[styles.row,kind==='goal'&&styles.goals,kind==='period'&&styles.periods]}>
+    {items.map(item => <Pressable key={item.key} accessibilityRole="tab" accessibilityLabel={item.accessible??item.label} accessibilityState={{selected:value===item.key}} onPress={()=>{Keyboard.dismiss();onChange(item.key as T);}} style={[styles.choice,kind==='goal'&&styles.goal,kind==='period'&&styles.period,value===item.key&&(kind==='goal'?styles.goalSelected:kind==='period'?styles.periodSelected:styles.selected)]}>
+      <Text style={[styles.label,kind==='goal'&&styles.goalLabel,value===item.key&&(kind==='goal'?styles.goalLabelSelected:kind==='period'?styles.periodLabelSelected:styles.labelSelected)]}>{item.label}</Text>
+      {kind==='goal'&&<DisclosureIcon size={16} open={value===item.key} color={value===item.key?'#72dca3':'#28734d'}/>}
     </Pressable>)}
   </View>;
 }
@@ -40,6 +40,10 @@ const styles=StyleSheet.create({
   hidden:{display:'none'},
   row:{flexDirection:'row',flexWrap:'wrap',gap:4,borderBottomWidth:1,borderColor:'#dfe5dd',marginBottom:16},
   goals:{paddingBottom:8,marginTop:8,marginBottom:12},
+  periods:{flexWrap:'nowrap',marginTop:12,gap:4},
+  period:{flex:1,flexBasis:0,paddingHorizontal:1,borderRadius:0,borderBottomWidth:2,borderColor:'transparent'},
+  periodSelected:{borderColor:'#087a45'},
+  periodLabelSelected:{color:'#065f3b'},
   choice:{flexGrow:1,flexBasis:100,minHeight:44,paddingVertical:10,paddingHorizontal:8,borderRadius:10,alignItems:'center',justifyContent:'center'},
   goal:{flex:1,flexBasis:0,minHeight:52,flexDirection:'row',gap:6},
   selected:{backgroundColor:'#24272c'},
