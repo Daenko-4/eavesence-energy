@@ -731,8 +731,9 @@ a {
 /* Keep the payday card's outline, without a second divider immediately below it. */
 .planning-workspace-content [data-payday-hero] + * { border-top: 0; }
 
-/* Cost review uses a centered working width, with the two steps side by side. */
-.planning-workspace-content[data-plan-question="savings"] > div:not([hidden]) { max-width: 960px; margin-inline: auto; }
+/* The Pro tasks share a centered working width; cost review keeps its two steps. */
+.planning-workspace-content > div:not([hidden]),
+.planning-workspace-content > .planning-options { max-width: 960px; margin-inline: auto; }
 .savings-review-heading { margin: 0; text-align: left; }
 [data-savings-coach="opportunities"] { margin-top: 20px; }
 .savings-review-layout { max-width: 640px; margin-inline: auto; }
