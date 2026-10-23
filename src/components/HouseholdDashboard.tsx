@@ -2457,7 +2457,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 </button>
               ))}
             </div>
-            <div className="planning-workspace-content home-detail-panel">
+            <div className="planning-workspace-content home-detail-panel" data-plan-question={planQuestion}>
             <div hidden={planQuestion !== "payday"}>
               <h2 hidden={planPeriod !== "payday"} className="site-section-title" data-plan-money-heading>{locale === "de" ? "Dein Geld planen" : "Plan your money"}</h2>
               <p hidden={planPeriod !== "payday"} className="mt-2 text-[13px] leading-5 text-[#52605b]">{locale === "de" ? "Rechne mit deinem aktuellen Kontostand. Offene Rechnungen aus My Home werden automatisch berücksichtigt." : "Start with your current account balance. Unpaid bills from My Home are included automatically."}</p>

@@ -727,3 +727,21 @@ a {
   .pro-overview dl { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; padding: 16px 0 0; border-left: 0; border-top: 1px solid #ffffff26; }
   .pro-overview dd { font-size: 19px; overflow-wrap: anywhere; }
 }
+
+/* Keep the payday card's outline, without a second divider immediately below it. */
+.planning-workspace-content [data-payday-hero] + * { border-top: 0; }
+
+/* Cost review uses a centered working width, with the two steps side by side. */
+.planning-workspace-content[data-plan-question="savings"] > div:not([hidden]) { max-width: 960px; margin-inline: auto; }
+.savings-review-heading { max-width: 640px; margin-inline: auto; text-align: center; }
+[data-savings-coach="opportunities"] { margin-top: 20px; }
+.savings-review-layout { max-width: 640px; margin-inline: auto; }
+.savings-choice, .savings-edit { min-width: 0; }
+.savings-choice > p:first-child, .savings-edit > p:first-child { margin-top: 0; }
+.savings-choice > label, .savings-choice > div { max-width: none; }
+.savings-selected-cost { margin-top: 16px; padding: 16px; border-radius: 12px; background: #f4f6f2; font-size: 13px; line-height: 1.6; }
+.savings-edit:not([hidden]) { margin-top: 20px; }
+@media (min-width: 1024px) {
+  .savings-review-layout[data-has-selection="true"] { display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.4fr); align-items: start; gap: 24px; max-width: none; }
+  .savings-review-layout[data-has-selection="true"] .savings-edit { margin-top: 0; }
+}

@@ -69,11 +69,12 @@ export default function SavingsCoach({
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
   return (
     <section
+      data-savings-coach={mode}
       className={mode === "progress" ? "min-w-0" : mode === "opportunities" ? "mt-5 min-w-0" : "mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"}
       aria-label={mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
     >
-      {mode === "progress" ? <h2 className="site-section-title">{t("Deine bestätigte Ersparnis", "Your confirmed savings")}</h2> : <h3 className="site-card-title">{t("Welche Kosten möchtest du senken?", "Which cost would you like to lower?")}</h3>}
-      {mode !== "progress" && <p className="mt-1 text-[13px] text-[#52605b]">{t("Starte mit dem Vorschlag oder wähle einen anderen Kostenposten.", "Start with the suggestion or choose another cost.")}</p>}
+      {mode === "progress" ? <h2 className="site-section-title">{t("Deine bestätigte Ersparnis", "Your confirmed savings")}</h2> : mode === "all" ? <h3 className="site-card-title">{t("Welche Kosten möchtest du senken?", "Which cost would you like to lower?")}</h3> : null}
+      {mode === "all" && <p className="mt-1 text-[13px] text-[#52605b]">{t("Starte mit dem Vorschlag oder wähle einen anderen Kostenposten.", "Start with the suggestion or choose another cost.")}</p>}
       {mode !== "progress" && p.planned.length > 0 && <div className="mt-3 rounded-xl border border-[#bfd3c5] bg-[#f4f6f2] p-4 text-[13px]" data-pro-next-step>
         <p className="font-semibold">{t("Dein nächster Schritt", "Your next step")}: {t("Vorhaben umsetzen", "Put your plan into action")}</p>
         <p className="mt-1">{p.planned[0].name}{p.planned.length > 1 ? ` + ${p.planned.length - 1}` : ""}{p.plannedMonthly > 0 ? ` · ${t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: ${money(p.plannedMonthly)} ${t("pro Monat im Durchschnitt", "per month on average")}` : ""}</p>
@@ -118,9 +119,11 @@ export default function SavingsCoach({
           )}
         </p>
       )}
+      <div className={mode === "opportunities" ? "savings-review-layout" : undefined} data-has-selection={!!p.selected}>
+      <div className={mode === "opportunities" ? "savings-choice" : undefined} hidden={mode === "progress"}>
       {mode !== "progress" && p.reviewable.length > 0 && <p className="mt-4 text-[13px] font-semibold">{t("1 · Kostenposten auswählen", "1 · Choose one cost")}</p>}
-      <div className="mt-3 grid max-w-lg items-start gap-3">
-        {(mode === "progress" || p.selected ? [] : p.tasks.slice(0,1)).map((c) => (
+      {mode !== "progress" && !p.selected && <div className="mt-3 grid max-w-lg items-start gap-3">
+        {p.tasks.slice(0,1).map((c) => (
           <article
             key={c.id}
             className="min-w-0 rounded-xl bg-[#f4f6f2] p-3 text-[13px]"
@@ -138,8 +141,15 @@ export default function SavingsCoach({
 
           </article>
         ))}
-      </div>
+      </div>}
       {mode !== "progress" && p.reviewable.length > 0 && <label className="mt-4 grid max-w-lg gap-1 text-[13px] font-semibold">{t("Kostenänderung testen · Kosten auswählen", "Test a cost change · choose a cost")}<select className={field} value={p.selected?.id ?? ""} onChange={e => {const cost=input.costs.find(c=>c.id===e.target.value);if(cost)p.choose(cost);else p.cancel();}}><option value="">{t("Kosten auswählen", "Choose a cost")}</option>{p.reviewable.map(c=><option key={c.id} value={c.id}>{c.name} · {money(c.amount)}</option>)}</select></label>}
+      {mode === "opportunities" && p.selected && <aside className="savings-selected-cost">
+        <p className="font-semibold">{p.selected.name}</p>
+        <p className="mt-1">{money(p.selected.amount)} {cadence(p.selected.frequency)}</p>
+        <p className="mt-3 text-[#52605b]">{costReviewTip(p.selected.category, de, p.selected.frequency)}</p>
+      </aside>}
+      </div>
+      <div className={mode === "opportunities" ? "savings-edit" : undefined} hidden={mode === "progress" || !p.selected}>
       {mode !== "progress" && p.selected && <p className="mt-4 text-[13px] font-semibold">{t("2 · Neuen Betrag prüfen und vormerken", "2 · Check a new amount and save the plan")}</p>}
       {mode !== "progress" && p.selected && (
         <form
@@ -149,7 +159,7 @@ export default function SavingsCoach({
           }}
           className="mt-3 grid gap-3 rounded-xl bg-[#eefbf3] p-3 sm:grid-cols-2"
         >
-          <h4 className="font-bold text-[13px] sm:col-span-2">
+          <h4 hidden={mode === "opportunities"} className="font-bold text-[13px] sm:col-span-2">
             {p.selected.name} · {t("Bisher", "Current")}:{" "}
             {money(p.selected.amount)} {cadence(p.selected.frequency)}
           </h4>
@@ -197,6 +207,8 @@ export default function SavingsCoach({
           </div>
         </form>
       )}
+      </div>
+      </div>
       {mode !== "progress" && shownActions.length > 0 && <p className="mt-4 text-[13px] font-semibold">{t("3 · Erst nach der Umsetzung bestätigen", "3 · Confirm only after it happens")}</p>}
       {shownActions.length > 0 && (
         <section
