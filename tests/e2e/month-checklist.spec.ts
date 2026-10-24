@@ -36,10 +36,10 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`month-first
   const rent=list.getByRole('checkbox',{name:/^Rent ·/});await rent.check();
   await expect(rent).toBeChecked();await expect(list.locator('[data-checklist-open]')).toContainText(de?'740,00':'740.00');
   await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 8 bezahlt':'1 of 8 paid');
-  await list.getByRole('button',{name:de?'Nächster Monat':'Next month',exact:true}).click();
+  await page.getByRole('group',{name:/^(Choose month|Monat wählen)$/}).getByRole('button',{name:de?'Nächster Monat':'Next month',exact:true}).click();
   await expect(list.locator('[data-checklist-month]')).toContainText('November');
   await expect(rent).not.toBeChecked();await expect(list.locator('[data-checklist-open]')).toContainText(de?'1.020,00':'1,020.00');
-  await list.getByRole('button',{name:de?'Vorheriger Monat':'Previous month',exact:true}).click();await expect(rent).toBeChecked();
+  await page.getByRole('group',{name:/^(Choose month|Monat wählen)$/}).getByRole('button',{name:de?'Vorheriger Monat':'Previous month',exact:true}).click();await expect(rent).toBeChecked();
   await page.reload();await expect(list.getByRole('button',{name:de?'Zahlungen & Monatsrückblick':'Payments & monthly review',exact:true})).toHaveAttribute('aria-expanded','false');await list.getByRole('button',{name:de?'Zahlungen & Monatsrückblick':'Payments & monthly review',exact:true}).click();await expect(rent).toBeChecked();
   await expect(list).toContainText(de?'Monatlich · Termin fehlt':'Monthly · date missing');
   await expect(list).toContainText(de?'Sie fehlen im Betrag oben':'excluded from the amount above');

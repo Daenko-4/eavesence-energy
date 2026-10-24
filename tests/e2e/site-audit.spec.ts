@@ -1,3 +1,4 @@
+import { openCostOrganization } from './home-navigation';
 import { homeDetail } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
@@ -62,7 +63,7 @@ for (const locale of ['en', 'de'] as const) for (const width of [320, 390, 1365]
     await expect(page.locator('[data-home-setup]')).toBeVisible();
     await expect(page.locator('[data-home-plan-content]')).toBeHidden();
     await homeDetail(page, 'costs');
-    await expect(page.locator('[data-home-tiles]')).toBeVisible();
+    await openCostOrganization(page);await expect(page.locator('[data-home-tiles]')).toBeVisible();
     await expect(page.locator('[data-cost-area-overview] nav')).toHaveCount(0);
     const importer = page.getByRole('button', { name: de ? 'Kosten übernehmen statt abtippen' : 'Import costs instead of typing', exact: true });
     await importer.click();

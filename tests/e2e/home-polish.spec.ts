@@ -1,3 +1,4 @@
+import { openCostOrganization } from './home-navigation';
 import { homeWorkspace } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
@@ -85,7 +86,7 @@ for (const width of [1365, 390]) {
       await homeWorkspace(page, 'overview');
       const areaBar = page.locator('[data-cost-area-overview]');
       const tiles = areaBar.locator('[data-home-tiles]');
-      await expect(tiles).toBeVisible();
+      await openCostOrganization(page);await expect(tiles).toBeVisible();
       await expect(areaBar.locator('nav, details')).toHaveCount(0);
       await expect(tiles.getByRole('button', { name: de ? /Neue Kachel/ : /New tile/ })).toBeVisible();
       const manager = (await page.locator('[data-cost-manager]').boundingBox())!;

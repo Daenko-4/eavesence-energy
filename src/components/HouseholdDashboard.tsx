@@ -1977,7 +1977,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <section id="home-detail-costs" data-cost-manager hidden={!costManagerOpen} className="home-detail-panel !p-0" aria-labelledby="home-costs-heading">
           <div className="px-4 pt-4 sm:px-5 sm:pt-5"><h2 id="home-costs-heading" className="site-card-title">{locale === "de" ? "Kosten verwalten" : "Manage costs"}</h2><p className="mt-1 text-[13px] text-[#65716d]">{locale === "de" ? "Gespeicherte Kosten, Bereiche & Import" : "Saved costs, areas & import"}</p></div>
           <div data-cost-manager-content className="p-4 sm:p-5">
-          <details className="home-disclosure" hidden={profile.overviewReviewed === false || Boolean(costRequest)} open={activeTile?.kind === "energy" ? true : undefined}><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary><div data-cost-area-overview>
+          <details className="home-disclosure" open={activeTile?.kind === "energy" ? true : undefined}><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary><div data-cost-area-overview>
           <section className="rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-3 sm:p-4" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
               <h2 id="home-workspace-title" className={homeSectionTitleClass}>{text.workspaceTitle}</h2>

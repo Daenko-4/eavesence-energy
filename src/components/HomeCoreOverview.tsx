@@ -82,7 +82,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
     </section>
     </>}
     {count > 0 && !incomeOpen && navigation}
-    <details id="home-detail-budget" data-home-monthly-budget className="home-detail-panel home-disclosure" hidden={!count || incomeOpen} open={activeSection === "budget" ? true : undefined}><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{de ? "Monatsdurchschnitt & Sonderzahlungen" : "Monthly average & extra income"}</summary>
+    <details id="home-detail-budget" data-home-monthly-budget className="home-detail-panel home-disclosure" hidden={!hasIncome || incomeOpen} open={activeSection === "budget" ? true : undefined}><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{de ? "Monatsdurchschnitt & Sonderzahlungen" : "Monthly average & extra income"}</summary>
     <h2 id="home-budget-heading" className="site-card-title">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
     <FinanceCards cards={cards} deficit={deficit} />
     <p className="mt-3 max-w-3xl text-[13px] leading-5 text-[#65716d]">{de ? "Monatsdurchschnitte deiner erfassten Kosten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen vom Rest noch ab. Er ist kein Kontostand und noch kein Sparbetrag." : "Monthly averages of the costs you have entered. Groceries, leisure and other everyday spending still come out of the remainder. It is not your account balance or a savings amount."}</p>

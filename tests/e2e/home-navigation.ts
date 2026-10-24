@@ -41,7 +41,6 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
     if (!await page.locator('[data-cost-manager]').isVisible()) await page.getByRole('group', { name: /^(Home actions|Aktionen für dein Zuhause)$/ }).getByRole('button', { name: /^(Add cost|Kosten hinzufügen)$/ }).click();
     return;
   }
-  if (section === 'budget' && await page.locator('[data-home-monthly-budget]').isVisible()) return;
   throw new Error(`No visible navigation for My Home section: ${section}`);
 }
 

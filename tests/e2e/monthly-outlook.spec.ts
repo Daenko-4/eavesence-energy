@@ -20,7 +20,7 @@ async function seed(page:Page, de:boolean) {
       {id:'internet',name:'Internet',amount:40,frequency:'monthly',category:'subscriptions',nextDueDate:'',updatedAt:'2026-10-24T12:00:00Z'},
     ]));
   });
-  await page.reload();await homeDetail(page,'upcoming');await panel.locator('[data-month-calculation] > summary').click();
+  await page.reload();await homeDetail(page,'upcoming');
 }
 
 for (const de of [false,true]) for (const width of [320,1365]) {
@@ -52,7 +52,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
     await expect(panel.locator('dl > div').nth(1)).toContainText(t('Bekannte Kosten','Known costs'));
     await expect(panel.locator('[data-home-month-result]')).toContainText('—');
     await expect(panel).toContainText(t('Zahlungstermine','Payment dates'));
-    await panel.getByRole('button',{name:`Annual bill · ${t('Termin ergänzen','Add date')}`,exact:true}).click();
+    await panel.locator('[data-month-calculation] > summary').click();await panel.getByRole('button',{name:`Annual bill · ${t('Termin ergänzen','Add date')}`,exact:true}).click();
     await expect(page.locator('#household-cost-form')).toBeVisible();
 
     await page.evaluate(()=>{
