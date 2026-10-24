@@ -74,7 +74,11 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await coach.getByLabel(t('Neuer Betrag je Zahlung (0 = fällt weg)', 'New amount per payment (0 = ends)')).fill('30');
     const costReview = (await page.locator('#savings-plan').boundingBox())!;
     expect(Math.abs(costReview.x + costReview.width / 2 - (surface.x + surface.width / 2))).toBeLessThan(1);
-    expect(costReview.width).toBeLessThanOrEqual(960);
+    const contentWidth = await page.locator('.planning-workspace-content').evaluate(element => {
+      const style = getComputedStyle(element);
+      return element.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    });
+    expect(Math.abs(costReview.width - contentWidth)).toBeLessThan(1);
     const costChoice = (await coach.locator('.savings-choice').boundingBox())!;
     const costEditor = (await coach.locator('.savings-edit').boundingBox())!;
     if (width >= 1024) {

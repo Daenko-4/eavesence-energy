@@ -731,9 +731,9 @@ a {
 /* Keep the payday card's outline, without a second divider immediately below it. */
 .planning-workspace-content [data-payday-hero] + * { border-top: 0; }
 
-/* The Pro tasks share a centered working width; cost review keeps its two steps. */
+/* The Pro tasks fill the panel inside its shared padding. */
 .planning-workspace-content > div:not([hidden]),
-.planning-workspace-content > .planning-options { max-width: 960px; margin-inline: auto; }
+.planning-workspace-content > .planning-options { width: 100%; max-width: none; margin-inline: 0; }
 .savings-review-heading { margin: 0; text-align: left; }
 [data-savings-coach="opportunities"] { margin-top: 20px; }
 .savings-review-layout { max-width: 640px; margin-inline: auto; }
