@@ -824,6 +824,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [homeTiles, setHomeTiles] = useState<HomeTile[]>(defaultHomeTiles);
   const [activeTileId, setActiveTileId] = useState<string | null>("default-costs");
   const [paymentsExpanded, setPaymentsExpanded] = useState(false);
+  const [costEditorVersion,setCostEditorVersion]=useState(0);
   const [costRequest, setCostRequest] = useState<{ costId?: string; template?: HouseholdCostCategory; nonce: number } | null>(null);
   const [tileFormOpen, setTileFormOpen] = useState(false);
   const [editingTileId, setEditingTileId] = useState<string | null>(null);
@@ -1825,7 +1826,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       : homeTiles.find((item) => item.kind === "costs");
     const selected = tile ?? activateTileKind("costs");
     setActiveTileId(selected.id);
-    setCostRequest({ costId: cost?.id, template, nonce: Date.now() + Math.random() });
+    const nonce=Date.now()+Math.random();
+    setCostEditorVersion(nonce);
+    setCostRequest({ costId: cost?.id, template, nonce });
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
       const target = focusDate
         ? document.querySelector<HTMLInputElement>('#household-cost-form input[type="date"]')
@@ -2126,7 +2129,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           {activeTile?.kind === "costs" && (monthlyIncome > 0 || householdCosts.length > 0 || homeTiles.length > 1 || costRequest) && (
           <div className="mt-5">
           <HouseholdCostsPanel
-            key={`${activeTile.id}-${costRequest?.nonce ?? "default"}`}
+            key={`${activeTile.id}-${costEditorVersion}`}
             locale={locale}
             currency={profile.currency}
             costs={costsForTile(activeTile.id)}

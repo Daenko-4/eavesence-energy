@@ -294,6 +294,7 @@ for (const de of [false, true]) {
       await expect(energyNotice).toHaveCount(0);
       await page.reload();
       await homeDetail(page, 'costs');
+      await openCostOrganization(page);
       await energyButton.click();
       await expect(slider).toHaveValue('26');
       const profile = await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!));
