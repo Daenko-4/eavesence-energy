@@ -20,7 +20,7 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
     const month=page.getByRole('group',{name:/^(Choose month|Monat wählen)$/});
     await expect(month).toBeVisible();
     const reset=month.getByRole('button',{name:/^(This month|Dieser Monat)$/});
-    if(await reset.isVisible())await reset.click();
+    if(await reset.isVisible() && await reset.isEnabled())await reset.click();
     await month.getByRole('button',{name:/^(Next month|Nächster Monat)$/}).click();
     await expect(page.locator('[data-home-next-month]')).toBeVisible();
     return;

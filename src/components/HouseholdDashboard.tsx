@@ -1965,9 +1965,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
           {notice?.scope === "home" && view === "overview" && <p data-home-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-center text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
 
-          <div hidden={view !== "overview"} data-home-overview-content className={`mt-6 ${incomeOpen ? "pb-[40vh]" : ""}`}>
+          <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
 
-          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} outlook={selectedMonthOutlook} onMonthChange={setOverviewMonth} onPlan={() => {changeWorkspace("plan");navigatePlanQuestion("payday");}} incomeInformation={!incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} activeSection={homeSection} navigation={<HomeSectionNavigation locale={locale} active={homeSection} onChange={section => {setHomeSection(section);setIncomeOpen(false);if(section === "costs" && !activeTile) setActiveTileId(primaryCostTileId);}} memos={profile.planning?.memos} />} incomeForm={
+          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} outlook={selectedMonthOutlook} onMonthChange={setOverviewMonth} onPlan={() => {changeWorkspace("plan");navigatePlanQuestion("payday");}} incomeInformation={!incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} activeSection={homeSection} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Sonderzahlungen)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<span className="income-period-field"><select aria-label={text.financePeriod} value={incomeFrequency} onChange={(event) => { const next = event.target.value as "monthly" | "yearly"; if (incomeFrequency === "yearly" && next === "monthly") setIncomeValue(""); setIncomeFrequency(next); }} className={`${homeFieldClass} min-w-0 w-full`}><option value="monthly">{locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net income"}</option><option value="yearly">{locale === "de" ? "Jahresnetto (Monatsdurchschnitt)" : "Annual net income (monthly average)"}</option></select><svg aria-hidden="true" focusable="false" className="income-period-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m1 3 4 4 4-4" /></svg></span></label>
@@ -1978,6 +1978,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   </form>
           } />
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments month={overviewMonth ?? localToday().slice(0,7)} onMonthChange={setOverviewMonth} expanded={paymentsExpanded} onExpandedChange={setPaymentsExpanded} costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
+
+          {householdCosts.length > 0 && !incomeOpen && <HomeSectionNavigation locale={locale} active={homeSection} onChange={section => {setHomeSection(section);setIncomeOpen(false);if(section === "costs" && !activeTile) setActiveTileId(primaryCostTileId);}} memos={profile.planning?.memos} />}
 
 
           <section id="home-detail-costs" data-cost-manager hidden={!costManagerOpen} className="home-detail-panel !p-0" aria-labelledby="home-costs-heading">
@@ -2138,7 +2140,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             tileTitle={activeTile.title ?? text.tileTitles[activeTile.kind]}
             request={costRequest ?? undefined}
             onChange={(nextCosts) => persistCostsForTile(activeTile.id, nextCosts)}
-            onSaved={() => {setCostRequest(null); if(profile.overviewReviewed !== false) {requestAnimationFrame(()=>document.querySelector("[data-home-month-result]")?.scrollIntoView({block:"center"}));}}}
+            onSaved={() => setCostRequest(null)}
           />
           </div>
           )}
@@ -2446,12 +2448,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
               {view === "plan" && <h1 tabIndex={-1} className="home-name outline-none">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
             </div>
-            <details className="home-disclosure mt-4 text-[13px]" aria-label={locale === "de" ? "Deine Planungsgrundlage" : "Your planning starting point"} data-pro-overview><summary className="min-h-11 cursor-pointer font-semibold">{locale === "de" ? "Aus My Home übernommen" : "Already included from My Home"}</summary>
-              <div><p className="pro-overview-label">{locale === "de" ? "Aus My Home übernommen" : "Already included from My Home"}</p>
+            <details className="home-disclosure home-detail-panel pro-overview-disclosure" aria-label={locale === "de" ? "Deine Planungsgrundlage" : "Your planning starting point"} data-pro-overview><summary className="min-h-11 cursor-pointer font-semibold">{locale === "de" ? "Aus My Home übernommen" : "Already included from My Home"}</summary>
+              <div className="pro-overview"><div><p className="pro-overview-label">{locale === "de" ? "Aus My Home übernommen" : "Already included from My Home"}</p>
               <h2>{locale === "de" ? "Dein monatlicher Überblick" : "Your monthly overview"}</h2>
               </div>
               <dl><div><dt>{locale === "de" ? incomeSummary.annualAverage ? "Nettoeinkommen · Monatsdurchschnitt" : "Nettoeinkommen pro Monat" : incomeSummary.annualAverage ? "Net income · monthly average" : "Net income per month"}</dt><dd>{profile.incomeAmount !== undefined && !profile.incomeDeferred ? new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:profile.currency}).format(monthlyIncome) : "—"}</dd></div>
-              <div><dt>{locale === "de" ? "Fixkosten · Monatsdurchschnitt" : "Fixed costs · monthly average"}</dt><dd>{new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:profile.currency}).format(householdCostSummary.monthlyTotal)}</dd></div></dl>
+              <div><dt>{locale === "de" ? "Fixkosten · Monatsdurchschnitt" : "Fixed costs · monthly average"}</dt><dd>{new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:profile.currency}).format(householdCostSummary.monthlyTotal)}</dd></div></dl></div>
             </details>
             <div className="planning-workspace">
             <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="home-section-navigation pro-question-navigation">

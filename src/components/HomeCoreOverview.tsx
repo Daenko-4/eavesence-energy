@@ -19,9 +19,9 @@ type Props = {
   outlook: MonthlyOutlook; incomeInformation?: ReactNode;
   onMonthChange:(month:string)=>void; onPlan:()=>void;
   incomeOpen: boolean; onIncome: () => void; onCost: () => void;
-  activeSection: HomeSection | null; navigation: ReactNode; incomeForm: ReactNode;
+  activeSection: HomeSection | null; incomeForm: ReactNode;
 };
-export default function HomeCoreOverview({ incomeProvided, incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, onReviewCost, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, outlook, incomeInformation, onMonthChange, onPlan, incomeOpen, onIncome, onCost, activeSection, navigation, incomeForm }: Props) {
+export default function HomeCoreOverview({ incomeProvided, incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, onReviewCost, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, outlook, incomeInformation, onMonthChange, onPlan, incomeOpen, onIncome, onCost, activeSection, incomeForm }: Props) {
   const de = locale === "de";
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
   const needsIncome = !(incomeProvided ?? income > 0) && !incomeDeferred;
@@ -41,7 +41,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
     {label: outlook.missing.length ? de ? `Bekannte Kosten im ${monthName}` : `Known costs in ${monthName}` : de ? `Fällige Kosten im ${monthName}` : `Costs due in ${monthName}`, value:`${outlook.payments.some(payment => payment.estimated) ? de ? "ca. " : "approx. " : ""}${money(outlook.total)}`},
     {label: de ? "Rest nach Fixkosten" : "Left after fixed costs", value:outlook.remaining === null ? "—" : `${estimate}${money(outlook.remaining)}`, emphasis:true, note:outlook.remaining === null ? de ? "Angaben für diesen Monat fehlen noch" : "Entries for this month are still missing" : undefined},
   ];
-  return <section className="mt-6" aria-label={de ? "Finanzen im Überblick" : "Your household at a glance"}>
+  return <section aria-label={de ? "Finanzen im Überblick" : "Your household at a glance"}>
     {(needsIncome || !count) && <div data-home-setup className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
       <p className="text-[13px] font-bold">{needsIncome ? de ? "1 · Einkommen eintragen" : "1 · Add your income" : de ? "2 · Erste Kosten hinzufügen" : "2 · Add your first cost"}</p>
       <p className="mt-1 text-[13px] text-[#52605b]">{needsIncome ? de ? "Ein Betrag reicht. Danach ergänzen wir deine regelmäßigen Kosten." : "One amount is enough. Add your recurring costs next." : de ? "Beginne mit Miete, Internet oder einer Versicherung. Weitere Kosten kannst du später ergänzen." : "Start with rent, internet or insurance. Add more costs later."}</p>
@@ -50,14 +50,14 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
     </div>}
     {incomeOpen && incomeForm}
     {count > 0 && !incomeOpen && <>
-    <section id="home-detail-upcoming" className="mt-5" aria-label={de ? "Dein Monatsergebnis" : "Your monthly result"} data-home-next-month>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3" role="group" aria-label={de ? "Monat wählen" : "Choose month"}>
+    <section id="home-detail-upcoming" className="home-detail-panel home-month-overview" aria-label={de ? "Dein Monatsergebnis" : "Your monthly result"} data-home-next-month>
+      <div className="home-month-navigation" role="group" aria-label={de ? "Monat wählen" : "Choose month"}>
         <h2 className="site-card-title">{monthLabel}</h2>
-        <div className="flex items-center gap-1"><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd]" aria-label={de ? "Vorheriger Monat" : "Previous month"} onClick={()=>onMonthChange(shiftPlanningMonth(outlook.month,-1))}>‹</button><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd]" aria-label={de ? "Nächster Monat" : "Next month"} onClick={()=>onMonthChange(shiftPlanningMonth(outlook.month,1))}>›</button>{outlook.month !== localToday().slice(0,7) && <button type="button" className="min-h-11 px-2 text-[13px] font-semibold" onClick={()=>onMonthChange(localToday().slice(0,7))}>{de ? "Dieser Monat" : "This month"}</button>}</div>
+        <div className="flex items-center gap-1"><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd]" aria-label={de ? "Vorheriger Monat" : "Previous month"} onClick={()=>onMonthChange(shiftPlanningMonth(outlook.month,-1))}>‹</button><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd]" aria-label={de ? "Nächster Monat" : "Next month"} onClick={()=>onMonthChange(shiftPlanningMonth(outlook.month,1))}>›</button><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd] disabled:opacity-40" aria-label={de ? "Dieser Monat" : "This month"} title={de ? "Dieser Monat" : "This month"} disabled={outlook.month === localToday().slice(0,7)} onClick={()=>onMonthChange(localToday().slice(0,7))}><span aria-hidden="true">↺</span></button></div>
       </div>
-      <div className="rounded-2xl bg-[#24272c] p-5 text-white sm:p-6" data-home-month-result aria-live="polite">
+      <div className="rounded-2xl bg-[#24272c] p-4 text-white sm:p-5" data-home-month-result aria-live="polite">
         <p className="text-[14px] text-[#d1d7d4]">{outlook.remaining !== null && outlook.remaining < 0 ? de ? "Nach Fixkosten fehlen voraussichtlich" : "Expected shortfall after fixed costs" : de ? "Nach Fixkosten bleiben voraussichtlich" : "Expected left after fixed costs"}</p>
-        <p className={`mt-2 text-[clamp(2rem,5vw,2.75rem)] font-extrabold tracking-tight ${outlook.remaining !== null && outlook.remaining < 0 ? "text-[#ffd28c]" : "text-[#72dca3]"}`} data-home-remaining>{outlook.remaining === null ? "—" : `${estimate}${money(Math.abs(outlook.remaining))}`}</p>
+        <p className={`mt-2 text-[clamp(1.75rem,4vw,2.25rem)] font-extrabold tracking-tight ${outlook.remaining !== null && outlook.remaining < 0 ? "text-[#ffd28c]" : "text-[#72dca3]"}`} data-home-remaining>{outlook.remaining === null ? "—" : `${estimate}${money(Math.abs(outlook.remaining))}`}</p>
         <p className="mt-2 text-[13px] leading-5 text-[#d1d7d4]">{outlook.remaining === null ? de ? "Ergänze die fehlenden Angaben für dein Monatsergebnis." : "Complete the missing entries to see your monthly result." : de ? "Nach deinen bisher erfassten Kosten. Lebensmittel, Freizeit und Alltag gehen davon noch ab." : "After the costs recorded so far. Groceries, leisure and everyday spending still come out of this."}</p>
       </div>
       <dl className="mt-3 grid gap-3 sm:grid-cols-2">{forecastCards.slice(0,2).map(card=><div key={card.label} className="flex flex-wrap items-baseline justify-between gap-2 text-[13px]"><dt className="text-[#52605b]">{card.label}</dt><dd className="font-semibold">{card.value}</dd>{card.note && <dd className="w-full text-[12px] text-[#65716d]">{card.note}</dd>}</div>)}</dl>
@@ -75,9 +75,8 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
       </details>
     </section>
     </>}
-    {count > 0 && !incomeOpen && navigation}
     <details id="home-detail-budget" data-home-monthly-budget className="home-detail-panel home-disclosure" hidden={!hasIncome || incomeOpen} open={activeSection === "budget" ? true : undefined}><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{de ? "Monatsdurchschnitt & Sonderzahlungen" : "Monthly average & extra income"}</summary>
-    <h2 id="home-budget-heading" className="site-card-title">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
+    <h2 id="home-budget-heading" className="mt-4 site-card-title">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
     <FinanceCards cards={cards} deficit={deficit} />
     <p className="mt-3 max-w-3xl text-[13px] leading-5 text-[#65716d]">{de ? "Monatsdurchschnitte deiner erfassten Kosten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen vom Rest noch ab. Er ist kein Kontostand und noch kein Sparbetrag." : "Monthly averages of the costs you have entered. Groceries, leisure and other everyday spending still come out of the remainder. It is not your account balance or a savings amount."}</p>
     {hasVariableCosts&&<p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de?"Variable Kosten sind hier mit ihrem üblichen Planbetrag enthalten. Die tatsächlichen Rechnungen stehen in der Monatscheckliste.":"Variable costs use their usual planning amounts here. Find actual invoices in the monthly checklist."}</p>}
