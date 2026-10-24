@@ -27,7 +27,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await seed(page, de);
     const nav = page.locator('[data-home-section-navigation]');
     const panels = page.locator('[id^="home-detail-"]:visible');
-    await expect(nav.getByRole('button')).toHaveCount(5);
+    await expect(nav.getByRole('button')).toHaveCount(4);
     await expect(nav.locator('[aria-expanded=true]')).toHaveCount(0);
     await expect(panels).toHaveCount(0);
     await expect(nav.locator('[data-home-section=notes]')).toContainText('1');
@@ -40,9 +40,9 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(page.locator('[data-home-monthly-budget]')).toBeHidden();
     await expect(panels).toHaveCount(1);
     await expect(page.locator('#home-detail-upcoming')).toContainText('Internet');
-    await homeDetail(page, 'extras');
+    await homeDetail(page, 'budget');
     await expect(panels).toHaveCount(1);
-    await expect(page.locator('#home-detail-extras')).toContainText(de ? '30.800,00' : '30,800.00');
+    await expect(page.locator('[data-income-extras-summary]')).toContainText(de ? '30.800,00' : '30,800.00');
     await expect(page.locator('#home-detail-upcoming')).toBeHidden();
 
     const notes = page.locator('[data-home-memos]');

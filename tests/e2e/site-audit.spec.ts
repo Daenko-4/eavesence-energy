@@ -58,7 +58,7 @@ for (const locale of ['en', 'de'] as const) for (const width of [320, 390, 1365]
     await page.locator('[data-home-identity]').getByRole('button', { name: de ? 'Einstellungen' : 'Settings', exact: true }).click();
     await expect(settings).toHaveCount(0);
     const overview = page.getByRole('region', { name: de ? 'Finanzen im Überblick' : 'Your household at a glance' });
-    await expect(overview.locator('article')).toHaveCount(3);
+    await expect(overview.locator('[data-home-monthly-budget] article')).toHaveCount(3);
     await expect(page.locator('[data-home-setup]')).toBeVisible();
     await expect(page.locator('[data-home-plan-content]')).toBeHidden();
     await homeDetail(page, 'costs');

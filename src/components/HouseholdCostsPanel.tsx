@@ -1,4 +1,6 @@
 "use client";
+import FormActions from "@/components/FormActions";
+
 
 import { useEffect, useState } from "react";
 
@@ -411,14 +413,14 @@ export default function HouseholdCostsPanel({
               <input type="date" value={cancellationDeadline} onChange={(event) => setCancellationDeadline(event.target.value)} className={fieldClass} />
             </label>
           </div></details>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button type="submit" className={pillClass}>
-              {editingId ? text.update : text.save}
-            </button>
+          <FormActions className="mt-4">
             <button type="button" onClick={() => { resetForm(); setFormOpen(false); }} className="eavesence-pill-button home-compact-action bg-[#eef0ec] text-[#65716d]">
               {text.cancel}
             </button>
-          </div>
+            <button type="submit" className={pillClass}>
+              {editingId ? text.update : text.save}
+            </button>
+          </FormActions>
         </form>
       )}
 

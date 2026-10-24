@@ -18,6 +18,7 @@
     "./usePaymentChecklist": "./src/usePaymentChecklist.ts",
     "./tileSymbols": "./src/tileSymbols.ts",
     "./income": "./src/income.ts",
+    "./monthlyOutlook": "./src/monthlyOutlook.ts",
     "./memos": "./src/memos.ts",
     "./useMemos": "./src/useMemos.ts",
     "./proInsights": "./src/proInsights.ts",

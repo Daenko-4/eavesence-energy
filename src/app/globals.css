@@ -615,7 +615,7 @@ a {
 .payday-date-shortcuts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .payday-date-shortcuts > button { min-height: 36px; padding: 6px 10px; border: 1px solid #dfe5dd; border-radius: 8px; color: #28734d; font-size: 12px; font-weight: 600; }
 .payday-date-shortcuts > button:hover { background: #eefbf3; }
-.payday-editor > button[type="submit"] { min-height: 44px; padding: 10px 18px; border-radius: 10px; background: #24272c; color: #72dca3; }
+.payday-editor button[type="submit"] { min-height: 44px; padding: 10px 18px; border-radius: 10px; background: #24272c; color: #72dca3; }
 @media (min-width: 1180px) {
   .payday-editor { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr); align-items: start; gap: 22px; }
   .payday-editor > * { grid-column: 1; margin-top: 0 !important; }
@@ -731,9 +731,9 @@ a {
 /* Keep the payday card's outline, without a second divider immediately below it. */
 .planning-workspace-content [data-payday-hero] + * { border-top: 0; }
 
-/* The Pro tasks share a centered working width; cost review keeps its two steps. */
+/* The Pro tasks fill the panel inside its shared padding. */
 .planning-workspace-content > div:not([hidden]),
-.planning-workspace-content > .planning-options { max-width: 960px; margin-inline: auto; }
+.planning-workspace-content > .planning-options { width: 100%; max-width: none; margin-inline: 0; }
 .savings-review-heading { margin: 0; text-align: left; }
 [data-savings-coach="opportunities"] { margin-top: 20px; }
 .savings-review-layout { max-width: 640px; margin-inline: auto; }
@@ -766,3 +766,12 @@ a {
 @media (max-width: 639px) {
   .planning-workspace-content .planning-task-card { padding: 18px; }
 }
+
+/* Completion actions share the same right edge and reading order. */
+.form-actions { display: flex; width: 100%; min-width: 0; grid-column: 1 / -1; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.form-actions > button { max-width: 100%; white-space: normal; }
+.payday-editor > .form-actions { grid-column: 1 / -1; }
+.income-period-field { position: relative; display: block; min-width: 0; }
+.income-period-field > select { appearance: none; padding-right: 40px; }
+.income-period-chevron { position: absolute; top: 50%; right: 13px; width: 10px; height: 10px; transform: translateY(-50%); color: #17211f; pointer-events: none; }
+.income-extras-editor > summary::after { content: ""; width: 10px; height: 10px; background: center / 10px 10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='%2328734d' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M5 1v8M1 5h8'/%3E%3C/svg%3E"); }

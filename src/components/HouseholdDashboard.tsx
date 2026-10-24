@@ -1,5 +1,8 @@
 "use client";
+import FormActions from "@/components/FormActions";
+
 import ProInsights from "./ProInsights";
+import { monthlyOutlook } from "@eavesence/core/monthlyOutlook";
 import { applyVariablePlan, type VariablePlanSuggestion } from "@eavesence/core/proInsights";
 import { recoverHomeStorage, writeHomeStorage } from "../lib/homeStorage";
 import { closeSavingsHistory } from "@eavesence/core/savingsPlan";
@@ -1598,7 +1601,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
             </div>
 
-            <button type="submit" className={`mt-8 w-full sm:w-auto ${homePrimaryActionClass}`}>{text.start}</button>
+            <FormActions className="mt-8"><button type="submit" className={`w-full sm:w-auto ${homePrimaryActionClass}`}>{text.start}</button></FormActions>
             </form>
             <p className="mt-4 text-[11px] font-medium text-[#65716d]">{text.private}</p>
           </section>
@@ -1746,6 +1749,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const incomeSummary = summarizeIncome(profile);
   const monthlyIncome = incomeSummary.monthly;
   const hasRecordedIncome = monthlyIncome > 0 || (profile?.incomeAmount === 0 && profile.incomeDeferred === false);
+  const nextMonthOutlook = monthlyOutlook({profile, incomeKnown:hasRecordedIncome && !profile.incomeDeferred, costs:householdCosts, month:upcomingPayments.month, actualPayments:profile.planning?.actualPayments});
   const activeTile = activeTileId === null ? null : homeTiles.find((tile) => tile.id === activeTileId) ?? homeTiles.find((tile) => tile.kind === "costs") ?? null;
   const primaryCostTileId = homeTiles.find((tile) => tile.kind === "costs")?.id ?? null;
 
@@ -1871,7 +1875,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }} className="grid gap-4 sm:grid-cols-4">
               <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
-              <button type="submit" className={`${homeDashboardActionClass} sm:col-span-4 sm:justify-self-start`}>{text.saveSettings}</button>
+              <FormActions className="sm:col-span-4"><button type="submit" className={homeDashboardActionClass}>{text.saveSettings}</button></FormActions>
               </form>
               <div className="mt-4 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
@@ -1956,17 +1960,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
           {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments expanded={paymentsExpanded} onExpandedChange={setPaymentsExpanded} costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
-          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} undatedCosts={householdCosts.filter(cost => !cost.nextDueDate)} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} upcoming={upcomingPayments} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} activeSection={homeSection} navigation={<HomeSectionNavigation locale={locale} active={homeSection} onChange={section => {setHomeSection(section);setIncomeOpen(false);}} hasExtras={incomeSummary.extras.length > 0} memos={profile.planning?.memos} />} incomeForm={
+          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} outlook={nextMonthOutlook} incomeInformation={!incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} activeSection={homeSection} navigation={<HomeSectionNavigation locale={locale} active={homeSection} onChange={section => {setHomeSection(section);setIncomeOpen(false);}} memos={profile.planning?.memos} />} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Sonderzahlungen)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
-                    <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<select aria-label={text.financePeriod} value={incomeFrequency} onChange={(event) => { const next = event.target.value as "monthly" | "yearly"; if (incomeFrequency === "yearly" && next === "monthly") setIncomeValue(""); setIncomeFrequency(next); }} className={`${homeFieldClass} min-w-0 w-full`}><option value="monthly">{locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net income"}</option><option value="yearly">{locale === "de" ? "Jahresnetto (Monatsdurchschnitt)" : "Annual net income (monthly average)"}</option></select></label>
+                    <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<span className="income-period-field"><select aria-label={text.financePeriod} value={incomeFrequency} onChange={(event) => { const next = event.target.value as "monthly" | "yearly"; if (incomeFrequency === "yearly" && next === "monthly") setIncomeValue(""); setIncomeFrequency(next); }} className={`${homeFieldClass} min-w-0 w-full`}><option value="monthly">{locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net income"}</option><option value="yearly">{locale === "de" ? "Jahresnetto (Monatsdurchschnitt)" : "Annual net income (monthly average)"}</option></select><svg aria-hidden="true" focusable="false" className="income-period-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m1 3 4 4 4-4" /></svg></span></label>
                     {incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />}
                     <IncomeExtrasEditor locale={locale} frequency={incomeFrequency} drafts={incomeExtras} onChange={setIncomeExtras} open={incomeExtrasOpen} onToggle={setIncomeExtrasOpen} />
                     {incomeError && <p role="alert" className="text-[11px] text-red-700">{incomeError}</p>}
-                    <button type="submit" className={`${homeDashboardActionClass} w-fit`}>{text.financeSave}</button>
+                    <FormActions><button type="submit" className={`${homeDashboardActionClass} w-fit`}>{text.financeSave}</button></FormActions>
                   </form>
           } />
-          {!incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} expanded={homeSection === "extras"} />}
 
 
           <section id="home-detail-costs" data-cost-manager hidden={!costManagerOpen} className="home-detail-panel !p-0" aria-labelledby="home-costs-heading">
@@ -2040,7 +2043,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <form onSubmit={(event) => { event.preventDefault(); saveHomeTile(); }} className="mt-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                   <label className="grid min-w-0 gap-1.5 text-[11px] font-semibold text-[#52605b] sm:col-span-2">{text.tileName}<input ref={tileNameInputRef} value={tileName} onChange={(event) => { setTileName(event.target.value); setTileFeedback(""); }} placeholder={text.tileNamePlaceholder} className={`min-w-0 w-full ${homeFieldClass}`} /></label>
                   <TileSymbolPicker key={editingTileId ?? "new"} value={tileIcon} onChange={setTileIcon} locale={locale}/>
-                  <button type="submit" className={`${homePrimaryActionClass} justify-self-start`} style={{minHeight:44,paddingInline:16}}>{editingTileId ? text.updateTile : text.createTile}</button>
+                  <FormActions><button type="submit" className={homePrimaryActionClass} style={{minHeight:44,paddingInline:16}}>{editingTileId ? text.updateTile : text.createTile}</button></FormActions>
                 </form>
                 {tileFeedback && <p role="alert" className="mt-2 text-[11px] font-bold text-red-700">{tileFeedback}</p>}
               </div>
@@ -2172,10 +2175,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <p className="text-[11px] leading-5 text-[#65716d]">{text.monthlyBudgetOnly}</p>
               </div>
             )}
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button type="submit" className={homeDashboardActionClass}>{text.saveEnergy}</button>
+            <FormActions className="mt-4">
               <button type="button" onClick={openElectricityCost} className="eavesence-pill-link">{text.electricityCostAction}</button>
-            </div>
+              <button type="submit" className={homeDashboardActionClass}>{text.saveEnergy}</button>
+            </FormActions>
             {notice?.scope === "energy" && <p data-energy-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
             </form>}
           </section>
@@ -2310,10 +2313,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 )}
               </div>
               {checkInFeedback && <p role={checkInFeedback.kind === "error" ? "alert" : "status"} className={`mt-4 rounded-xl px-3 py-2.5 text-[13px] font-bold ${checkInFeedback.kind === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-[var(--brand-green)]"}`}>{checkInFeedback.message}</p>}
-              <div className="mt-5 flex flex-wrap items-center gap-2">
-                <button type="submit" className={homePrimaryActionClass}>{editingMonth ? text.updateCheckIn : text.saveCheckIn}</button>
+              <FormActions className="mt-5">
                 {editingMonth && <button type="button" onClick={cancelMonthlyCheckInEdit} className={homeCompactActionClass}>{text.cancelCheckInEdit}</button>}
-              </div>
+                <button type="submit" className={homePrimaryActionClass}>{editingMonth ? text.updateCheckIn : text.saveCheckIn}</button>
+              </FormActions>
               </form>
             </div>
             <div className={`${homeSurfaceClass} min-w-0 p-4 sm:p-5`}>

@@ -1,4 +1,6 @@
 "use client";
+import FormActions from "@/components/FormActions";
+
 import {PaymentAmountForm} from "./MonthlyPayments";
 import QuickCheck from "./QuickCheck";
 import { useId, useRef, useState } from "react";
@@ -179,7 +181,7 @@ export default function PaydayPanel({
               <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Dieser Betrag bleibt unangetastet. Sparziele werden hier nicht automatisch abgezogen.", "This amount stays untouched. Savings goals are not deducted automatically here.")}</p>
             </details>
             {p.error && <p role="alert" className="text-[13px] text-red-700">{p.error}</p>}
-            <button type="submit" disabled={p.busy} className="eavesence-pill-button home-primary-action">{t("Verfügbares Geld anzeigen", "Show available money")}</button>
+            <FormActions><button type="submit" disabled={p.busy} className="eavesence-pill-button home-primary-action">{t("Verfügbares Geld anzeigen", "Show available money")}</button></FormActions>
           </form>
         </div>
       )}
