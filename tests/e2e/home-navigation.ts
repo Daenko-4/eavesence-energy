@@ -74,7 +74,7 @@ export async function paydayStep(page:Page,target:number){
     const step=Number(await panel.getAttribute('data-payday-step'));
     if(step===target)return;
     if(step>target)await panel.getByRole('button',{name:/^(Back|Zurück)$/}).click();
-    else await panel.getByRole('button',{name:/^(Continue|Weiter)$/}).click();
+    else {const next=panel.getByRole('button',{name:/^(Continue|Weiter)$/});if(step===0 && !await next.isVisible())await panel.getByRole('button',{name:/^(Change dates or everyday spending|Zeitraum oder Alltag ändern)$/}).click();else await next.click();}
     await expect(panel).toHaveAttribute('data-payday-step',String(step+(step>target?-1:1)));
   }
 }

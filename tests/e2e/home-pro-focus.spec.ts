@@ -1,6 +1,6 @@
 import { openPayday, paydayStep } from './home-navigation';
 import { expect, test, type Page } from '@playwright/test';
-import { homeWorkspace, homeDetail } from './home-navigation';
+import { homeWorkspace, homeDetail, openCostOrganization } from './home-navigation';
 
 async function seed(page: Page, de: boolean) {
   await page.clock.setFixedTime(new Date('2026-10-13T12:00:00Z'));
@@ -244,6 +244,7 @@ for (const de of [false, true]) {
       await assertInset('#household-costs');
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       await page.screenshot({ path: info.outputPath(`inset-costs-${de ? 'de' : 'en'}-${width}.png`), fullPage: true });
+      await openCostOrganization(page);
       const energyButton = page.locator('[data-home-tiles] article').filter({ hasText: t('Strom & Geräte', 'Electricity & devices') }).getByRole('button').first();
       await energyButton.click();
       await assertInset('#home-devices');

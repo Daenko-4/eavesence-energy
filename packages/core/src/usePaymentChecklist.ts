@@ -24,7 +24,7 @@ export function usePaymentChecklist(costs: HouseholdCost[], data: PlanningData |
     try{await onSave(next);return true;}catch{setError(de?'Speichern fehlgeschlagen. Deine Eingabe bleibt erhalten.':'Could not save. Your entry has been kept.');return false;}finally{saving.current=false;setBusy(false);}
   }
   async function saveAmount(){
-    if(!editing||planning.monthReviews?.some(r=>r.month===editing.month))return false;
+    if(!editing||editing.month!==month||planning.monthReviews?.some(r=>r.month===editing.month))return false;
     const value=parseMoney(amount,de?'de':'en');
     if(!Number.isFinite(value)||value<0){setError(de?'Rechnungsbetrag ab 0 eingeben.':'Enter an invoice amount of 0 or more.');return false;}
     const wasPaid=paymentIsPaid(editing,paid),key=paymentKey({costId:editing.cost.id,month:editing.month,date:editing.date});
@@ -48,5 +48,5 @@ export function usePaymentChecklist(costs: HouseholdCost[], data: PlanningData |
     } catch { setError(de ? 'Das Häkchen konnte nicht gespeichert werden. Bitte erneut versuchen.' : 'Could not save this checkmark. Please try again.'); }
     finally { saving.current = false; setBusy(false); }
   }
-  return {...list,closed,review,editing,amount,setAmount,editAmount,saveAmount,cancelAmount:()=>setEditing(null),closeMonth,reopenMonth,today:localToday(),month,current,busy,error,isClosed:(p:MonthPayment)=>!!planning.monthReviews?.some(r=>r.month===p.month),isPaid:(p:MonthPayment)=>paymentIsPaid(p,paid),toggle,previous:()=>choose(shiftPlanningMonth(month,-1)),next:()=>choose(shiftPlanningMonth(month,1)),reset:()=>choose(null)};
+  return {...list,closed,review,editing:editing?.month===month?editing:null,amount,setAmount,editAmount,saveAmount,cancelAmount:()=>setEditing(null),closeMonth,reopenMonth,today:localToday(),month,current,busy,error,isClosed:(p:MonthPayment)=>!!planning.monthReviews?.some(r=>r.month===p.month),isPaid:(p:MonthPayment)=>paymentIsPaid(p,paid),toggle,previous:()=>choose(shiftPlanningMonth(month,-1)),next:()=>choose(shiftPlanningMonth(month,1)),reset:()=>choose(null)};
 }

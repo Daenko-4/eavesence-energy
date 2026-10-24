@@ -239,7 +239,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   await savingsTool(page, "change");
   await panel.getByLabel("Test a cost change · choose a cost").selectOption("internet");
   await panel.getByLabel("New amount per payment (0 = ends)").fill("25");
-  await expect(panel).toContainText("Estimated over the next 12 planning months");
+  await expect(panel).toContainText("over the next 12 planning months");
   await expect(panel).toContainText("€180.00");
   await panel.getByRole("button", { name: "Save this plan" }).click();
   await page.reload();
@@ -1505,15 +1505,15 @@ test("hidden advanced plans survive core edits and export", async ({ page }) => 
 for (const width of [320, 390, 1365]) {
   test(`Pro questions are separate and fit at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 900 }); await page.goto("/home"); await page.getByRole("button", { name: "Create my home" }).click();
-    await expect(page.getByRole("heading", { name: "What is left until payday?", exact: true })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "Step by step to your result", exact: true })).toBeHidden();
     await openPlan(page, "payday");
-    await expect(page.getByRole("heading", { name: "What is left until payday?", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Step by step to your result", exact: true })).toBeVisible();
     const questions = page.getByRole("group", { name: "Choose planning question" });
     await questions.screenshot({ path: info.outputPath(`pro-questions-${width}.png`) });
     // The clear space above a compact pill remains part of its phone tap target.
     await questions.getByRole("button", { name: "Find realistic savings" }).click({ position: { x: 20, y: 2 } });
     await expect(page.getByRole("region", { name: "02 · Where can I realistically save?", exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "What is left until payday?", exact: true })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "Step by step to your result", exact: true })).toBeHidden();
     await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toHaveCount(0);
     await openPlan(page, "progress");
     await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toBeVisible();
@@ -1735,7 +1735,7 @@ for (const locale of ['de', 'en'] as const) {
     });
     await page.reload();
     await openPlan(page, 'payday');
-    const question = page.getByRole('heading',{name:locale==='de'?'Was bleibt bis zum Gehalt?':'What is left until payday?',exact:true});
+    const question = page.getByRole('heading',{name:locale==='de'?'Schritt für Schritt zum Ergebnis':'Step by step to your result',exact:true});
     await expect(question).toBeVisible();
     await question.scrollIntoViewIfNeeded();
     await page.screenshot({path:info.outputPath(`cash-window-${locale}.png`)});

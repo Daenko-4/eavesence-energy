@@ -130,7 +130,7 @@ const currencies: SavedDeviceCurrency[] = [
 const copy = {
   de: {
     pageTitle: "Mein Zuhause",
-    pageSubtitle: "Was steht diesen Monat noch an? Hake bezahlte Kosten ab.",
+    pageSubtitle: "Deine Kosten und was dir übrig bleibt.",
     onboardingEyebrow: "EAVESENCE",
     onboardingTitle: "Richte dein Zuhause ein",
     onboardingText:
@@ -388,7 +388,7 @@ const copy = {
   },
   en: {
     pageTitle: "My home",
-    pageSubtitle: "What is still due this month? Check off paid costs.",
+    pageSubtitle: "Your costs and what is left over.",
     onboardingEyebrow: "EAVESENCE",
     onboardingTitle: "Set up your home",
     onboardingText:
@@ -787,6 +787,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [incomeExtrasOpen, setIncomeExtrasOpen] = useState(false);
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">("monthly");
   const [overviewMonth, setOverviewMonth] = useState<string | null>(null);
+  const [costAreasOpen,setCostAreasOpen]=useState(false);
   const [homeSection, setHomeSection] = useState<HomeSection | null>(null);
   const costManagerOpen = homeSection === "costs";
   function setCostManagerOpen(open: boolean) { setHomeSection(current => open ? "costs" : current === "costs" ? null : current); if (open) setIncomeOpen(false); }
@@ -1140,6 +1141,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function activateTileKind(kind: HomeTileKind) {
+    if(kind === "energy")setCostAreasOpen(true);
     setCostManagerOpen(true);
     let tile = homeTiles.find((item) => item.kind === kind);
     if (!tile) {
@@ -1200,6 +1202,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         ),
       );
     } else {
+      setCostRequest(null);
       const tile = createHomeTile("costs", tileName, tileIcon);
       persistHomeTiles([...homeTiles, tile]);
       setActiveTileId(tile.id);
@@ -1959,7 +1962,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
           {notice?.scope === "home" && view === "overview" && <p data-home-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-center text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
 
-          <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
+          <div hidden={view !== "overview"} data-home-overview-content className={`mt-6 ${incomeOpen ? "pb-[40vh]" : ""}`}>
 
           <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} outlook={selectedMonthOutlook} onMonthChange={setOverviewMonth} onPlan={() => {changeWorkspace("plan");navigatePlanQuestion("payday");}} incomeInformation={!incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} activeSection={homeSection} navigation={<HomeSectionNavigation locale={locale} active={homeSection} onChange={section => {setHomeSection(section);setIncomeOpen(false);if(section === "costs" && !activeTile) setActiveTileId(primaryCostTileId);}} memos={profile.planning?.memos} />} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
@@ -1977,7 +1980,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <section id="home-detail-costs" data-cost-manager hidden={!costManagerOpen} className="home-detail-panel !p-0" aria-labelledby="home-costs-heading">
           <div className="px-4 pt-4 sm:px-5 sm:pt-5"><h2 id="home-costs-heading" className="site-card-title">{locale === "de" ? "Kosten verwalten" : "Manage costs"}</h2><p className="mt-1 text-[13px] text-[#65716d]">{locale === "de" ? "Gespeicherte Kosten, Bereiche & Import" : "Saved costs, areas & import"}</p></div>
           <div data-cost-manager-content className="p-4 sm:p-5">
-          <details className="home-disclosure" open={activeTile?.kind === "energy" ? true : undefined}><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary><div data-cost-area-overview>
+          <details className="home-disclosure" open={costAreasOpen} onToggle={event=>setCostAreasOpen(event.currentTarget.open)}><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary><div data-cost-area-overview>
           <section className="rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-3 sm:p-4" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
               <h2 id="home-workspace-title" className={homeSectionTitleClass}>{text.workspaceTitle}</h2>

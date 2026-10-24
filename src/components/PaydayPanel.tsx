@@ -102,6 +102,7 @@ export default function PaydayPanel({
                 ? t("Prüfe offene Rechnungen und deine Alltagsschätzung.", "Review unpaid bills and your everyday estimate.")
                 : t("Rechnungen, Alltag und Reserve sind bereits abgezogen.", "Bills, everyday spending and reserve are already deducted.")
               : t("Ergänze deine Angaben für eine vollständige Rechnung.", "Complete your entries to calculate available money.");
+  const quickBalance = step === 0 && !!p.cash && p.cash.payday > p.today && p.cash.everydayRemaining !== null;
   const editorId = useId();
   const editTarget = state === "expired" ? "payday" : state === "everyday" ? "everyday" : "balance";
   function editPlan() { setOpen(true); focusInvalid(editTarget); }
@@ -118,7 +119,7 @@ export default function PaydayPanel({
           {!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} ${p.forecast.days === 1 ? "Tag" : "Tage"}`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} ${p.forecast.days === 1 ? "day" : "days"}`) : t("Dein Geld bis zum Gehalt", "Your money until payday")}
         </p>
         <h2 ref={resultHeading} tabIndex={-1} className="mt-2 site-section-title outline-none">
-          {open ? t("Schritt für Schritt zum Ergebnis", "Step by step to your result") : currentResult
+          {open ? quickBalance ? t("Kontostand bestätigen", "Confirm account balance") : t("Schritt für Schritt zum Ergebnis", "Step by step to your result") : currentResult
             ? shortfall ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Zusätzlich verfügbar", "Extra money available")
             : state === "stale" ? t("Kontostand bestätigen", "Confirm account balance")
             : state === "expired" ? t("Neuen Zeitraum planen", "Plan your next pay period")
@@ -145,10 +146,10 @@ export default function PaydayPanel({
         <div id={editorId} data-payday-editor className="space-y-3 bg-white p-4 sm:p-5">
           <form noValidate onSubmit={async (e) => {
             e.preventDefault();
-            if(step < 2){const invalid=p.validateStep(step);if(invalid){focusInvalid(invalid);return;}setStep(step+1);requestAnimationFrame(()=>{const field=step===0?paydayInput.current:everydayInput.current;field?.focus();});return;}
+            if(step < 2 && !quickBalance){const invalid=p.validateStep(step);if(invalid){focusInvalid(invalid);return;}setStep(step+1);requestAnimationFrame(()=>{const field=step===0?paydayInput.current:everydayInput.current;field?.focus();});return;}
             if (await p.save(focusInvalid)) { setOpen(false); requestAnimationFrame(() => { resultHeading.current?.focus({preventScroll:true}); resultHeading.current?.scrollIntoView({block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"}); }); }
           }} className="payday-editor space-y-5" data-payday-form>
-            <p className="text-[13px] font-semibold text-[#52605b]" aria-live="polite">{t(`Schritt ${step+1} von 3`, `Step ${step+1} of 3`)}</p>
+            <p className="text-[13px] font-semibold text-[#52605b]" aria-live="polite">{quickBalance ? t("Deine bisherige Planung bleibt übernommen.", "Your existing plan is carried over.") : t(`Schritt ${step+1} von 3`, `Step ${step+1} of 3`)}</p>
             <fieldset hidden={step !== 0} className="min-w-0">
               <legend className="mb-3 text-[14px] font-semibold">{t("Wie viel ist heute auf deinem Konto?", "How much is in your account today?")}</legend>
               <label className="grid max-w-sm gap-2 text-[13px]"><span>{t("Aktueller Kontostand", "Current account balance")}</span><input ref={balanceInput} aria-invalid={p.errorField === "balance"} className={field} inputMode="decimal" aria-describedby="payday-balance-help" value={p.balance} onChange={e=>p.setBalance(e.target.value)} placeholder={t("z. B. 1.200,00", "e.g. 1,200.00")}/></label>
@@ -188,7 +189,7 @@ export default function PaydayPanel({
               <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Dieser Betrag bleibt unangetastet. Sparziele werden hier nicht automatisch abgezogen.", "This amount stays untouched. Savings goals are not deducted automatically here.")}</p>
             </details>
             {p.error && <p role="alert" className="text-[13px] text-red-700">{p.error}</p>}
-            <FormActions>{step > 0 && <button type="button" disabled={p.busy} className="eavesence-pill-button home-dashboard-action" onClick={()=>setStep(step-1)}>{t("Zurück", "Back")}</button>}<button type="submit" disabled={p.busy || (step === 1 && (p.preview?.missingDates??0)>0)} className="eavesence-pill-button home-primary-action">{step < 2 ? t("Weiter", "Continue") : t("Verfügbares Geld anzeigen", "Show available money")}</button></FormActions>
+            <FormActions>{quickBalance && <button type="button" className="eavesence-pill-button home-dashboard-action" onClick={()=>setStep(1)}>{t("Zeitraum oder Alltag ändern", "Change dates or everyday spending")}</button>}{step > 0 && <button type="button" disabled={p.busy} className="eavesence-pill-button home-dashboard-action" onClick={()=>setStep(step-1)}>{t("Zurück", "Back")}</button>}<button type="submit" disabled={p.busy || (step === 1 && (p.preview?.missingDates??0)>0)} className="eavesence-pill-button home-primary-action">{step < 2 && !quickBalance ? t("Weiter", "Continue") : t("Verfügbares Geld anzeigen", "Show available money")}</button></FormActions>
           </form>
         </div>
       )}
@@ -196,7 +197,7 @@ export default function PaydayPanel({
         <button ref={billsButton} type="button" aria-expanded={billsOpen} aria-controls={billsId} onClick={()=>setBillsOpen(!billsOpen)} className="flex min-h-11 w-full items-center justify-between gap-3 text-left text-[13px] font-semibold"><span>{t("Zahlungen bis zum Gehalt abhaken", "Check off payments until payday")} · {bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</span><span aria-hidden="true" className={`site-disclosure-icon text-xl text-[#28734d] transition-transform duration-200 motion-reduce:transition-none ${billsOpen?"-rotate-45":""}`}>+</span></button>
         <div id={billsId} hidden={!billsOpen}><p className="my-2 text-[13px] text-[#52605b]">{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</p><ul className="divide-y divide-[#e7ebe5]">{bills.map(b=>{const paid=checklist.isPaid(b);return <li key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})}><label className="flex min-h-12 cursor-pointer items-center gap-3 py-2 text-[13px]"><input type="checkbox" checked={paid} disabled={checklist.busy||checklist.isClosed(b)} onChange={()=>void checklist.toggle(b)} aria-label={`${b.cost.name} · ${day(b.date)} · ${t("Bezahlt", "Paid")}`} className="h-5 w-5 shrink-0 accent-[#28734d]"/><span className={`min-w-0 flex-1 ${paid?"text-[#65716d] line-through":""}`}>{b.cost.name}<span className="block text-[13px] text-[#65716d]">{day(b.date)}</span></span><span className="shrink-0">{b.estimated?t("ca. ","approx. "):""}{money(b.cost.amount)}</span></label>{b.cost.variableAmount&&<button type="button" className="eavesence-pill-button home-dashboard-action" disabled={checklist.busy||checklist.isClosed(b)} onClick={()=>checklist.editAmount(b)}>{b.cost.name} · {t("Rechnungsbetrag","Invoice amount")}</button>}</li>})}</ul><PaymentAmountForm c={checklist} locale={locale}/>{checklist.error&&<p role="alert" className="mt-2 text-[13px] text-red-700">{checklist.error}</p>}</div>
       </div>}
-      {!open && <QuickCheck hasPayments={bills.length > 0} locale={locale} input={input} data={data} onSave={onSave} onBalance={reviewBalance} onPayments={reviewPayments} onSavings={onSavings} onReview={onReviewCost}/>}
+      <div hidden={open}><QuickCheck hasPayments={bills.length > 0} locale={locale} input={input} data={data} onSave={onSave} onBalance={reviewBalance} onPayments={reviewPayments} onSavings={onSavings} onReview={onReviewCost}/></div>
     </section>
   );
 }
