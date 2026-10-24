@@ -119,7 +119,7 @@ export default function PaydayPanel({
           {!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} ${p.forecast.days === 1 ? "Tag" : "Tage"}`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} ${p.forecast.days === 1 ? "day" : "days"}`) : t("Dein Geld bis zum Gehalt", "Your money until payday")}
         </p>
         <h2 ref={resultHeading} tabIndex={-1} className="mt-2 site-section-title outline-none">
-          {open ? quickBalance ? t("Kontostand bestätigen", "Confirm account balance") : t("Schritt für Schritt zum Ergebnis", "Step by step to your result") : currentResult
+          {open ? quickBalance ? t("Kontostand", "Balance") : t("Dein Plan", "Your plan") : currentResult
             ? shortfall ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Zusätzlich verfügbar", "Extra money available")
             : state === "stale" ? t("Kontostand bestätigen", "Confirm account balance")
             : state === "expired" ? t("Neuen Zeitraum planen", "Plan your next pay period")
