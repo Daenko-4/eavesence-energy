@@ -1832,7 +1832,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
       const target = focusDate
         ? document.querySelector<HTMLInputElement>('#household-cost-form input[type="date"]')
-        : document.getElementById("household-costs");
+        : document.getElementById("household-cost-form");
       target?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: focusDate ? "center" : "start" });
       if (focusDate) target?.focus({ preventScroll: true });
     }));

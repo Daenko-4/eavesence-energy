@@ -73,5 +73,16 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1365]) {
     const input = page.locator('#home-income-form input').first();
     await input.fill('2500'); await input.press('Enter');
     await expect(page.locator('[data-home-remaining]')).toContainText(t('1.600,00', '1,600.00'));
+
+    await page.getByRole('group', { name: t('Aktionen für dein Zuhause', 'Home actions'), exact: true }).getByRole('button', { name: t('Kosten hinzufügen', 'Add cost'), exact: true }).click();
+    const cost = page.locator('#household-cost-form');
+    const costName = cost.locator('#household-cost-name');
+    await expect(costName).toBeFocused(); await unobscured(costName);
+    await costName.fill('New subscription');
+    const amount = cost.getByLabel(t('Betrag', 'Amount'), { exact: true });
+    await amount.fill('25'); await amount.press('Enter');
+    const feedback = page.locator('[data-cost-feedback]');
+    await expect(feedback).toBeFocused(); await unobscured(feedback);
+    await expect(feedback).toContainText(t('Haushaltskosten gespeichert.', 'Household cost saved.'));
   });
 }
