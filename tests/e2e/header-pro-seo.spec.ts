@@ -1,3 +1,4 @@
+import { openPayday, paydayStep } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
 for (const de of [false, true]) for (const width of [320, 1024, 1365]) test(`minimal header and clear payday setup ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
@@ -56,29 +57,29 @@ for (const de of [false, true]) for (const width of [320, 1024, 1365]) test(`min
     expect(boxes[1].right).toBeLessThan(boxes[2].left);
   }
   const panel = page.getByRole('region', { name: t('Dein verfügbarer Spielraum', 'Your available budget'), exact: true });
-  await panel.getByRole('button', { name: t('Verfügbares Geld berechnen', 'Calculate available money'), exact: true }).click();
+  await openPayday(page);
   await panel.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true }).fill('1500');
-  await panel.getByLabel(t('Nächstes Gehalt am', 'Next payday'), { exact: true }).fill('2026-10-25');
+  await paydayStep(page,1);await panel.getByLabel(t('Nächstes Gehalt am', 'Next payday'), { exact: true }).fill('2026-10-25');
   await expect(panel.locator('[data-payday-preview-bills]')).toContainText(t('920,00', '920.00'));
-  await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
+  await paydayStep(page,2);await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
   await expect(panel.getByRole('alert')).toContainText(t('Alltagsbudget', 'everyday budget'));
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning?.cash)).toBeUndefined();
   await panel.getByRole('button', { name: t('Vorschlag übernehmen', 'Use suggestion'), exact: true }).click();
   await expect(panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true })).toHaveValue(t('229,98', '229.98'));
   await expect(panel.getByRole('alert')).toHaveCount(0);
-  await panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true }).fill('200');
-  await panel.getByText(t('Geld als Reserve behalten (optional)', 'Keep some money in reserve (optional)'), { exact: true }).click();
-  await panel.getByLabel(t('Reserve, die übrig bleiben soll (optional)', 'Money to keep in reserve (optional)'), { exact: true }).fill('100');
+  await paydayStep(page,2);await panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true }).fill('200');
+  await paydayStep(page,2);await panel.getByText(t('Geld als Reserve behalten (optional)', 'Keep some money in reserve (optional)'), { exact: true }).click();
+  await paydayStep(page,2);await panel.getByLabel(t('Reserve, die übrig bleiben soll (optional)', 'Money to keep in reserve (optional)'), { exact: true }).fill('100');
   const screenshotStyle = await page.addStyleTag({ content: "header{position:static!important}" });
   await panel.screenshot({ path: info.outputPath(`payday-three-steps-${de ? 'de' : 'en'}-${width}.png`) });
-  await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
+  await paydayStep(page,2);await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
   await expect(panel.locator('[data-payday-result]')).toContainText(t('280,00', '280.00'));
   await expect(panel.locator('[data-payday-form]')).toHaveCount(0);
   await expect(panel).toContainText(t('200,00', '200.00'));
   await panel.screenshot({ path: info.outputPath(`payday-simple-result-${de ? 'de' : 'en'}-${width}.png`) });
   // A cancelled date edit must not change the bill window under the saved result.
   await panel.getByRole('button', { name: t('Kontostand aktualisieren', 'Update account balance'), exact: true }).click();
-  await panel.getByLabel(t('Nächstes Gehalt am', 'Next payday'), { exact: true }).fill('2026-10-17');
+  await paydayStep(page,1);await panel.getByLabel(t('Nächstes Gehalt am', 'Next payday'), { exact: true }).fill('2026-10-17');
   await expect(panel.locator('[data-payday-preview-bills]')).toContainText(t('900,00', '900.00'));
   await panel.getByRole('button', { name: t('Einklappen', 'Collapse'), exact: true }).click();
   await panel.getByRole('button', { name: /Zahlungen bis zum Gehalt abhaken|Check off payments until payday/ }).click();

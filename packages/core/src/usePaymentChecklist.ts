@@ -4,7 +4,7 @@ import { readPlanningData, shiftPlanningMonth, type PlanningData } from './plann
 import { monthChecklist, monthlyReview, paymentKey, saveActualPayment, paymentIsPaid, togglePayment, type MonthPayment } from './paymentChecklist.ts';
 import type { HouseholdCost } from './householdCosts.ts';
 
-export function usePaymentChecklist(costs: HouseholdCost[], data: PlanningData | undefined, onSave: (data: PlanningData) => void | Promise<void>, de: boolean) {
+export function usePaymentChecklist(costs: HouseholdCost[], data: PlanningData | undefined, onSave: (data: PlanningData) => void | Promise<void>, de: boolean, selectedMonth?: string, onMonthChange?: (month: string) => void) {
   const [current,setCurrent] = useState(() => localToday().slice(0,7));
   useEffect(() => {
     const timer = setInterval(() => setCurrent(localToday().slice(0,7)),30_000);
@@ -12,7 +12,7 @@ export function usePaymentChecklist(costs: HouseholdCost[], data: PlanningData |
   },[]);
   // Keep following the calendar until the user deliberately chooses another month.
   const [chosenMonth,setMonth] = useState<string | null>(null);
-  const month = chosenMonth ?? current;
+  const month = selectedMonth ?? chosenMonth ?? current;
   const saving = useRef(false);
   const [busy,setBusy] = useState(false), [error,setError] = useState('');
   const planning = readPlanningData(data), paid = planning.paidPayments ?? [];
@@ -34,7 +34,7 @@ export function usePaymentChecklist(costs: HouseholdCost[], data: PlanningData |
   }
   async function closeMonth(){if(month>current||!review.complete||closed)return false;return persist({...planning,monthReviews:[...(planning.monthReviews??[]).filter(r=>r.month!==month),{month,planned:review.planned,paid:review.paid,count:review.count,closedAt:new Date().toISOString()}]});}
   async function reopenMonth(){return persist({...planning,monthReviews:(planning.monthReviews??[]).filter(r=>r.month!==month)});}
-  function choose(next:string|null){setEditing(null);setMonth(next);}
+  function choose(next:string|null){setEditing(null);if(onMonthChange)onMonthChange(next??current);else setMonth(next);}
   async function toggle(payment: MonthPayment) {
     if (saving.current || planning.monthReviews?.some(r=>r.month===payment.month)) return;
     if(payment.estimated){editAmount(payment);return;}

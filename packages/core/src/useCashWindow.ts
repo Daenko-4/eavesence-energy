@@ -42,15 +42,17 @@ export function useCashWindow(
   const preview = paydayForecast(input.costs, draftCash, input.variableMonthly, today, p.paidPayments, p.actualPayments);
   const suggestedEveryday = preview?.everyday == null ? null : Math.round(preview.everyday * 100) / 100;
   const saving=useRef(false);
-  async function save(onInvalid?: (field: CashInputField) => void) {
-    if(saving.current)return false;
+  function validateStep(step: number): CashInputField | null {
     const invalid = (field: CashInputField, message: string) => {
-      setErrorField(field); setError(message); onInvalid?.(field); return false;
+      setErrorField(field); setError(message); return field;
     };
+    setError("");setErrorField(null);
     const locale = de ? "de" : "en";
     const parsedBalance = parseMoney(balance, locale);
     if (!Number.isFinite(parsedBalance)) return invalid("balance", de ? "Trage deinen aktuellen Kontostand als gültigen Betrag ein. Auch ein Minus ist möglich." : "Enter your current account balance as a valid amount. Negative balances are allowed.");
+    if (step === 0) return null;
     if (!validDay(payday) || payday <= today || (Date.parse(payday) - Date.parse(today)) / 86400000 > 90) return invalid("payday", de ? "Wähle deinen nächsten Gehaltstag: ab morgen und innerhalb der nächsten 90 Tage." : "Choose your next payday: from tomorrow and within the next 90 days.");
+    if (step === 1) return null;
     if (!everyday.trim()) {
       return invalid("everyday", de ? "Trage dein Alltagsbudget bis zum Gehalt ein oder übernimm den Vorschlag. 0 ist möglich." : "Enter your everyday budget until payday or use the suggestion. 0 is allowed.");
     }
@@ -58,6 +60,14 @@ export function useCashWindow(
     if (!Number.isFinite(parsedEveryday) || parsedEveryday < 0) return invalid("everyday", de ? "Trage die Alltagsausgaben bis zum Gehalt als Betrag ab 0 ein." : "Enter everyday spending until payday as an amount of 0 or more.");
     const parsedProtected = protectedAmount.trim() ? parseMoney(protectedAmount, locale) : 0;
     if (!Number.isFinite(parsedProtected) || parsedProtected < 0) return invalid("protected", de ? "Trage die Reserve als Betrag ab 0 ein oder lasse das Feld leer." : "Enter a reserve of 0 or more, or leave the field blank.");
+    return null;
+  }
+  async function save(onInvalid?: (field: CashInputField) => void) {
+    if(saving.current)return false;
+    const invalid = validateStep(2);
+    if(invalid){onInvalid?.(invalid);return false;}
+    const locale = de ? "de" : "en";
+    const parsedBalance=parseMoney(balance,locale),parsedEveryday=parseMoney(everyday,locale),parsedProtected=protectedAmount.trim()?parseMoney(protectedAmount,locale):0;
     const next = readCashWindow({
       balance: parsedBalance,
       asOf: today,
@@ -109,6 +119,7 @@ export function useCashWindow(
     error,
     errorField,
     save,
+    validateStep,
     forecast,
     today,
     stale: !!cash && (cash.needsRefresh === true || cash.asOf !== today),

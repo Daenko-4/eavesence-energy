@@ -16,6 +16,21 @@ export async function homeWorkspace(page: Page, destination: 'overview' | 'plan'
 
 /** Open a detail through the visible section row, or the setup action before it exists. */
 export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'costs' | 'notes') {
+  if(section === 'upcoming') {
+    const month=page.getByRole('group',{name:/^(Choose month|Monat wählen)$/});
+    await expect(month).toBeVisible();
+    const reset=month.getByRole('button',{name:/^(This month|Dieser Monat)$/});
+    if(await reset.isVisible())await reset.click();
+    await month.getByRole('button',{name:/^(Next month|Nächster Monat)$/}).click();
+    await expect(page.locator('[data-home-next-month]')).toBeVisible();
+    return;
+  }
+  if(section === 'budget'){
+    const panel=page.locator('[data-home-monthly-budget]');
+    await expect(panel).toBeVisible();
+    if(await panel.getAttribute('open')===null)await panel.locator(':scope > summary').click();
+    return;
+  }
   const button = page.locator(`[data-home-section="${section}"]`);
   if (section !== 'costs') await expect(button).toBeVisible();
   if (await button.isVisible()) {
@@ -46,4 +61,27 @@ export async function savingsTool(page: Page, tool: 'change' | 'switch' | 'annua
   await page.locator(`[data-planning-navigation=tool] [data-planning-choice=${tool}]`).click();
   await expect(page.locator('[data-planning-options="tool"]')).not.toHaveAttribute("open");
   await expect(page.locator(".planning-workspace-content :is(h2,h3):focus")).toHaveCount(1);
+}
+
+/** Follow the same progressive form as a user; never fill a hidden step. */
+export async function openPayday(page:Page){
+  const panel=page.locator('[data-payday-state]:visible');
+  await expect(panel).toBeVisible();
+  if(await panel.getAttribute('data-editor-open')!=='true')await panel.locator('[data-payday-edit-action]').click();
+}
+export async function paydayStep(page:Page,target:number){
+  const panel=page.locator('[data-payday-state]:visible');
+  for(let attempts=0;attempts<3;attempts++){
+    const step=Number(await panel.getAttribute('data-payday-step'));
+    if(step===target)return;
+    if(step>target)await panel.getByRole('button',{name:/^(Back|Zurück)$/}).click();
+    else await panel.getByRole('button',{name:/^(Continue|Weiter)$/}).click();
+    await expect(panel).toHaveAttribute('data-payday-step',String(step+(step>target?-1:1)));
+  }
+}
+
+export async function openCostOrganization(page:Page){
+  const details=page.locator('details').filter({has:page.locator('[data-cost-area-overview]')});
+  await expect(details).toBeVisible();
+  if(await details.getAttribute('open')===null)await details.locator(':scope > summary').click();
 }

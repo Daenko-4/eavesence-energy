@@ -18,8 +18,6 @@ export default function HomeSectionNavigation({ locale, active, onChange, memos 
   const de = locale === "de";
   const due = memoGroups(readMemos(memos), localToday()).due.length;
   const items: { id: HomeSection; label: string; due?: number }[] = [
-    { id: "upcoming", label: de ? "Nächster Monat" : "Next month" },
-    { id: "budget", label: de ? "Monatsbudget" : "Monthly budget" },
     { id: "costs", label: de ? "Kosten verwalten" : "Manage costs" },
     { id: "notes", label: de ? "Notizen" : "Notes", due },
   ];

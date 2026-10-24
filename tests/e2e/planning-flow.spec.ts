@@ -1,3 +1,4 @@
+import { openPayday, paydayStep } from './home-navigation';
 import { expect, test, type Page } from '@playwright/test';
 import { homeWorkspace, planningPeriod, savingsTool } from './home-navigation';
 
@@ -44,9 +45,9 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     const savedBudgetBefore = await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!).variableMonthly);
     const costsBefore = await page.evaluate(() => localStorage.getItem('eavesence-home-costs-v1'));
     const payday = page.locator('[data-payday-state]');
-    await payday.getByRole('button', { name: t('Verfügbares Geld berechnen', 'Calculate available money'), exact: true }).click();
+    await openPayday(page);
     await payday.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true }).fill('1250');
-    await payday.getByRole('button',{name:t('In 14 Tagen','In 14 days'),exact:true}).click();
+    await paydayStep(page,1);await payday.getByRole('button',{name:t('In 14 Tagen','In 14 days'),exact:true}).click();
     await expect(payday.getByLabel(t('Nächstes Gehalt am','Next payday'),{exact:true})).toHaveValue('2026-11-02');
     await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
     await page.screenshot({fullPage:true,path:info.outputPath(`planning-money-${de?'de':'en'}-${width}.png`)});
