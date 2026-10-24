@@ -32,8 +32,8 @@ for (const de of [false,true]) for (const width of [390,1365]) {
     await page.getByRole('group',{name:t('Aktionen für dein Zuhause','Home actions'),exact:true}).getByRole('button',{name:t('Kosten hinzufügen','Add cost'),exact:true}).click();
     const cost=page.locator('#household-cost-form'),name=cost.locator('#household-cost-name');
     await name.fill('Enter cost');const amount=cost.getByLabel(t('Betrag','Amount'),{exact:true});await amount.fill('25');
-    const nameBox=(await name.boundingBox())!,costSave=(await cost.locator('button[type=submit]').boundingBox())!,cancel=(await cost.getByRole('button',{name:t('Abbrechen','Cancel'),exact:true}).boundingBox())!;
-    expect(Math.abs(nameBox.x+nameBox.width-costSave.x-costSave.width)).toBeLessThan(1);expect(cancel.x).toBeLessThan(costSave.x);
+    const formRight=await cost.evaluate(el=>{const box=el.getBoundingClientRect(),style=getComputedStyle(el);return box.right-parseFloat(style.paddingRight)-parseFloat(style.borderRightWidth);}),costSave=(await cost.locator('button[type=submit]').boundingBox())!,cancel=(await cost.getByRole('button',{name:t('Abbrechen','Cancel'),exact:true}).boundingBox())!;
+    expect(Math.abs(formRight-costSave.x-costSave.width)).toBeLessThan(1);expect(cancel.x).toBeLessThan(costSave.x);
     await amount.press('Enter');
     await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!).some((c:{name:string;amount:number})=>c.name==='Enter cost'&&c.amount===25))).toBe(true);
 

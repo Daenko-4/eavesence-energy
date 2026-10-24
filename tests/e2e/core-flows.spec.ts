@@ -340,7 +340,8 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(installCard).toHaveCount(0);
 
   await homeDetail(page, 'upcoming');
-  await expect(householdOverview).toContainText("All recorded costs have a payment date.");
+  await expect(page.locator("[data-home-next-month] article")).toHaveCount(3);
+  await expect(page.locator("[data-home-next-month] article").last()).toContainText("1,100.00");
   await homeDetail(page, 'budget');
   await expect(page.getByText("Recurring costs / month")).toBeVisible();
   await openCostManager(page);

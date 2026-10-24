@@ -5,23 +5,21 @@ import { localToday } from "@eavesence/core/homeValue";
 import type { Locale } from "@/i18n/config";
 import DisclosureMark from "@/components/DisclosureMark";
 
-export type HomeSection = "budget" | "upcoming" | "extras" | "costs" | "notes";
+export type HomeSection = "budget" | "upcoming" | "costs" | "notes";
 
 type Props = {
   locale: Locale;
   active: HomeSection | null;
   onChange: (section: HomeSection | null) => void;
-  hasExtras: boolean;
   memos?: unknown;
 };
 
-export default function HomeSectionNavigation({ locale, active, onChange, hasExtras, memos }: Props) {
+export default function HomeSectionNavigation({ locale, active, onChange, memos }: Props) {
   const de = locale === "de";
   const due = memoGroups(readMemos(memos), localToday()).due.length;
   const items: { id: HomeSection; label: string; due?: number }[] = [
     { id: "upcoming", label: de ? "Nächster Monat" : "Next month" },
     { id: "budget", label: de ? "Monatsbudget" : "Monthly budget" },
-    ...(hasExtras ? [{ id: "extras" as const, label: de ? "Sonderzahlungen" : "Extra income" }] : []),
     { id: "costs", label: de ? "Kosten verwalten" : "Manage costs" },
     { id: "notes", label: de ? "Notizen" : "Notes", due },
   ];

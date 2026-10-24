@@ -15,8 +15,9 @@ export async function homeWorkspace(page: Page, destination: 'overview' | 'plan'
 }
 
 /** Open a detail through the visible section row, or the setup action before it exists. */
-export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'extras' | 'costs' | 'notes') {
+export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'costs' | 'notes') {
   const button = page.locator(`[data-home-section="${section}"]`);
+  if (section !== 'costs') await expect(button).toBeVisible();
   if (await button.isVisible()) {
     if (await button.getAttribute('aria-expanded') !== 'true') await button.click();
     return;

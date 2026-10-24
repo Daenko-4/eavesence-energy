@@ -14,11 +14,11 @@ type Props = {
   needsReview?: boolean; onFinishReview?: () => void;
   onReviewCost?: (id: string) => void;
   locale: Locale; currency: string; income: number; fixed: number; count: number;
-  outlook: MonthlyOutlook;
+  outlook: MonthlyOutlook; incomeInformation?: ReactNode;
   incomeOpen: boolean; onIncome: () => void; onCost: () => void;
   activeSection: HomeSection | null; navigation: ReactNode; incomeForm: ReactNode;
 };
-export default function HomeCoreOverview({ incomeProvided, incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, onReviewCost, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, outlook, incomeOpen, onIncome, onCost, activeSection, navigation, incomeForm }: Props) {
+export default function HomeCoreOverview({ incomeProvided, incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, onReviewCost, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, outlook, incomeInformation, incomeOpen, onIncome, onCost, activeSection, navigation, incomeForm }: Props) {
   const de = locale === "de";
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
   const needsIncome = !(incomeProvided ?? income > 0) && !incomeDeferred;
@@ -53,6 +53,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
     <p className="mt-3 max-w-3xl text-[13px] leading-5 text-[#65716d]">{de ? "Monatsdurchschnitte deiner erfassten Kosten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen vom Rest noch ab. Er ist kein Kontostand und noch kein Sparbetrag." : "Monthly averages of the costs you have entered. Groceries, leisure and other everyday spending still come out of the remainder. It is not your account balance or a savings amount."}</p>
     {hasVariableCosts&&<p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de?"Variable Kosten sind hier mit ihrem üblichen Planbetrag enthalten. Die tatsächlichen Rechnungen stehen in der Monatscheckliste.":"Variable costs use their usual planning amounts here. Find actual invoices in the monthly checklist."}</p>}
     {deficit && <p role="status" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[13px] text-amber-900">{de ? "Deine erfassten Fixkosten übersteigen dein Einkommen. Alltagsausgaben sind dabei noch nicht berücksichtigt. Prüfe zuerst deine Beträge und Zahlungsrhythmen." : "Your entered fixed costs exceed your income, before everyday spending. Check your amounts and payment frequencies first."}</p>}
+    {incomeInformation}
     </section>
     {needsReview && !needsIncome && count > 0 && <div data-home-review className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
       <h3 className="site-card-title">{de ? "3 · Deinen Überblick prüfen" : "3 · Check your overview"}</h3>

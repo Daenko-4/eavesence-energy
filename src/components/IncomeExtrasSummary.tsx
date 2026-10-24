@@ -1,6 +1,6 @@
 "use client";
 import { incomeExtraLabel, incomeMonthLabel, summarizeIncome, type IncomeProfile } from "@eavesence/core/income";
-export default function IncomeExtrasSummary({ profile, locale, currency, expanded }: { profile: IncomeProfile; locale: "de" | "en"; currency: string; expanded?: boolean }) {
+export default function IncomeExtrasSummary({ profile, locale, currency }: { profile: IncomeProfile; locale: "de" | "en"; currency: string }) {
   const summary = summarizeIncome(profile);
   const de = locale === "de";
   const money = (value: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(value);
@@ -13,5 +13,5 @@ export default function IncomeExtrasSummary({ profile, locale, currency, expande
     <ul className="mt-3 space-y-2 text-[12px]">{[...summary.extras].sort((a,b) => (a.year ?? summary.year)-(b.year ?? summary.year) || a.month-b.month).map(extra => <li key={extra.id} className="flex flex-wrap justify-between gap-2"><span>{incomeExtraLabel(extra.kind, locale)} · {incomeMonthLabel(extra.month, locale)} {extra.year ?? (de ? "jährlich" : "every year")}</span><span className="font-semibold">+ {money(extra.amount)}</span></li>)}</ul>
   </>;
   const title = de ? "Sonderzahlungen & Jahresüberblick" : "Extra income & annual overview";
-  return expanded === undefined ? <details className="home-disclosure mt-3 rounded-xl border border-[#dfe5dd] bg-white p-4" data-income-extras-summary><summary className="home-single-line-summary text-[12px] font-semibold">{title}</summary>{content}</details> : <section id="home-detail-extras" hidden={!expanded} className="home-detail-panel" data-income-extras-summary aria-label={title}><h2 className="site-card-title">{title}</h2>{content}</section>;
+  return <div className="mt-4 rounded-xl bg-[#f4f6f2] p-4" data-income-extras-summary><h3 className="text-[13px] font-semibold">{title}</h3>{content}</div>;
 }
