@@ -42,6 +42,16 @@ export default function PaydayPanel({
   const balanceInput = useRef<HTMLInputElement>(null), billsButton = useRef<HTMLButtonElement>(null), resultHeading = useRef<HTMLHeadingElement>(null);
   const [reserveOpen, setReserveOpen] = useState(false);
   const paydayInput = useRef<HTMLInputElement>(null), everydayInput = useRef<HTMLInputElement>(null), protectedInput = useRef<HTMLInputElement>(null);
+  function focusField(target: HTMLElement | null) {
+    if (!target?.getClientRects().length) return;
+    const rect = target.getBoundingClientRect();
+    const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 96;
+    const viewportBottom = window.visualViewport ? window.visualViewport.offsetTop + window.visualViewport.height : window.innerHeight;
+    if (rect.top < headerBottom + 16 || rect.bottom > viewportBottom - 24) {
+      target.scrollIntoView({ block: "nearest", behavior: "instant" });
+    }
+    target.focus({ preventScroll: true });
+  }
   useEffect(()=>{
     const focus=()=>requestAnimationFrame(()=>{const target=step===0?balanceInput.current:step===1?paydayInput.current:everydayInput.current;if(open&&target?.getClientRects().length)target.focus({preventScroll:true});});
     focus();window.addEventListener("eavesence:home-view",focus);return()=>window.removeEventListener("eavesence:home-view",focus);
@@ -51,11 +61,11 @@ export default function PaydayPanel({
     if (field === "protected") setReserveOpen(true);
     requestAnimationFrame(() => {
       const element = ({balance: balanceInput, payday: paydayInput, everyday: everydayInput, protected: protectedInput})[field].current;
-      element?.scrollIntoView({block: "center",behavior:"instant"}); element?.focus({preventScroll: true});
+      focusField(element);
     });
   }
-  const reviewBalance = () => { setStep(0);setOpen(true); requestAnimationFrame(() => { balanceInput.current?.scrollIntoView({block:"center"}); balanceInput.current?.focus({preventScroll:true}); }); };
-  const reviewPayments = () => { setBillsOpen(true); requestAnimationFrame(() => { billsButton.current?.scrollIntoView({block:"center"}); billsButton.current?.focus({preventScroll:true}); }); };
+  const reviewBalance = () => { setStep(0);setOpen(true); requestAnimationFrame(() => { focusField(balanceInput.current); }); };
+  const reviewPayments = () => { setBillsOpen(true); requestAnimationFrame(() => { focusField(billsButton.current); }); };
   const money = (n: number) =>
     new Intl.NumberFormat(de ? "de-AT" : "en-GB", {
       style: "currency",
@@ -146,22 +156,22 @@ export default function PaydayPanel({
         <div id={editorId} data-payday-editor className="space-y-3 bg-white p-4 sm:p-5">
           <form noValidate onSubmit={async (e) => {
             e.preventDefault();
-            if(step < 2 && !quickBalance){const invalid=p.validateStep(step);if(invalid){focusInvalid(invalid);return;}setStep(step+1);requestAnimationFrame(()=>{const field=step===0?paydayInput.current:everydayInput.current;field?.focus();});return;}
-            if (await p.save(focusInvalid)) { setOpen(false); requestAnimationFrame(() => { resultHeading.current?.focus({preventScroll:true}); resultHeading.current?.scrollIntoView({block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"}); }); }
-          }} className="payday-editor space-y-5" data-payday-form>
+            if(step < 2 && !quickBalance){const invalid=p.validateStep(step);if(invalid){focusInvalid(invalid);return;}setStep(step+1);requestAnimationFrame(()=>focusField(step===0?paydayInput.current:everydayInput.current));return;}
+            if (await p.save(focusInvalid)) { setOpen(false); requestAnimationFrame(() => { focusField(resultHeading.current); }); }
+          }} className="payday-editor" data-payday-form>
             <p className="text-[13px] font-semibold text-[#52605b]" aria-live="polite">{quickBalance ? t("Deine bisherige Planung bleibt übernommen.", "Your existing plan is carried over.") : t(`Schritt ${step+1} von 3`, `Step ${step+1} of 3`)}</p>
             <fieldset hidden={step !== 0} className="min-w-0">
               <legend className="mb-3 text-[14px] font-semibold">{t("Wie viel ist heute auf deinem Konto?", "How much is in your account today?")}</legend>
               <label className="grid max-w-sm gap-2 text-[13px]"><span>{t("Aktueller Kontostand", "Current account balance")}</span><input ref={balanceInput} aria-invalid={p.errorField === "balance"} className={field} inputMode="decimal" aria-describedby="payday-balance-help" value={p.balance} onChange={e=>p.setBalance(e.target.value)} placeholder={t("z. B. 1.200,00", "e.g. 1,200.00")}/></label>
               <p id="payday-balance-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Wie in deiner Banking-App – noch nichts abziehen. Das nächste Gehalt zählt erst danach.", "Use today's balance from your banking app, before deductions. Your next salary is not included.")}</p>
             </fieldset>
-            <fieldset hidden={step !== 1} className="min-w-0">
+            <fieldset hidden={step !== 1} className="payday-date-fields min-w-0">
               <legend className="mb-3 text-[14px] font-semibold">{t("Wann kommt dein nächstes Gehalt?", "When does your next salary arrive?")}</legend>
               <label className="grid max-w-sm gap-2 text-[13px]"><span>{t("Nächstes Gehalt am", "Next payday")}</span><input ref={paydayInput} aria-invalid={p.errorField === "payday"} className={field} type="date" min={new Date(Date.parse(p.today)+86400000).toISOString().slice(0,10)} max={new Date(Date.parse(p.today)+90*86400000).toISOString().slice(0,10)} value={p.payday} onChange={e=>p.setPayday(e.target.value)}/></label>
               <div className="payday-date-shortcuts" role="group" aria-label={t("Gehaltstag schnell wählen", "Choose payday quickly")}>{[7,14,28].map(days=><button key={days} type="button" onClick={()=>p.setPayday(new Date(Date.parse(p.today)+days*86400000).toISOString().slice(0,10))}>{t(`In ${days} Tagen`, `In ${days} days`)}</button>)}</div>
             </fieldset>
-            <fieldset hidden={step !== 1} className="min-w-0 rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-4">
-              <legend className="px-1 text-[14px] font-semibold">{t("2 · Offene Rechnungen", "2 · Unpaid bills")}</legend>
+            <fieldset hidden={step !== 1} className="payday-bill-fields min-w-0 rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-4">
+              <legend className="px-1 text-[14px] font-semibold">{t("Offene Rechnungen", "Unpaid bills")}</legend>
               {p.preview ? <>
                 <div className="flex items-baseline justify-between gap-3 text-[13px]"><span>{t(`${p.preview.payments.length} ${p.preview.payments.length === 1 ? "Zahlung" : "Zahlungen"} bis ${day(p.payday)}`, `${p.preview.payments.length} ${p.preview.payments.length === 1 ? "payment" : "payments"} before ${day(p.payday)}`)}</span><strong className="shrink-0" data-payday-preview-bills>{money(p.preview.fixed)}</strong></div>
                 <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Aus My Home übernommen. Bezahlte Rechnungen abhaken, damit wir sie nicht doppelt abziehen.", "Included from My Home. Check off paid bills so we do not deduct them twice.")}</p>
@@ -172,7 +182,7 @@ export default function PaydayPanel({
               </> : <p className="text-[13px] leading-5 text-[#52605b]">{t("Wähle oben deinen nächsten Gehaltstag. Dann zeigen wir, welche gespeicherten Rechnungen bis dahin noch anstehen.", "Choose your next payday above to see which saved bills are still due before then.")}</p>}
             </fieldset>
             <fieldset hidden={step !== 2} className="min-w-0">
-              <legend className="mb-3 text-[14px] font-semibold">{t("3 · Dein Alltag bis dahin", "3 · Everyday spending until then")}</legend>
+              <legend className="mb-3 text-[14px] font-semibold">{t("Dein Alltag bis dahin", "Everyday spending until then")}</legend>
               <label className="grid max-w-sm gap-2 text-[13px]">
                 <span>{t("Alltagsausgaben bis zum Gehalt", "Everyday spending until payday")}</span>
                 <input ref={everydayInput} aria-invalid={p.errorField === "everyday"} className={field} inputMode="decimal" aria-describedby="payday-everyday-help" value={p.everyday} onChange={e => p.setEveryday(e.target.value)} placeholder={t("z. B. 200,00", "e.g. 200.00")}/>
@@ -189,7 +199,7 @@ export default function PaydayPanel({
               <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Dieser Betrag bleibt unangetastet. Sparziele werden hier nicht automatisch abgezogen.", "This amount stays untouched. Savings goals are not deducted automatically here.")}</p>
             </details>
             {p.error && <p role="alert" className="text-[13px] text-red-700">{p.error}</p>}
-            <FormActions>{quickBalance && <button type="button" className="eavesence-pill-button home-dashboard-action" onClick={()=>setStep(1)}>{t("Zeitraum oder Alltag ändern", "Change dates or everyday spending")}</button>}{step > 0 && <button type="button" disabled={p.busy} className="eavesence-pill-button home-dashboard-action" onClick={()=>setStep(step-1)}>{t("Zurück", "Back")}</button>}<button type="submit" disabled={p.busy || (step === 1 && (p.preview?.missingDates??0)>0)} className="eavesence-pill-button home-primary-action">{step < 2 && !quickBalance ? t("Weiter", "Continue") : t("Verfügbares Geld anzeigen", "Show available money")}</button></FormActions>
+            <FormActions>{quickBalance && <button type="button" className="eavesence-pill-button home-dashboard-action" onClick={()=>{setStep(1);requestAnimationFrame(()=>focusField(paydayInput.current));}}>{t("Zeitraum oder Alltag ändern", "Change dates or everyday spending")}</button>}{step > 0 && <button type="button" disabled={p.busy} className="eavesence-pill-button home-dashboard-action" onClick={()=>{setStep(step-1);requestAnimationFrame(()=>focusField(step===1?balanceInput.current:paydayInput.current));}}>{t("Zurück", "Back")}</button>}<button type="submit" disabled={p.busy || (step === 1 && (p.preview?.missingDates??0)>0)} className="eavesence-pill-button home-primary-action">{step < 2 && !quickBalance ? t("Weiter", "Continue") : t("Verfügbares Geld anzeigen", "Show available money")}</button></FormActions>
           </form>
         </div>
       )}

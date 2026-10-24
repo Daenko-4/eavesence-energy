@@ -1618,12 +1618,14 @@ for (const width of [320, 1365]) test(`home actions reveal their editor and keep
   const income = page.locator('#home-income-form');
   await expect(income.getByLabel('Regular monthly net income (excluding extras)', { exact: true })).toBeFocused();
   await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().top)).toBeGreaterThanOrEqual(80);
-  await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(300);
+  // Short pages should keep the whole editor visible without artificial scroll space.
+  await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().bottom <= window.innerHeight)).toBe(true);
   await income.getByLabel('Regular monthly net income (excluding extras)', { exact: true }).fill('2500');
   await income.getByRole('button', { name: 'Save', exact: true }).click();
   await actions.getByRole('button', { name: 'Edit income', exact: true }).click();
   await expect(income.getByLabel('Regular monthly net income (excluding extras)', { exact: true })).toBeFocused();
-  await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(300);
+  // Short pages should keep the whole editor visible without artificial scroll space.
+  await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().bottom <= window.innerHeight)).toBe(true);
   await actions.getByRole('button', { name: 'Add cost', exact: true }).click();
   const costs = page.locator('#household-costs');
   await expect(costs.getByRole('heading', { name: 'Household costs', exact: true })).toBeVisible();
