@@ -2,7 +2,7 @@
 import FormActions from "@/components/FormActions";
 
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { parseMoney } from "@eavesence/core/homeValue";
 import type { Locale } from "@/i18n/config";
@@ -20,7 +20,7 @@ import {
 import type { SavedDeviceCurrency } from "@/lib/savedDevices";
 
 const fieldClass =
-  "home-field min-h-10 min-w-0 w-full max-w-full rounded-xl border border-slate-300 bg-white px-3 text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
+  "home-field scroll-mt-28 min-h-10 min-w-0 w-full max-w-full rounded-xl border border-slate-300 bg-white px-3 text-[#17211f] outline-none transition placeholder:text-slate-400 hover:border-[#b8c4bf] focus:border-[var(--brand-green-mint)] focus:ring-2 focus:ring-[#72dca3]/20";
 const pillClass =
   "eavesence-pill-button home-dashboard-action active:scale-[0.98]";
 const addCostClass =
@@ -239,12 +239,24 @@ export default function HouseholdCostsPanel({
   const [nextDueDate, setNextDueDate] = useState(requestedCost?.nextDueDate ?? "");
   const [cancellationDeadline, setCancellationDeadline] = useState(requestedCost?.cancellationDeadline ?? "");
   const [feedback, setFeedback] = useState("");
+  const feedbackRef = useRef<HTMLParagraphElement>(null);
   const [draggedCostId, setDraggedCostId] = useState<string | null>(null);
   const summary = summarizeHouseholdCosts(costs);
 
   useEffect(() => {
-    if (formOpen) document.getElementById("household-cost-name")?.focus();
-  }, [formOpen]);
+    if (!formOpen) return;
+    const target = document.getElementById("household-cost-name");
+    if (!target?.getClientRects().length) return;
+    // Requested forms are positioned by the dashboard; local edits only reveal the field if needed.
+    if (!request) {
+      const rect = target.getBoundingClientRect();
+      const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 96;
+      if (rect.top < headerBottom + 16 || rect.bottom > window.innerHeight - 24) {
+        target.scrollIntoView({ block: "nearest", behavior: "instant" });
+      }
+    }
+    target.focus({ preventScroll: true });
+  }, [formOpen, request]);
 
   function resetForm() {
     setEditingId(null);
@@ -299,6 +311,16 @@ export default function HouseholdCostsPanel({
     resetForm();
     setFormOpen(false);
     onSaved?.();
+    requestAnimationFrame(() => {
+      const message = feedbackRef.current;
+      if (!message) return;
+      const rect = message.getBoundingClientRect();
+      const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 96;
+      if (rect.top < headerBottom + 16 || rect.bottom > window.innerHeight - 24) {
+        message.scrollIntoView({ block: "nearest", behavior: "instant" });
+      }
+      message.focus({ preventScroll: true });
+    });
   }
 
   function deleteCost(cost: HouseholdCost) {
@@ -367,13 +389,13 @@ export default function HouseholdCostsPanel({
       </div>
 
       {feedback && (
-        <p role="status" className="mt-4 rounded-xl bg-green-50 px-3 py-2 text-[13px] font-bold text-[var(--brand-green)]">
+        <p ref={feedbackRef} tabIndex={-1} data-cost-feedback role="status" className="mt-4 scroll-mt-28 rounded-xl bg-green-50 px-3 py-2 text-[13px] font-bold text-[var(--brand-green)]">
           {feedback}
         </p>
       )}
 
       {formOpen && (
-        <form id="household-cost-form" onSubmit={(event) => { event.preventDefault(); saveCost(); }} className="mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
+        <form id="household-cost-form" onSubmit={(event) => { event.preventDefault(); saveCost(); }} className="mt-5 scroll-mt-28 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4">
           <h3 className="text-[14px] font-bold">
             {editingId ? text.formEdit : text.formNew}
           </h3>
