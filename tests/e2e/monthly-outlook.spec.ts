@@ -27,13 +27,14 @@ for (const de of [false,true]) for (const width of [320,1365]) {
   test(`month outlook explains income, due bills and remaining money ${de?'de':'en'} ${width}`,async({page},info)=>{
     const t=(a:string,b:string)=>de?a:b;
     await page.setViewportSize({width,height:900});await seed(page,de);
-    const panel=page.locator('[data-home-next-month]'), cards=panel.locator('article');
+    const panel=page.locator('[data-home-next-month]'), cards=panel.locator('[data-home-month-result], dl > div');
     await expect(panel.getByRole('heading',{level:2})).toContainText('November 2026');
+    await panel.locator('[data-month-calculation] > summary').click();
     await expect(cards).toHaveCount(3);
-    await expect(cards.nth(0)).toContainText(t('4.900,00','4,900.00'));
-    await expect(cards.nth(0)).toContainText(t('2.500,00','2,500.00'));
-    await expect(cards.nth(1)).toContainText(t('1.635,00','1,635.00'));
-    await expect(cards.nth(2)).toContainText(t('3.265,00','3,265.00'));
+    await expect(panel.locator('dl > div').nth(0)).toContainText(t('4.900,00','4,900.00'));
+    await expect(panel.locator('dl > div').nth(0)).toContainText(t('2.500,00','2,500.00'));
+    await expect(panel.locator('dl > div').nth(1)).toContainText(t('1.635,00','1,635.00'));
+    await expect(panel.locator('[data-home-month-result]')).toContainText(t('3.265,00','3,265.00'));
     await expect(panel).toContainText(t('Alltagsausgaben gehen vom Rest noch ab','everyday spending still come out of the remainder'));
     await expect(panel).toContainText(t('Monatliche Kosten ohne Zahlungstermin','Monthly costs without a payment date'));
     await expect(panel.locator('li').filter({hasText:'Electricity'})).toContainText(t('95,00','95.00'));
@@ -47,10 +48,10 @@ for (const de of [false,true]) for (const width of [320,1365]) {
       costs.push({id:'missing',name:'Annual bill',amount:1200,frequency:'yearly',category:'other',nextDueDate:'',updatedAt:'2026-10-24T12:00:00Z'});
       localStorage.setItem('eavesence-home-costs-v1',JSON.stringify(costs));
     });
-    await page.reload();await homeDetail(page,'upcoming');
-    await expect(cards.nth(1)).toContainText(t('Bekannte Kosten','Known costs'));
-    await expect(cards.nth(2)).toContainText('—');
-    await expect(panel.getByRole('status')).toContainText(t('Zahlungstermin','payment date'));
+    await page.reload();await homeDetail(page,'upcoming');await panel.locator('[data-month-calculation] > summary').click();
+    await expect(panel.locator('dl > div').nth(1)).toContainText(t('Bekannte Kosten','Known costs'));
+    await expect(panel.locator('[data-home-month-result]')).toContainText('—');
+    await expect(panel).toContainText(t('Zahlungstermine','Payment dates'));
     await panel.getByRole('button',{name:`Annual bill · ${t('Termin ergänzen','Add date')}`,exact:true}).click();
     await expect(page.locator('#household-cost-form')).toBeVisible();
 
@@ -60,10 +61,10 @@ for (const de of [false,true]) for (const width of [320,1365]) {
       const costs=JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!).filter((cost:{id:string})=>cost.id!=='missing');
       localStorage.setItem('eavesence-home-costs-v1',JSON.stringify(costs));
     });
-    await page.reload();await homeDetail(page,'upcoming');
-    await expect(cards.nth(0)).toContainText(t('2.800,00','2,800.00'));
-    await expect(cards.nth(2)).toContainText(t('ca.','approx.'));
-    await expect(cards.nth(2)).toContainText(t('1.165,00','1,165.00'));
+    await page.reload();await homeDetail(page,'upcoming');await panel.locator('[data-month-calculation] > summary').click();
+    await expect(panel.locator('dl > div').nth(0)).toContainText(t('2.800,00','2,800.00'));
+    await expect(panel.locator('[data-home-month-result]')).toContainText(t('ca.','approx.'));
+    await expect(panel.locator('[data-home-month-result]')).toContainText(t('1.165,00','1,165.00'));
     await expect(panel).toContainText(t('Einkommen ist ein Jahresdurchschnitt','income is an annual average'));
 
     await page.evaluate(()=>{
@@ -72,19 +73,19 @@ for (const de of [false,true]) for (const width of [320,1365]) {
       const costs=JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!).filter((cost:{id:string})=>cost.id!=='missing');
       localStorage.setItem('eavesence-home-costs-v1',JSON.stringify(costs));
     });
-    await page.reload();await homeDetail(page,'upcoming');
-    await expect(cards.nth(0)).toContainText(t('0,00','0.00'));
-    await expect(cards.nth(2)).toContainText(t('1.635,00','1,635.00'));
-    await expect(cards.nth(2)).toContainText('-');
-    await expect(cards.nth(2).locator('p').nth(1)).toHaveCSS('color','rgb(255, 210, 140)');
+    await page.reload();await homeDetail(page,'upcoming');await panel.locator('[data-month-calculation] > summary').click();
+    await expect(panel.locator('dl > div').nth(0)).toContainText(t('0,00','0.00'));
+    await expect(panel.locator('[data-home-month-result]')).toContainText(t('1.635,00','1,635.00'));
+    await expect(panel.locator('[data-home-month-result]')).toContainText(t('fehlen','shortfall'));
+    await expect(panel.locator('[data-home-month-result]').locator('p').nth(1)).toHaveCSS('color','rgb(255, 210, 140)');
 
     await page.evaluate(()=>{
       const profile=JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);delete profile.incomeAmount;profile.incomeDeferred=true;
       localStorage.setItem('eavesence-home-profile-v1',JSON.stringify(profile));
     });
-    await page.reload();await homeDetail(page,'upcoming');
-    await expect(cards.nth(0)).toContainText('—');await expect(cards.nth(2)).toContainText('—');
-    await panel.getByRole('button',{name:t('Einkommen für Vorschau eintragen','Add income for forecast'),exact:true}).click();
+    await page.reload();await homeDetail(page,'upcoming');await panel.locator('[data-month-calculation] > summary').click();
+    await expect(panel.locator('dl > div').nth(0)).toContainText('—');await expect(panel.locator('[data-home-month-result]')).toContainText('—');
+    await panel.getByRole('button',{name:t('Einkommen ergänzen','Add income'),exact:true}).click();
     await expect(page.locator('#home-income-form')).toBeVisible();
   });
 }

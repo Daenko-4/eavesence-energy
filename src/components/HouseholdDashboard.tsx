@@ -130,7 +130,7 @@ const currencies: SavedDeviceCurrency[] = [
 const copy = {
   de: {
     pageTitle: "Mein Zuhause",
-    pageSubtitle: "Was steht diesen Monat noch an? Hake bezahlte Kosten ab.",
+    pageSubtitle: "Deine Kosten und was dir übrig bleibt.",
     onboardingEyebrow: "EAVESENCE",
     onboardingTitle: "Richte dein Zuhause ein",
     onboardingText:
@@ -388,7 +388,7 @@ const copy = {
   },
   en: {
     pageTitle: "My home",
-    pageSubtitle: "What is still due this month? Check off paid costs.",
+    pageSubtitle: "Your costs and what is left over.",
     onboardingEyebrow: "EAVESENCE",
     onboardingTitle: "Set up your home",
     onboardingText:
@@ -786,6 +786,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [incomeExtras, setIncomeExtras] = useState<IncomeExtraDraft[]>([]);
   const [incomeExtrasOpen, setIncomeExtrasOpen] = useState(false);
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">("monthly");
+  const [overviewMonth, setOverviewMonth] = useState<string | null>(null);
+  const [costAreasOpen,setCostAreasOpen]=useState(false);
   const [homeSection, setHomeSection] = useState<HomeSection | null>(null);
   const costManagerOpen = homeSection === "costs";
   function setCostManagerOpen(open: boolean) { setHomeSection(current => open ? "costs" : current === "costs" ? null : current); if (open) setIncomeOpen(false); }
@@ -822,6 +824,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [homeTiles, setHomeTiles] = useState<HomeTile[]>(defaultHomeTiles);
   const [activeTileId, setActiveTileId] = useState<string | null>("default-costs");
   const [paymentsExpanded, setPaymentsExpanded] = useState(false);
+  const [costEditorVersion,setCostEditorVersion]=useState(0);
   const [costRequest, setCostRequest] = useState<{ costId?: string; template?: HouseholdCostCategory; nonce: number } | null>(null);
   const [tileFormOpen, setTileFormOpen] = useState(false);
   const [editingTileId, setEditingTileId] = useState<string | null>(null);
@@ -1139,6 +1142,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function activateTileKind(kind: HomeTileKind) {
+    if(kind === "energy")setCostAreasOpen(true);
     setCostManagerOpen(true);
     let tile = homeTiles.find((item) => item.kind === kind);
     if (!tile) {
@@ -1199,6 +1203,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         ),
       );
     } else {
+      setCostRequest(null);
       const tile = createHomeTile("costs", tileName, tileIcon);
       persistHomeTiles([...homeTiles, tile]);
       setActiveTileId(tile.id);
@@ -1749,7 +1754,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const incomeSummary = summarizeIncome(profile);
   const monthlyIncome = incomeSummary.monthly;
   const hasRecordedIncome = monthlyIncome > 0 || (profile?.incomeAmount === 0 && profile.incomeDeferred === false);
-  const nextMonthOutlook = monthlyOutlook({profile, incomeKnown:hasRecordedIncome && !profile.incomeDeferred, costs:householdCosts, month:upcomingPayments.month, actualPayments:profile.planning?.actualPayments});
+  const selectedMonthOutlook = monthlyOutlook({profile, incomeKnown:hasRecordedIncome && !profile.incomeDeferred, costs:householdCosts, month:overviewMonth ?? localToday().slice(0,7), actualPayments:profile.planning?.actualPayments});
   const activeTile = activeTileId === null ? null : homeTiles.find((tile) => tile.id === activeTileId) ?? homeTiles.find((tile) => tile.kind === "costs") ?? null;
   const primaryCostTileId = homeTiles.find((tile) => tile.kind === "costs")?.id ?? null;
 
@@ -1821,7 +1826,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       : homeTiles.find((item) => item.kind === "costs");
     const selected = tile ?? activateTileKind("costs");
     setActiveTileId(selected.id);
-    setCostRequest({ costId: cost?.id, template, nonce: Date.now() + Math.random() });
+    const nonce=Date.now()+Math.random();
+    setCostEditorVersion(nonce);
+    setCostRequest({ costId: cost?.id, template, nonce });
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
       const target = focusDate
         ? document.querySelector<HTMLInputElement>('#household-cost-form input[type="date"]')
@@ -1958,9 +1965,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           )}
           {notice?.scope === "home" && view === "overview" && <p data-home-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-center text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
 
-          <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
-          {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments expanded={paymentsExpanded} onExpandedChange={setPaymentsExpanded} costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
-          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} outlook={nextMonthOutlook} incomeInformation={!incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} activeSection={homeSection} navigation={<HomeSectionNavigation locale={locale} active={homeSection} onChange={section => {setHomeSection(section);setIncomeOpen(false);}} memos={profile.planning?.memos} />} incomeForm={
+          <div hidden={view !== "overview"} data-home-overview-content className={`mt-6 ${incomeOpen ? "pb-[40vh]" : ""}`}>
+
+          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} onReviewCost={id => {const cost=householdCosts.find(cost=>cost.id===id);if(cost)openCostForm(cost);}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} outlook={selectedMonthOutlook} onMonthChange={setOverviewMonth} onPlan={() => {changeWorkspace("plan");navigatePlanQuestion("payday");}} incomeInformation={!incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} activeSection={homeSection} navigation={<HomeSectionNavigation locale={locale} active={homeSection} onChange={section => {setHomeSection(section);setIncomeOpen(false);if(section === "costs" && !activeTile) setActiveTileId(primaryCostTileId);}} memos={profile.planning?.memos} />} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Sonderzahlungen)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
                     <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<span className="income-period-field"><select aria-label={text.financePeriod} value={incomeFrequency} onChange={(event) => { const next = event.target.value as "monthly" | "yearly"; if (incomeFrequency === "yearly" && next === "monthly") setIncomeValue(""); setIncomeFrequency(next); }} className={`${homeFieldClass} min-w-0 w-full`}><option value="monthly">{locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net income"}</option><option value="yearly">{locale === "de" ? "Jahresnetto (Monatsdurchschnitt)" : "Annual net income (monthly average)"}</option></select><svg aria-hidden="true" focusable="false" className="income-period-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m1 3 4 4 4-4" /></svg></span></label>
@@ -1970,12 +1977,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <FormActions><button type="submit" className={`${homeDashboardActionClass} w-fit`}>{text.financeSave}</button></FormActions>
                   </form>
           } />
+          {householdCosts.length > 0 && profile.overviewReviewed !== false && <MonthlyPayments month={overviewMonth ?? localToday().slice(0,7)} onMonthChange={setOverviewMonth} expanded={paymentsExpanded} onExpandedChange={setPaymentsExpanded} costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>}
 
 
           <section id="home-detail-costs" data-cost-manager hidden={!costManagerOpen} className="home-detail-panel !p-0" aria-labelledby="home-costs-heading">
           <div className="px-4 pt-4 sm:px-5 sm:pt-5"><h2 id="home-costs-heading" className="site-card-title">{locale === "de" ? "Kosten verwalten" : "Manage costs"}</h2><p className="mt-1 text-[13px] text-[#65716d]">{locale === "de" ? "Gespeicherte Kosten, Bereiche & Import" : "Saved costs, areas & import"}</p></div>
           <div data-cost-manager-content className="p-4 sm:p-5">
-          <div data-cost-area-overview>
+          <details className="home-disclosure" open={costAreasOpen} onToggle={event=>setCostAreasOpen(event.currentTarget.open)}><summary className="min-h-11 cursor-pointer text-[13px] font-semibold">{locale === "de" ? "Kostenbereiche organisieren" : "Organize cost areas"}</summary><div data-cost-area-overview>
           <section className="rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-3 sm:p-4" aria-labelledby="home-workspace-title">
             <div className="max-w-3xl">
               <h2 id="home-workspace-title" className={homeSectionTitleClass}>{text.workspaceTitle}</h2>
@@ -2051,7 +2059,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             {!homeTiles.some(tile => tile.kind === "energy") && <p className="mt-4 text-[11px] leading-relaxed text-[#65716d]">{locale === "de" ? "Stromkosten genauer ansehen?" : "Want to explore device electricity costs?"}{" "}<a href={locale === "de" ? "/de/rechner#rechner" : "/calculator#rechner"} className="eavesence-pill-link">{locale === "de" ? "Zum Stromrechner" : "Open energy calculator"}</a>{" "}{locale === "de" ? "Dort kannst du Geräte speichern und freiwillig als eigene Kachel übernehmen." : "Save devices there and optionally add them as a dedicated tile."}</p>}
           </section>
 
-          </div>
+          </div></details>
 
           {activeTile?.kind === "energy" && <section className="mt-8 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4" aria-labelledby="monthly-overview-title">
             <button type="button" onClick={() => setOpenEnergyDetail(openEnergyDetail === "monthly" ? null : "monthly")} aria-expanded={openEnergyDetail === "monthly"} className="flex w-full items-center justify-between gap-4 text-left">
@@ -2121,7 +2129,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           {activeTile?.kind === "costs" && (monthlyIncome > 0 || householdCosts.length > 0 || homeTiles.length > 1 || costRequest) && (
           <div className="mt-5">
           <HouseholdCostsPanel
-            key={`${activeTile.id}-${costRequest?.nonce ?? "default"}`}
+            key={`${activeTile.id}-${costEditorVersion}`}
             locale={locale}
             currency={profile.currency}
             costs={costsForTile(activeTile.id)}
@@ -2130,6 +2138,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             tileTitle={activeTile.title ?? text.tileTitles[activeTile.kind]}
             request={costRequest ?? undefined}
             onChange={(nextCosts) => persistCostsForTile(activeTile.id, nextCosts)}
+            onSaved={() => {setCostRequest(null); if(profile.overviewReviewed !== false) {requestAnimationFrame(()=>document.querySelector("[data-home-month-result]")?.scrollIntoView({block:"center"}));}}}
           />
           </div>
           )}
@@ -2437,13 +2446,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
               {view === "plan" && <h1 tabIndex={-1} className="home-name outline-none">{locale === "de" ? "Planen & sparen" : "Plan & save"}</h1>}
             </div>
-            <section className="pro-overview" aria-label={locale === "de" ? "Deine Planungsgrundlage" : "Your planning starting point"} data-pro-overview>
+            <details className="home-disclosure mt-4 text-[13px]" aria-label={locale === "de" ? "Deine Planungsgrundlage" : "Your planning starting point"} data-pro-overview><summary className="min-h-11 cursor-pointer font-semibold">{locale === "de" ? "Aus My Home übernommen" : "Already included from My Home"}</summary>
               <div><p className="pro-overview-label">{locale === "de" ? "Aus My Home übernommen" : "Already included from My Home"}</p>
               <h2>{locale === "de" ? "Dein monatlicher Überblick" : "Your monthly overview"}</h2>
               </div>
               <dl><div><dt>{locale === "de" ? incomeSummary.annualAverage ? "Nettoeinkommen · Monatsdurchschnitt" : "Nettoeinkommen pro Monat" : incomeSummary.annualAverage ? "Net income · monthly average" : "Net income per month"}</dt><dd>{profile.incomeAmount !== undefined && !profile.incomeDeferred ? new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:profile.currency}).format(monthlyIncome) : "—"}</dd></div>
               <div><dt>{locale === "de" ? "Fixkosten · Monatsdurchschnitt" : "Fixed costs · monthly average"}</dt><dd>{new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:profile.currency}).format(householdCostSummary.monthlyTotal)}</dd></div></dl>
-            </section>
+            </details>
             <div className="planning-workspace">
             <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="home-section-navigation pro-question-navigation">
               {(["payday", "savings", "progress"] as const).map((item) => (
@@ -2465,7 +2474,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <div hidden={planPeriod !== "payday"} className="planning-section-intro"><h2 className="site-section-title" data-plan-money-heading>{locale === "de" ? "Dein Geld planen" : "Plan your money"}</h2>
               <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{locale === "de" ? "Rechne mit deinem aktuellen Kontostand. Offene Rechnungen aus My Home werden automatisch berücksichtigt." : "Start with your current account balance. Unpaid bills from My Home are included automatically."}</p></div>
               <div hidden={planPeriod !== "payday"} data-planning-period="payday">
-          <PaydayPanel onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+          <PaydayPanel onDateSave={(id,date) => {const next=householdCosts.map(c=>c.id===id?{...c,nextDueDate:date,updatedAt:new Date().toISOString()}:c);persistHouseholdCosts(next);}} onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
               </div>
               <div hidden={planPeriod !== "forecast"} data-planning-period="forecast">
           <ProInsights mode="forecast" locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,incomeKnown:profile.incomeAmount!==undefined&&!profile.incomeDeferred,incomeIsAnnualAverage:incomeSummary.annualAverage,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:localToday().slice(0,7)}} data={profile.planning} onSave={planning=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} onApply={applyPlanSuggestion} onEveryday={variableMonthly=>persistProfile({...profile,variableMonthly,updatedAt:new Date().toISOString()})} onReview={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} onNavigate={navigatePlanQuestion} onEditIncome={openIncomeForm} onPayments={showInvoiceChecklist}/>

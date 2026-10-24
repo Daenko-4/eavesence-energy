@@ -1,5 +1,6 @@
+import { openPayday, paydayStep } from './home-navigation';
 import { expect, test, type Page } from '@playwright/test';
-import { homeWorkspace, homeDetail } from './home-navigation';
+import { homeWorkspace, homeDetail, openCostOrganization } from './home-navigation';
 
 async function seed(page: Page, de: boolean) {
   await page.clock.setFixedTime(new Date('2026-10-13T12:00:00Z'));
@@ -44,7 +45,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await homeWorkspace(page, 'plan');
     await expect(heading).toBeHidden();
     const hero = page.locator('[data-payday-hero]');
-    await expect(hero.getByRole('heading')).toHaveText(de ? 'Was bleibt bis zum Gehalt?' : 'What is left until payday?');
+    await expect(hero.getByRole('heading')).toHaveText(de ? 'Dein Plan' : 'Your plan');
     await expect(hero.locator('[data-payday-result]')).toHaveCount(0);
     expect((await hero.innerText()).length).toBeLessThan(370);
     await page.screenshot({ path: info.outputPath(`focused-pro-empty-${de ? 'de' : 'en'}-${width}.png`) });
@@ -60,13 +61,13 @@ for (const de of [false, true]) {
     await page.setViewportSize({ width: 390, height: 844 });
     await seed(page, de); await homeWorkspace(page, 'plan');
     const panel = page.locator('[data-payday-state]');
-    await panel.getByRole('button', { name: t('Verfügbares Geld berechnen', 'Calculate available money'), exact: true }).click();
+    await openPayday(page);
     const balance = panel.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true });
     await expect(balance).toBeFocused();
     await balance.fill('1000');
-    await panel.getByLabel(t('Nächstes Gehalt am', 'Next payday'), { exact: true }).fill('2026-10-25');
-    await panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true }).fill('200');
-    await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
+    await paydayStep(page,1);await panel.getByLabel(t('Nächstes Gehalt am', 'Next payday'), { exact: true }).fill('2026-10-25');
+    await paydayStep(page,2);await panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true }).fill('200');
+    await paydayStep(page,2);await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
     await expect(panel).toHaveAttribute('data-payday-state', 'ready');
     await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(36, 39, 44)');
     await expect(panel.locator('[data-payday-result]')).toContainText(t('760,00', '760.00'));
@@ -83,7 +84,7 @@ for (const de of [false, true]) {
     await expect(panel.locator('[data-payday-status]')).toContainText(t('Zahlungen wurden geändert', 'Payments changed'));
     await panel.getByRole('button', { name: t('Kontostand aktualisieren', 'Update account balance'), exact: true }).click();
     await balance.fill('960');
-    await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
+    await paydayStep(page,2);await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
     await expect(panel.locator('[data-payday-result]')).toContainText(t('760,00', '760.00'));
     await page.reload();
     await expect(panel).toHaveAttribute('data-payday-state', 'ready');
@@ -111,10 +112,10 @@ for (const de of [false, true]) {
     const panel = page.locator('[data-payday-state]');
     await expect(panel).toHaveAttribute('data-payday-state', 'dates');
     await expect(panel.locator('[data-payday-result]')).toHaveCount(0);
-    await panel.getByRole('button', { name: `Internet · ${t('Termin ergänzen', 'Add date')}`, exact: true }).click();
-    await expect(page.locator('#household-cost-form')).toBeVisible();
-    await expect(page.locator('#household-cost-form input[type="date"]').first()).toBeFocused();
-    await expect(page.locator('[data-home-plan-content]')).toBeHidden();
+    await panel.getByLabel(`Internet · ${t('Zahlungstermin','Payment date')}`,{exact:true}).fill('2026-10-19');
+    await panel.getByRole('button',{name:t('Termin speichern','Save date'),exact:true}).click();
+    await expect(page.locator('[data-home-plan-content]')).toBeVisible();
+    await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!)[0].nextDueDate)).toBe('2026-10-19');
     await page.evaluate(() => {
       const profile = JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!); profile.planning.cash.everydayRemaining = null;
       localStorage.setItem('eavesence-home-profile-v1', JSON.stringify(profile));
@@ -126,8 +127,8 @@ for (const de of [false, true]) {
     await panel.getByRole('button', { name: t('Kontostand aktualisieren', 'Update account balance'), exact: true }).click();
     const everyday = panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true });
     await expect(everyday).toBeFocused(); await everyday.fill('0');
-    await panel.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true }).fill('-100');
-    await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
+    await paydayStep(page,0);await panel.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true }).fill('-100');
+    await paydayStep(page,2);await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
     await expect(panel.locator('h2')).toHaveText(t('Voraussichtlich fehlen', 'Estimated shortfall'));
     await expect(panel.locator('[data-payday-result]')).toContainText(t('140,00', '140.00'));
     await page.screenshot({ path: info.outputPath(`focused-pro-shortfall-${de ? 'de' : 'en'}.png`) });
@@ -243,6 +244,7 @@ for (const de of [false, true]) {
       await assertInset('#household-costs');
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       await page.screenshot({ path: info.outputPath(`inset-costs-${de ? 'de' : 'en'}-${width}.png`), fullPage: true });
+      await openCostOrganization(page);
       const energyButton = page.locator('[data-home-tiles] article').filter({ hasText: t('Strom & Geräte', 'Electricity & devices') }).getByRole('button').first();
       await energyButton.click();
       await assertInset('#home-devices');
@@ -292,6 +294,7 @@ for (const de of [false, true]) {
       await expect(energyNotice).toHaveCount(0);
       await page.reload();
       await homeDetail(page, 'costs');
+      await openCostOrganization(page);
       await energyButton.click();
       await expect(slider).toHaveValue('26');
       const profile = await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!));

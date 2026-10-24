@@ -26,24 +26,25 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await seed(page, de);
     const nav = page.locator('[data-home-section-navigation]');
-    const panels = page.locator('[id^="home-detail-"]:visible');
-    await expect(nav.getByRole('button')).toHaveCount(4);
+    const panels = page.locator('[data-cost-manager]:visible, [data-home-memos]:visible');
+    await expect(nav.getByRole('button')).toHaveCount(2);
     await expect(nav.locator('[aria-expanded=true]')).toHaveCount(0);
     await expect(panels).toHaveCount(0);
     await expect(nav.locator('[data-home-section=notes]')).toContainText('1');
     await page.screenshot({ fullPage: true, path: info.outputPath(`home-row-closed-${de ? 'de' : 'en'}-${width}.png`) });
 
     await homeDetail(page, 'budget');
-    await expect(panels).toHaveCount(1);
+    await expect(panels).toHaveCount(0);
     await expect(page.locator('[data-home-monthly-budget] article').last()).toContainText(de ? '2.360,00' : '2,360.00');
     await homeDetail(page, 'upcoming');
-    await expect(page.locator('[data-home-monthly-budget]')).toBeHidden();
-    await expect(panels).toHaveCount(1);
+    await expect(page.locator('[data-home-next-month]')).toBeVisible();
+    await expect(panels).toHaveCount(0);
     await expect(page.locator('#home-detail-upcoming')).toContainText('Internet');
     await homeDetail(page, 'budget');
-    await expect(panels).toHaveCount(1);
+    await expect(panels).toHaveCount(0);
     await expect(page.locator('[data-income-extras-summary]')).toContainText(de ? '30.800,00' : '30,800.00');
-    await expect(page.locator('#home-detail-upcoming')).toBeHidden();
+    await expect(page.locator('#home-detail-upcoming')).toBeVisible();
+    await page.getByRole('group',{name:de?'Monat wählen':'Choose month'}).getByRole('button',{name:de?'Dieser Monat':'This month',exact:true}).click();
 
     const notes = page.locator('[data-home-memos]');
     await homeDetail(page, 'notes');
@@ -68,10 +69,10 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(draft).toHaveValue('Keep this draft while reviewing costs');
     await nav.locator('[data-home-section=notes]').press('Enter');
     await expect(panels).toHaveCount(0);
-    const budgetButton = nav.locator('[data-home-section=budget]');
+    const budgetButton = page.locator('[data-home-monthly-budget] > summary');
     await budgetButton.focus(); await budgetButton.press('Space');
-    await expect(budgetButton).toHaveAttribute('aria-expanded', 'true');
-    await expect(panels).toHaveCount(1);
+    await expect(page.locator('[data-home-monthly-budget]')).not.toHaveAttribute('open');
+    await expect(panels).toHaveCount(0);
     await page.screenshot({ fullPage: true, path: info.outputPath(`home-row-budget-${de ? 'de' : 'en'}-${width}.png`) });
 
     const list = page.locator('[data-month-checklist]');
@@ -97,7 +98,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
 test('section indicators animate in both directions and respect reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await seed(page, false);
-  const button = page.locator('[data-home-section=budget]');
+  const button = page.locator('[data-home-section=notes]');
   const icon = button.locator('.site-disclosure-icon');
   const duration = await icon.evaluate(el => parseFloat(getComputedStyle(el).transitionDuration));
   expect(duration).toBeGreaterThanOrEqual(.3);

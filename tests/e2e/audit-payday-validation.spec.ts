@@ -1,4 +1,4 @@
-import { homeWorkspace } from './home-navigation';
+import { homeWorkspace, openPayday } from './home-navigation';
 import {test,expect} from '@playwright/test';
 for(const locale of ['de','en']) test(`payday errors identify and focus the field ${locale}`,async({page},info)=>{
   const de=locale==='de',t=(a:string,b:string)=>de?a:b;
@@ -8,18 +8,18 @@ for(const locale of ['de','en']) test(`payday errors identify and focus the fiel
   await page.getByRole('button',{name:t('Zuhause erstellen','Create my home'),exact:true}).click();
   await homeWorkspace(page, 'plan');
   const panel=page.getByRole('region',{name:/Your available budget|Dein verfügbarer Spielraum/});
-  await panel.getByRole('button',{name:t('Verfügbares Geld berechnen','Calculate available money'),exact:true}).click();
+  await openPayday(page);
   const balance=panel.getByLabel(t('Aktueller Kontostand','Current account balance'),{exact:true});
   const payday=panel.getByLabel(t('Nächstes Gehalt am','Next payday'),{exact:true});
   const everyday=panel.getByLabel(t('Alltagsausgaben bis zum Gehalt','Everyday spending until payday'),{exact:true});
-  const save=panel.getByRole('button',{name:t('Verfügbares Geld anzeigen','Show available money'),exact:true});
+  const save=panel.locator('[data-payday-form] button[type=submit]');
   await save.click();await expect(balance).toBeFocused();await expect(balance).toHaveAttribute('aria-invalid','true');
-  await balance.fill('1000');await save.click();await expect(payday).toBeFocused();
+  await balance.fill('1000');await save.click();await save.click();await expect(payday).toBeFocused();
   const field=(await payday.boundingBox())!,header=(await page.locator('header').boundingBox())!;
   expect(field.y).toBeGreaterThanOrEqual(header.y+header.height);
   await payday.fill('2027-04-01');await save.click();await expect(payday).toBeFocused();
   await expect(panel.getByRole('alert')).toContainText('90');
-  await payday.fill('2026-10-25');await save.click();await expect(everyday).toBeFocused();
+  await payday.fill('2026-10-25');await save.click();await save.click();await expect(everyday).toBeFocused();
   await everyday.fill('200');
   await panel.locator('summary').filter({hasText:/Geld als Reserve|Keep some money/}).click();
   const reserve=panel.getByLabel(t('Reserve, die übrig bleiben soll (optional)','Money to keep in reserve (optional)'),{exact:true});

@@ -213,6 +213,7 @@ export default function HouseholdCostsPanel({
   tileTitle,
   request,
   onChange,
+  onSaved,
 }: {
   locale: Locale;
   currency: SavedDeviceCurrency;
@@ -222,6 +223,7 @@ export default function HouseholdCostsPanel({
   tileTitle?: string;
   request?: { costId?: string; template?: HouseholdCostCategory; nonce: number };
   onChange: (costs: HouseholdCost[]) => void;
+  onSaved?: () => void;
 }) {
   const text = copy[locale];
   const requestedCost = costs.find((cost) => cost.id === request?.costId);
@@ -296,6 +298,7 @@ export default function HouseholdCostsPanel({
     setFeedback(editingId ? text.updated : text.saved);
     resetForm();
     setFormOpen(false);
+    onSaved?.();
   }
 
   function deleteCost(cost: HouseholdCost) {

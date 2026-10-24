@@ -1,4 +1,4 @@
-import { homeWorkspace, homeDetail } from './home-navigation';
+import { homeWorkspace, homeDetail, openCostOrganization } from './home-navigation';
 import {test, expect} from '@playwright/test';
 
 test('missing dates identify the cost and open its existing edit form', async ({page}) => {
@@ -19,10 +19,11 @@ test('missing dates identify the cost and open its existing edit form', async ({
   await expect(payday).not.toContainText('planning basics');
   await expect(payday).toContainText('1 cost has no payment date.');
   await expect(payday).not.toContainText('everyday-spending estimate');
-  await payday.getByRole('button',{name:'Insurance · Add date',exact:true}).click();
-  await expect(page.locator('[data-home-overview-content]')).toBeVisible();
-  await expect(page.locator('#household-cost-name')).toHaveValue('Insurance');
-  await expect(page.locator('#household-costs')).toContainText('Edit');
+  await payday.getByLabel('Insurance · Payment date',{exact:true}).fill('2026-10-20');
+  await payday.getByRole('button',{name:'Save date',exact:true}).click();
+  await expect(page.locator('[data-home-plan-content]')).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!)[0].nextDueDate)).toBe('2026-10-20');
+
 });
 
 test('calculator uses the home tariff and large tiles are the only cost-area selection', async ({page}) => {
@@ -37,7 +38,7 @@ test('calculator uses the home tariff and large tiles are the only cost-area sel
   await page.reload();
   await homeDetail(page, 'costs');
   const areas=page.locator('[data-home-tiles]');
-  await expect(areas).toBeVisible();
+  await openCostOrganization(page);await expect(areas).toBeVisible();
   await expect(page.locator('[data-cost-area-overview] nav')).toHaveCount(0);
   const energy=areas.locator('article').filter({hasText:'Electricity'}).getByRole('button').first();
   const costs=areas.locator('article').filter({hasText:'Household costs'}).getByRole('button').first();
