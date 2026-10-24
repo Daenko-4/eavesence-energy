@@ -1,4 +1,6 @@
 "use client";
+import FormActions from "@/components/FormActions";
+
 import { useRef } from "react";
 import { savingsActionKey } from "@eavesence/core/savingsPlan";
 import { nextSavingsPayment } from "@eavesence/core/proValue";
@@ -196,14 +198,14 @@ export default function SavingsCoach({
             <p className="mt-2 text-[#52605b]">{t("Vorschau – dein Kontostand und deine Kosten bleiben unverändert.", "Preview — your balance and costs stay unchanged.")}</p>
           </div>}
           {p.preview && <p role="status" className="rounded-xl bg-white p-3 text-[13px] sm:col-span-2">{t("In den nächsten 12 Planungsmonaten voraussichtlich", "Estimated over the next 12 planning months")}: <strong>{money(p.preview.totalDifference)}</strong> {t("weniger Ausgaben. Noch keine bestätigte Ersparnis.", "lower spending. Not a confirmed saving yet.")}</p>}
-          <div className="flex flex-wrap gap-2">
-            <button type="submit" className={`${button} planning-submit-action`} disabled={p.busy}>
-              {t("Änderung vormerken", "Save this plan")}
-            </button>
+          <FormActions className="sm:col-span-2">
             <button type="button" className={button} onClick={p.cancel}>
               {t("Abbrechen", "Cancel")}
             </button>
-          </div>
+            <button type="submit" className={`${button} planning-submit-action`} disabled={p.busy}>
+              {t("Änderung vormerken", "Save this plan")}
+            </button>
+          </FormActions>
         </form>
       )}
       </div>
@@ -256,6 +258,7 @@ export default function SavingsCoach({
                   {t("Kosten prüfen", "Review cost")}
                 </button>
               )}
+              <FormActions className="mt-2">
               {a.status === "planned" && (
                 <button
                   type="button"
@@ -290,6 +293,7 @@ export default function SavingsCoach({
                     )}
                   </button>
                 )}
+              </FormActions>
             </article>
           ))}
       {mode === "progress" && p.totals.estimated > 0 && <p className="mt-3 text-[13px] text-[#52605b]">{t("Zusätzlich ohne Zahlungstermin geschätzt", "Additional estimate without payment dates")}: {money(p.totals.estimated)}. {t("Nicht im Betrag oben enthalten.", "Not included in the amount above.")}</p>}

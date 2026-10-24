@@ -1,4 +1,6 @@
 "use client";
+import FormActions from "@/components/FormActions";
+
 import type { ReactNode } from "react";
 import { usePlanning } from '@eavesence/core/usePlanning';
 import type { PlanningData } from '@eavesence/core/planning';
@@ -35,14 +37,14 @@ export default function PlanningWorkbench({input,data,onSave,locale,currency,onE
     <label className="grid gap-1 text-[12px]">{de?'Zielbetrag':'Target amount'}<input className={field} inputMode="decimal" value={p.target} onChange={e=>p.setTarget(e.target.value)}/></label>
     <label className="grid gap-1 text-[12px]">{de?'Für dieses Ziel bereits zurückgelegt':'Already set aside for this goal'}<input className={field} inputMode="decimal" value={p.saved} onChange={e=>p.setSaved(e.target.value)} placeholder="0"/></label>
     <label className="grid gap-1 text-[12px]">{de?'Zielmonat':'Target month'}<input className={field} type="month" value={p.targetMonth} onChange={e=>p.setTargetMonth(e.target.value)}/></label>
-    <div className="flex gap-3"><button className={button} disabled={p.busy} type="submit">{p.editing?(de?'Ziel aktualisieren':'Update goal'):(de?'Sparziel speichern':'Save savings goal')}</button>{p.editing&&<button className={button} type="button" onClick={()=>p.editGoal()}>{de?'Abbrechen':'Cancel'}</button>}</div>
+    <FormActions>{p.editing&&<button className={button} type="button" onClick={()=>p.editGoal()}>{de?'Abbrechen':'Cancel'}</button>}<button className={button} disabled={p.busy} type="submit">{p.editing?(de?'Ziel aktualisieren':'Update goal'):(de?'Sparziel speichern':'Save savings goal')}</button></FormActions>
    </form>
   </details>
   <details className="home-disclosure min-w-0 rounded-xl border border-[#cddbd0] bg-white p-4">
    <summary className="cursor-pointer site-card-title"><span>{de?'Größere Rechnungen vorbereiten':'Prepare for larger bills'}</span><span className="mt-1 block text-[12px] font-normal leading-5 text-[#52605b]">{de?'Lege rechtzeitig Geld für fällige Rechnungen zurück.':'Set money aside before larger bills are due.'}</span></summary>
    <p className="mt-2 text-[12px] text-[#52605b]">{de?'Diese Rechnungen stehen bereits in deinen Fixkosten. Die Rücklagenplanung zieht sie nicht ein zweites Mal ab. Halte dieses Geld getrennt von deinen Sparzielen.':'These bills are already included in fixed costs. Reserve planning does not deduct them again. Keep this money separate from your savings goals.'}</p>
    {!p.reserves.length&&<p className="mt-3 text-[12px]">{de?'Erfasse eine jährliche, halbjährliche oder quartalsweise Rechnung.':'Add a yearly, half-yearly or quarterly bill.'}</p>}
-   {p.reserves.map(r=><article key={r.cost.id} className="mt-3 rounded-xl bg-[#eefbf3] p-3 text-[13px]"><strong>{r.cost.name} · {money(r.cost.amount)}</strong><p>{r.dueMonth?`${de?'Fällig':'Due'}: ${month(r.dueMonth)} · ${de?'Bis dahin zurücklegen':'Set aside until then'}: ${money(r.monthly??0)} ${de?'pro Monat':'per month'}`:(de?'Zahlungstermin ergänzen, um den Rücklagenplan zu berechnen.':'Add a payment date to calculate the reserve plan.')}</p><label className="mt-2 grid gap-1 text-[12px]">{de?'Für diese Rechnung bereits zurückgelegt':'Already set aside for this bill'}<input className={field} inputMode="decimal" value={p.reserveDraft[r.cost.id]??String(r.saved)} onChange={e=>p.setReserveDraft({...p.reserveDraft,[r.cost.id]:e.target.value})}/></label><button type="button" disabled={p.busy} className={`${button} mt-2`} onClick={()=>void p.saveReserve(r.cost.id)}>{de?'Rücklage speichern':'Save set-aside amount'}</button></article>)}
+   {p.reserves.map(r=><article key={r.cost.id} className="mt-3 rounded-xl bg-[#eefbf3] p-3 text-[13px]"><strong>{r.cost.name} · {money(r.cost.amount)}</strong><p>{r.dueMonth?`${de?'Fällig':'Due'}: ${month(r.dueMonth)} · ${de?'Bis dahin zurücklegen':'Set aside until then'}: ${money(r.monthly??0)} ${de?'pro Monat':'per month'}`:(de?'Zahlungstermin ergänzen, um den Rücklagenplan zu berechnen.':'Add a payment date to calculate the reserve plan.')}</p><form onSubmit={event=>{event.preventDefault();if(!p.busy)void p.saveReserve(r.cost.id);}}><label className="mt-2 grid gap-1 text-[12px]">{de?'Für diese Rechnung bereits zurückgelegt':'Already set aside for this bill'}<input className={field} inputMode="decimal" value={p.reserveDraft[r.cost.id]??String(r.saved)} onChange={e=>p.setReserveDraft({...p.reserveDraft,[r.cost.id]:e.target.value})}/></label><FormActions className="mt-2"><button type="submit" disabled={p.busy} className={button}>{de?'Rücklage speichern':'Save set-aside amount'}</button></FormActions></form></article>)}
   </details>
    </div>
   </section>

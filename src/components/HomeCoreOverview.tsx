@@ -1,4 +1,6 @@
 "use client";
+import FormActions from "@/components/FormActions";
+
 import { type ReactNode } from "react";
 import type { HomeSection } from "./HomeSectionNavigation";
 import type { Locale } from "@/i18n/config";
@@ -55,7 +57,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
     {needsReview && !needsIncome && count > 0 && <div data-home-review className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
       <h3 className="site-card-title">{de ? "3 · Deinen Überblick prüfen" : "3 · Check your overview"}</h3>
       <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{de ? "Sind Miete, Energie, Versicherungen und Abos schon enthalten? Ergänze zuerst deine größten regelmäßigen Kosten. Du musst nicht alles heute erfassen." : "Have you included rent, energy, insurance and subscriptions? Add your largest recurring costs first. You do not have to enter everything today."}</p>
-      <div className="mt-3 flex flex-wrap gap-2"><button className="eavesence-pill-button home-dashboard-action" type="button" onClick={onCost}>{de ? "Weitere Kosten ergänzen" : "Add more costs"}</button><button className="eavesence-pill-button home-dashboard-action" type="button" onClick={onFinishReview}>{de ? "Übersicht geprüft" : "Overview checked"}</button></div>
+      <FormActions className="mt-3"><button className="eavesence-pill-button home-dashboard-action" type="button" onClick={onCost}>{de ? "Weitere Kosten ergänzen" : "Add more costs"}</button><button className="eavesence-pill-button home-dashboard-action" type="button" onClick={onFinishReview}>{de ? "Übersicht geprüft" : "Overview checked"}</button></FormActions>
     </div>}
     <section id="home-detail-upcoming" hidden={activeSection !== "upcoming"} className="home-detail-panel" aria-label={de ? "Zahlungen im nächsten Monat" : "Payments next month"} data-home-next-month>
       <h2 className="site-card-title">{de ? `Dein Überblick für ${monthLabel}` : `Your outlook for ${monthLabel}`}</h2>
@@ -80,7 +82,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
 
 type FinanceCard = {label:string; value:string; note?:string; emphasis?:boolean};
 function FinanceCards({cards, deficit}:{cards:FinanceCard[]; deficit:boolean}) {
-  return <div className="mt-3 grid items-start gap-3 md:grid-cols-3">
+  return <div className="mt-3 grid items-stretch gap-3 md:grid-cols-3">
     {cards.map(card => <article key={card.label} className={`min-w-0 rounded-2xl border p-4 ${card.emphasis ? "border-[#32363b] bg-[#24272c] text-white" : "border-[#dfe5dd] bg-white text-[#17211f]"}`}>
       <p className={`text-[13px] font-semibold ${card.emphasis ? "text-[#d1d7d4]" : "text-[#65716d]"}`}>{card.label}</p>
       <p className={`mt-2 text-[20px] font-extrabold tracking-[-.035em] ${card.emphasis ? deficit ? "text-[#ffd28c]" : "text-[#72dca3]" : ""}`}>{card.value}</p>

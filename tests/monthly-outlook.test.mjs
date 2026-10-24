@@ -22,9 +22,9 @@ test('annual net remains an explicitly estimated average without double-counting
   assert.equal(result.income,2800);assert.equal(result.extraIncome,0);assert.equal(result.remaining,1900);assert.equal(result.incomeIsAverage,true);assert.equal(result.estimated,true);
 });
 test('monthly undated costs count once, but undated non-monthly costs block a misleading remainder',()=>{
-  const monthly=cost({nextDueDate:undefined});const result=outlook({costs:[monthly]});
+  const monthly=cost({nextDueDate:''});const result=outlook({costs:[monthly]});
   assert.equal(result.total,900);assert.equal(result.remaining,4000);assert.equal(result.undatedMonthlyCount,1);assert.equal(result.missing.length,0);
-  const incomplete=outlook({costs:[monthly,cost({id:'annual',amount:1200,frequency:'yearly',nextDueDate:undefined})]});
+  const incomplete=outlook({costs:[monthly,cost({id:'annual',amount:1200,frequency:'yearly',nextDueDate:''})]});
   assert.equal(incomplete.total,900);assert.equal(incomplete.missing.length,1);assert.equal(incomplete.remaining,null);
 });
 test('missing income and a completely empty cost list never imply safely available money',()=>{
@@ -45,6 +45,6 @@ test('variable bills use matching month-specific invoices, including zero, witho
   const zero=saveActualPayment(actual,payment,0,'2026-10-24T12:00:00Z');assert.equal(outlook({costs,actualPayments:zero}).total,0);
 });
 test('every weekly occurrence and the monthly undated cost count once, with cent rounding',()=>{
-  const costs=[cost({amount:0.1,frequency:'weekly',nextDueDate:'2026-11-01'}),cost({id:'net',amount:0.2,nextDueDate:undefined})];
+  const costs=[cost({amount:0.1,frequency:'weekly',nextDueDate:'2026-11-01'}),cost({id:'net',amount:0.2,nextDueDate:''})];
   const result=outlook({profile:{incomeAmount:10},costs});assert.equal(result.payments.length,6);assert.equal(result.total,0.7);assert.equal(result.remaining,9.3);
 });

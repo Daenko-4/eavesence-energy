@@ -1329,9 +1329,10 @@ export default function EnergyCalculator({
         <div
           data-calculator-form
           onKeyDown={(event) => {
-            if (event.key === "Enter" && event.target instanceof HTMLInputElement && event.target.type === "number") {
+            if (event.key === "Enter" && !event.defaultPrevented && !event.nativeEvent.isComposing && event.target instanceof HTMLInputElement && (event.target.type === "number" || event.target.id === fieldIds.customName)) {
               event.preventDefault();
               event.target.blur();
+              if (calculationIsValid) handleSaveCurrentDevice();
             }
           }}
           className="calculator-form flex min-w-0 flex-col justify-start px-1 py-1 sm:px-2"

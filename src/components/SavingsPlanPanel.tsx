@@ -1,4 +1,6 @@
 "use client";
+import FormActions from "@/components/FormActions";
+
 import ProTools from "./ProTools";
 import PlanningNavigation, { type SavingsTool } from "./PlanningNavigation";
 import ProInsights from "./ProInsights";
@@ -89,7 +91,7 @@ export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, on
     </div>}
     {section !== "budget" && section !== "progress" && <PlanningNavigation locale={locale} kind="tool" value={tool} onChange={onTool}/>}
 
-    <div hidden={section !== "budget" && !!section} data-planning-budget>
+    <form hidden={section !== "budget" && !!section} data-planning-budget onSubmit={event => {event.preventDefault();void save();}}>
     <h2 className="mt-2 text-xl font-extrabold">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
     <p className="mt-1 text-[13px] text-[#52605b]">{de ? "Einkommen und Fixkosten sind schon übernommen. Schätze noch deine übrigen Alltagsausgaben – daraus berechnen wir, was dir im Monat bleibt." : "Income and fixed costs are already included. Estimate your other everyday spending to see what is left each month."}</p>
     {(budgetDirty || !budgetDraft) && <p data-budget-preview-note role="status" className="mt-3 text-[12px] font-semibold text-[#28734d]">{!budgetDraft ? de ? "Vorschau pausiert: Bitte gültige Beträge eingeben. Darunter bleibt der gespeicherte Stand sichtbar." : "Preview paused: enter valid amounts. Your saved values are shown below." : de ? "Vorschau – erst mit „Plan speichern“ werden deine Änderungen übernommen." : "Preview — use Save plan to keep your changes."}</p>}
@@ -98,9 +100,6 @@ export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, on
       {[[de ? "Alltagsausgaben pro Monat (geschätzt)" : "Everyday spending per month (estimate)", variable, setVariable], [de ? "Gewünschter Sparbetrag pro Monat (optional)" : "Desired savings per month (optional)", goal, setGoal]].map(([label, value, setter], index) => <label key={label as string} className="grid gap-1 text-[12px] font-semibold text-[#52605b]">{label as string}<input aria-label={label as string} id={index === 0 ? "savings-budget-input" : undefined} inputMode="decimal" value={value as string} onChange={(event) => (setter as (value: string) => void)(event.target.value)} className="home-planning-field min-h-11 min-w-0 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder={index === 0 ? de ? "z. B. 500" : "e.g. 500" : "0"} /><span className="font-normal">{index === 0 ? de ? "Zum Beispiel Lebensmittel und Freizeit. Nur Ausgaben, die noch nicht in deinen Fixkosten stehen." : "For example groceries and leisure. Only spending not already in your fixed costs." : de ? "Geld, das du vom verbleibenden Budget zurücklegen möchtest – nachdem Fixkosten und Alltagsausgaben bezahlt sind." : "Money you want to set aside from what is left after fixed costs and everyday spending."}</span></label>)}
     </div>
     <div className="mt-4 rounded-xl bg-[#f4f6f2] p-3 text-[12px] text-[#52605b]"><p className="font-semibold">{de ? "Freiwillige Reserve (optional)" : "Optional reserve"}</p><p className="mt-2">{de ? "Möchtest du zusätzlich Geld unberührt lassen? Dieser selbst gewählte Betrag wird vom Spielraum abgezogen. Jahresrechnungen sind bereits in den Fixkosten enthalten." : "Want to keep an extra amount untouched? This amount is deducted from what is left. Annual bills are already included in fixed costs."}</p><label className="mt-2 grid max-w-xs gap-1 font-semibold">{de ? "Freiwillige Reserve pro Monat" : "Optional reserve per month"}<input inputMode="decimal" value={buffer} onChange={(event) => setBuffer(event.target.value)} className="home-planning-field min-h-11 min-w-0 w-full rounded-xl border border-[#cddbd0] bg-white px-3 text-[16px] text-[#17211f]" placeholder="0" /></label></div>
-    <button type="button" onClick={() => void save()} disabled={busy} className="eavesence-pill-button home-primary-action mt-4">{de ? "Plan speichern" : "Save plan"}</button>
-    {notice && !budgetDirty && budgetDraft && <p role="status" className="mt-2 text-[12px] font-semibold text-[#087a45]">{notice}</p>}
-    {error && <p role="alert" className="mt-2 text-[12px] text-red-700">{error}</p>}
     </div><div className="planning-budget-results">
     {result && <>
       <div className="mt-5 rounded-xl bg-[#f4f6f2] p-4" data-budget-live-preview>
@@ -123,7 +122,10 @@ export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, on
 
     </>}
     </div></div>
-    </div>
+    <FormActions className="mt-4"><button type="submit" disabled={busy} className="eavesence-pill-button home-primary-action">{de ? "Plan speichern" : "Save plan"}</button></FormActions>
+    {notice && !budgetDirty && budgetDraft && <p role="status" className="mt-2 text-[12px] font-semibold text-[#087a45]">{notice}</p>}
+    {error && <p role="alert" className="mt-2 text-[12px] text-red-700">{error}</p>}
+    </form>
   </section>
   </div>;
 }

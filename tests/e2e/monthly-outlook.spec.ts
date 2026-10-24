@@ -17,7 +17,7 @@ async function seed(page:Page, de:boolean) {
       {id:'rent',name:'Rent',amount:900,frequency:'monthly',category:'housing',nextDueDate:'2026-10-01',updatedAt:'2026-10-24T12:00:00Z'},
       {id:'insurance',name:'Insurance',amount:600,frequency:'yearly',category:'insurance',nextDueDate:'2026-11-15',updatedAt:'2026-10-24T12:00:00Z'},
       {id:'energy',name:'Electricity',amount:80,variableAmount:true,frequency:'monthly',category:'energy',nextDueDate:'2026-10-12',updatedAt:'2026-10-24T12:00:00Z'},
-      {id:'internet',name:'Internet',amount:40,frequency:'monthly',category:'subscriptions',updatedAt:'2026-10-24T12:00:00Z'},
+      {id:'internet',name:'Internet',amount:40,frequency:'monthly',category:'subscriptions',nextDueDate:'',updatedAt:'2026-10-24T12:00:00Z'},
     ]));
   });
   await page.reload();await homeDetail(page,'upcoming');
@@ -44,7 +44,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
 
     await page.evaluate(()=>{
       const costs=JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!);
-      costs.push({id:'missing',name:'Annual bill',amount:1200,frequency:'yearly',category:'other',updatedAt:'2026-10-24T12:00:00Z'});
+      costs.push({id:'missing',name:'Annual bill',amount:1200,frequency:'yearly',category:'other',nextDueDate:'',updatedAt:'2026-10-24T12:00:00Z'});
       localStorage.setItem('eavesence-home-costs-v1',JSON.stringify(costs));
     });
     await page.reload();await homeDetail(page,'upcoming');

@@ -1,4 +1,6 @@
 "use client";
+import FormActions from "@/components/FormActions";
+
 import {useId,useState} from "react";
 import { usePaymentChecklist } from '@eavesence/core/usePaymentChecklist';
 import { paymentKey } from '@eavesence/core/paymentChecklist';
@@ -44,7 +46,7 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
       <dl className="mt-3 space-y-2 text-[13px]"><div className="flex justify-between gap-3"><dt>{t('Geplant','Planned')}</dt><dd>{money(c.closed?.planned??c.review.planned)}</dd></div><div className="flex justify-between gap-3"><dt>{t('Tatsächlich bezahlt','Actually paid')}</dt><dd>{money(c.closed?.paid??c.review.paid)}</dd></div></dl>
       {(c.closed||c.review.complete)?<p className="mt-3 text-[13px] font-semibold text-[#28734d]">{(()=>{const delta=c.closed?c.closed.planned-c.closed.paid:c.review.difference!;return delta===0?t('Wie geplant.','As planned.'):`${money(Math.abs(delta))} ${delta>0?t('weniger als geplant bezahlt.','less paid than planned.'):t('mehr als geplant bezahlt.','more paid than planned.')}`;})()}</p>:<p className="mt-3 text-[12px] leading-5 text-[#65716d]">{t('Noch kein vollständiger Vergleich: offene Zahlungen abhaken, variable Rechnungsbeträge und fehlende Termine ergänzen.','Not a complete comparison yet: check off unpaid payments and add variable invoice amounts and missing dates.')}{c.review.estimated>0?` ${c.review.estimated} ${t('Beträge noch geschätzt.','amounts still estimated.')}`:''}</p>}
       <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{t('Nur erfasste wiederkehrende Zahlungen, keine Alltagsausgaben. Weniger bezahlt ist nicht automatisch eine dauerhafte Ersparnis.','Recorded recurring payments only, excluding everyday spending. Paying less does not automatically mean lasting savings.')}</p>
-      {c.closed?<button type="button" disabled={c.busy} onClick={()=>void c.reopenMonth()} className="eavesence-pill-button home-dashboard-action mt-3">{t('Monat wieder öffnen','Reopen month')}</button>:c.month<=c.current&&c.payments.length>0&&<button type="button" disabled={c.busy||!c.review.complete} onClick={()=>void c.closeMonth()} className="eavesence-pill-button home-dashboard-action mt-3">{t('Monat abschließen','Close month')}</button>}
+      <FormActions>{c.closed?<button type="button" disabled={c.busy} onClick={()=>void c.reopenMonth()} className="eavesence-pill-button home-dashboard-action mt-3">{t('Monat wieder öffnen','Reopen month')}</button>:c.month<=c.current&&c.payments.length>0&&<button type="button" disabled={c.busy||!c.review.complete} onClick={()=>void c.closeMonth()} className="eavesence-pill-button home-dashboard-action mt-3">{t('Monat abschließen','Close month')}</button>}</FormActions>
     </section>
     </div>
     {c.error&&<p role="alert" className="p-4 text-[13px] text-red-700">{c.error}</p>}
@@ -54,5 +56,5 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
 export function PaymentAmountForm({c,locale}:{c:ReturnType<typeof usePaymentChecklist>;locale:"de"|"en"}) {const t=(a:string,b:string)=>locale==="de"?a:b;return c.editing&&<form onSubmit={e=>{e.preventDefault();void c.saveAmount();}} className="mt-3 rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-3">
         <label className="grid gap-2 text-[13px] font-semibold">{c.editing.cost.name} · {t('Rechnungsbetrag','Invoice amount')}<input autoFocus inputMode="decimal" value={c.amount} onChange={e=>c.setAmount(e.target.value)} className="min-h-11 w-full rounded-xl border border-[#cddbd0] bg-white px-3"/></label>
         <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{t('Nur diese Zahlung. Der übliche Planbetrag bleibt unverändert. Auch 0 ist möglich.','Only this payment. The usual planning amount stays unchanged. Zero is allowed.')}</p>
-        <div className="mt-2 flex gap-2"><button type="submit" disabled={c.busy} className="eavesence-pill-button home-dashboard-action">{t('Betrag speichern','Save amount')}</button><button type="button" disabled={c.busy} onClick={c.cancelAmount} className="eavesence-pill-button home-dashboard-action">{t('Abbrechen','Cancel')}</button></div>
+        <FormActions className="mt-2"><button type="button" disabled={c.busy} onClick={c.cancelAmount} className="eavesence-pill-button home-dashboard-action">{t('Abbrechen','Cancel')}</button><button type="submit" disabled={c.busy} className="eavesence-pill-button home-dashboard-action">{t('Betrag speichern','Save amount')}</button></FormActions>
       </form>;}
