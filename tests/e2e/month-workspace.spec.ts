@@ -20,6 +20,9 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await expect(open.getByRole('checkbox')).toHaveCount(20);
     await expect(paid).toContainText(t('Noch keine Zahlungen abgehakt.','No payments checked off yet.'));
     await expect(workspace.locator('[data-home-remaining]')).toContainText(t('2.000,00','2,000.00'));
+    // The first payment should be reachable without scrolling a full screen.
+    const firstRow=(await open.getByRole('checkbox').first().boundingBox())!;
+    expect(firstRow.y+firstRow.height).toBeLessThan(width < 900 ? 700 : 620);
     const next=workspace.getByRole('button',{name:t('Nächster Monat','Next month'),exact:true});
     await next.click();
     await expect(workspace.locator('[data-home-kpi=income]')).toContainText(t('4.400,00','4,400.00'));
@@ -34,9 +37,13 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await expect(workspace.locator('[data-home-remaining]')).toContainText(t('2.000,00','2,000.00'));
     if(width>=1180){
       const left=(await workspace.locator('.home-month-summary').boundingBox())!,middle=(await workspace.locator('.home-month-payments').boundingBox())!,right=(await workspace.locator('.home-month-tools').boundingBox())!;
+      for(const card of await workspace.locator('[data-home-kpi]').all()) {
+        const box=(await card.boundingBox())!;
+        expect(Math.abs(box.width-left.width)).toBeLessThan(1);
+      }
       expect(left.x+left.width).toBeLessThan(middle.x);
       expect(middle.x+middle.width).toBeLessThan(right.x);
-      await page.evaluate(()=>scrollTo({top:650,behavior:'instant'}));
+      await page.evaluate(()=>scrollTo({top:450,behavior:'instant'}));
       for(const selector of ['.home-month-summary','.home-month-tools'])expect((await workspace.locator(selector).boundingBox())!.y).toBeGreaterThanOrEqual(90);
       const tools=workspace.locator('.home-month-tools');
       expect((await tools.boundingBox())!.height).toBeLessThanOrEqual(788);
@@ -61,5 +68,19 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     const input=page.locator('#home-income-form input').first();await expect(input).toBeFocused();
     await input.fill('2500');await input.press('Enter');
     await expect(workspace.locator('[data-home-remaining]')).toContainText(t('2.100,00','2,100.00'));
+    // A tall information rail must not stretch the month rows when few bills exist.
+    await page.evaluate(()=>{
+      const costs=JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!);
+      localStorage.setItem('eavesence-home-costs-v1',JSON.stringify(costs.slice(0,1)));
+    });
+    await page.reload();
+    await expect(open.getByRole('checkbox')).toHaveCount(1);
+    const shortToolbar=(await workspace.locator('.home-month-toolbar').boundingBox())!;
+    const shortSummary=(await workspace.locator('.home-month-summary').boundingBox())!;
+    const shortList=(await workspace.locator('.home-month-payments').boundingBox())!;
+    expect(shortToolbar.height).toBeLessThan(100);
+    if(width>=1180) expect(Math.abs(shortList.y-shortToolbar.y-shortToolbar.height)).toBeLessThanOrEqual(1);
+    else expect(shortList.y-shortSummary.y-shortSummary.height).toBeLessThanOrEqual(12);
+    await page.screenshot({fullPage:true,path:info.outputPath(`workspace-short-${de?'de':'en'}-${width}.png`)});
   });
 }

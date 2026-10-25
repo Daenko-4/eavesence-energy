@@ -59,7 +59,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
             {card.note && <p className="home-month-kpi-note">{card.note}</p>}
           </article>)}
         </div>
-        <p className="home-month-context">{de ? "Nach erfassten Fixkosten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen vom Rest noch ab. Er ist kein Kontostand." : "After recorded fixed costs. Groceries, leisure and other everyday spending still come out of the remainder. It is not your account balance."}</p>
+        <p className="home-month-context">{de ? "Für Alltag & Freizeit, nach erfassten Fixkosten. Kein Kontostand." : "For everyday spending, after recorded fixed costs. Not your account balance."}</p>
       </aside>
       <div className="home-month-payments">{payments}</div>
       <aside className="home-month-tools" aria-label={de ? "Aktionen & Hinweise" : "Actions & information"}>
@@ -71,10 +71,10 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
           </div>
           {navigation}
         </div>
-        <div className="home-month-tool-card"><h3 className="site-card-title">{de ? "Bis zum nächsten Gehalt" : "Until your next payday"}</h3><p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Mit deinem aktuellen Kontostand planen. Offene Rechnungen werden übernommen." : "Plan with your current balance. Unpaid bills are included."}</p><button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={onPlan}>{de ? "Bis zum Gehalt planen" : "Plan until payday"}</button></div>
+        <div className="home-month-tool-card"><h3 className="site-card-title">{de ? "Bis zum nächsten Gehalt" : "Until your next payday"}</h3><p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Kontostand eintragen, offene Rechnungen übernehmen." : "Enter your balance and include unpaid bills."}</p><button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={onPlan}>{de ? "Bis zum Gehalt planen" : "Plan until payday"}</button></div>
         <div className="home-month-tool-card home-month-explanation" data-month-calculation>
           <h3 className="site-card-title">{de ? "So wird gerechnet" : "How this is calculated"}</h3>
-          <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Vorschau für diesen konkreten Monat, inklusive eingetragener Sonderzahlungen und der dann fälligen Rechnungen." : "A forecast for this specific month, including recorded extra income and bills due then."}</p>
+          <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Monatseinkommen inkl. Sonderzahlungen minus fällige Fixkosten." : "Monthly income including extras, minus fixed costs due."}</p>
           {outlook.incomeIsAverage && <p className="mt-2 text-[12px] leading-5 text-amber-900">{de ? "Dein Einkommen ist ein Jahresdurchschnitt und kann vom tatsächlichen Geldeingang in diesem Monat abweichen." : "Your income is an annual average and may differ from what actually arrives this month."}</p>}
           {outlook.undatedMonthlyCount > 0 && <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Monatliche Kosten ohne Zahlungstermin zählen einmal in diesem Monat." : "Monthly costs without a payment date count once this month."}</p>}
           {outlook.payments.some(payment=>payment.estimated) && <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Variable Beträge sind geschätzt, bis eine Rechnung eingetragen ist." : "Variable amounts are estimates until an invoice is entered."}</p>}

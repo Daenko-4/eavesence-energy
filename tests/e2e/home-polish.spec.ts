@@ -69,14 +69,12 @@ for (const width of [1365, 390]) {
       await expect(heading.locator('[data-home-identity]').getByRole('button')).toHaveText(de ? 'Einstellungen' : 'Settings');
       await expect(page.getByRole('group',{name:de?'Aktionen für dein Zuhause':'Home actions',exact:true}).getByRole('button')).toHaveCount(2);
       const row=heading.locator('[data-home-title-row]');
-      const label=(await row.locator('.home-section-label').boundingBox())!;
       const settings=(await row.getByRole('button').boundingBox())!;
       const name=(await heading.locator('h1').boundingBox())!;
-      expect(Math.abs(label.x-headingBox.x)).toBeLessThan(1);
+      expect(Math.abs(name.x-headingBox.x)).toBeLessThan(1);
       expect(Math.abs(settings.x+settings.width-headingBox.x-headingBox.width)).toBeLessThan(1);
-      expect(Math.abs(label.y+label.height/2-settings.y-settings.height/2)).toBeLessThan(1);
-      expect(name.y).toBeGreaterThanOrEqual((await row.boundingBox())!.y+(await row.boundingBox())!.height);
-      expect(Math.abs(name.x+name.width/2-headingBox.x-headingBox.width/2)).toBeLessThan(1);
+      expect(Math.abs(name.y+name.height/2-settings.y-settings.height/2)).toBeLessThan(1);
+      expect(headingBox.height).toBeLessThan(170);
       expect(await heading.locator('h1').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeLessThanOrEqual(32);
 
       await heading.screenshot({ path: info.outputPath(`home-heading-${locale}-${width}.png`) });
