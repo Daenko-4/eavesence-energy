@@ -3,23 +3,28 @@ import FormActions from "@/components/FormActions";
 
 import {useId,useState} from "react";
 import { usePaymentChecklist } from '@eavesence/core/usePaymentChecklist';
-import { paymentKey } from '@eavesence/core/paymentChecklist';
+import { paymentKey, type MonthPayment } from '@eavesence/core/paymentChecklist';
 import type { HouseholdCost } from '@eavesence/core/householdCosts';
 import type { PlanningData } from '@eavesence/core/planning';
 
-type Props = { primary?:boolean; month?:string; onMonthChange?:(month:string)=>void; costs:HouseholdCost[]; data?:PlanningData; onSave:(data:PlanningData)=>void|Promise<void>; locale:'de'|'en'; currency:string; onEdit:(cost:HouseholdCost)=>void; onAdd:()=>void; expanded?:boolean; onExpandedChange?:(open:boolean)=>void };
-export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdit,onAdd,expanded,onExpandedChange,month,onMonthChange,primary=false}:Props) {
+type Props = { selectedKey?:string|null; onSelect?:(key:string)=>void; primary?:boolean; month?:string; onMonthChange?:(month:string)=>void; costs:HouseholdCost[]; data?:PlanningData; onSave:(data:PlanningData)=>void|Promise<void>; locale:'de'|'en'; currency:string; onEdit:(cost:HouseholdCost)=>void; onAdd:()=>void; expanded?:boolean; onExpandedChange?:(open:boolean)=>void };
+export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdit,onAdd,expanded,onExpandedChange,month,onMonthChange,primary=false,selectedKey,onSelect}:Props) {
   const [localOpen,setLocalOpen]=useState(false),bodyId=useId();
   const open=expanded??localOpen,setOpen=onExpandedChange??setLocalOpen;
   const de = locale === 'de', t=(a:string,b:string)=>de?a:b;
+  type Change = {payment:MonthPayment; wasPaid:boolean; undo?:boolean};
+  const [lastChange,setLastChange] = useState<Change | null>(null);
   const c=usePaymentChecklist(costs,data,onSave,de,month,onMonthChange);
+  const undoPayment=lastChange?.payment.month === c.month && !c.closed ? c.payments.find(p => paymentKey({costId:p.cost.id,month:p.month,date:p.date}) === paymentKey({costId:lastChange.payment.cost.id,month:lastChange.payment.month,date:lastChange.payment.date}) && c.isPaid(p) !== lastChange.wasPaid && !p.estimated) : undefined;
   const money=(n:number)=>new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency}).format(n);
   const monthLabel=new Intl.DateTimeFormat(de?'de-AT':'en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${c.month}-01T00:00:00Z`));
   const dateLabel=(date:string)=>new Intl.DateTimeFormat(de?'de-AT':'en-GB',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(`${date}T00:00:00Z`));
-  async function toggleRow(payment:typeof c.payments[number], origin:HTMLInputElement) {
+  async function toggleRow(payment:typeof c.payments[number], origin:HTMLElement, undo=false) {
     const previousY=origin.getBoundingClientRect().top;
     const panel=origin.closest<HTMLElement>("[data-month-checklist]");
-    await c.toggle(payment);
+    const wasPaid=c.isPaid(payment);
+    const saved=await c.toggle(payment);
+    if(primary && saved)setLastChange(undo ? null : {payment,wasPaid});
     if(!primary || payment.estimated)return;
     requestAnimationFrame(()=>{
       if(!panel?.getClientRects().length || (document.activeElement!==origin && document.activeElement!==document.body))return;
@@ -32,31 +37,40 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
   }
   function renderRows(payments:typeof c.payments) {
     return <ul className="divide-y divide-[#e7ebe5]">{payments.map(p=>{const paid=c.isPaid(p);return <li key={paymentKey({costId:p.cost.id,month:p.month,date:p.date})} className="home-payment-row flex min-w-0 items-center gap-3 py-2">
-        <label className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3"><input type="checkbox" checked={paid} disabled={c.busy} onChange={event=>void toggleRow(p,event.currentTarget)} aria-label={`${p.cost.name} · ${p.date?dateLabel(p.date):monthLabel} · ${t('Bezahlt','Paid')}`} className="h-5 w-5 shrink-0 accent-[#28734d]"/><span className="home-payment-description min-w-0 flex-1"><span className={`block break-words text-[13px] font-semibold ${paid?'text-[#65716d] line-through':'text-[#17211f]'}`}>{p.cost.name}</span><span className="home-payment-date block text-[13px] leading-5 text-[#65716d]">{p.date?dateLabel(p.date):t('Monatlich · Termin fehlt','Monthly · date missing')}{paid?` · ${t('Bezahlt','Paid')}`:''}</span></span><span className={`shrink-0 text-[13px] font-semibold ${paid?'text-[#65716d]':'text-[#17211f]'}`}>{p.estimated?t("ca. ","approx. "):""}{money(p.cost.amount)}</span></label>
+        {primary ? <>
+          <label className="home-payment-checkbox"><input type="checkbox" checked={paid} disabled={c.busy || !!c.closed} onChange={event=>void toggleRow(p,event.currentTarget)} aria-label={`${p.cost.name} · ${p.date?dateLabel(p.date):monthLabel} · ${t('Bezahlt','Paid')}`} className="h-5 w-5 shrink-0 accent-[#28734d]"/></label>
+          <button type="button" className="home-payment-detail-action" data-selected={selectedKey === paymentKey({costId:p.cost.id,month:p.month,date:p.date})} onClick={()=>onSelect?.(paymentKey({costId:p.cost.id,month:p.month,date:p.date}))} aria-label={`${p.cost.name} · ${t('Details','Details')}`}>
+            <span className="home-payment-description"><span className={`home-payment-name ${paid?'text-[#65716d] line-through':''}`}>{p.cost.name}</span><span className="home-payment-date">{p.date?dateLabel(p.date):t('Monatlich · Termin fehlt','Monthly · date missing')}{paid?` · ${t('Bezahlt','Paid')}`:''}</span></span>
+            <span className="home-payment-amount">{p.estimated?t("ca. ","approx. "):""}{money(p.cost.amount)}</span>
+          </button>
+        </> : <label className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3"><input type="checkbox" checked={paid} disabled={c.busy} onChange={event=>void toggleRow(p,event.currentTarget)} aria-label={`${p.cost.name} · ${p.date?dateLabel(p.date):monthLabel} · ${t('Bezahlt','Paid')}`} className="h-5 w-5 shrink-0 accent-[#28734d]"/><span className="home-payment-description min-w-0 flex-1"><span className={`block break-words text-[13px] font-semibold ${paid?'text-[#65716d] line-through':'text-[#17211f]'}`}>{p.cost.name}</span><span className="home-payment-date block text-[13px] leading-5 text-[#65716d]">{p.date?dateLabel(p.date):t('Monatlich · Termin fehlt','Monthly · date missing')}{paid?` · ${t('Bezahlt','Paid')}`:''}</span></span><span className={`shrink-0 text-[13px] font-semibold ${paid?'text-[#65716d]':'text-[#17211f]'}`}>{p.estimated?t("ca. ","approx. "):""}{money(p.cost.amount)}</span></label>}
         {p.cost.variableAmount&&<button type="button" aria-label={`${p.cost.name} · ${t("Rechnungsbetrag","Invoice amount")}`} disabled={c.busy} onClick={()=>c.editAmount(p)} className="min-h-11 px-1 text-[12px] font-semibold text-[#28734d]">{t("Betrag","Amount")}</button>}
         {!p.date&&<button type="button" aria-label={`${p.cost.name} · ${t("Termin ergänzen","Add date")}`} onClick={()=>onEdit(p.cost)} className="min-h-11 px-1 text-[13px] font-semibold text-[#28734d]">{t('Termin','Date')}</button>}
+        {primary && c.editing && paymentKey({costId:c.editing.cost.id,month:c.editing.month,date:c.editing.date}) === paymentKey({costId:p.cost.id,month:p.month,date:p.date}) && <div className="home-payment-inline-editor"><PaymentAmountForm c={c} locale={locale}/></div>}
       </li>})}</ul>;
   }
   const reviewToggle=<button type="button" aria-expanded={open} aria-controls={bodyId} onClick={()=>setOpen(!open)} className="flex min-h-12 w-full items-center justify-between gap-4 border-t border-[#dfe5dd] bg-[#f4f6f2] px-4 text-left text-[13px] font-semibold text-[#17211f] sm:px-5"><span>{primary ? t("Monatsrückblick","Monthly review") : t("Zahlungen & Monatsrückblick","Payments & monthly review")}</span><span aria-hidden="true" className={`site-disclosure-icon text-xl text-[#17211f] ${open?"-rotate-45":""}`}>+</span></button>;
   return <section aria-label={t('Monatscheckliste','Monthly checklist')} className="mt-6 scroll-mt-24 overflow-hidden rounded-2xl border border-[#dfe5dd] bg-white" data-month-checklist data-primary-payments={primary}>
+
     <div className="bg-[#f4f6f2] p-4 text-[#17211f] sm:p-5">
       <div hidden={Boolean(onMonthChange)} className="flex flex-wrap items-center justify-between gap-4">
         <div><p className="text-[13px] font-semibold text-[#52605b]">{c.month===c.current?t('Dieser Monat','This month'):t('Zahlungen im Monat','Payments this month')}</p><h2 className="mt-1 text-[20px] font-bold tracking-[-.025em]" data-checklist-month>{monthLabel}</h2></div>
         <div className="flex items-center gap-2"><button type="button" aria-label={t('Vorheriger Monat','Previous month')} onClick={c.previous} className="min-h-11 min-w-11 rounded-full border border-[#65716d] text-lg">‹</button><button type="button" aria-label={t('Nächster Monat','Next month')} onClick={c.next} className="min-h-11 min-w-11 rounded-full border border-[#65716d] text-lg">›</button>{c.month!==c.current&&<button type="button" onClick={c.reset} className="min-h-11 px-2 text-[13px] font-semibold">{t('Dieser Monat','This month')}</button>}</div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className={primary ? "centre-payments-summary" : "mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3"}>
         <div className="col-span-2 min-w-0 sm:col-span-1"><p className="text-[13px] text-[#52605b]">{t('Noch offen','Still unpaid')}{c.missing.length>0?` · ${t('unvollständig','incomplete')}`:''}</p><p className="mt-1 text-[20px] font-bold tracking-[-.035em] text-[#17211f]" data-checklist-open aria-live="polite">{c.payments.length?money(c.closed?0:c.openTotal):'—'}</p><p className="mt-1 text-[12px] text-[#52605b]">{`${c.closed?0:c.open.length} ${c.open.length===1?t('Zahlung','payment'):t('Zahlungen','payments')}`}</p></div>
-        <div className="min-w-0"><p className="text-[13px] text-[#52605b]">{t('Bereits bezahlt','Already paid')}</p><p className="mt-1 text-[20px] font-bold" data-checklist-paid>{money(c.closed?.paid??c.paidTotal)}</p><p className="mt-1 text-[12px] text-[#52605b]" data-checklist-progress>{c.closed?.count??c.payments.length-c.open.length} {t('von','of')} {c.closed?.count??c.payments.length} {t('bezahlt','paid')}</p></div>
+        <div hidden={primary && !c.closed} className="min-w-0"><p className="text-[13px] text-[#52605b]">{t('Bereits bezahlt','Already paid')}</p><p className="mt-1 text-[20px] font-bold" data-checklist-paid={!primary || c.closed ? "" : undefined}>{money(c.closed?.paid??c.paidTotal)}</p><p className="mt-1 text-[12px] text-[#52605b]" data-checklist-progress>{c.closed?.count??c.payments.length-c.open.length} {t('von','of')} {c.closed?.count??c.payments.length} {t('bezahlt','paid')}</p></div>
         <div className="min-w-0" data-checklist-next><p className="text-[13px] text-[#52605b]">{t('Als Nächstes fällig','Next due')}</p>{!c.closed&&c.nextDue?<><p className="mt-1 break-words text-[13px] font-semibold">{c.nextDue.cost.name} · {money(c.nextDue.cost.amount)}</p><p className="mt-1 text-[12px] text-[#52605b]">{dateLabel(c.nextDue.date!)}{c.nextDue.date!<c.today?` · ${t('überfällig','overdue')}`:''}</p></>:<p className="mt-1 text-[13px]">{!c.closed&&(c.open.length||c.missing.length)?t('Zahlungstermine fehlen','Payment dates missing'):t('Alles erledigt','All done')}</p>}</div>
       </div>
     </div>
+    {primary && undoPayment && <div className="centre-payment-feedback" role="status"><span>{lastChange!.payment.cost.name} · {lastChange!.wasPaid ? t("wieder offen", "unpaid again") : t("abgehakt", "checked off")}</span><button type="button" disabled={c.busy} onClick={event => void toggleRow(undoPayment,event.currentTarget,true)} className="centre-text-action">{t("Rückgängig", "Undo")}</button></div>}
     {!primary && reviewToggle}
     <div id={primary ? `${bodyId}-payments` : bodyId} hidden={!primary && !open} className="home-payment-body p-4 sm:p-5"><p className="home-payment-instruction mb-3 text-[13px] leading-5 text-[#65716d]">{primary ? t('Bezahlt? Einfach abhaken.','Paid? Check it off.') : t('Abgebucht oder bezahlt? Hake die Zahlung ab. Die nächste Zahlung bleibt offen.','Debited or paid? Check it off. The next payment stays open.')}</p>
       {c.closed?<p className="text-[13px] text-[#52605b]">{t("Dieser Monat ist abgeschlossen. Der Rückblick bleibt gespeichert.","This month is closed. Its review has been saved.")}</p>:c.payments.length?(primary ? <div className="home-payment-groups">
         <section data-payment-group="open" aria-label={t("Noch offen","Still unpaid")}><h3 className="home-payment-group-title">{t("Noch offen","Still unpaid")} <span>{c.open.length}</span></h3>{c.open.length ? renderRows(c.open) : <p className="py-3 text-[13px] text-[#65716d]">{t("Keine offenen Zahlungen in diesem Monat.","No unpaid payments this month.")}</p>}</section>
-        <section data-payment-group="paid" aria-label={t("Bereits bezahlt","Already paid")}><h3 className="home-payment-group-title">{t("Bereits bezahlt","Already paid")} <span>{c.payments.length-c.open.length}</span></h3>{c.payments.some(p=>c.isPaid(p)) ? renderRows(c.payments.filter(p=>c.isPaid(p))) : <p className="py-3 text-[13px] text-[#65716d]">{t("Noch keine Zahlungen abgehakt.","No payments checked off yet.")}</p>}</section>
+        <section data-payment-group="paid" aria-label={t("Bereits bezahlt","Already paid")}><h3 className="home-payment-group-title">{t("Bereits bezahlt","Already paid")} <span>{c.payments.length-c.open.length}</span><span className="home-paid-group-total" data-checklist-paid>{money(c.paidTotal)}</span></h3>{c.payments.some(p=>c.isPaid(p)) ? renderRows(c.payments.filter(p=>c.isPaid(p))) : <p className="py-3 text-[13px] text-[#65716d]">{t("Noch keine Zahlungen abgehakt.","No payments checked off yet.")}</p>}</section>
       </div> : renderRows([...c.open,...c.payments.filter(p=>c.isPaid(p))])):<p className="text-[13px] leading-5 text-[#52605b]">{costs.length?t('Keine Zahlungen für diesen Monat eingeplant.','No payments scheduled for this month.'):t('Füge deine erste regelmäßige Ausgabe hinzu.','Add your first recurring cost.')}</p>}
-      <PaymentAmountForm c={c} locale={locale}/>
+      {!primary && <PaymentAmountForm c={c} locale={locale}/>}
 
       {!c.closed&&c.missing.length>0&&<div className="mt-4 rounded-xl bg-[#f4f6f2] p-3"><p className="text-[13px] leading-5 text-[#52605b]">{t('Diese Kosten brauchen einen Termin, damit wir wissen, in welchem Monat sie anfallen. Sie fehlen im Betrag oben.','These costs need a date so we know which month they fall in. They are excluded from the amount above.')}</p><div className="mt-2 flex flex-wrap gap-2">{c.missing.map(cost=><button type="button" key={cost.id} onClick={()=>onEdit(cost)} className="eavesence-pill-button home-dashboard-action">{cost.name} · {t('Termin ergänzen','Add date')}</button>)}</div></div>}
       {!c.closed&&c.payments.some(p=>!p.date)&&<p className="mt-3 text-[13px] leading-5 text-[#65716d]">{t('Monatliche Kosten ohne Termin zählen einmal pro Monat. Mit einem Datum siehst du auch, wann sie anstehen.','Monthly costs without a date count once each month. Add a date to see when they are due.')}</p>}

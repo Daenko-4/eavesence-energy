@@ -81,8 +81,9 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1365]) {
     await costName.fill('New subscription');
     const amount = cost.getByLabel(t('Betrag', 'Amount'), { exact: true });
     await amount.fill('25'); await amount.press('Enter');
-    const feedback = page.locator('[data-cost-feedback]');
-    await expect(feedback).toBeFocused(); await unobscured(feedback);
-    await expect(feedback).toContainText(t('Haushaltskosten gespeichert.', 'Household cost saved.'));
+    const feedback = page.locator('[data-home-notice]');
+    await expect(feedback).toContainText(t('Kosten gespeichert.', 'Cost saved.'));
+    const trigger=page.getByRole('group',{name:t('Aktionen für dein Zuhause','Home actions'),exact:true}).getByRole('button',{name:t('Kosten hinzufügen','Add cost'),exact:true});
+    await expect(trigger).toBeFocused(); await unobscured(trigger);
   });
 }

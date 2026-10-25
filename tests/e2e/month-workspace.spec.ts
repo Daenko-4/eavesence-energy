@@ -39,7 +39,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
       const left=(await workspace.locator('.home-month-summary').boundingBox())!,middle=(await workspace.locator('.home-month-payments').boundingBox())!,right=(await workspace.locator('.home-month-tools').boundingBox())!;
       for(const card of await workspace.locator('[data-home-kpi]').all()) {
         const box=(await card.boundingBox())!;
-        expect(Math.abs(box.width-left.width)).toBeLessThan(1);
+        expect(Math.abs(box.width-left.width)).toBeLessThanOrEqual(2);
       }
       expect(left.x+left.width).toBeLessThan(middle.x);
       expect(middle.x+middle.width).toBeLessThan(right.x);

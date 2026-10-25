@@ -14,7 +14,7 @@ export default defineConfig({
   reporter: [["list"], ["html", { open: "never" }]],
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1365, height: 900 } } },
-    { name: "webkit-home", testMatch: ["month-workspace.spec.ts", "layout-rhythm.spec.ts", "guided-money.spec.ts","home-pro-focus.spec.ts", "pro-insights.spec.ts", "home-sections.spec.ts", "planning-flow.spec.ts", "monthly-outlook.spec.ts", "save-actions.spec.ts"], use: { ...devices["iPhone 13"], deviceScaleFactor: 1 } },
+    { name: "webkit-home", testMatch: ["month-centre.spec.ts", "month-workspace.spec.ts", "layout-rhythm.spec.ts", "guided-money.spec.ts","home-pro-focus.spec.ts", "pro-insights.spec.ts", "home-sections.spec.ts", "planning-flow.spec.ts", "monthly-outlook.spec.ts", "save-actions.spec.ts"], use: { ...devices["iPhone 13"], deviceScaleFactor: 1 } },
   ],
   use: {
     baseURL: "http://127.0.0.1:3100",

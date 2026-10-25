@@ -58,7 +58,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await page.getByRole('group', { name: de ? 'Aktionen für dein Zuhause' : 'Home actions', exact: true }).getByRole('button', { name: de ? 'Kosten hinzufügen' : 'Add cost', exact: true }).click();
     const costForm = page.locator('#household-cost-form');
     await expect(costForm).toBeVisible();
-    const bounds = (await costForm.boundingBox())!;
+    const bounds = (await page.locator('[data-home-context-editor]').boundingBox())!;
     for (const field of await costForm.locator('input:not([type=checkbox]), select').all()) {
       if (!await field.isVisible()) continue;
       const box = (await field.boundingBox())!;

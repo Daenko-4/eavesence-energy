@@ -121,6 +121,14 @@ export default function SavingsCoach({
         </p>
       )}
       <div className={mode === "opportunities" ? "planning-task-card savings-review-layout" : undefined} data-has-selection={!!p.selected}>
+      {mode === "opportunities" && <aside className="centre-savings-summary">
+        <div className="centre-result-card" data-savings-centre-result>
+          <p>{t("Geplantes Plus pro Monat", "Planned extra per month")}</p>
+          <strong>{p.preview ? money(p.preview.totalDifference / 12) : p.plannedMonthly > 0 ? money(p.plannedMonthly) : "—"}</strong>
+          <p>{t("Monatsdurchschnitt. Geplant, noch nicht eingespart.", "Monthly average. Planned, not saved yet.")}</p>
+        </div>
+        <dl className="centre-breakdown"><div><dt>{t("Bestätigt pro Monat", "Confirmed per month")}</dt><dd>{money(p.confirmedMonthly)}</dd></div><div><dt>{t("Bis heute eingespart", "Saved so far")}</dt><dd>{money(p.totals.scheduled)}</dd></div></dl>
+      </aside>}
       <div className={mode === "opportunities" ? "savings-choice" : undefined} hidden={mode === "progress"}>
       {mode !== "progress" && p.reviewable.length > 0 && <p className="mt-4 text-[13px] font-semibold">{t("1 · Kostenposten auswählen", "1 · Choose one cost")}</p>}
       {mode !== "progress" && !p.selected && <div className="mt-3 grid max-w-lg items-start gap-3">
@@ -150,6 +158,7 @@ export default function SavingsCoach({
         <p className="mt-3 text-[#52605b]">{costReviewTip(p.selected.category, de, p.selected.frequency)}</p>
       </aside>}
       </div>
+      {mode === "opportunities" && !p.selected && <aside className="home-month-tool-card centre-savings-guide"><p className="centre-eyebrow">{t("So geht’s weiter", "Your next step")}</p><h3 className="centre-context-title">{t("Eine Ausgabe auswählen", "Choose one cost")}</h3><p className="centre-caption">{t("Neuen Preis testen, Änderung vormerken und erst nach der Umsetzung bestätigen.", "Try a new price, save your plan and confirm only after making the change.")}</p></aside>}
       <div className={mode === "opportunities" ? "savings-edit" : undefined} hidden={mode === "progress" || !p.selected}>
       {mode !== "progress" && p.selected && <p className="mt-4 text-[13px] font-semibold">{t("2 · Neuen Betrag prüfen und vormerken", "2 · Check a new amount and save the plan")}</p>}
       {mode !== "progress" && p.selected && (
@@ -197,7 +206,7 @@ export default function SavingsCoach({
             {p.cashImpact ? <><p className="mt-2">{t("Zusätzlich verfügbar", "Extra money available")}: {money(p.cashImpact.before)} → <strong>{money(p.cashImpact.after)}</strong></p><p className="mt-1 text-[#52605b]">{p.cashImpact.saving > 0 ? t(`Wenn die Änderung rechtzeitig umgesetzt wird: ${money(p.cashImpact.saving)} mehr bis zum Gehalt.`, `If the change happens in time: ${money(p.cashImpact.saving)} more until payday.`) : t("Bis zu diesem Gehalt ändert sich nichts. Bezahlte und bekannte Rechnungen bleiben gleich; spätere Termine zählen danach.", "No change before this payday. Paid and existing invoices stay the same; later payment dates count afterwards.")}</p></> : <><p className="mt-2 text-[#52605b]">{t("Für diesen Vergleich fehlen aktuelle Angaben unter „Bis zum Gehalt“. Dein Vorhaben kannst du trotzdem speichern.", "This comparison needs current entries under Until payday. You can still save your plan.")}</p></>}
             <p className="mt-2 text-[#52605b]">{t("Vorschau – dein Kontostand und deine Kosten bleiben unverändert.", "Preview — your balance and costs stay unchanged.")}</p>
           </div>}
-          {p.preview && <div role="status" className="rounded-xl bg-[#24272c] p-4 text-white sm:col-span-2" data-savings-impact><p className="text-[13px]">{t("Damit bleiben dir voraussichtlich", "You could have left over")}</p><p className="mt-1 text-[24px] font-bold text-[#72dca3]">{money(p.preview.totalDifference/12)} {t("mehr pro Monat im Durchschnitt", "more per month on average")}</p><p className="mt-2 text-[12px] text-[#d1d7d4]">{money(p.preview.totalDifference)} {t("in den nächsten 12 Planungsmonaten. Geplant, noch nicht eingespart.", "over the next 12 planning months. Planned, not saved yet.")}</p></div>}
+          {p.preview && <p role="status" className="text-[12px] text-[#52605b] sm:col-span-2" data-savings-impact>{money(p.preview.totalDifference)} {t("in den nächsten 12 Planungsmonaten. Geplant, noch nicht eingespart.", "over the next 12 planning months. Planned, not saved yet.")}</p>}
           <FormActions className="sm:col-span-2">
             <button type="button" className={button} onClick={p.cancel}>
               {t("Abbrechen", "Cancel")}

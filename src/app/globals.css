@@ -879,3 +879,156 @@ a {
   [data-primary-payments="true"] [data-checklist-next] { display: none; }
   [data-primary-payments="true"] [data-checklist-open], [data-primary-payments="true"] [data-checklist-paid] { font-size: 18px; }
 }
+
+/* My Home and Pro share one result / task / context workspace. */
+.centre-eyebrow { color: #65716d; font-size: 11px; font-weight: 600; letter-spacing: .045em; text-transform: uppercase; }
+.centre-context-title { margin-top: 5px; font-size: 15px; font-weight: 650; line-height: 1.4; }
+.centre-context-amount { margin-top: 10px; font-size: 25px; font-weight: 700; letter-spacing: -.035em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.centre-caption { color: #65716d; font-size: 12px; line-height: 1.6; }
+.centre-detail { margin-block: 14px; font-size: 12px; }
+.centre-detail dt { color: #65716d; }
+.centre-detail dd { margin-top: 3px; }
+.centre-context-link { margin-top: 16px; padding-top: 12px; border-top: 1px solid #e0e6df; }
+.centre-text-action { min-height: 36px; padding-block: 5px; color: #28734d; font-size: 12px; font-weight: 600; text-align: left; }
+.centre-mobile-plan { display: none; }
+.centre-editor-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.centre-close-action { display: grid; place-items: center; min-width: 44px; min-height: 44px; color: #65716d; font-size: 22px; }
+.home-month-kpis { display: flex; flex-direction: column; gap: 0; overflow: hidden; border: 1px solid #dfe5dd; border-radius: 12px; background: #fff; }
+.home-month-kpi { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: baseline; gap: 4px 8px; padding: 10px 14px; border: 0; border-radius: 0; }
+.home-month-kpi-amount { margin: 0; font-size: 14px; font-variant-numeric: tabular-nums; }
+.home-month-kpi-note { grid-column: 1 / -1; margin: 0; }
+.home-month-kpi-result { display: block; order: -1; padding: 16px 14px; }
+.home-month-kpi-result .home-month-kpi-amount { margin-top: 6px; font-size: 28px; }
+.home-month-kpi-result .home-month-kpi-note { margin-top: 4px; }
+.home-month-context { margin-top: 8px; }
+.home-month-toolbar { border-radius: 12px; }
+.home-month-tool-card { padding: 14px; border-radius: 12px; }
+.home-month-tools .home-section-navigation { margin: 0; padding: 0; border: 0; }
+.home-month-tools .home-section-navigation > button { min-height: 44px; }
+.centre-editor #home-income-form, .centre-editor [data-context-cost-editor="true"], .centre-editor #household-cost-form { margin-top: 8px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; max-width: none; }
+.centre-editor #household-cost-form > h3 { display: none; }
+.centre-editor #household-cost-form > div, .centre-editor #household-cost-form details > div { grid-template-columns: minmax(0,1fr); gap: 12px; }
+.centre-editor [class*="col-span"] { grid-column: 1 / -1; }
+.centre-editor #household-cost-form label, .centre-editor #home-income-form label { font-size: 12px; }
+.centre-editor input, .centre-editor select { max-width: 100%; }
+.centre-editor .form-actions { flex-wrap: wrap; }
+[data-home-has-month="true"] .home-mobile-entry-actions { display: flex !important; }
+[data-home-has-month="true"] .home-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+[data-home-has-month="true"] .home-entry-actions { margin: 0; flex-shrink: 0; }
+[data-home-has-month="true"] .home-heading [data-home-identity] { flex: 1; }
+[data-home-has-month="true"] .home-identity-row { gap: 16px; }
+[data-primary-payments="true"] { border-radius: 12px; }
+[data-primary-payments="true"] .centre-payments-summary { display: grid; grid-template-columns: minmax(0,1fr); gap: 8px; }
+[data-primary-payments="true"] .centre-payments-summary > div { grid-column: auto; }
+[data-primary-payments="true"] .centre-payments-summary > div:first-child { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
+[data-primary-payments="true"] .centre-payments-summary p { margin-top: 2px; font-size: 12px; }
+[data-primary-payments="true"] .centre-payments-summary [data-checklist-open], [data-primary-payments="true"] .centre-payments-summary [data-checklist-paid] { font-size: 16px; }
+[data-primary-payments="true"] [data-checklist-next] { display: none; }
+[data-primary-payments="true"] .home-payment-row { flex-wrap: wrap; gap: 4px; padding-block: 1px; }
+.home-payment-checkbox { display: grid; align-self: stretch; place-items: center; flex: 0 0 36px; min-height: 44px; cursor: pointer; }
+.home-payment-detail-action { display: flex; min-width: 0; flex: 1; min-height: 44px; align-items: center; justify-content: space-between; gap: 10px; padding: 4px; border-radius: 6px; text-align: left; }
+.home-payment-detail-action:hover, .home-payment-detail-action[data-selected="true"] { background: #eef6f0; }
+.home-payment-description { min-width: 0; }
+.home-payment-name { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.home-payment-date { color: #65716d; font-size: 12px; line-height: 1.5; }
+.home-payment-amount { flex-shrink: 0; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.home-payment-group-title .home-paid-group-total { margin-left: auto; font-size: 13px; font-variant-numeric: tabular-nums; }
+.home-payment-inline-editor { flex-basis: 100%; }
+.centre-payment-feedback { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 12px; padding: 6px 14px; background: #eef6f0; font-size: 12px; }
+.centre-result-card { padding: 16px; border-radius: 12px; background: #24272c; color: #fff; }
+.centre-result-card > p:first-child { font-size: 12px; }
+.centre-result-card > strong { display: block; margin-top: 6px; color: #72dca3; font-size: 28px; font-weight: 750; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.centre-result-card > p:last-child { margin-top: 8px; color: #d1d7d4; font-size: 12px; line-height: 1.6; }
+.centre-breakdown { padding: 12px; font-size: 12px; }
+.centre-breakdown > div { display: flex; justify-content: space-between; gap: 8px; margin-block: 8px; }
+.centre-breakdown dt { color: #65716d; }
+.centre-breakdown dd { font-weight: 600; font-variant-numeric: tabular-nums; }
+.centre-pro-page .planning-page-heading { max-width: none; text-align: left; }
+[data-home-workspace="plan"] #home-overview { padding-top: 16px; }
+.centre-pro-page .home-name { margin-top: 0; font-size: 24px; }
+.centre-pro-origin { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 20px; margin-top: 16px; font-size: 12px; color: #65716d; }
+.centre-pro-origin dl { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.centre-pro-origin dl > div { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+.centre-pro-origin dd { color: #17211f; font-weight: 600; font-variant-numeric: tabular-nums; }
+.centre-pro-page .planning-workspace { margin-top: 12px; }
+.centre-pro-page .planning-workspace-content { margin-top: 12px; padding: 0; border: 0; background: transparent; }
+.centre-pro-page .pro-question-navigation { border: 0; padding: 4px; gap: 4px; background: #e9eee8; border-radius: 10px; }
+.centre-pro-page .pro-question-button { min-height: 44px; padding: 8px 12px; border: 0; border-radius: 7px; justify-content: center; font-size: 13px; font-weight: 600; }
+.centre-pro-page .pro-question-button[aria-pressed="true"] { background: #fff; color: #17211f; }
+.centre-pro-page .pro-question-button .site-disclosure-icon { display: none; }
+.centre-pro-page .planning-section-intro { margin-block: 14px; }
+.centre-pro-page [data-pro-centre="payday"] { display: grid; grid-template-columns: minmax(0,1fr); gap: 14px; margin-top: 14px; }
+.centre-cash-summary, .centre-cash-main, .centre-cash-tools { min-width: 0; }
+.centre-cash-tools { display: grid; gap: 12px; }
+.centre-pro-page [data-pro-centre] [data-payday-hero] { display: block; padding: 16px; border-radius: 12px; }
+.centre-pro-page [data-pro-centre] [data-payday-hero] h2 { margin-top: 6px; font-size: 18px; }
+.centre-pro-page [data-pro-centre] [data-payday-hero] > div.flex { margin-top: 12px; }
+.centre-pro-page [data-pro-centre] [data-payday-hero] > p:first-child { display: block; font-size: 11px; }
+.centre-pro-page [data-pro-centre] [data-payday-result] { margin-top: 8px; font-size: 28px; }
+.centre-pro-page [data-pro-centre] [data-payday-summary] { grid-template-columns: minmax(0,1fr); gap: 6px; }
+.centre-pro-page [data-payday-summary] > div { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.centre-pro-page [data-pro-centre] [data-payday-editor] { padding: 16px; border: 1px solid #dfe5dd; border-radius: 12px; }
+.centre-cash-main > div { border: 1px solid #dfe5dd; border-radius: 12px; overflow: hidden; }
+.centre-cash-main > div + div { margin-top: 12px; }
+.centre-cash-tools > details, .centre-cash-tools > div { padding: 14px; border: 1px solid #dfe5dd; border-radius: 12px; background: #fff; }
+.centre-cash-tools [data-payday-calculation] dl > div { flex-wrap: wrap; gap: 4px 8px; }
+.centre-step-list { display: grid; gap: 10px; margin-top: 16px; font-size: 12px; color: #65716d; }
+.centre-step-list li { display: flex; gap: 8px; align-items: center; }
+.centre-step-list li > span { display: grid; place-items: center; width: 24px; height: 24px; background: #f0f3ee; border-radius: 50%; }
+.centre-step-list li[aria-current="step"] { color: #17211f; font-weight: 600; }
+.centre-step-list li[aria-current="step"] > span { background: #dcf5e5; }
+.centre-pro-page .savings-review-layout { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; padding: 0; border: 0; background: transparent; }
+.centre-savings-summary { min-width: 0; overflow: hidden; border: 1px solid #dfe5dd; border-radius: 12px; background: #fff; }
+.centre-savings-summary .centre-result-card { border-radius: 0; }
+.centre-pro-page .savings-choice, .centre-pro-page .savings-edit { margin: 0; padding: 16px; border: 1px solid #dfe5dd; border-radius: 12px; background: #fff; }
+.centre-pro-page .savings-edit > form { margin-top: 12px; padding: 0; border: 0; background: transparent; }
+.centre-pro-page .savings-choice .savings-selected-cost { padding: 12px; }
+.centre-pro-page [data-savings-coach="progress"] .planning-savings-result { margin-top: 0; padding: 16px; border-radius: 12px; }
+.centre-pro-page [data-savings-coach="progress"] .planning-card-amount { font-size: 28px; }
+@media (min-width: 900px) {
+  .home-month-workspace { grid-template-columns: minmax(0,1fr) 280px; }
+  .centre-pro-page [data-pro-centre="payday"] { grid-template-columns: 210px minmax(0,1fr); align-items: start; }
+  .centre-cash-summary { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: 96px; }
+  .centre-cash-main, .centre-cash-tools { grid-column: 2; }
+  .centre-pro-page .savings-review-layout { grid-template-columns: 210px minmax(0,1fr); align-items: start; }
+  .centre-savings-summary { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: 96px; }
+  .centre-pro-page .savings-choice, .centre-pro-page .savings-edit, .centre-savings-guide { grid-column: 2; }
+  .centre-pro-page [data-savings-coach="progress"] { display: grid; grid-template-columns: 210px minmax(0,1fr); column-gap: 16px; align-items: start; }
+  .centre-pro-page [data-savings-coach="progress"] > * { grid-column: 2; }
+  .centre-pro-page [data-savings-coach="progress"] > .planning-savings-result { grid-column: 1; grid-row: 1 / span 7; position: sticky; top: 96px; }
+}
+@media (min-width: 1180px) {
+  .home-month-workspace { grid-template-columns: 210px minmax(0,1fr) 280px; gap: 0 16px; }
+  .home-month-toolbar { border-radius: 12px 12px 0 0; }
+  .home-month-kpi { padding: 10px 14px; }
+  .home-month-kpi-result { padding: 16px 14px; }
+  .centre-pro-page [data-pro-centre="payday"] { grid-template-columns: 210px minmax(0,1fr) 280px; gap: 16px; }
+  .centre-cash-summary { grid-row: auto; }
+  .centre-cash-tools { grid-column: 3; position: sticky; top: 96px; max-height: calc(100dvh - 112px); overflow-y: auto; scrollbar-width: thin; }
+  .centre-pro-page .savings-review-layout { grid-template-columns: 210px minmax(0,1fr) minmax(280px,1fr); }
+  .centre-savings-summary { grid-row: auto; }
+  .centre-pro-page .savings-edit, .centre-savings-guide { grid-column: 3; }
+}
+@media (max-width: 899px) {
+  .centre-mobile-plan { display: inline-flex; align-items: center; }
+  [data-home-has-month="true"] .home-heading { display: block; }
+  [data-home-has-month="true"] .home-entry-actions { margin-top: 10px; }
+  .home-month-kpi:not(.home-month-kpi-result) .home-month-kpi-amount { font-size: 14px; }
+  .home-month-workspace[data-context-active="true"] { grid-template-areas: "month" "summary" "tools" "payments"; }
+  .home-month-workspace:not([data-context-active="true"]) [data-home-payment-context] { display: none; }
+  .home-month-workspace[data-context-active="true"] .home-month-explanation { display: none; }
+  .centre-pro-page .centre-cash-summary [data-payday-hero] > h2 { font-size: 18px; }
+}
+@media (max-width: 639px) {
+  .home-month-kpi-result { display: block; }
+  .home-month-kpi-result .home-month-kpi-amount { margin-top: 5px; font-size: 26px; }
+  .home-payment-detail-action .home-payment-description { display: block; }
+  .home-payment-date { display: block; }
+  .home-payment-checkbox { flex-basis: 44px; }
+  .centre-text-action { min-height: 44px; }
+  .centre-pro-origin { gap: 6px; }
+  .centre-pro-origin dl { display: grid; gap: 6px; }
+  .centre-pro-page .pro-question-button { padding-inline: 6px; font-size: 12px; }
+  .centre-pro-page .savings-edit > form { grid-template-columns: minmax(0,1fr); }
+  .centre-pro-page .savings-edit > form > * { grid-column: 1; }
+}

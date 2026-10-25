@@ -1,3 +1,4 @@
+import { openPaydayPayments } from './home-navigation';
 import { openPayday, paydayStep } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
@@ -82,7 +83,7 @@ for (const de of [false, true]) for (const width of [320, 1024, 1365]) test(`min
   await paydayStep(page,1);await panel.getByLabel(t('Nächstes Gehalt am', 'Next payday'), { exact: true }).fill('2026-10-17');
   await expect(panel.locator('[data-payday-preview-bills]')).toContainText(t('900,00', '900.00'));
   await panel.getByRole('button', { name: t('Einklappen', 'Collapse'), exact: true }).click();
-  await panel.getByRole('button', { name: /Zahlungen bis zum Gehalt abhaken|Check off payments until payday/ }).click();
+  await openPaydayPayments(page);
   await expect(panel.getByRole('checkbox', { name: /^Streaming ·/ })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await screenshotStyle.evaluate(el => { el.parentNode?.removeChild(el); });

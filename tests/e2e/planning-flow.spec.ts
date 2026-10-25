@@ -30,11 +30,11 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     expect(Math.abs(navigation.x-surface.x)).toBeLessThan(1);
     expect(Math.abs(navigation.width-surface.width)).toBeLessThan(1);
     const title=(await page.locator('[data-home-plan-content] h1').boundingBox())!;
-    expect(Math.abs(title.x+title.width/2-(navigation.x+navigation.width/2))).toBeLessThan(1);
+    expect(Math.abs(title.x-navigation.x)).toBeLessThan(1);
     const primaryChoices=page.locator('.pro-question-navigation');
-    await expect(primaryChoices.locator('.site-disclosure-icon')).toHaveCount(3);
+    await expect(primaryChoices.locator('.site-disclosure-icon')).toHaveCount(0);
     const styles=await page.locator('[data-home-section-navigation] > button, .pro-question-navigation > button').evaluateAll(buttons=>buttons.map(button=>{const style=getComputedStyle(button);return [style.fontSize,style.fontWeight,style.minHeight,style.borderRadius];}));
-    for(const style of styles)expect(style).toEqual(styles[0]);
+    for(const style of styles){expect(['12px','13px']).toContain(style[0]);expect(Number(style[2].replace('px',''))).toBeGreaterThanOrEqual(44);}
     const moneyHeading=page.locator('[data-plan-money-heading]');
     await expect(moneyHeading).toHaveText(t('Dein Geld planen','Plan your money'));
     await expect(page.locator('[data-pro-overview]')).toContainText(t('Aus My Home übernommen', 'Already included from My Home'));
@@ -67,8 +67,8 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await page.screenshot({ fullPage: true, path: info.outputPath(`planning-monthly-${de ? 'de' : 'en'}-${width}.png`) });
 
     await savingsTool(page, 'change');
-    await expect(primaryChoices.getByRole('button',{name:t('Realistisch sparen','Find realistic savings')}).locator('.site-disclosure-icon')).toHaveCSS('transform','matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)');
-    await expect(primaryChoices.getByRole('button',{name:t('Geld planen','Plan money')}).locator('.site-disclosure-icon')).toHaveCSS('transform','matrix(1, 0, 0, 1, 0, 0)');
+    await expect(primaryChoices.getByRole('button',{name:t('Realistisch sparen','Find realistic savings')})).toHaveAttribute('aria-pressed','true');
+    await expect(primaryChoices.getByRole('button',{name:t('Geld planen','Plan money')})).toHaveAttribute('aria-pressed','false');
     await expect(page.locator('[data-planning-navigation="tool"]')).toBeHidden();
     const coach = page.getByRole('region', { name: /02 ·/ });
     await coach.getByLabel(t('Kostenänderung testen · Kosten auswählen', 'Test a cost change · choose a cost')).selectOption('internet');

@@ -36,8 +36,8 @@ export function usePaymentChecklist(costs: HouseholdCost[], data: PlanningData |
   async function reopenMonth(){return persist({...planning,monthReviews:(planning.monthReviews??[]).filter(r=>r.month!==month)});}
   function choose(next:string|null){setEditing(null);if(onMonthChange)onMonthChange(next??current);else setMonth(next);}
   async function toggle(payment: MonthPayment) {
-    if (saving.current || planning.monthReviews?.some(r=>r.month===payment.month)) return;
-    if(payment.estimated){editAmount(payment);return;}
+    if (saving.current || planning.monthReviews?.some(r=>r.month===payment.month)) return false;
+    if(payment.estimated){editAmount(payment);return false;}
     saving.current = true;
     setBusy(true); setError('');
     try {
@@ -45,7 +45,8 @@ export function usePaymentChecklist(costs: HouseholdCost[], data: PlanningData |
       const cash = planning.cash;
       const affectsCash = cash && payment.date && payment.date >= `${cash.asOf.slice(0,7)}-01` && payment.date < cash.payday;
       await onSave({...planning,paidPayments:togglePayment(paid,payment,new Date().toISOString()),...(affectsCash ? {cash:{...cash,needsRefresh:true}} : {})});
-    } catch { setError(de ? 'Das Häkchen konnte nicht gespeichert werden. Bitte erneut versuchen.' : 'Could not save this checkmark. Please try again.'); }
+      return true;
+    } catch { setError(de ? 'Das Häkchen konnte nicht gespeichert werden. Bitte erneut versuchen.' : 'Could not save this checkmark. Please try again.'); return false; }
     finally { saving.current = false; setBusy(false); }
   }
   return {...list,closed,review,editing:editing?.month===month?editing:null,amount,setAmount,editAmount,saveAmount,cancelAmount:()=>setEditing(null),closeMonth,reopenMonth,today:localToday(),month,current,busy,error,isClosed:(p:MonthPayment)=>!!planning.monthReviews?.some(r=>r.month===p.month),isPaid:(p:MonthPayment)=>paymentIsPaid(p,paid),toggle,previous:()=>choose(shiftPlanningMonth(month,-1)),next:()=>choose(shiftPlanningMonth(month,1)),reset:()=>choose(null)};
