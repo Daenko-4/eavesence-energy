@@ -27,7 +27,8 @@ for (const locale of ['de', 'en'] as const) {
     await homeDetail(page, 'costs');
     await expect(page.locator('#household-costs')).toContainText('Internet');
     await expect(overview.locator('article').nth(2)).toContainText(de ? '2.360,00' : '2,360.00');
-    await expect(overview).toContainText(de ? 'kein Kontostand' : 'not your account balance');
+    await expect(overview.locator('.home-month-context')).toBeVisible();
+    await expect(overview.locator('.home-month-context')).toContainText(de ? /kein Kontostand/i : /not your account balance/i);
     await expect(page.locator('[data-home-plan-content]')).toBeHidden();
     await expect(page.locator('[data-home-review]')).toBeVisible();
     await page.locator('[data-home-review]').getByRole('button',{name:de ? 'Übersicht geprüft' : 'Overview checked',exact:true}).click();

@@ -35,7 +35,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
     await expect(panel.locator('[data-home-kpi=income]')).toContainText(t('2.500,00','2,500.00'));
     await expect(panel.locator('[data-home-kpi=costs]')).toContainText(t('1.635,00','1,635.00'));
     await expect(panel.locator('[data-home-month-result]')).toContainText(t('3.265,00','3,265.00'));
-    await expect(panel).toContainText(t('Alltagsausgaben gehen vom Rest noch ab','everyday spending still come out of the remainder'));
+    await expect(panel.locator('.home-month-context')).toHaveText(t('Für Alltag & Freizeit, nach erfassten Fixkosten. Kein Kontostand.','For everyday spending, after recorded fixed costs. Not your account balance.'));
     await expect(panel).toContainText(t('Monatliche Kosten ohne Zahlungstermin','Monthly costs without a payment date'));
     await expect(panel.locator('li').filter({hasText:'Electricity'})).toContainText(t('95,00','95.00'));
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

@@ -1856,20 +1856,20 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   return (
-    <div lang={locale} data-pwa-shell className="min-h-screen bg-[var(--background)] text-[#17211f]">
+    <div lang={locale} data-pwa-shell data-home-has-month={view === "overview" && householdCosts.length > 0} className="min-h-screen bg-[var(--background)] text-[#17211f]">
       <Header locale={locale} languageHrefOverride={languageHref} />
       <main id="home-overview" className="scroll-mt-20 px-5 pb-20 pt-10 sm:px-6 sm:pt-14">
         <div className="mx-auto max-w-7xl">
           <section hidden={view !== "overview"} data-home-heading className="home-heading">
             <div data-home-identity>
               <div className="home-identity-row" data-home-title-row>
-                <p className="home-section-label">MY HOME</p>
+                {householdCosts.length > 0 ? <h1 className="home-name">{localizeDefaultHouseholdName(profile.name, locale)}</h1> : <p className="home-section-label">MY HOME</p>}
               <button type="button" onClick={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} aria-expanded={settingsOpen} aria-controls="home-settings" className="home-settings-action">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11"/><circle cx="10" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/></svg>
                 {text.settings}
               </button>
               </div>
-              {view === "overview" && <h1 className="home-name">{localizeDefaultHouseholdName(profile.name, locale)}</h1>}
+              {view === "overview" && !householdCosts.length && <h1 className="home-name">{localizeDefaultHouseholdName(profile.name, locale)}</h1>}
               <p className="home-subtitle">{text.pageSubtitle}</p>
             </div>
             <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className={`home-entry-actions ${householdCosts.length > 0 ? "home-mobile-entry-actions" : ""}`}>
