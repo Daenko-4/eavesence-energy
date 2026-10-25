@@ -33,7 +33,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     expect(Math.abs(title.x+title.width/2-(navigation.x+navigation.width/2))).toBeLessThan(1);
     const primaryChoices=page.locator('.pro-question-navigation');
     await expect(primaryChoices.locator('.site-disclosure-icon')).toHaveCount(3);
-    const styles=await page.locator('[data-home-section-navigation] > button, .pro-question-navigation > button').evaluateAll(buttons=>buttons.map(button=>{const style=getComputedStyle(button);return [style.fontSize,style.fontWeight,style.minHeight,style.padding,style.borderRadius];}));
+    const styles=await page.locator('[data-home-section-navigation] > button, .pro-question-navigation > button').evaluateAll(buttons=>buttons.map(button=>{const style=getComputedStyle(button);return [style.fontSize,style.fontWeight,style.minHeight,style.borderRadius];}));
     for(const style of styles)expect(style).toEqual(styles[0]);
     const moneyHeading=page.locator('[data-plan-money-heading]');
     await expect(moneyHeading).toHaveText(t('Dein Geld planen','Plan your money'));

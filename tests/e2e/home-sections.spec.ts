@@ -69,14 +69,13 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(draft).toHaveValue('Keep this draft while reviewing costs');
     await nav.locator('[data-home-section=notes]').press('Enter');
     await expect(panels).toHaveCount(0);
-    const budgetButton = page.locator('[data-home-monthly-budget] > summary');
-    await budgetButton.focus(); await budgetButton.press('Space');
-    await expect(page.locator('[data-home-monthly-budget]')).not.toHaveAttribute('open');
+    await expect(page.locator('[data-home-monthly-budget] article')).toHaveCount(3);
+    await expect(page.locator('[data-home-monthly-budget]')).toBeVisible();
     await expect(panels).toHaveCount(0);
     await page.screenshot({ fullPage: true, path: info.outputPath(`home-row-budget-${de ? 'de' : 'en'}-${width}.png`) });
 
     const list = page.locator('[data-month-checklist]');
-    const toggle = list.getByRole('button', { name: de ? 'Zahlungen & Monatsrückblick' : 'Payments & monthly review', exact: true });
+    const toggle = list.getByRole('button', { name: de ? 'Monatsrückblick' : 'Monthly review', exact: true });
     const review = list.locator('[data-month-review]');
     await expect(review).toBeHidden();
     await toggle.click();

@@ -28,7 +28,7 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
   if(section === 'budget'){
     const panel=page.locator('[data-home-monthly-budget]');
     await expect(panel).toBeVisible();
-    if(await panel.getAttribute('open')===null)await panel.locator(':scope > summary').click();
+    if(await panel.evaluate(el=>el.tagName==='DETAILS') && await panel.getAttribute('open')===null)await panel.locator(':scope > summary').click();
     return;
   }
   const button = page.locator(`[data-home-section="${section}"]`);
