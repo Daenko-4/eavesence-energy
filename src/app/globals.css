@@ -784,7 +784,7 @@ a {
 /* Reuse the established Home surfaces without stacking empty outer margins. */
 .home-month-overview { margin-top: 0; }
 .home-month-navigation { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; margin-bottom: 12px; }
-.home-month-overview > dl { gap: 12px 24px; padding-top: 4px; }
+.home-month-facts { display: flex; flex-wrap: wrap; gap: 12px 32px; padding-top: 4px; }
 .pro-overview-disclosure { margin-top: 24px; font-size: 13px; }
 .pro-overview-disclosure > summary { min-height: 44px; font-weight: 600; }
 .pro-overview-disclosure .pro-overview { margin-top: 16px; padding: 20px; border-radius: 12px; }
