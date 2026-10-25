@@ -244,7 +244,7 @@ export default function HouseholdCostsPanel({
   const summary = summarizeHouseholdCosts(costs);
 
   useEffect(() => {
-    if (!formOpen) return;
+    if (!formOpen || request) return;
     const target = document.getElementById("household-cost-name");
     if (!target?.getClientRects().length) return;
     // Requested forms are positioned by the dashboard; local edits only reveal the field if needed.

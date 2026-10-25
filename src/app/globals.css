@@ -782,11 +782,66 @@ a {
 .income-extras-editor > summary::after { content: ""; width: 10px; height: 10px; background: center / 10px 10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='%2328734d' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M5 1v8M1 5h8'/%3E%3C/svg%3E"); }
 
 /* Reuse the established Home surfaces without stacking empty outer margins. */
-.home-month-overview { margin-top: 0; }
 .home-month-navigation { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; margin-bottom: 12px; }
-.home-month-facts { display: flex; flex-wrap: wrap; gap: 12px 32px; padding-top: 4px; }
 .pro-overview-disclosure { margin-top: 24px; font-size: 13px; }
 .pro-overview-disclosure > summary { min-height: 44px; font-weight: 600; }
 .pro-overview-disclosure .pro-overview { margin-top: 16px; padding: 20px; border-radius: 12px; }
 /* The shared task-card rule must not enlarge the compact editor heading. */
 .planning-workspace-content [data-editor-open="true"] [data-payday-hero] { padding: 16px; }
+
+/* One monthly workspace: context at the edges, payment work in the centre. */
+.home-month-workspace { display: grid; grid-template-columns: minmax(0,1fr); grid-template-areas: "month" "summary" "payments" "tools"; gap: 12px; align-items: start; margin-top: 0; }
+.home-month-toolbar { grid-area: month; margin: 0; padding: 16px; border: 1px solid #dfe5dd; border-radius: 16px; background: #fff; }
+.home-month-summary { grid-area: summary; min-width: 0; }
+.home-month-kpis { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.home-month-kpi { min-width: 0; padding: 14px; border: 1px solid #dfe5dd; border-radius: 14px; background: #fff; }
+.home-month-kpi-label { color: #65716d; font-size: 12px; line-height: 1.5; }
+.home-month-kpi-amount { margin-top: 6px; overflow-wrap: anywhere; font-size: 20px; font-weight: 750; line-height: 1.25; letter-spacing: -.025em; }
+.home-month-kpi-note { margin-top: 6px; color: #65716d; font-size: 12px; line-height: 1.5; }
+.home-month-kpi-result { grid-column: 1 / -1; background: #24272c; border-color: #24272c; }
+.home-month-kpi-result .home-month-kpi-label, .home-month-kpi-result .home-month-kpi-note { color: #d1d7d4; }
+.home-month-kpi-result .home-month-kpi-amount { color: #72dca3; font-size: 26px; }
+.home-month-kpi-result[data-home-shortfall="true"] .home-month-kpi-amount { color: #ffd28c; }
+.home-month-context { margin: 10px 2px 0; color: #65716d; font-size: 12px; line-height: 1.6; }
+.home-month-payments { grid-area: payments; min-width: 0; }
+.home-month-payments [data-month-checklist] { margin-top: 0; }
+.home-month-tools { grid-area: tools; display: grid; gap: 12px; min-width: 0; }
+.home-month-tool-card { min-width: 0; padding: 16px; border: 1px solid #dfe5dd; border-radius: 16px; background: #fff; }
+.home-month-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.home-month-tools .home-section-navigation { margin-top: 14px; padding-bottom: 0; border-top: 1px solid #dfe5dd; border-bottom: 0; }
+.home-month-tools .home-section-navigation > button { flex: 1 1 100%; justify-content: space-between; padding-inline: 0; text-align: left; }
+.home-month-tools .home-section-navigation > button[aria-expanded="true"] { padding-inline: 10px; }
+.home-month-tools [data-income-extras-summary] { padding: 0; background: transparent; }
+.home-payment-groups { display: grid; gap: 24px; }
+.home-payment-group-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+.home-payment-group-title > span { color: #65716d; font-size: 12px; font-weight: 500; }
+[data-payment-group="paid"] { padding-top: 18px; border-top: 1px solid #e7ebe5; color: #65716d; }
+[data-primary-payments="true"] > div:first-child { border-bottom: 1px solid #e7ebe5; }
+[data-primary-payments="true"] > div:first-child > div.mt-4 { margin-top: 0; }
+@media (min-width: 900px) {
+  .home-month-workspace { grid-template-columns: minmax(0,1fr) 210px; grid-template-areas: "month tools" "summary tools" "payments tools"; column-gap: 20px; }
+  .home-month-tools { position: sticky; top: 96px; max-height: calc(100dvh - 112px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .home-month-kpis { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .home-month-kpi-result { grid-column: auto; }
+}
+@media (min-width: 1180px) {
+  .home-month-workspace { grid-template-columns: 220px minmax(0,1fr) 210px; grid-template-areas: "summary month tools" "summary payments tools"; column-gap: 20px; row-gap: 0; }
+  .home-month-summary { position: sticky; top: 96px; }
+  .home-month-kpis { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .home-month-kpi { padding: 16px; }
+  .home-month-toolbar { padding: 20px; border-bottom: 0; border-radius: 16px 16px 0 0; }
+  .home-month-payments [data-month-checklist] { border-top: 0; border-radius: 0 0 16px 16px; }
+}
+/* Phones keep entry actions near the page heading; the list follows the totals directly. */
+@media (min-width: 900px) { .home-mobile-entry-actions { display: none !important; } }
+@media (max-width: 899px) {
+  .home-month-actions { display: none; }
+  .home-month-tools .home-section-navigation > button { flex-basis: auto; }
+  .home-month-kpi:not(.home-month-kpi-result) .home-month-kpi-amount { font-size: 18px; }
+}
+@media (max-width: 639px) {
+  [data-primary-payments="true"] > div:first-child > .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  [data-primary-payments="true"] > div:first-child > .grid > div:first-child { grid-column: auto; }
+  [data-primary-payments="true"] [data-checklist-next] { display: none; }
+  [data-primary-payments="true"] [data-checklist-open], [data-primary-payments="true"] [data-checklist-paid] { font-size: 18px; }
+}

@@ -22,7 +22,7 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1365]) {
     await month.getByRole('button', { name: t('Nächster Monat', 'Next month'), exact: true }).click();
     expect((await month.boundingBox())!.height).toBe(height);
     await month.getByRole('button', { name: t('Dieser Monat', 'This month'), exact: true }).click();
-    const result = page.locator('[data-home-next-month]');
+    const result = page.locator('.home-month-toolbar');
     const checklist = page.locator('[data-month-checklist]');
     const a = (await result.boundingBox())!, b = (await checklist.boundingBox())!;
     expect(Math.abs(a.x - b.x)).toBeLessThan(1);
