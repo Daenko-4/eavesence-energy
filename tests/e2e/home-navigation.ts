@@ -5,8 +5,13 @@ export async function homeWorkspace(page: Page, destination: 'overview' | 'plan'
   const header = page.locator('header');
   const hash = destination === 'plan' ? '#home-plan' : '#home-overview';
   const content = page.locator(destination === 'plan' ? '[data-home-plan-content]' : '[data-home-overview-content]');
-  if (page.url().endsWith(hash)) { await expect(content).toBeVisible(); return; }
-  if (await content.isVisible()) return;
+  const initialHash = new URL(page.url()).hash;
+  const linkedView = ['#home-plan', '#payday-plan', '#savings-plan'].includes(initialHash) ? 'plan' : initialHash === '#home-overview' ? 'overview' : null;
+  // On reload the initial render can precede the bookmarked workspace effect.
+  if (linkedView) {
+    await expect(page.locator(linkedView === 'plan' ? '[data-home-plan-content]' : '[data-home-overview-content]')).toBeVisible();
+    if (linkedView === destination) return;
+  } else if (await content.isVisible()) return;
   const link = header.locator(`.header-navigation-link[href$="${hash}"]:visible`).first();
   if (!await link.isVisible()) {
     const menu = header.locator('[data-header-menu-button]');
