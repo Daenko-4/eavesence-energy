@@ -53,13 +53,13 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
       </div>
       <aside className="home-month-summary" aria-label={de ? "Dein Monatsüberblick" : "Your month at a glance"}>
         <div className="home-month-kpis" data-home-monthly-budget>
-          {forecastCards.map((card,index)=><article key={index} data-home-shortfall={index === 2 && outlook.remaining !== null && outlook.remaining < 0} data-home-kpi={index === 0 ? "income" : index === 1 ? "costs" : "remaining"} data-home-month-result={index === 2 ? "" : undefined} className={index === 2 ? "home-month-kpi home-month-kpi-result" : "home-month-kpi"}>
+          {forecastCards.map((card,index)=><article key={index} role={index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "status" : undefined} data-home-shortfall={index === 2 && outlook.remaining !== null && outlook.remaining < 0} data-home-kpi={index === 0 ? "income" : index === 1 ? "costs" : "remaining"} data-home-month-result={index === 2 ? "" : undefined} className={index === 2 ? "home-month-kpi home-month-kpi-result" : "home-month-kpi"}>
             <p className="home-month-kpi-label">{index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? de ? "Nach Fixkosten fehlen" : "Shortfall after fixed costs" : card.label}</p>
             <p className={`home-month-kpi-amount ${index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "text-[#ffd28c]" : ""}`} data-home-remaining={index === 2 ? "" : undefined}>{index === 2 && outlook.remaining !== null ? `${estimate}${money(Math.abs(outlook.remaining))}` : card.value}</p>
             {card.note && <p className="home-month-kpi-note">{card.note}</p>}
           </article>)}
         </div>
-        <p className="home-month-context">{de ? "Nach erfassten Fixkosten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen vom Rest noch ab. Kein Kontostand." : "After recorded fixed costs. Groceries, leisure and other everyday spending still come out of the remainder. Not your account balance."}</p>
+        <p className="home-month-context">{de ? "Nach erfassten Fixkosten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen vom Rest noch ab. Er ist kein Kontostand." : "After recorded fixed costs. Groceries, leisure and other everyday spending still come out of the remainder. It is not your account balance."}</p>
       </aside>
       <div className="home-month-payments">{payments}</div>
       <aside className="home-month-tools" aria-label={de ? "Aktionen & Hinweise" : "Actions & information"}>

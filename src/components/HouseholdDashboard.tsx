@@ -1835,6 +1835,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         : document.getElementById("household-cost-form");
       target?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: focusDate ? "center" : "start" });
       if (focusDate) target?.focus({ preventScroll: true });
+      else target?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
     }));
   }
 
@@ -1871,7 +1872,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               {view === "overview" && <h1 className="home-name">{localizeDefaultHouseholdName(profile.name, locale)}</h1>}
               <p className="home-subtitle">{text.pageSubtitle}</p>
             </div>
-            <div hidden={householdCosts.length > 0} role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className="home-entry-actions">
+            <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className={`home-entry-actions ${householdCosts.length > 0 ? "home-mobile-entry-actions" : ""}`}>
               <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={() => openCostForm()}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
               <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={openIncomeForm} aria-expanded={incomeOpen} aria-controls="home-income-form">{hasRecordedIncome ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
             </div>

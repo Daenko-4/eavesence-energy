@@ -51,7 +51,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
     await page.reload();await homeDetail(page,'upcoming');
     await expect(panel.locator('[data-home-kpi=costs]')).toContainText(t('Bekannte Kosten','Known costs'));
     await expect(panel.locator('[data-home-month-result]')).toContainText('—');
-    await expect(panel).toContainText(t('Zahlungstermine','Payment dates'));
+    await expect(panel).toContainText(t('Diese Kosten brauchen einen Termin','These costs need a date'));
     await panel.getByRole('button',{name:`Annual bill · ${t('Termin ergänzen','Add date')}`,exact:true}).click();
     await expect(page.locator('#household-cost-form')).toBeVisible();
 
