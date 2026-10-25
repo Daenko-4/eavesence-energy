@@ -1,3 +1,4 @@
+import { openPaydayPayments } from './home-navigation';
 import { openPayday, paydayStep } from './home-navigation';
 import { expect, test, type Page } from '@playwright/test';
 import { homeWorkspace, homeDetail, openCostOrganization } from './home-navigation';
@@ -73,10 +74,10 @@ for (const de of [false, true]) {
     await expect(panel.locator('[data-payday-result]')).toContainText(t('760,00', '760.00'));
     await expect(panel.locator('[data-payday-summary]')).toContainText(t('40,00', '40.00'));
     await page.screenshot({ path: info.outputPath(`focused-pro-result-${de ? 'de' : 'en'}.png`) });
-    await panel.getByRole('button', { name: /Zahlungen bis zum Gehalt abhaken|Check off payments until payday/ }).click();
+    await openPaydayPayments(page);
     await panel.getByRole('checkbox', { name: /^Internet ·/ }).check();
     await expect(panel).toHaveAttribute('data-payday-state', 'stale');
-    await expect(panel.locator("[data-payday-hero] + *")).toHaveCSS("border-top-width", "0px");
+    await expect(panel.locator(".centre-cash-summary")).toHaveCSS("border-top-width", "0px");
     await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(244, 246, 242)');
     await expect(panel.locator('[data-payday-status]')).toHaveCSS('color','rgb(82, 96, 91)');
     await page.screenshot({path:info.outputPath(`focused-pro-confirm-balance-${de?'de':'en'}.png`)});

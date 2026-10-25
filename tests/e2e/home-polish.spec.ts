@@ -72,7 +72,8 @@ for (const width of [1365, 390]) {
       const settings=(await row.getByRole('button').boundingBox())!;
       const name=(await heading.locator('h1').boundingBox())!;
       expect(Math.abs(name.x-headingBox.x)).toBeLessThan(1);
-      expect(Math.abs(settings.x+settings.width-headingBox.x-headingBox.width)).toBeLessThan(1);
+      const rowBox=(await row.boundingBox())!;
+      expect(Math.abs(settings.x+settings.width-rowBox.x-rowBox.width)).toBeLessThan(1);
       expect(Math.abs(name.y+name.height/2-settings.y-settings.height/2)).toBeLessThan(1);
       expect(headingBox.height).toBeLessThan(170);
       expect(await heading.locator('h1').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeLessThanOrEqual(32);

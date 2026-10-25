@@ -214,6 +214,8 @@ export default function HouseholdCostsPanel({
   request,
   onChange,
   onSaved,
+  editorOnly = false,
+  onCancel,
 }: {
   locale: Locale;
   currency: SavedDeviceCurrency;
@@ -224,6 +226,8 @@ export default function HouseholdCostsPanel({
   request?: { costId?: string; template?: HouseholdCostCategory; nonce: number };
   onChange: (costs: HouseholdCost[]) => void;
   onSaved?: () => void;
+  editorOnly?: boolean;
+  onCancel?: () => void;
 }) {
   const text = copy[locale];
   const requestedCost = costs.find((cost) => cost.id === request?.costId);
@@ -337,19 +341,20 @@ export default function HouseholdCostsPanel({
   return (
     <section
       id="household-costs"
+      data-context-cost-editor={editorOnly}
       className={embedded
         ? "rounded-xl border border-[#dfe5dd] bg-[#eef0ec] p-4 sm:p-5"
         : "mt-8 rounded-[1.45rem] border border-[#dde2d8] bg-[#eef0ec] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] sm:p-6"}
     >
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div hidden={editorOnly} className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
-          <p hidden={compact} className="text-[13px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
+          <p hidden={compact || editorOnly} className="text-[13px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">
             {tileTitle ? (locale === "de" ? "Gewählter Kostenbereich" : "Selected cost area") : text.eyebrow}
           </p>
           <h2 className="mt-1 site-section-title">
             {tileTitle ?? text.title}
           </h2>
-          <p hidden={compact} className="mt-2 text-[13px] leading-6 text-[#65716d]">
+          <p hidden={compact || editorOnly} className="mt-2 text-[13px] leading-6 text-[#65716d]">
             {text.intro}
           </p>
         </div>
@@ -365,7 +370,7 @@ export default function HouseholdCostsPanel({
         </button>
       </div>
 
-      <div hidden={compact} className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div hidden={compact || editorOnly} className="mt-5 grid gap-3 sm:grid-cols-2">
         {[
           [text.monthly, money(summary.monthlyTotal, locale, currency)],
           [text.yearly, money(summary.annualTotal, locale, currency)],
@@ -439,7 +444,7 @@ export default function HouseholdCostsPanel({
             </label>
           </div></details>
           <FormActions className="mt-4">
-            <button type="button" onClick={() => { resetForm(); setFormOpen(false); }} className="eavesence-pill-button home-compact-action bg-[#eef0ec] text-[#65716d]">
+            <button type="button" onClick={() => { resetForm(); setFormOpen(false); onCancel?.(); }} className="eavesence-pill-button home-compact-action bg-[#eef0ec] text-[#65716d]">
               {text.cancel}
             </button>
             <button type="submit" className={pillClass}>
@@ -449,7 +454,7 @@ export default function HouseholdCostsPanel({
         </form>
       )}
 
-      {costs.length === 0 && !formOpen ? (
+      {!editorOnly && costs.length === 0 && !formOpen ? (
         <div className="mt-5 rounded-xl border border-dashed border-[#cdd6cf] bg-white/60 p-4">
           <h3 className="text-[14px] font-bold">{text.suggestions}</h3>
           <p className="mt-1 text-[13px] leading-5 text-[#65716d]">{text.suggestionsText}</p>
@@ -463,9 +468,9 @@ export default function HouseholdCostsPanel({
         </div>
       ) : null}
 
-      {costs.length > 0 ? (
+      {!editorOnly && costs.length > 0 ? (
         <>
-          <div hidden={compact} className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <div hidden={compact || editorOnly} className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {summary.categoryTotals.map((item) => (
               <article key={item.category} className="rounded-xl border border-[#d8ded8] bg-[#fbfcf8] px-3 py-2.5">
                 <div className="flex items-center justify-between gap-3">
@@ -481,7 +486,7 @@ export default function HouseholdCostsPanel({
           </div>
 
           <div className={compact ? "mt-3" : "mt-5 rounded-xl border border-[#d8ded8] bg-[#fbfcf8] p-4"}>
-            <h3 hidden={compact} className="text-[14px] font-bold">{text.entries}</h3>
+            <h3 hidden={compact || editorOnly} className="text-[14px] font-bold">{text.entries}</h3>
             <div className="mt-3 divide-y divide-[#e2e6df]">
               {costs.map((cost) => (
                 <div

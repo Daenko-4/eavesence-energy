@@ -18,8 +18,9 @@ type Props = {
   onMonthChange:(month:string)=>void; onPlan:()=>void;
   incomeOpen: boolean; onIncome: () => void; onCost: () => void;
   incomeForm: ReactNode; payments: ReactNode; navigation: ReactNode;
+  costEditorTitle?: string; context: ReactNode; costForm?: ReactNode; contextActive: boolean; onCloseContext: () => void;
 };
-export default function HomeCoreOverview({ incomeProvided, incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, outlook, incomeInformation, onMonthChange, onPlan, incomeOpen, onIncome, onCost, incomeForm, payments, navigation }: Props) {
+export default function HomeCoreOverview({ incomeProvided, incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, outlook, incomeInformation, onMonthChange, onPlan, incomeOpen, onIncome, onCost, incomeForm, payments, navigation, context, costForm, contextActive, onCloseContext, costEditorTitle }: Props) {
   const de = locale === "de";
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
   const needsIncome = !(incomeProvided ?? income > 0) && !incomeDeferred;
@@ -35,7 +36,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
   const monthName = new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", {month:"long",timeZone:"UTC"}).format(monthDate);
   const estimate = outlook.estimated ? de ? "ca. " : "approx. " : "";
   const forecastCards = [
-    {label: de ? `Nettoeinkommen im ${monthName}` : `Net income in ${monthName}`, value:outlook.income === null ? "—" : `${outlook.incomeIsAverage ? estimate : ""}${money(outlook.income)}`, note:outlook.income !== null && outlook.extraIncome > 0 ? de ? `Regulär ${money(outlook.regularIncome)} + Sonderzahlungen ${money(outlook.extraIncome)}` : `Regular ${money(outlook.regularIncome)} + extra income ${money(outlook.extraIncome)}` : outlook.income !== null && outlook.incomeIsAverage ? de ? "Monatsdurchschnitt aus deinem Jahresnetto" : "Monthly average from your annual net income" : undefined},
+    {label: de ? `Netto im ${monthName}` : `Net income · ${monthName}`, value:outlook.income === null ? "—" : `${outlook.incomeIsAverage ? estimate : ""}${money(outlook.income)}`, note:outlook.income !== null && outlook.extraIncome > 0 ? de ? `Regulär ${money(outlook.regularIncome)} + Sonderzahlungen ${money(outlook.extraIncome)}` : `Regular ${money(outlook.regularIncome)} + extra income ${money(outlook.extraIncome)}` : outlook.income !== null && outlook.incomeIsAverage ? de ? "Monatsdurchschnitt aus deinem Jahresnetto" : "Monthly average from your annual net income" : undefined},
     {label: outlook.missing.length ? de ? `Bekannte Kosten im ${monthName}` : `Known costs in ${monthName}` : de ? `Fällige Kosten im ${monthName}` : `Costs due in ${monthName}`, value:`${outlook.payments.some(payment => payment.estimated) ? de ? "ca. " : "approx. " : ""}${money(outlook.total)}`},
     {label: de ? "Rest nach Fixkosten" : "Left after fixed costs", value:outlook.remaining === null ? "—" : `${estimate}${money(outlook.remaining)}`, emphasis:true, note:outlook.remaining === null ? de ? "Angaben für diesen Monat fehlen noch" : "Entries for this month are still missing" : undefined},
   ];
@@ -46,7 +47,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
       <button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={needsIncome ? onIncome : onCost} aria-expanded={needsIncome ? incomeOpen : undefined}>{needsIncome ? de ? "Einkommen eintragen" : "Add income" : de ? "Erste Kosten hinzufügen" : "Add first cost"}</button>
       {needsReview && needsIncome && <button type="button" onClick={onSkipIncome} className="ml-2 min-h-11 px-2 text-[13px] font-semibold">{de ? "Einkommen später ergänzen" : "Add income later"}</button>}
     </div>}
-    {count > 0 && <section id="home-detail-upcoming" className="home-month-workspace" aria-label={de ? "Dein Monatsergebnis" : "Your monthly result"} data-home-next-month>
+    {count > 0 && <section id="home-detail-upcoming" className="home-month-workspace" aria-label={de ? "Dein Monatsergebnis" : "Your monthly result"} data-home-next-month data-context-active={contextActive}>
       <div className="home-month-toolbar home-month-navigation" role="group" aria-label={de ? "Monat wählen" : "Choose month"}>
         <h2 className="site-section-title">{monthLabel}</h2>
         <div className="flex items-center gap-1"><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd]" aria-label={de ? "Vorheriger Monat" : "Previous month"} onClick={()=>onMonthChange(shiftPlanningMonth(outlook.month,-1))}>‹</button><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd]" aria-label={de ? "Nächster Monat" : "Next month"} onClick={()=>onMonthChange(shiftPlanningMonth(outlook.month,1))}>›</button><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd] disabled:opacity-40" aria-label={de ? "Dieser Monat" : "This month"} title={de ? "Dieser Monat" : "This month"} disabled={outlook.month === localToday().slice(0,7)} onClick={()=>onMonthChange(localToday().slice(0,7))}><span aria-hidden="true">↺</span></button></div>
@@ -63,15 +64,11 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
       </aside>
       <div className="home-month-payments">{payments}</div>
       <aside className="home-month-tools" aria-label={de ? "Aktionen & Hinweise" : "Actions & information"}>
-        <div className="home-month-tool-card">
-          <h3 className="site-card-title">{de ? "Dein Zuhause pflegen" : "Manage your home"}</h3>
-          <div role="group" aria-label={de ? "Aktionen für dein Zuhause" : "Home actions"} className="home-month-actions">
-            <button type="button" className="eavesence-pill-button home-dashboard-action home-outlined-action" onClick={onCost}>{de ? "Kosten hinzufügen" : "Add cost"}</button>
-            <button type="button" className="eavesence-pill-button home-dashboard-action home-outlined-action" onClick={onIncome} aria-expanded={incomeOpen} aria-controls="home-income-form">{hasIncome ? de ? "Einkommen ändern" : "Edit income" : de ? "Einkommen hinzufügen" : "Add income"}</button>
-          </div>
-          {navigation}
-        </div>
-        <div className="home-month-tool-card"><h3 className="site-card-title">{de ? "Bis zum nächsten Gehalt" : "Until your next payday"}</h3><p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Kontostand eintragen, offene Rechnungen übernehmen." : "Enter your balance and include unpaid bills."}</p><button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={onPlan}>{de ? "Bis zum Gehalt planen" : "Plan until payday"}</button></div>
+        {incomeOpen || costForm ? <section className="home-month-tool-card centre-editor" data-home-context-editor aria-label={incomeOpen ? de ? "Einkommen bearbeiten" : "Edit income" : de ? "Kosten bearbeiten" : "Edit cost"}>
+          <div className="centre-editor-heading"><h3 className="site-card-title">{incomeOpen ? de ? "Einkommen ändern" : "Edit income" : costEditorTitle ?? (de ? "Kosten bearbeiten" : "Edit cost")}</h3><button type="button" className="centre-close-action" onClick={onCloseContext} aria-label={de ? "Bearbeitung schließen" : "Close editor"}>×</button></div>
+          {incomeOpen ? incomeForm : costForm}
+        </section> : context}
+        <div className="home-month-tool-card centre-navigation">{navigation}<button type="button" onClick={onPlan} className="centre-text-action centre-mobile-plan">{de ? "Bis zum Gehalt planen" : "Plan until payday"} <span aria-hidden="true">→</span></button></div>
         <div className="home-month-tool-card home-month-explanation" data-month-calculation>
           <h3 className="site-card-title">{de ? "So wird gerechnet" : "How this is calculated"}</h3>
           <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Monatseinkommen inkl. Sonderzahlungen minus fällige Fixkosten." : "Monthly income including extras, minus fixed costs due."}</p>
@@ -82,7 +79,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
         </div>
       </aside>
     </section>}
-    {incomeOpen && incomeForm}
+    {!count && incomeOpen && incomeForm}
     {!count && hasIncome && <div data-home-monthly-budget className="mt-4"><FinanceCards cards={cards} deficit={deficit} /></div>}
     {needsReview && !needsIncome && count > 0 && <div data-home-review className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
       <h3 className="site-card-title">{de ? "3 · Deinen Überblick prüfen" : "3 · Check your overview"}</h3>

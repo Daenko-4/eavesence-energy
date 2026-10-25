@@ -39,6 +39,8 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
     if(await panel.evaluate(el=>el.tagName==='DETAILS') && await panel.getAttribute('open')===null)await panel.locator(':scope > summary').click();
     return;
   }
+  // After reload, wait for the saved home or its setup before choosing navigation.
+  await expect(page.locator('[data-home-section="costs"], [data-home-setup]').first()).toBeVisible();
   const button = page.locator(`[data-home-section="${section}"]`);
   if (section !== 'costs') await expect(button).toBeVisible();
   if (await button.isVisible()) {
@@ -91,4 +93,9 @@ export async function openCostOrganization(page:Page){
   const details=page.locator('details').filter({has:page.locator('[data-cost-area-overview]')});
   await expect(details).toBeVisible();
   if(await details.getAttribute('open')===null)await details.locator(':scope > summary').click();
+}
+
+export async function openPaydayPayments(page:Page) {
+  const toggle=page.locator('[data-payday-state]:visible').getByRole('button',{name:/Zahlungen bis zum Gehalt abhaken|Check off payments until payday/});
+  if(await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
 }
