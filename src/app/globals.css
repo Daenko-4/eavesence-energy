@@ -839,3 +839,9 @@ a {
   .home-month-tools .home-section-navigation > button { flex-basis: auto; }
   .home-month-kpi:not(.home-month-kpi-result) .home-month-kpi-amount { font-size: 18px; }
 }
+@media (max-width: 639px) {
+  [data-primary-payments="true"] > div:first-child > .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  [data-primary-payments="true"] > div:first-child > .grid > div:first-child { grid-column: auto; }
+  [data-primary-payments="true"] [data-checklist-next] { display: none; }
+  [data-primary-payments="true"] [data-checklist-open], [data-primary-payments="true"] [data-checklist-paid] { font-size: 18px; }
+}

@@ -67,7 +67,7 @@ for (const width of [1365, 390]) {
       const headingBox = (await heading.boundingBox())!;
       expect(Math.abs(headingBox.x + headingBox.width / 2 - width / 2)).toBeLessThan(2);
       await expect(heading.locator('[data-home-identity]').getByRole('button')).toHaveText(de ? 'Einstellungen' : 'Settings');
-      await expect(heading.getByRole('group').getByRole('button')).toHaveCount(2);
+      await expect(page.getByRole('group',{name:de?'Aktionen für dein Zuhause':'Home actions',exact:true}).getByRole('button')).toHaveCount(2);
       const row=heading.locator('[data-home-title-row]');
       const label=(await row.locator('.home-section-label').boundingBox())!;
       const settings=(await row.getByRole('button').boundingBox())!;

@@ -76,7 +76,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
     await page.reload();await homeDetail(page,'upcoming');
     await expect(panel.locator('[data-home-kpi=income]')).toContainText(t('0,00','0.00'));
     await expect(panel.locator('[data-home-month-result]')).toContainText(t('1.635,00','1,635.00'));
-    await expect(panel.locator('[data-home-month-result]')).toContainText(t('fehlen','shortfall'));
+    await expect(panel.locator('[data-home-month-result]')).toContainText(t('fehlen','Shortfall'));
     await expect(panel.locator('[data-home-month-result]').locator('p').nth(1)).toHaveCSS('color','rgb(255, 210, 140)');
 
     await page.evaluate(()=>{
@@ -85,7 +85,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
     });
     await page.reload();await homeDetail(page,'upcoming');
     await expect(panel.locator('[data-home-kpi=income]')).toContainText('—');await expect(panel.locator('[data-home-month-result]')).toContainText('—');
-    await panel.getByRole('button',{name:t('Einkommen ergänzen','Add income'),exact:true}).click();
+    await page.getByRole('group',{name:t('Aktionen für dein Zuhause','Home actions'),exact:true}).getByRole('button',{name:t('Einkommen hinzufügen','Add income'),exact:true}).click();
     await expect(page.locator('#home-income-form')).toBeVisible();
   });
 }

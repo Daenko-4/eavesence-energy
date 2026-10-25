@@ -345,7 +345,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.locator("[data-home-month-result]")).toBeVisible();
   await expect(page.locator("[data-home-remaining]")).toContainText("1,100.00");
   await homeDetail(page, 'budget');
-  await expect(page.getByText("Recurring costs / month")).toBeVisible();
+  await expect(page.locator("[data-home-kpi=costs]")).toContainText("€900.00");
   await openCostManager(page);
   await expect(householdCosts.getByText("€900.00", { exact: true }).filter({ visible: true }).first()).toBeVisible();
   expect(
@@ -627,7 +627,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBe(3);
 });
 
-test("My home distinguishes annual monthly averages from dated payment forecasts", async ({ page }) => {
+test("My home shows due payments for the selected month and keeps cost averages in the editor", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-20T12:00:00Z") });
   await page.goto("/home"); await page.getByRole("button", { name: "Create my home" }).click();
   await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Add cost" }).click();
@@ -640,7 +640,8 @@ test("My home distinguishes annual monthly averages from dated payment forecasts
   await costs.getByLabel("Cancellation deadline (optional, enter yourself)").fill("2026-09-28");
   await costs.getByRole("button", { name: "Save", exact: true }).click();
   const overview = page.getByRole("region", { name: "Your household at a glance" });
-  await expect(overview.locator("article").nth(1)).toContainText("€50.00");
+  await expect(overview.locator("[data-home-kpi=costs]")).toContainText("€0.00");
+  await expect(costs).toContainText("€50.00");
   await homeDetail(page, 'upcoming');
   await expect(overview).toContainText("€600.00"); await expect(overview).toContainText("15 Oct");
   await page.reload(); await homeDetail(page, 'costs'); await expect(page.locator("#household-costs")).toContainText("Insurance");

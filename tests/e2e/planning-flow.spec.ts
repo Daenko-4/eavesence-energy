@@ -26,7 +26,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await seed(page, de);
     const navigation=(await page.locator('.pro-question-navigation').boundingBox())!;
     const surface=(await page.locator('.planning-workspace-content').boundingBox())!;
-    expect(navigation.y+navigation.height).toBeLessThanOrEqual(surface.y-8);
+    await expect.poll(()=>page.locator(".planning-workspace-content").evaluate(panel=>panel.getBoundingClientRect().top-document.querySelector(".pro-question-navigation")!.getBoundingClientRect().bottom)).toBeGreaterThanOrEqual(8);
     expect(Math.abs(navigation.x-surface.x)).toBeLessThan(1);
     expect(Math.abs(navigation.width-surface.width)).toBeLessThan(1);
     const title=(await page.locator('[data-home-plan-content] h1').boundingBox())!;

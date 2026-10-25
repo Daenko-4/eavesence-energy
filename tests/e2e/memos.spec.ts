@@ -5,12 +5,12 @@ async function seed(page:Page,de=false){
  await page.goto(de?'/de/zuhause':'/home');await page.getByRole('button',{name:de?'Zuhause erstellen':'Create my home',exact:true}).click();
  await page.evaluate(()=>{const p=JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);p.incomeAmount=2400;p.overviewReviewed=true;p.backupReminderDismissed=true;localStorage.setItem('eavesence-home-profile-v1',JSON.stringify(p));localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'rent',name:'Rent',category:'housing',amount:900,frequency:'monthly',nextDueDate:'',updatedAt:'2026-10-01T00:00:00Z'}]));});await page.reload();
 }
-for(const de of [false,true])for(const width of [320,390,1365])test(`memos and collapsible checklist in ${de?'de':'en'} at ${width}px`,async({page},info)=>{
+for(const de of [false,true])for(const width of [320,390,1365])test(`memos and always-visible checklist in ${de?'de':'en'} at ${width}px`,async({page},info)=>{
  await page.setViewportSize({width,height:844});await seed(page,de);
  const list=page.getByRole('region',{name:de?'Monatscheckliste':'Monthly checklist'}),toggle=list.getByRole('button',{name:de?'Monatsrückblick':'Monthly review',exact:true});
  await expect(toggle).toHaveAttribute('aria-expanded','false');await toggle.click();
- const payment=list.getByRole('checkbox',{name:/^Rent ·/});await payment.check();await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','false');await expect(payment).toBeHidden();await expect(list.locator('[data-checklist-open]')).toBeVisible();await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 1 bezahlt':'1 of 1 paid');
- await list.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`checklist-collapsed-${de?'de':'en'}-${width}.png`)});
+ const payment=list.getByRole('checkbox',{name:/^Rent ·/});await payment.check();await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','false');await expect(payment).toBeVisible();await expect(payment).toBeChecked();await expect(list.locator('[data-checklist-open]')).toBeVisible();await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 1 bezahlt':'1 of 1 paid');
+ await list.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`checklist-review-closed-${de?'de':'en'}-${width}.png`)});
  await toggle.click();await expect(payment).toBeChecked();expect(await toggle.locator('span').last().evaluate(el=>getComputedStyle(el).rotate)).toBe('-45deg');
  const memos=page.getByRole('region',{name:de?'Merken & erinnern':'Notes & reminders'}),summary=page.locator('[data-home-section=notes]');
  await expect(summary).toHaveAttribute('aria-expanded','false');await summary.click();await memos.getByRole('button',{name:de?'Notiz hinzufügen':'Add note',exact:true}).click();

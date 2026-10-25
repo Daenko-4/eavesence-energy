@@ -67,7 +67,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
           <h3 className="site-card-title">{de ? "Dein Zuhause pflegen" : "Manage your home"}</h3>
           <div role="group" aria-label={de ? "Aktionen für dein Zuhause" : "Home actions"} className="home-month-actions">
             <button type="button" className="eavesence-pill-button home-dashboard-action home-outlined-action" onClick={onCost}>{de ? "Kosten hinzufügen" : "Add cost"}</button>
-            <button type="button" className="eavesence-pill-button home-dashboard-action home-outlined-action" onClick={onIncome} aria-expanded={incomeOpen} aria-controls="home-income-form">{hasIncome ? de ? "Einkommen ändern" : "Edit income" : de ? "Einkommen ergänzen" : "Add income"}</button>
+            <button type="button" className="eavesence-pill-button home-dashboard-action home-outlined-action" onClick={onIncome} aria-expanded={incomeOpen} aria-controls="home-income-form">{hasIncome ? de ? "Einkommen ändern" : "Edit income" : de ? "Einkommen hinzufügen" : "Add income"}</button>
           </div>
           {navigation}
         </div>

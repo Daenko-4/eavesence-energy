@@ -1813,7 +1813,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setHomeSection(null);
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
       const form = document.getElementById("home-income-form");
-      form?.querySelector("input")?.focus({ preventScroll: true });
+      if (!form?.contains(document.activeElement)) form?.querySelector("input")?.focus({ preventScroll: true });
       form?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
     }));
   }
@@ -1835,7 +1835,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         : document.getElementById("household-cost-form");
       target?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: focusDate ? "center" : "start" });
       if (focusDate) target?.focus({ preventScroll: true });
-      else target?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
+      else if (!target?.contains(document.activeElement)) target?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
     }));
   }
 
