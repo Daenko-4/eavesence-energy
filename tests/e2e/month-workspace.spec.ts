@@ -10,7 +10,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await page.getByRole('button',{name:t('Zuhause erstellen','Create my home'),exact:true}).click();
     await page.evaluate(()=>{
       const profile=JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);
-      Object.assign(profile,{incomeAmount:2400,incomeFrequency:'monthly',incomeDeferred:false,overviewReviewed:true,backupReminderDismissed:true,incomeExtras:[{id:'extra',kind:'salary14',month:11,amount:2000}]});
+      Object.assign(profile,{incomeAmount:2400,incomeFrequency:'monthly',incomeDeferred:false,overviewReviewed:true,backupReminderDismissed:true,incomeExtras:[{id:'extra',kind:'salary14',month:11,amount:2000},{id:'summer',kind:'salary13',month:6,amount:2000},{id:'bonus',kind:'bonus',month:12,amount:500}]});
       localStorage.setItem('eavesence-home-profile-v1',JSON.stringify(profile));
       localStorage.setItem('eavesence-home-costs-v1',JSON.stringify(Array.from({length:20},(_,index)=>({id:`cost-${index}`,name:`Bill ${index+1}`,amount:20,frequency:'monthly',category:'other',nextDueDate:`2026-10-${String(index+1).padStart(2,'0')}`,updatedAt:'2026-10-25T12:00:00Z'}))));
     });
@@ -38,6 +38,11 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
       expect(middle.x+middle.width).toBeLessThan(right.x);
       await page.evaluate(()=>scrollTo({top:650,behavior:'instant'}));
       for(const selector of ['.home-month-summary','.home-month-tools'])expect((await workspace.locator(selector).boundingBox())!.y).toBeGreaterThanOrEqual(90);
+      const tools=workspace.locator('.home-month-tools');
+      expect((await tools.boundingBox())!.height).toBeLessThanOrEqual(788);
+      await tools.evaluate(el=>{el.scrollTop=el.scrollHeight;});
+      expect((await tools.locator('[data-income-extras-summary] li').last().boundingBox())!.y+(await tools.locator('[data-income-extras-summary] li').last().boundingBox())!.height).toBeLessThanOrEqual(900);
+      await tools.evaluate(el=>{el.scrollTop=0;});
       await page.screenshot({path:info.outputPath(`workspace-scrolled-${de?'de':'en'}-${width}.png`)});
     } else {
       const month=(await workspace.locator('.home-month-toolbar').boundingBox())!,summary=(await workspace.locator('.home-month-summary').boundingBox())!,list=(await workspace.locator('.home-month-payments').boundingBox())!;

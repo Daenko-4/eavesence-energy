@@ -820,7 +820,7 @@ a {
 [data-primary-payments="true"] > div:first-child > div.mt-4 { margin-top: 0; }
 @media (min-width: 900px) {
   .home-month-workspace { grid-template-columns: minmax(0,1fr) 210px; grid-template-areas: "month tools" "summary tools" "payments tools"; column-gap: 20px; }
-  .home-month-tools { position: sticky; top: 96px; }
+  .home-month-tools { position: sticky; top: 96px; max-height: calc(100dvh - 112px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
   .home-month-kpis { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .home-month-kpi-result { grid-column: auto; }
 }
