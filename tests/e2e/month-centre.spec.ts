@@ -42,6 +42,14 @@ for(const de of [false,true]) for(const width of [320,768,1365]) {
     await checklist.getByRole('button',{name:'Internet · Details',exact:true}).click();
     const context=page.locator('[data-home-payment-context]');
     await expect(context).toContainText('Internet');
+    if(width < 900){
+      await expect(context.locator('[data-home-context-heading]')).toBeFocused();
+      const heading=(await context.locator('[data-home-context-heading]').boundingBox())!;
+      expect(heading.y).toBeGreaterThanOrEqual((await page.locator('header').boundingBox())!.height);
+    }
+    await context.getByRole('button',{name:t('Details schließen','Close details'),exact:true}).click();
+    await expect(checklist.getByRole('button',{name:'Internet · Details',exact:true})).toBeFocused();
+    await checklist.getByRole('button',{name:'Internet · Details',exact:true}).click();
     await context.getByRole('button',{name:t('Kosten bearbeiten','Edit cost'),exact:true}).click();
     const editor=page.locator('[data-home-context-editor]');
     await expect(editor).toBeVisible();

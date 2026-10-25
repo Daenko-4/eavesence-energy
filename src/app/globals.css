@@ -883,6 +883,7 @@ a {
 /* My Home and Pro share one result / task / context workspace. */
 .centre-eyebrow { color: #65716d; font-size: 11px; font-weight: 600; letter-spacing: .045em; text-transform: uppercase; }
 .centre-context-title { margin-top: 5px; font-size: 15px; font-weight: 650; line-height: 1.4; }
+[data-home-context-heading] { scroll-margin-top: 112px; }
 .centre-context-amount { margin-top: 10px; font-size: 25px; font-weight: 700; letter-spacing: -.035em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .centre-caption { color: #65716d; font-size: 12px; line-height: 1.6; }
 .centre-detail { margin-block: 14px; font-size: 12px; }

@@ -7,7 +7,7 @@ import { paymentKey, type MonthPayment } from '@eavesence/core/paymentChecklist'
 import type { HouseholdCost } from '@eavesence/core/householdCosts';
 import type { PlanningData } from '@eavesence/core/planning';
 
-type Props = { selectedKey?:string|null; onSelect?:(key:string)=>void; primary?:boolean; month?:string; onMonthChange?:(month:string)=>void; costs:HouseholdCost[]; data?:PlanningData; onSave:(data:PlanningData)=>void|Promise<void>; locale:'de'|'en'; currency:string; onEdit:(cost:HouseholdCost)=>void; onAdd:()=>void; expanded?:boolean; onExpandedChange?:(open:boolean)=>void };
+type Props = { selectedKey?:string|null; onSelect?:(key:string, trigger:HTMLButtonElement)=>void; primary?:boolean; month?:string; onMonthChange?:(month:string)=>void; costs:HouseholdCost[]; data?:PlanningData; onSave:(data:PlanningData)=>void|Promise<void>; locale:'de'|'en'; currency:string; onEdit:(cost:HouseholdCost)=>void; onAdd:()=>void; expanded?:boolean; onExpandedChange?:(open:boolean)=>void };
 export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdit,onAdd,expanded,onExpandedChange,month,onMonthChange,primary=false,selectedKey,onSelect}:Props) {
   const [localOpen,setLocalOpen]=useState(false),bodyId=useId();
   const open=expanded??localOpen,setOpen=onExpandedChange??setLocalOpen;
@@ -39,7 +39,7 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
     return <ul className="divide-y divide-[#e7ebe5]">{payments.map(p=>{const paid=c.isPaid(p);return <li key={paymentKey({costId:p.cost.id,month:p.month,date:p.date})} className="home-payment-row flex min-w-0 items-center gap-3 py-2">
         {primary ? <>
           <label className="home-payment-checkbox"><input type="checkbox" checked={paid} disabled={c.busy || !!c.closed} onChange={event=>void toggleRow(p,event.currentTarget)} aria-label={`${p.cost.name} · ${p.date?dateLabel(p.date):monthLabel} · ${t('Bezahlt','Paid')}`} className="h-5 w-5 shrink-0 accent-[#28734d]"/></label>
-          <button type="button" className="home-payment-detail-action" data-selected={selectedKey === paymentKey({costId:p.cost.id,month:p.month,date:p.date})} onClick={()=>onSelect?.(paymentKey({costId:p.cost.id,month:p.month,date:p.date}))} aria-label={`${p.cost.name} · ${t('Details','Details')}`}>
+          <button type="button" className="home-payment-detail-action" data-selected={selectedKey === paymentKey({costId:p.cost.id,month:p.month,date:p.date})} onClick={event=>onSelect?.(paymentKey({costId:p.cost.id,month:p.month,date:p.date}),event.currentTarget)} aria-label={`${p.cost.name} · ${t('Details','Details')}`}>
             <span className="home-payment-description"><span className={`home-payment-name ${paid?'text-[#65716d] line-through':''}`}>{p.cost.name}</span><span className="home-payment-date">{p.date?dateLabel(p.date):t('Monatlich · Termin fehlt','Monthly · date missing')}{paid?` · ${t('Bezahlt','Paid')}`:''}</span></span>
             <span className="home-payment-amount">{p.estimated?t("ca. ","approx. "):""}{money(p.cost.amount)}</span>
           </button>
