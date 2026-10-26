@@ -2067,6 +2067,7 @@ export default function EnergyCalculator({
               </span>
             </span>
           </button>
+          {saveConfirmation?.visible && <div className="mt-2 max-w-sm text-[12px] leading-5 text-[#d1d7d4]" data-device-save-destination><a href={activeLocale === "de" ? "/de/zuhause#home-devices" : "/home#home-devices"} className="inline-flex min-h-11 items-center font-semibold text-[var(--brand-green-mint)] underline underline-offset-4">{activeLocale === "de" ? "Meine Geräte ansehen →" : "View My devices in My Home →"}</a><p>{activeLocale === "de" ? "Dein Stromabschlag bleibt unverändert." : "Your electricity payment stays unchanged."}</p></div>}
         </div>
       </div>
 

@@ -204,9 +204,9 @@ test("PWA metadata, service worker and offline fallback are available", async ({
   await context.setOffline(false);
 
   await page.goto("/offline");
-  await expect(page.getByRole("heading", { name: "Keine Verbindung" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No connection" })).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Erneut versuchen · Try again" }),
+    page.getByRole("link", { name: "Try again" }),
   ).toHaveAttribute("href", "/home");
 });
 
@@ -272,6 +272,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(
     page.getByRole("heading", { name: "Set up your home" }),
   ).toBeVisible();
+  await page.getByText("Change name and currency",{exact:true}).click();
   await page.getByLabel("Home name").fill("Test home");
   await page.getByLabel("Home name").press("Enter");
   await openEnergyTile(page);
@@ -537,7 +538,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Manage data" })).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Settings", exact: true }),
+    page.locator('[data-header-settings]'),
   ).toHaveCSS("height", "44px");
   await expect(page.getByRole("button", { name: "Save settings" })).toHaveCSS(
     "height",
@@ -545,7 +546,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   );
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
-  const settingsAction = page.getByRole("button", { name: "Settings", exact: true });
+  const settingsAction = page.locator("[data-header-settings]");
   await expect(settingsAction).toHaveCSS("width", "44px");
   await expect(settingsAction).toHaveAttribute("aria-controls", "home-settings");
   await expect(settingsAction).toHaveAttribute("aria-expanded", "true");
@@ -595,7 +596,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeLessThanOrEqual(1);
   expect(manageDataTextTops.exportAction).toBe(manageDataTextTops.action);
   expect(manageDataTextTops.resetAction).toBe(manageDataTextTops.action);
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
   await openEnergyTile(page);
   const electricityTileButton = page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first().getByRole("button").first();
   if (await electricityTileButton.getAttribute("aria-expanded") === "false") await electricityTileButton.click();
@@ -1507,15 +1508,15 @@ test("hidden advanced plans survive core edits and export", async ({ page }) => 
 for (const width of [320, 390, 1365]) {
   test(`Pro questions are separate and fit at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 900 }); await page.goto("/home"); await page.getByRole("button", { name: "Create my home" }).click();
-    await expect(page.getByRole("heading", { name: "Your plan", exact: true })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "Until payday", exact: true })).toBeHidden();
     await openPlan(page, "payday");
-    await expect(page.getByRole("heading", { name: "Your plan", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Until payday", exact: true })).toBeVisible();
     const questions = page.getByRole("group", { name: "Choose planning question" });
     await questions.screenshot({ path: info.outputPath(`pro-questions-${width}.png`) });
     // The clear space above a compact pill remains part of its phone tap target.
     await questions.getByRole("button", { name: "Find realistic savings" }).click({ position: { x: 20, y: 2 } });
     await expect(page.getByRole("region", { name: "02 · Where can I realistically save?", exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Your plan", exact: true })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "Until payday", exact: true })).toBeHidden();
     await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toHaveCount(0);
     await openPlan(page, "progress");
     await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toBeVisible();
@@ -1574,7 +1575,7 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
 
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
  await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await paydayStep(page,1);await panel.getByLabel('Next payday',{exact:true}).fill(day);await paydayStep(page,2);await panel.getByText('Keep some money in reserve (optional)',{exact:true}).click();await paydayStep(page,2);await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await paydayStep(page,2);await panel.getByLabel('Everyday spending until payday',{exact:true}).fill('150');await paydayStep(page,2);await panel.getByRole('button',{name:'Show available money'}).click();
- await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel.locator('h2')).toHaveText('Extra money available');await expect(panel.locator('[data-payday-hero]')).toContainText('Until');
+ await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel.locator('h2')).toHaveText('Available until payday');await expect(panel.locator('[data-payday-hero]')).toContainText('Until');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.reload();await openPlan(page, 'payday');await expect(panel).toContainText('€650.00');
 });
@@ -1699,6 +1700,7 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
 
  test("new homes start with costs only and add energy when explicitly requested", async ({ page }) => {
   await page.goto("/home");
+  await page.getByText("Change name and currency",{exact:true}).click();
   await page.getByLabel("Home name").fill("Simple home");
   await page.getByLabel("Home name").press("Enter");
   const tiles = page.locator("[data-home-tiles] article");
@@ -1740,7 +1742,7 @@ for (const locale of ['de', 'en'] as const) {
     });
     await page.reload();
     await openPlan(page, 'payday');
-    const question = page.getByRole('heading',{name:locale==='de'?'Dein Plan':'Your plan',exact:true});
+    const question = page.getByRole('heading',{name:locale==='de'?'Bis zum Gehalt':'Until payday',exact:true});
     await expect(question).toBeVisible();
     await question.scrollIntoViewIfNeeded();
     await page.screenshot({path:info.outputPath(`cash-window-${locale}.png`)});

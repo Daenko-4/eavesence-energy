@@ -126,12 +126,12 @@ export default function PaydayPanel({
       data-payday-step={step}
     >
       <aside className="centre-cash-summary">      <div className="finance-result-surface planning-task-card bg-[#24272c] p-5 text-center text-white sm:p-6" data-payday-hero data-payday-tone={currentResult && !open ? "result" : "setup"}>
-        <p className="text-[11px] font-semibold uppercase tracking-[.1em] text-[#b8efcc]">
+        {!open && <p className="text-[11px] font-semibold uppercase tracking-[.1em] text-[#b8efcc]">
           {!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} ${p.forecast.days === 1 ? "Tag" : "Tage"}`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} ${p.forecast.days === 1 ? "day" : "days"}`) : t("Dein Geld bis zum Gehalt", "Your money until payday")}
-        </p>
-        <h2 ref={resultHeading} tabIndex={-1} className="mt-2 site-section-title outline-none">
-          {open ? quickBalance ? t("Kontostand", "Balance") : t("Dein Plan", "Your plan") : currentResult
-            ? shortfall ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Zusätzlich verfügbar", "Extra money available")
+        </p>}
+        <h2 data-plan-money-heading ref={resultHeading} tabIndex={-1} className="mt-2 site-section-title outline-none">
+          {open ? quickBalance ? t("Kontostand", "Balance") : t("Bis zum Gehalt", "Until payday") : currentResult
+            ? shortfall ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Bis zum Gehalt verfügbar", "Available until payday")
             : state === "stale" ? t("Kontostand bestätigen", "Confirm account balance")
             : state === "expired" ? t("Neuen Zeitraum planen", "Plan your next pay period")
             : state === "dates" ? t("Zahlungstermine ergänzen", "Add payment dates")
@@ -141,7 +141,6 @@ export default function PaydayPanel({
         {currentResult && !open && <p className={`mt-2 text-[clamp(2rem,4vw,2.6rem)] font-extrabold leading-tight tracking-tight ${shortfall ? "text-[#ffd28c]" : "text-[#72dca3]"}`} data-payday-result aria-live="polite">{money(Math.abs(p.forecast!.remaining!))}</p>}
         <p hidden={open} className={`mx-auto mt-2 max-w-2xl text-[13px] leading-5 ${state === "stale" || state === "expired" || state === "dates" ? "text-[#ffe1a8]" : "text-[#d1d7d4]"}`} data-payday-status role="status">{statusText}</p>
         {state === "empty" && !open && <ol className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[12px] text-[#d1d7d4]" aria-label={t("Drei Angaben", "Three entries")}>{[t("Kontostand", "Account balance"),t("Gehaltstag", "Payday"),t("Alltag", "Everyday spending")].map((label,index)=><li key={label} className="flex items-center gap-2"><span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#65716d] text-[11px]" aria-hidden="true">{index+1}</span>{label}</li>)}</ol>}
-        {currentResult && !open && <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-white/15 pt-3 text-[12px]" data-payday-summary>{[[t("Rechnungen", "Bills"),p.forecast!.fixed],[t("Alltag", "Everyday"),p.forecast!.everyday!],[t("Reserve", "Reserve"),p.cash!.protected]].map(([label,value])=><div key={label}><dt className="text-[#b8c4bf]">{label}</dt><dd className="mt-1 break-words text-[13px] font-semibold">{money(Number(value))}</dd></div>)}</dl>}
         <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
           <button type="button" aria-expanded={open} aria-controls={editorId} data-payday-edit-action className="inline-flex min-h-11 items-center gap-3 rounded-full bg-[#72dca3] px-4 text-[13px] font-semibold text-[#17211f]" onClick={() => open ? setOpen(false) : editPlan()}>
             {open ? t("Einklappen", "Collapse") : p.cash ? t("Kontostand aktualisieren", "Update account balance") : t("Verfügbares Geld berechnen", "Calculate available money")}
@@ -173,11 +172,11 @@ export default function PaydayPanel({
               <legend className="px-1 text-[14px] font-semibold">{t("Offene Rechnungen", "Unpaid bills")}</legend>
               {p.preview ? <>
                 <div className="flex items-baseline justify-between gap-3 text-[13px]"><span>{t(`${p.preview.payments.length} ${p.preview.payments.length === 1 ? "Zahlung" : "Zahlungen"} bis ${day(p.payday)}`, `${p.preview.payments.length} ${p.preview.payments.length === 1 ? "payment" : "payments"} before ${day(p.payday)}`)}</span><strong className="shrink-0" data-payday-preview-bills>{money(p.preview.fixed)}</strong></div>
-                <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Aus My Home übernommen. Bezahlte Rechnungen abhaken, damit wir sie nicht doppelt abziehen.", "Included from My Home. Check off paid bills so we do not deduct them twice.")}</p>
+                <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Aus deiner Monatsübersicht übernommen. Bereits bezahlte Rechnungen abhaken.", "Included from My Home. Check off paid bills so we do not deduct them twice.")}</p>
                 {p.preview.overdue > 0 && <p className="mt-2 text-[13px] text-amber-800">{t(`${p.preview.overdue} frühere Zahlungen dieses Monats sind noch offen und enthalten.`, `${p.preview.overdue} earlier payments this month are still unchecked and included.`)}</p>}
                 {p.preview.estimatedBills > 0 && <p className="mt-2 text-[13px] text-[#52605b]">{t(`${p.preview.estimatedBills} Beträge noch geschätzt.`, `${p.preview.estimatedBills} amounts are still estimates.`)}</p>}
                 {bills.length > 0 && <button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={reviewPayments}>{t("Zahlungen prüfen", "Review payments")}</button>}
-                {p.preview.missingDates > 0 && <div className="mt-3"><p className="text-[13px] font-semibold text-amber-800">{t("Bei diesen Kosten fehlt noch ein Zahlungstermin:", "These costs still need a payment date:")}</p>{input.costs.filter(c => !c.nextDueDate).map(c => <PaymentDateEntry key={c.id} cost={c} locale={locale} onSave={onDateSave} onReview={()=>onReviewCost?.(c)}/>)}</div>}
+                {p.preview.missingDates > 0 && <div className="mt-3"><p className="mb-2 text-[13px] leading-5 text-amber-800">{t("Du kannst weiterplanen. Ein verfügbares Budget zeigen wir erst, wenn alle Zahlungstermine bekannt sind.", "You can continue planning. Available money is only shown once all payment dates are known.")}</p><p className="text-[13px] font-semibold text-amber-800">{t("Bei diesen Kosten fehlt noch ein Zahlungstermin:", "These costs still need a payment date:")}</p>{input.costs.filter(c => !c.nextDueDate).map(c => <PaymentDateEntry key={c.id} cost={c} locale={locale} onSave={onDateSave} onReview={()=>onReviewCost?.(c)}/>)}</div>}
               </> : <p className="text-[13px] leading-5 text-[#52605b]">{t("Wähle oben deinen nächsten Gehaltstag. Dann zeigen wir, welche gespeicherten Rechnungen bis dahin noch anstehen.", "Choose your next payday above to see which saved bills are still due before then.")}</p>}
             </fieldset>
             <fieldset hidden={step !== 2} className="min-w-0">
@@ -198,7 +197,7 @@ export default function PaydayPanel({
               <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Dieser Betrag bleibt unangetastet. Sparziele werden hier nicht automatisch abgezogen.", "This amount stays untouched. Savings goals are not deducted automatically here.")}</p>
             </details>
             {p.error && <p role="alert" className="text-[13px] text-red-700">{p.error}</p>}
-            <FormActions>{quickBalance && <button type="button" className="eavesence-pill-button home-dashboard-action" onClick={()=>{setStep(1);requestAnimationFrame(()=>focusField(paydayInput.current));}}>{t("Zeitraum oder Alltag ändern", "Change dates or everyday spending")}</button>}{step > 0 && <button type="button" disabled={p.busy} className="eavesence-pill-button home-dashboard-action" onClick={()=>{setStep(step-1);requestAnimationFrame(()=>focusField(step===1?balanceInput.current:paydayInput.current));}}>{t("Zurück", "Back")}</button>}<button type="submit" disabled={p.busy || (step === 1 && (p.preview?.missingDates??0)>0)} className="eavesence-pill-button home-primary-action">{step < 2 && !quickBalance ? t("Weiter", "Continue") : t("Verfügbares Geld anzeigen", "Show available money")}</button></FormActions>
+            <FormActions>{quickBalance && <button type="button" className="eavesence-pill-button home-dashboard-action" onClick={()=>{setStep(1);requestAnimationFrame(()=>focusField(paydayInput.current));}}>{t("Zeitraum oder Alltag ändern", "Change dates or everyday spending")}</button>}{step > 0 && <button type="button" disabled={p.busy} className="eavesence-pill-button home-dashboard-action" onClick={()=>{setStep(step-1);requestAnimationFrame(()=>focusField(step===1?balanceInput.current:paydayInput.current));}}>{t("Zurück", "Back")}</button>}<button type="submit" disabled={p.busy} className="eavesence-pill-button home-primary-action">{step < 2 && !quickBalance ? t("Weiter", "Continue") : t("Verfügbares Geld anzeigen", "Show available money")}</button></FormActions>
           </form>
         </div>
       )}
@@ -211,7 +210,7 @@ export default function PaydayPanel({
 </div>
       <aside className="centre-cash-tools">
         {open && <section className="home-month-tool-card finance-dark-panel" data-payday-guide>
-          <p className="centre-eyebrow">{t("Dein nächster Schritt", "Your next step")}</p>
+
           <h3 className="centre-context-title">{[t("Kontostand eintragen", "Enter your balance"), t("Gehaltstag & Rechnungen", "Payday & bills"), t("Alltag einplanen", "Plan everyday spending")][step]}</h3>
           <p className="centre-caption">{[t("Übernimm den Betrag aus deiner Banking-App. Noch nichts abziehen.", "Use the balance from your banking app, before deductions."), t("Nur offene Zahlungen bis zu diesem Tag werden abgezogen.", "Only unpaid bills before that date are deducted."), t("Plane Lebensmittel, Freizeit und auf Wunsch eine Reserve ein.", "Allow for groceries, leisure and an optional reserve.")][step]}</p>
           <ol className="centre-step-list" aria-label={t("Deine Planung", "Your plan")}>{[t("Kontostand", "Balance"), t("Gehaltstag", "Payday"), t("Alltag", "Everyday spending")].map((label,index)=><li key={label} aria-current={step === index ? "step" : undefined}><span>{index < step ? "✓" : index + 1}</span>{label}</li>)}</ol>

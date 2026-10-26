@@ -36,8 +36,8 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     const styles=await page.locator('[data-home-section-navigation] > button, .pro-question-navigation > button').evaluateAll(buttons=>buttons.map(button=>{const style=getComputedStyle(button);return [style.fontSize,style.fontWeight,style.minHeight,style.borderRadius];}));
     for(const style of styles){expect(['12px','13px']).toContain(style[0]);expect(Number(style[2].replace('px',''))).toBeGreaterThanOrEqual(44);}
     const moneyHeading=page.locator('[data-plan-money-heading]');
-    await expect(moneyHeading).toHaveText(t('Dein Geld planen','Plan your money'));
-    await expect(page.locator('[data-pro-overview]')).toContainText(t('Aus My Home übernommen', 'Already included from My Home'));
+    await expect(moneyHeading).toHaveText(t('Bis zum Gehalt','Until payday'));
+    await expect(page.locator('[data-pro-overview]')).toContainText(t('Aus deiner Monatsübersicht übernommen', 'Already included from My Home'));
     await expect(page.locator('[data-pro-overview]')).toContainText(t('2.400,00', '2,400.00'));
     await expect(page.locator('[data-pro-overview]')).toContainText(t('90,00', '90.00'));
     await expect(page.locator('[data-planning-navigation="period"]')).toBeHidden();

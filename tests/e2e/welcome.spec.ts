@@ -4,7 +4,7 @@ for (const de of [false, true]) {
   test(`welcome leads to My Home and preserves calculator access (${de ? "de" : "en"})`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto(de ? "/de" : "/");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(de ? "Damit aus Überblick ein Plan wird." : "Turn clarity into a plan.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(de ? "Was bleibt dir jeden Monat?" : "What is left each month?");
     const start = page.getByRole("link", { name: de ? "Meinen Überblick starten" : "Start my overview", exact: true });
     await expect(start).toHaveAttribute("href", de ? "/de/zuhause" : "/home");
     await expect(start).toBeInViewport();
@@ -39,7 +39,7 @@ test("welcome language switch stays on welcome; damaged storage does not prevent
   await page.goto("/");
   await page.getByRole("link", { name: "Current language: English. Switch to German." }).click();
   await expect(page).toHaveURL("/de");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Damit aus Überblick ein Plan wird.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Was bleibt dir jeden Monat?");
   await page.getByRole("link", { name: "Aktuelle Sprache: Deutsch. Zu Englisch wechseln." }).click();
   await expect(page).toHaveURL("/");
 });

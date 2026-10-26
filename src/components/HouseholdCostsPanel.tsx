@@ -428,7 +428,7 @@ export default function HouseholdCostsPanel({
             <label className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b]">
               {text.due}
               <input type="date" value={nextDueDate} onChange={(event) => setNextDueDate(event.target.value)} className={fieldClass} />
-            </label>            <p className="text-[13px] font-normal leading-5">{locale === "de" ? "Mit Datum erscheint die Zahlung im richtigen Monat und im Plan bis zum Gehalt." : "A date puts this payment in the correct month and in your plan until payday."}</p>
+            </label>            <p className="text-[13px] font-normal leading-5">{locale === "de" ? "Für den Plan bis zum Gehalt ist ein Zahlungstermin nötig. Du kannst ihn später ergänzen." : "A payment date is needed for your plan until payday. You can add it later."}</p>
           </div>
           <details open={Boolean(editingId)} className="home-disclosure mt-3 text-[13px]"><summary className="cursor-pointer font-semibold">{locale === "de" ? "Weitere Angaben: Kategorie und Kündigung" : "More details: category and cancellation"}</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b]">

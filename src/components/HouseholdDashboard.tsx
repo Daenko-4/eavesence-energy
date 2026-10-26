@@ -37,6 +37,7 @@ import PlanningNavigation, { type PlanningPeriod, type SavingsTool } from "@/com
 import HomeMemos from "@/components/HomeMemos";
 import MonthlyPayments from "@/components/MonthlyPayments";
 import HomePaymentContext from "@/components/HomePaymentContext";
+import HomeSettingsDialog from "./HomeSettingsDialog";
 import HomeCoreOverview from "@/components/HomeCoreOverview";
 import HomeSectionNavigation, { type HomeSection } from "@/components/HomeSectionNavigation";
 import { homeRelease } from "@/lib/homeRelease";
@@ -375,13 +376,13 @@ const copy = {
     dataPrivacy: "Sie enthält keine Konto- oder Cloud-Daten.",
     importHome: "Sicherung importieren",
     exportHome: "Sicherung exportieren",
-    resetHome: "My Home zurücksetzen",
+    resetHome: "Mein Zuhause zurücksetzen",
     importedHome: "My-Home-Sicherung importiert.",
     importHomeError: "Diese Sicherungsdatei ist ungültig oder unvollständig.",
     importHomeConfirm:
       "Diese Sicherung ersetzt dein aktuelles Zuhause, deine Haushaltskosten, gespeicherten Geräte und den Monatsverlauf. Fortfahren?",
     resetHomeConfirm:
-      "My Home wirklich zurücksetzen? Einstellungen, Haushaltskosten und Monatsverlauf werden gelöscht. Deine gespeicherten Geräte bleiben erhalten.",
+      "Mein Zuhause wirklich zurücksetzen? Einstellungen, Haushaltskosten und Monatsverlauf werden gelöscht. Deine gespeicherten Geräte bleiben erhalten.",
     dragRoom: "Raum verschieben",
     moveRoomEarlier: "Weiter nach vorne",
     moveRoomLater: "Weiter nach hinten",
@@ -1236,6 +1237,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function completeOnboarding() {
+    const amount = incomeValue.trim() ? parseIncomeAmount(incomeValue,locale) : null;
+    if (amount !== null && (!Number.isFinite(amount) || amount < 0)) {setIncomeError(locale === "de" ? "Bitte einen Betrag ab 0 eingeben." : "Enter an amount of 0 or more.");return;}
     changeWorkspace("overview");
     const nextProfile = createHouseholdProfile({
       name,
@@ -1244,7 +1247,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       savingsGoalPercent: 10,
       roomNames: [],
     });
-    persistProfile(nextProfile);
+    try {persistProfile(amount === null ? nextProfile : {...nextProfile,incomeAmount:amount,incomeFrequency:"monthly",incomeDeferred:false});}
+    catch {setIncomeError(locale === "de" ? "Dein Zuhause konnte nicht gespeichert werden. Deine Eingaben bleiben erhalten." : "Could not save your home. Your entries have been kept.");return;}
+    setIncomeError("");
     track("Home Onboarding Completed", {
       locale,
       currency,
@@ -1537,17 +1542,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function openHomeSection(section: HomeSection | null) {
+    changeWorkspace("overview");
     setSettingsOpen(false);setHomeSection(section);setIncomeOpen(false);setCostEditorInContext(false);setCostRequest(null);setSelectedPaymentKey(null);if(section === "costs" && !activeTile) setActiveTileId(primaryCostTileId);if(section)requestAnimationFrame(()=>requestAnimationFrame(()=>{const panel=document.getElementById(`home-detail-${section}`);panel?.scrollIntoView({block:"start",behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});const heading=panel?.querySelector<HTMLElement>("h2,h3");heading?.setAttribute("tabindex","-1");heading?.focus({preventScroll:true});}));
   }
 
   function openAppSettings() {
-    changeWorkspace("overview");
     setSettingsOpen(true);
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
-      const section = document.getElementById("home-settings");
-      section?.querySelector("input")?.focus({ preventScroll: true });
-      section?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
-    }));
     track("Home App Navigation Used", { locale, destination: "settings" });
   }
 
@@ -1599,7 +1599,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <p className="mt-4 max-w-2xl text-[14px] leading-7 text-[#65716d]">{text.onboardingText}</p>
 
             <form onSubmit={(event) => { event.preventDefault(); completeOnboarding(); }}>
-            <div className="mt-8 grid gap-5 sm:grid-cols-2">
+            <ol className="home-setup-steps" aria-label={locale === "de" ? "Deine ersten Schritte" : "Your first steps"}><li aria-current="step">1 · {locale === "de" ? "Einkommen" : "Income"}</li><li>2 · {locale === "de" ? "Erste Kosten" : "First costs"}</li><li>3 · {locale === "de" ? "Überblick" : "Overview"}</li></ol>
+            <label className="mt-6 grid gap-2 text-[14px] font-semibold">{locale === "de" ? "Dein monatliches Nettoeinkommen" : "Your monthly net income"}<input inputMode="decimal" value={incomeValue} onChange={event=>{setIncomeValue(event.target.value);setIncomeError("");}} placeholder={locale === "de" ? "z. B. 2.400,00" : "e.g. 2,400.00"} className={homeFieldClass} aria-describedby="setup-income-hint" /></label>
+            <p id="setup-income-hint" className="mt-2 text-[13px] text-[#65716d]">{locale === "de" ? "Ein Betrag reicht. Sonderzahlungen kannst du später ergänzen. Du kannst auch ohne Einkommen starten." : "One amount is enough. Add extra income later. You can also start without entering income."}</p>
+            {incomeError && <p role="alert" className="mt-3 text-[13px] text-red-700">{incomeError}</p>}
+            <details className="home-disclosure mt-5"><summary>{locale === "de" ? "Name und Währung ändern" : "Change name and currency"}</summary>
+            <div className="mt-3 grid gap-5 sm:grid-cols-2">
               <label className="grid gap-2 text-[13px] font-semibold text-[#52605b] sm:col-span-2">
                 {text.householdName}
                 <input value={name} onChange={(event) => setName(event.target.value)} placeholder={text.householdNamePlaceholder} className={homeFieldClass} />
@@ -1613,7 +1618,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
             </div>
 
-            <FormActions className="mt-8"><button type="submit" className={`w-full sm:w-auto ${homePrimaryActionClass}`}>{text.start}</button></FormActions>
+            </details>
+            <FormActions className="mt-6"><button type="submit" className={`w-full sm:w-auto ${homePrimaryActionClass}`}>{text.start}</button></FormActions>
             </form>
             <p className="mt-4 text-[11px] font-medium text-[#65716d]">{text.private}</p>
           </section>
@@ -1897,8 +1903,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           </section>
 
           {settingsOpen && (
-            <section id="home-settings" data-home-settings className={`mt-6 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
+            <HomeSettingsDialog locale={locale} onClose={()=>setSettingsOpen(false)}><section id="home-settings" data-home-settings className={`mt-6 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
               <HomeSectionNavigation locale={locale} active={homeSection} onChange={openHomeSection} memos={profile.planning?.memos} />
+              {notice?.scope === "home" && <p data-home-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
               <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }} className="grid gap-4 sm:grid-cols-4">
               <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
@@ -1981,9 +1988,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   </div>
                 </div>
               </div>
-            </section>
+            </section></HomeSettingsDialog>
           )}
-          {notice?.scope === "home" && view === "overview" && <p data-home-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-center text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
+          {notice?.scope === "home" && !settingsOpen && <p data-home-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-center text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
 
           <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
 
@@ -2475,7 +2482,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               </div>
             </div>
             <section className="centre-pro-origin" aria-label={locale === "de" ? "Deine Planungsgrundlage" : "Your planning starting point"} data-pro-overview>
-              <p>{locale === "de" ? "Aus My Home übernommen" : "Already included from My Home"}</p>
+              <p>{locale === "de" ? "Aus deiner Monatsübersicht übernommen" : "Already included from My Home"}</p>
               <dl><div><dt>{locale === "de" ? incomeSummary.annualAverage ? "Nettoeinkommen · Monatsdurchschnitt" : "Nettoeinkommen pro Monat" : incomeSummary.annualAverage ? "Net income · monthly average" : "Net income per month"}</dt><dd>{hasRecordedIncome ? formatMoney(monthlyIncome,locale,profile.currency) : "—"}</dd></div><div><dt>{locale === "de" ? "Fixkosten · Monatsdurchschnitt" : "Fixed costs · monthly average"}</dt><dd>{formatMoney(householdCostSummary.monthlyTotal,locale,profile.currency)}</dd></div></dl>
             </section>
             <div className="planning-workspace">
@@ -2489,14 +2496,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   onClick={() => navigatePlanQuestion(item)}
                   className="pro-question-button"
                 >
-                  <span>{item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings"}</span>
+                  <span>{item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings"}</span>
                 </button>
               ))}
             </div>
             <div className="planning-workspace-content home-detail-panel" data-plan-question={planQuestion}>
             <div hidden={planQuestion !== "payday"}>
-              <div hidden={planPeriod !== "payday"} className="planning-section-intro"><h2 className="site-section-title" data-plan-money-heading>{locale === "de" ? "Dein Geld planen" : "Plan your money"}</h2>
-              <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{locale === "de" ? "Offene Rechnungen aus My Home sind bereits übernommen." : "Unpaid bills from My Home are already included."}</p></div>
+
               <div hidden={planPeriod !== "payday"} data-planning-period="payday">
           <PaydayPanel onDateSave={(id,date) => {const next=householdCosts.map(c=>c.id===id?{...c,nextDueDate:date,updatedAt:new Date().toISOString()}:c);persistHouseholdCosts(next);}} onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
               </div>

@@ -46,7 +46,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await homeWorkspace(page, 'plan');
     await expect(heading).toBeHidden();
     const hero = page.locator('[data-payday-hero]');
-    await expect(hero.getByRole('heading')).toHaveText(de ? 'Dein Plan' : 'Your plan');
+    await expect(hero.getByRole('heading')).toHaveText(de ? 'Bis zum Gehalt' : 'Until payday');
     await expect(hero.locator('[data-payday-result]')).toHaveCount(0);
     expect((await hero.innerText()).length).toBeLessThan(370);
     await page.screenshot({ path: info.outputPath(`focused-pro-empty-${de ? 'de' : 'en'}-${width}.png`) });
@@ -72,7 +72,7 @@ for (const de of [false, true]) {
     await expect(panel).toHaveAttribute('data-payday-state', 'ready');
     await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(246, 246, 240)');
     await expect(panel.locator('[data-payday-result]')).toContainText(t('760,00', '760.00'));
-    await expect(panel.locator('[data-payday-summary]')).toContainText(t('40,00', '40.00'));
+    await expect(panel.locator('[data-payday-calculation]')).toContainText(t('40,00', '40.00'));
     await page.screenshot({ path: info.outputPath(`focused-pro-result-${de ? 'de' : 'en'}.png`) });
     await openPaydayPayments(page);
     await panel.getByRole('checkbox', { name: /^Internet ·/ }).check();
@@ -156,6 +156,7 @@ test('standalone CSS and bottom navigation keep home, costs and Pro connected', 
   await expect(page.locator('[data-home-heading]')).toBeVisible();
   await page.locator('[data-header-settings]').click();
   await expect(page.locator('[data-home-settings]')).toBeVisible();
+  await page.keyboard.press('Escape');
   await nav.getByRole('link', { name: 'Plan', exact: true }).click();
   await expect(page.locator('[data-home-settings]')).toBeHidden();
   await page.screenshot({ path: info.outputPath('focused-pro-standalone.png') });
