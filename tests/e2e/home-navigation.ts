@@ -1,7 +1,16 @@
 import { expect, type Page } from '@playwright/test';
 
+export async function closeSettings(page:Page) {
+  const dialog=page.getByRole('dialog',{name:/^(Settings|Einstellungen)$/});
+  if(await dialog.isVisible()) {
+    await dialog.getByRole('button',{name:/^(Close|Schließen)$/,exact:true}).click();
+    await expect(dialog).toHaveCount(0);
+  }
+}
+
 /** Use the navigation users actually see, including the mobile menu. */
 export async function homeWorkspace(page: Page, destination: 'overview' | 'plan') {
+  await closeSettings(page);
   const header = page.locator('header');
   const hash = destination === 'plan' ? '#home-plan' : '#home-overview';
   const content = page.locator(destination === 'plan' ? '[data-home-plan-content]' : '[data-home-overview-content]');
@@ -40,7 +49,7 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
     return;
   }
   const panel = page.locator(section === 'costs' ? '[data-cost-manager]' : '[data-home-memos]');
-  if(await panel.isVisible())return;
+  if(await panel.isVisible()){await closeSettings(page);return;}
   if(section === 'costs' && !await page.locator('.home-month-workspace').count()) {
     await page.getByRole('group', { name: /^(Home actions|Aktionen für dein Zuhause)$/ }).getByRole('button', { name: /^(Add cost|Kosten hinzufügen)$/ }).click();
     return;
@@ -55,7 +64,7 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
 }
 
 export async function planningPeriod(page: Page, period: 'payday' | 'forecast' | 'budget') {
-  const question = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ }).getByRole('button', { name: /Plan money|Geld planen/ });
+  const question = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ }).getByRole('button', { name: /Until payday|Bis zum Gehalt/ });
   if (await question.getAttribute('aria-pressed') !== 'true') await question.click();
   await page.locator('[data-planning-options="period"] > summary').click();
   await page.locator(`[data-planning-navigation=period] [data-planning-choice=${period}]`).click();

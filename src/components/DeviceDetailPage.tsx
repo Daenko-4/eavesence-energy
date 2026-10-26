@@ -244,7 +244,7 @@ export default function DeviceDetailPage({
       {
         "@type": "ListItem",
         position: 1,
-        name: "EAVESENCE Energy",
+        name: "EAVESENCE",
         item: `${SITE_URL}${homeHref}`,
       },
       {
@@ -346,7 +346,7 @@ export default function DeviceDetailPage({
                 href={homeHref}
                 className="font-semibold text-[var(--brand-green)] transition hover:text-[var(--brand-green-dark)]"
               >
-                EAVESENCE Energy
+                EAVESENCE
               </Link>
 
               <span className="text-slate-300">
@@ -376,9 +376,7 @@ export default function DeviceDetailPage({
               </p>
 
               <h1 className="mt-3 max-w-4xl text-3xl font-bold tracking-[-0.04em] sm:text-4xl lg:text-[2.75rem]">
-                {text.heroTitleBefore}{" "}
-                {localizedDevice.name}{" "}
-                {text.heroTitleAfter}
+                {locale === "de" ? `Stromkosten: ${localizedDevice.name}` : `${text.heroTitleBefore} ${localizedDevice.name} ${text.heroTitleAfter}`}
               </h1>
 
               <p className="mt-4 max-w-3xl text-[15px] leading-7 text-[#65716d]">

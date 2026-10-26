@@ -1370,3 +1370,42 @@ a {
   .home-month-workspace [data-primary-payments="true"] > div:first-child { padding-block: 6px; }
   .home-month-workspace [data-primary-payments="true"] .centre-payments-summary :is([data-checklist-open],[data-checklist-paid]) { line-height: 26px; }
 }
+
+/* Focused entry, readable comparisons, and settings that preserve the workspace. */
+.home-setup-steps { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 24px; color: #65716d; font-size: 12px; }
+.home-setup-steps [aria-current="step"] { color: #087a45; font-weight: 700; }
+.home-settings-dialog { position: fixed; inset: 0; margin: auto; width: min(860px,calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 24px; border: 1px solid #dfe5dd; border-radius: 20px; background: #f6f6f0; color: #17211f; box-shadow: 0 24px 80px #17211f33; }
+.home-settings-dialog::backdrop { background: #17211f66; }
+.home-settings-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.home-settings-dialog-heading h2 { font-size: 20px; font-weight: 800; letter-spacing: -.025em; }
+.home-settings-dialog #home-settings { margin-top: 16px; padding: 0; border: 0; border-radius: 0; box-shadow: none; }
+.home-settings-dialog .home-section-navigation { margin-top: 0; }
+.device-comparison-basis { display: flex; align-items: end; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 20px; }
+.device-comparison-basis label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
+.device-comparison-basis input { min-height: 44px; width: 180px; border: 1px solid #cfd8d0; border-radius: 8px; padding: 8px 12px; background: #fbfcf8; font-size: 16px; }
+.device-comparison-basis p { max-width: 600px; font-size: 12px; line-height: 1.6; color: #65716d; }
+.device-cost-card > div:last-child { width: 100%; }
+.device-cost-estimate { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #dfe5dd; }
+.device-cost-estimate dt { color: #65716d; font-size: 12px; }
+.device-cost-estimate dd { color: #17211f; font-size: 17px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.device-cost-estimate > div:last-child { text-align: right; }
+.home-month-workspace .home-payment-groups { gap: 12px; }
+.home-month-workspace .home-payment-group-title { font-size: 13px; }
+.home-month-workspace .month-review { margin-top: 16px; padding-top: 16px; }
+.centre-pro-page [data-payday-state] { margin-top: 0; }
+.centre-pro-page [data-payday-calculation] dl { font-variant-numeric: tabular-nums; }
+@media(max-width:639px) {
+  .home-settings-dialog { width: calc(100% - 20px); max-height: calc(100dvh - 24px); padding: 16px; }
+  .device-comparison-basis { align-items: stretch; }
+  .device-comparison-basis input { width: 100%; }
+  .device-comparison-basis label { width: 100%; }
+}
+@media(min-width:640px) {
+  .home-month-workspace [data-primary-payments="true"] .centre-payments-summary { grid-template-rows: auto auto; }
+  .home-month-workspace [data-primary-payments="true"] .centre-payments-summary > div:not([data-checklist-next]) { grid-template-columns: minmax(0,1fr) auto; grid-row: 1 / span 2; align-items: baseline; }
+  .home-month-workspace [data-primary-payments="true"] .centre-payments-summary p:last-child { grid-column: 1 / -1; }
+  .home-month-workspace [data-primary-payments="true"] .centre-payments-summary :is([data-checklist-open],[data-checklist-paid]) { font-size: 18px; }
+}
+.centre-cash-tools [data-payday-calculation] dl > div { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: start; gap: 4px 12px; }
+.centre-cash-tools [data-payday-calculation] dt { min-width: 0; overflow-wrap: anywhere; }
+.centre-cash-tools [data-payday-calculation] dd { text-align: right; white-space: nowrap; }

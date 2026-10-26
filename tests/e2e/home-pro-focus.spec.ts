@@ -1,7 +1,7 @@
 import { openPaydayPayments } from './home-navigation';
 import { openPayday, paydayStep } from './home-navigation';
 import { expect, test, type Page } from '@playwright/test';
-import { homeWorkspace, homeDetail, openCostOrganization } from './home-navigation';
+import { closeSettings, homeWorkspace, homeDetail, openCostOrganization } from './home-navigation';
 
 async function seed(page: Page, de: boolean) {
   await page.clock.setFixedTime(new Date('2026-10-13T12:00:00Z'));
@@ -46,7 +46,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await homeWorkspace(page, 'plan');
     await expect(heading).toBeHidden();
     const hero = page.locator('[data-payday-hero]');
-    await expect(hero.getByRole('heading')).toHaveText(de ? 'Dein Plan' : 'Your plan');
+    await expect(hero.getByRole('heading')).toHaveText(de ? 'Bis zum Gehalt' : 'Until payday');
     await expect(hero.locator('[data-payday-result]')).toHaveCount(0);
     expect((await hero.innerText()).length).toBeLessThan(370);
     await page.screenshot({ path: info.outputPath(`focused-pro-empty-${de ? 'de' : 'en'}-${width}.png`) });
@@ -72,7 +72,7 @@ for (const de of [false, true]) {
     await expect(panel).toHaveAttribute('data-payday-state', 'ready');
     await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(246, 246, 240)');
     await expect(panel.locator('[data-payday-result]')).toContainText(t('760,00', '760.00'));
-    await expect(panel.locator('[data-payday-summary]')).toContainText(t('40,00', '40.00'));
+    await expect(panel.locator('[data-payday-calculation]')).toContainText(t('40,00', '40.00'));
     await page.screenshot({ path: info.outputPath(`focused-pro-result-${de ? 'de' : 'en'}.png`) });
     await openPaydayPayments(page);
     await panel.getByRole('checkbox', { name: /^Internet ·/ }).check();
@@ -156,6 +156,7 @@ test('standalone CSS and bottom navigation keep home, costs and Pro connected', 
   await expect(page.locator('[data-home-heading]')).toBeVisible();
   await page.locator('[data-header-settings]').click();
   await expect(page.locator('[data-home-settings]')).toBeVisible();
+  await page.keyboard.press('Escape');
   await nav.getByRole('link', { name: 'Plan', exact: true }).click();
   await expect(page.locator('[data-home-settings]')).toBeHidden();
   await page.screenshot({ path: info.outputPath('focused-pro-standalone.png') });
@@ -264,6 +265,7 @@ for (const de of [false, true]) {
       const settings = page.locator('[data-home-settings]');
       await settings.locator('input').first().fill('Pending home');
       await settings.locator('select').selectOption('CHF');
+      await closeSettings(page);
       await calculator.click();
       await page.getByRole('button', { name: t('Jahresrechnung', 'Yearly bill'), exact: true }).click();
       const annualBill = page.getByLabel(t('Bezahlter Jahresbetrag', 'Total paid for the year'), { exact: true });
@@ -275,8 +277,10 @@ for (const de of [false, true]) {
       await expect(priceEstimate).not.toContainText('CHF');
       await annualKwh.fill('');
       await slider.press('ArrowRight');
+      await page.locator('[data-header-settings]').click();
       await expect(settings.locator('input').first()).toHaveValue('Pending home');
       await expect(settings.locator('select')).toHaveValue('CHF');
+      await closeSettings(page);
       await expect(annualBill).toHaveValue('1200');
       await expect(annualKwh).toHaveValue('');
       const saveEnergy = page.getByRole('button', { name: t('Strombasis speichern', 'Save electricity basis'), exact: true });
@@ -285,6 +289,7 @@ for (const de of [false, true]) {
       await expect(energyNotice).toHaveAttribute('role', 'alert');
       await page.clock.fastForward(5000);
       await expect(energyNotice).toBeVisible();
+      await page.locator('[data-header-settings]').click();
       await settings.getByRole('button', { name: t('Einstellungen speichern', 'Save settings'), exact: true }).click();
       await expect(page.locator('[data-home-heading] h1')).toHaveText('Pending home');
       expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).electricityInputMode)).toBe('price');

@@ -119,12 +119,12 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     await cash.getByLabel(t('Alltagsausgaben bis zum Gehalt','Everyday spending until payday'),{exact:true}).fill('200');
     await cash.getByRole('button',{name:t('Verfügbares Geld anzeigen','Show available money'),exact:true}).click();
     await expect(cash.locator('[data-payday-result]')).toBeVisible();
-    if(width<900) {
-      const rows=await cash.locator('[data-payday-summary] > div').evaluateAll(nodes=>nodes.map(node=>node.getBoundingClientRect().top));
-      expect(new Set(rows).size).toBe(1);
-      const labelsFit=await cash.locator('[data-payday-summary] dt').evaluateAll(labels=>labels.every(label=>{const range=document.createRange();range.selectNodeContents(label);return range.getBoundingClientRect().right<=label.getBoundingClientRect().right+1;}));
-      expect(labelsFit).toBe(true);
-    }
+    await expect(cash.locator('[data-payday-summary]')).toHaveCount(0);
+    const calculation=cash.locator('[data-payday-calculation]');
+    await expect(calculation).toBeVisible();
+    const amountEdges=await calculation.locator('dd').evaluateAll(nodes=>nodes.map(node=>node.getBoundingClientRect().right));
+    expect(amountEdges.length).toBe(5);
+    expect(Math.max(...amountEdges)-Math.min(...amountEdges)).toBeLessThanOrEqual(1);
     expect(await cash.evaluate(el=>getComputedStyle(el).backgroundImage)).toBe("none");
     expect(await cash.locator('[data-payday-hero]').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(resultReference.background);
 

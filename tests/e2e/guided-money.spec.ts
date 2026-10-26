@@ -32,7 +32,9 @@ for(const de of [false,true])for(const width of [320,1365])test(`result first an
   await balance.fill('1200');await balance.press('Enter');
   await expect(plan).toHaveAttribute('data-payday-step','1');
   await plan.getByRole('button',{name:t('In 14 Tagen','In 14 days'),exact:true}).click();
-  await expect(plan.getByRole('button',{name:t('Weiter','Continue'),exact:true})).toBeDisabled();
+  await expect(plan.getByRole('button',{name:t('Weiter','Continue'),exact:true})).toBeEnabled();
+  await expect(plan).toContainText(t('Du kannst weiterplanen.','You can continue planning.'));
+  await expect(plan.locator('[data-payday-result]')).toHaveCount(0);
   await plan.getByLabel(`Rent · ${t('Zahlungstermin','Payment date')}`,{exact:true}).fill('2026-10-30');
   await plan.getByRole('button',{name:t('Termin speichern','Save date'),exact:true}).click();
   await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!)[0].nextDueDate)).toBe('2026-10-30');

@@ -1,4 +1,4 @@
-const CACHE_NAME = "eavesence-pwa-v3";
+const CACHE_NAME = "eavesence-pwa-v4";
 const OFFLINE_URL = "/offline";
 const APP_ROUTES = ["/home", "/de/zuhause"];
 const PRECACHE_URLS = [

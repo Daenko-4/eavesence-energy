@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import { devices } from "@/data/devices";
+import { devices, getDeviceTypicalYearlyKwh } from "@/data/devices";
 import {
   getCalculatorHref,
   type Locale,
@@ -288,6 +288,10 @@ export default function DevicesPage({
 }: DevicesPageProps) {
   const text = pageText[locale];
   const [searchQuery, setSearchQuery] = useState("");
+  const [tariff, setTariff] = useState("0.35");
+  const parsedTariff = Number(tariff.replace(",", "."));
+  const validTariff = tariff.trim() !== "" && Number.isFinite(parsedTariff) && parsedTariff >= 0;
+  const money = (value: number) => new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:"EUR"}).format(value);
   const normalizedSearch = searchQuery
     .trim()
     .toLocaleLowerCase(locale === "de" ? "de-DE" : "en-GB");
@@ -347,6 +351,10 @@ export default function DevicesPage({
             </p>
 
             <div className="mt-6">
+              <div className="device-comparison-basis">
+                <label>{locale === "de" ? "Strompreis für den Vergleich (€/kWh)" : "Comparison electricity price (€/kWh)"}<input inputMode="decimal" value={tariff} onChange={event=>setTariff(event.target.value)} aria-invalid={!validTariff} aria-describedby="device-comparison-note" /></label>
+                <p id="device-comparison-note">{locale === "de" ? "Geschätzte Betriebskosten bei typischer Nutzung. Dein Tarif und Verbrauch können abweichen. Gerätekosten werden nicht zusätzlich zu deinen Stromzahlungen abgezogen." : "Estimated running costs at typical usage. Your tariff and consumption may differ. Device costs are not deducted on top of your electricity payments."}</p>
+              </div>
               <label className="block max-w-md">
                 <span className="sr-only">{text.searchLabel}</span>
                 <span className="relative block">
@@ -372,6 +380,7 @@ export default function DevicesPage({
                 </span>
               </label>
 
+              {!validTariff && <p role="alert" className="mt-2 text-[13px] text-red-700">{locale === "de" ? "Bitte einen gültigen Strompreis ab 0 eingeben." : "Enter a valid electricity price of 0 or more."}</p>}
               {categories.length > 0 && (
                 <nav
                   className="mt-5 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7"
@@ -481,14 +490,15 @@ export default function DevicesPage({
                                 device.slug
                               }
                               href={href}
-                              className="group grid min-h-[92px] grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3 transition hover:border-[#a9d9bb] hover:bg-white active:scale-[0.995]"
+                              className="device-cost-card group grid min-h-[92px] grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-3 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3 transition hover:border-[#a9d9bb] hover:bg-white active:scale-[0.995]"
                             >
                               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e4f7ec] text-[var(--brand-green)] [&>svg]:h-5 [&>svg]:w-5">
                                 <CategoryIcon category={device.category} />
                               </div>
                               <div className="min-w-0">
-                                <h3 className="truncate site-card-title text-[#17211f] transition group-hover:text-[var(--brand-green)]">{localizedDevice.name}</h3>
-                                <p className="mt-1 text-xs text-[#74807b]">{typicalValue}</p>
+                                <h3 className="break-words site-card-title text-[#17211f] transition group-hover:text-[var(--brand-green)]">{localizedDevice.name}</h3>
+                                <p className="mt-1 text-xs text-[#65716d]">{typicalValue}</p>
+                                <dl className="device-cost-estimate"><div><dt>{locale === "de" ? "ca. pro Monat" : "approx. per month"}</dt><dd>{validTariff ? money(getDeviceTypicalYearlyKwh(device)*parsedTariff/12) : "—"}</dd></div><div><dt>{locale === "de" ? "pro Jahr" : "per year"}</dt><dd>{validTariff ? money(getDeviceTypicalYearlyKwh(device)*parsedTariff) : "—"}</dd></div></dl>
                               </div>
                             </Link>
                           );

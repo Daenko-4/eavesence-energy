@@ -32,7 +32,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(nav.locator('[aria-expanded=true]')).toHaveCount(0);
     await expect(panels).toHaveCount(0);
     await expect(nav.locator('[data-home-section=notes]')).toContainText('1');
-    await page.locator('[data-header-settings]').click();
+    await page.getByRole('dialog').getByRole('button',{name:de?'Schließen':'Close',exact:true}).click();
     await page.screenshot({ fullPage: true, path: info.outputPath(`home-row-closed-${de ? 'de' : 'en'}-${width}.png`) });
 
     await homeDetail(page, 'budget');
