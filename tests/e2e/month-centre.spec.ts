@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { homeWorkspace, paydayStep } from './home-navigation';
 
-for(const de of [false,true]) for(const width of [320,768,1365]) {
+for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
   test(`month centre edits in context and connects the matching Pro workspace ${de?'de':'en'} ${width}`,async({page},info)=>{
     const t=(a:string,b:string)=>de?a:b;
     await page.setViewportSize({width,height:900});
@@ -99,13 +99,27 @@ for(const de of [false,true]) for(const width of [320,768,1365]) {
     await page.screenshot({fullPage:true,path:info.outputPath(`centre-home-${de?'de':'en'}-${width}.png`)});
     await homeWorkspace(page,'plan');
     const cash=page.locator('[data-payday-state]');
+    if(width<900) {
+      expect((await cash.locator('[data-payday-hero]').boundingBox())!.height).toBeLessThanOrEqual(110);
+    }
+    if(width<1180)await expect(cash.locator('[data-payday-guide]')).toBeHidden();
     await cash.getByLabel(t('Aktueller Kontostand','Current account balance'),{exact:true}).fill('1500');
     await paydayStep(page,1);
+    const shortcuts=cash.locator('.payday-date-shortcuts button');
+    const shortcutBoxes=await shortcuts.evaluateAll(buttons=>buttons.map(button=>{const b=button.getBoundingClientRect();return {top:b.top,height:b.height};}));
+    expect(new Set(shortcutBoxes.map(b=>b.top)).size).toBe(1);
+    for(const b of shortcutBoxes)expect(b.height).toBeGreaterThanOrEqual(44);
     await cash.getByLabel(t('Nächstes Gehalt am','Next payday'),{exact:true}).fill('2026-11-05');
     await paydayStep(page,2);
     await cash.getByLabel(t('Alltagsausgaben bis zum Gehalt','Everyday spending until payday'),{exact:true}).fill('200');
     await cash.getByRole('button',{name:t('Verfügbares Geld anzeigen','Show available money'),exact:true}).click();
     await expect(cash.locator('[data-payday-result]')).toBeVisible();
+    if(width<900) {
+      const rows=await cash.locator('[data-payday-summary] > div').evaluateAll(nodes=>nodes.map(node=>node.getBoundingClientRect().top));
+      expect(new Set(rows).size).toBe(1);
+      const labelsFit=await cash.locator('[data-payday-summary] dt').evaluateAll(labels=>labels.every(label=>{const range=document.createRange();range.selectNodeContents(label);return range.getBoundingClientRect().right<=label.getBoundingClientRect().right+1;}));
+      expect(labelsFit).toBe(true);
+    }
     expect(await cash.evaluate(el=>getComputedStyle(el).backgroundImage)).toBe(reference.background);
     expect(await cash.locator('[data-payday-hero]').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(resultReference.background);
 
@@ -122,11 +136,24 @@ for(const de of [false,true]) for(const width of [320,768,1365]) {
     await savings.locator('.savings-choice select').selectOption('internet');
     await expect(savings.locator('.savings-edit')).toBeVisible();
     await savings.locator('.savings-edit input[inputmode=decimal]').fill('20');
+    if(width>=640) {
+      const amount=(await savings.locator('.savings-edit input[inputmode=decimal]').boundingBox())!;
+      const effective=(await savings.locator('.savings-edit input[type=month]').boundingBox())!;
+      expect(Math.abs(amount.y-effective.y)).toBeLessThanOrEqual(1);
+    }
     await expect(savings.locator('[data-savings-centre-result]')).toContainText(t('Geplant, noch nicht eingespart.','Planned, not saved yet.'));
     await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
     await page.screenshot({fullPage:true,path:info.outputPath(`centre-savings-${de?'de':'en'}-${width}.png`)});
     await questions.getByRole('button',{name:t('Erreichte Ersparnis','Savings achieved'),exact:true}).click();
     await expect(page.locator('[data-savings-coach=progress] .planning-card-amount')).toContainText(t('0,00','0.00'));
+    await expect(page.locator('[data-savings-coach=progress] .planning-detail-navigation button')).toHaveCount(2);
+    const actionContrast=await page.locator('[data-savings-coach=progress]').evaluate(workspace=>{
+      const luminance=(color:string)=>color.match(/[\d.]+/g)!.slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+      const backgrounds=getComputedStyle(workspace).backgroundImage.match(/rgb\([^)]+\)/g)!.map(luminance);
+      return Math.min(...Array.from(workspace.querySelectorAll('.planning-detail-navigation button')).flatMap(button=>backgrounds.map(background=>{const foreground=luminance(getComputedStyle(button).color);return (Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05);})));
+    });
+    expect(actionContrast).toBeGreaterThanOrEqual(4.5);
+    await page.screenshot({fullPage:true,path:info.outputPath(`centre-progress-${de?'de':'en'}-${width}.png`)});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await expect(workspace).toBeHidden();
   });
