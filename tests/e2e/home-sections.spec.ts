@@ -71,6 +71,9 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await homeDetail(page, 'notes');
     await expect(draft).toHaveValue('Keep this draft while reviewing costs');
     await page.locator('[data-header-settings]').click();
+    // Settings focuses its first input after rendering; let that handoff finish
+    // before moving keyboard focus to the notes toggle.
+    await expect(page.locator('#home-settings input').first()).toBeFocused();
     await nav.locator('[data-home-section=notes]').press('Enter');
     await expect(panels).toHaveCount(0);
     await expect(page.locator('[data-home-monthly-budget] article')).toHaveCount(3);
