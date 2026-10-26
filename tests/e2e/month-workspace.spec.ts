@@ -34,12 +34,17 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
       for(const b of boxes){expect(Math.abs(b.center)).toBeLessThanOrEqual(1);expect(b.amount).toBeGreaterThanOrEqual(b.labelBottom);}
     };
     await alignedFigures();
+    const incomeBox=(await workspace.locator('[data-home-kpi=income]').boundingBox())!,costBox=(await workspace.locator('[data-home-kpi=costs]').boundingBox())!,resultBox=(await workspace.locator('[data-home-kpi=remaining]').boundingBox())!;
+    expect(incomeBox.x).toBeLessThan(costBox.x);
+    if(width>=640)expect(costBox.x+costBox.width).toBeLessThanOrEqual(resultBox.x+1);
+    else expect(costBox.y+costBox.height).toBeLessThanOrEqual(resultBox.y+1);
     await expect(workspace.locator('[data-home-month-result]')).toHaveCSS('background-color','rgb(224, 241, 228)');
     await expect(workspace.locator('[data-home-remaining]')).toHaveCSS('color','rgb(8, 122, 69)');
     if(width>=640 && width<1180) {
       const cards=await workspace.locator('[data-home-kpi]').evaluateAll(nodes=>nodes.map(node=>{const b=node.getBoundingClientRect();return {top:b.top,left:b.left};}));
       expect(new Set(cards.map(card=>card.top)).size).toBe(1);
-      expect(cards[2].left).toBeLessThan(cards[0].left);
+      expect(cards[0].left).toBeLessThan(cards[1].left);
+      expect(cards[1].left).toBeLessThan(cards[2].left);
       expect((await workspace.locator('[data-home-monthly-budget]').boundingBox())!.height).toBeLessThan(135);
     }
     const next=workspace.getByRole('button',{name:t('Nächster Monat','Next month'),exact:true});
