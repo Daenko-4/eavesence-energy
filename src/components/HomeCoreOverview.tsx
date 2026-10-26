@@ -70,14 +70,14 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
           {incomeOpen ? incomeForm : costForm}
         </section> : context}
       </aside>}
-        <details className="home-month-tool-card finance-result-surface home-month-explanation" data-month-calculation>
-          <summary className="site-card-title min-h-11 cursor-pointer">{de ? "So wird gerechnet" : "How this is calculated"}</summary>
+        <section className="home-month-tool-card finance-result-surface home-month-explanation" data-month-calculation>
+          <div className="month-calculation-copy"><h3 className="site-card-title">{de ? "So wird gerechnet" : "How this is calculated"}</h3>
           <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Monatseinkommen inkl. Sonderzahlungen minus fällige Fixkosten." : "Monthly income including extras, minus fixed costs due."}</p>
           {outlook.incomeIsAverage && <p className="mt-2 text-[12px] leading-5 text-amber-900">{de ? "Dein Einkommen ist ein Jahresdurchschnitt und kann vom tatsächlichen Geldeingang in diesem Monat abweichen." : "Your income is an annual average and may differ from what actually arrives this month."}</p>}
           {outlook.undatedMonthlyCount > 0 && <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Monatliche Kosten ohne Zahlungstermin zählen einmal in diesem Monat." : "Monthly costs without a payment date count once this month."}</p>}
           {outlook.payments.some(payment=>payment.estimated) && <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Variable Beträge sind geschätzt, bis eine Rechnung eingetragen ist." : "Variable amounts are estimates until an invoice is entered."}</p>}
-          {incomeInformation}
-        </details>
+          </div>{incomeInformation}
+        </section>
     </section>}
     {!count && incomeOpen && incomeForm}
     {!count && hasIncome && <div data-home-monthly-budget className="mt-4"><FinanceCards cards={cards} deficit={deficit} /></div>}
