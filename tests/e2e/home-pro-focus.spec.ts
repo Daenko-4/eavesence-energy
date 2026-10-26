@@ -36,7 +36,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(heading.getByRole('heading')).toHaveText(de ? 'Unser Zuhause' : 'Our home');
     const budget = page.locator('[data-home-monthly-budget]');
     await homeDetail(page, 'budget');
-    await expect(budget.locator('article').nth(2)).toHaveCSS('background-color', 'rgb(36, 39, 44)');
+    await expect(budget.locator('article').nth(2)).toHaveCSS('background-color', 'rgb(246, 246, 240)');
     await expect(budget.locator('article').nth(2)).toContainText(de ? '2.360,00' : '2,360.00');
     await expect(page.locator('[data-cost-manager]')).toBeHidden();
     await expect(page.locator('[data-cost-manager]')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
@@ -70,7 +70,7 @@ for (const de of [false, true]) {
     await paydayStep(page,2);await panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true }).fill('200');
     await paydayStep(page,2);await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
     await expect(panel).toHaveAttribute('data-payday-state', 'ready');
-    await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(36, 39, 44)');
+    await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(246, 246, 240)');
     await expect(panel.locator('[data-payday-result]')).toContainText(t('760,00', '760.00'));
     await expect(panel.locator('[data-payday-summary]')).toContainText(t('40,00', '40.00'));
     await page.screenshot({ path: info.outputPath(`focused-pro-result-${de ? 'de' : 'en'}.png`) });
@@ -78,7 +78,7 @@ for (const de of [false, true]) {
     await panel.getByRole('checkbox', { name: /^Internet ·/ }).check();
     await expect(panel).toHaveAttribute('data-payday-state', 'stale');
     await expect(panel.locator(".centre-cash-summary")).toHaveCSS("border-top-width", "0px");
-    await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(244, 246, 242)');
+    await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(246, 246, 240)');
     await expect(panel.locator('[data-payday-status]')).toHaveCSS('color','rgb(82, 96, 91)');
     await page.screenshot({path:info.outputPath(`focused-pro-confirm-balance-${de?'de':'en'}.png`)});
     await expect(panel.locator('[data-payday-result]')).toHaveCount(0);

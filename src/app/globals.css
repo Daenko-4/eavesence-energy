@@ -24,6 +24,19 @@
   --type-field: 0.8125rem;
   --type-card-title: 0.875rem;
   --type-section-title: 1.25rem;
+
+  /* The calculator is the visual reference for every financial workspace. */
+  --finance-workspace-gradient: linear-gradient(135deg, #1d2725 0%, #17211f 62%, #141c1a 100%);
+  --finance-workspace-border: #34413e;
+  --finance-workspace-radius: 1.65rem;
+  --finance-workspace-shadow: 0 28px 70px -44px rgba(18,35,30,.52);
+  --finance-result-bg: #f6f6f0;
+  --finance-result-border: #dde2d8;
+  --finance-result-ink: #24302d;
+  --finance-result-muted: #52605b;
+  --finance-result-radius: 1.45rem;
+  --finance-result-shadow: inset 0 1px 0 rgba(255,255,255,.94), 0 12px 30px -28px rgba(35,48,44,.32);
+  --finance-field-bg: #202b28;
 }
 
 html {
@@ -1032,4 +1045,126 @@ a {
   .centre-pro-page .pro-question-button { padding-inline: 6px; font-size: 12px; }
   .centre-pro-page .savings-edit > form { grid-template-columns: minmax(0,1fr); }
   .centre-pro-page .savings-edit > form > * { grid-column: 1; }
+}
+
+/* Shared calculator surfaces; layout and calculations remain owned by each feature. */
+.finance-workspace, .centre-pro-page .finance-workspace {
+  --panel-ink: #f7faf8;
+  --panel-muted: #aebbb6;
+  --panel-border: rgba(255,255,255,.12);
+  --panel-field: var(--finance-field-bg);
+  --panel-field-focus: #24312d;
+  --panel-action: #72dca3;
+  --panel-error: #ffb4a6;
+  --panel-warning: #ffe1a8;
+  color: var(--panel-ink);
+  background: var(--finance-workspace-gradient);
+  border: 1px solid var(--finance-workspace-border);
+  border-radius: var(--finance-workspace-radius);
+  box-shadow: var(--finance-workspace-shadow);
+}
+.finance-result-surface, .finance-workspace .finance-result-surface, .centre-pro-page .finance-workspace .finance-result-surface {
+  --panel-ink: var(--finance-result-ink);
+  --panel-muted: var(--finance-result-muted);
+  --panel-border: #cdd6cf;
+  --panel-field: #fff;
+  --panel-field-focus: #fff;
+  --panel-action: #087a45;
+  --panel-error: #b42318;
+  --panel-warning: #92400e;
+  color: var(--panel-ink);
+  background: var(--finance-result-bg);
+  border: 1px solid var(--finance-result-border);
+  border-radius: var(--finance-result-radius);
+  box-shadow: var(--finance-result-shadow);
+}
+.finance-workspace .finance-dark-panel, .centre-pro-page .finance-workspace .finance-dark-panel {
+  --panel-ink: #f7faf8;
+  --panel-muted: #aebbb6;
+  --panel-border: rgba(255,255,255,.12);
+  --panel-field: var(--finance-field-bg);
+  --panel-field-focus: #24312d;
+  --panel-action: #72dca3;
+  --panel-error: #ffb4a6;
+  --panel-warning: #ffe1a8;
+  color: var(--panel-ink);
+  background: rgba(255,255,255,.025);
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  box-shadow: none;
+}
+.home-month-workspace.finance-workspace, .centre-pro-page .finance-workspace { padding: 20px; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(.centre-caption, .centre-eyebrow, .centre-detail dt, .home-month-context, .home-month-kpi-label, .home-month-kpi-note, .planning-card-description, .centre-breakdown dt, .planning-section-intro > p) { color: var(--panel-muted); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is([class*="text-[#52605b]"], [class*="text-[#65716d]"], [class*="text-[#d1d7d4]"], [class*="text-[#b8c4bf]"]) { color: var(--panel-muted); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is([class*="text-[#17211f]"], [class*="text-[#24302d]"]) { color: var(--panel-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is([class*="text-red-"], [role="alert"]) { color: var(--panel-error); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [class*="text-amber-"] { color: var(--panel-warning); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(.centre-text-action, .site-disclosure-icon) { color: var(--panel-action); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(.centre-close-action, label, legend) { color: var(--panel-muted); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(h2, h3, h4) { color: var(--panel-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(.centre-detail dd, .home-month-kpi-amount) { color: var(--panel-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(.centre-context-link, .home-section-navigation, .income-extras-editor, .income-extras-editor fieldset) { border-color: var(--panel-border); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-section-navigation > button { color: var(--panel-muted); font-size: 12px; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-section-navigation > button[aria-expanded="true"] { color: var(--panel-ink); background: var(--panel-field); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(.centre-context-amount, .centre-context-title) { color: var(--panel-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .centre-context-title { font-size: 14px; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-month-kpi { background: var(--finance-result-bg); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-month-kpi-result { background: var(--finance-result-bg); border-color: var(--finance-result-border); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-month-kpi-result :is(.home-month-kpi-label, .home-month-kpi-note) { color: var(--finance-result-muted); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-month-kpi-result .home-month-kpi-amount { color: var(--finance-result-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-month-kpi-result[data-home-shortfall="true"] .home-month-kpi-amount { color: #92400e; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-month-kpi + .home-month-kpi { border-top: 1px solid var(--finance-result-border); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-month-toolbar { border-radius: var(--finance-result-radius); box-shadow: none; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [data-primary-payments="true"] { border-radius: var(--finance-result-radius); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [data-primary-payments="true"] > div:first-child { background: transparent; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [data-primary-payments="true"] :is(.home-payment-date, .home-payment-instruction) { color: var(--finance-result-muted); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [data-primary-payments="true"] :is(.home-payment-name, .home-payment-amount) { color: var(--finance-result-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [data-payment-group="paid"] :is(.home-payment-name, .home-payment-amount) { color: var(--finance-result-muted); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [data-primary-payments="true"] button[aria-controls] { background: transparent; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-payment-detail-action:hover, :is(.home-month-workspace, .centre-pro-page .finance-workspace) .home-payment-detail-action[data-selected="true"] { background: #e6eee4; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .centre-payment-feedback { background: #e0f1e4; color: var(--finance-result-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .eavesence-pill-button { border: 1px solid var(--panel-border); background: transparent; color: var(--panel-action); font-size: 12px; font-weight: 650; white-space: normal; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .eavesence-pill-button:hover { background: var(--panel-field); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(.home-primary-action, .planning-submit-action) { background: #72dca3; border-color: #72dca3; color: #17211f; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(.home-primary-action, .planning-submit-action):hover { background: #a0ecc2; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) { background: var(--panel-field); border: 1px solid var(--panel-border); border-radius: 12px; color: var(--panel-ink); font-size: 14px; font-weight: 600; box-shadow: inset 0 1px 0 rgba(255,255,255,.02); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(input, textarea)::placeholder { color: var(--panel-muted); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea):focus-visible { background: var(--panel-field-focus); border-color: #72dca3; outline: 2px solid #72dca3; outline-offset: 2px; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .finance-dark-panel :is(select, input[type="date"], input[type="month"]) { color-scheme: dark; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .finance-result-surface :is(select, input[type="date"], input[type="month"]) { color-scheme: light; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) select option { color: #17211f; background: #fff; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .centre-result-card { color: var(--finance-result-ink); background: var(--finance-result-bg); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .centre-result-card > strong { color: var(--finance-result-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .centre-result-card > p:last-child { color: var(--finance-result-muted); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(.planning-card-label, .planning-card-amount) { color: var(--panel-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [data-payday-hero] :is(h2, p, dd) { color: var(--finance-result-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [data-payday-hero] :is([data-payday-status], dt, p:first-child) { color: var(--finance-result-muted); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [data-payday-summary] { border-color: var(--finance-result-border); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) [data-payday-edit-action] { color: #087a45; background: #e0f1e4; border-color: #bfd3c5; font-size: 12px; }
+.centre-pro-page .finance-workspace[data-payday-shortfall="true"] [data-payday-result] { color: #92400e; }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .centre-step-list { color: var(--panel-muted); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .centre-step-list li[aria-current="step"] { color: var(--panel-ink); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .centre-step-list li > span { background: var(--panel-field); }
+:is(.home-month-workspace, .centre-pro-page .finance-workspace) .centre-step-list li[aria-current="step"] > span { color: #17211f; background: #72dca3; }
+.centre-pro-page .pro-question-navigation { background: var(--finance-workspace-gradient); border: 1px solid var(--finance-workspace-border); border-radius: 14px; }
+.centre-pro-page .pro-question-button { color: #aebbb6; }
+.centre-pro-page .pro-question-button[aria-pressed="true"] { color: var(--finance-result-ink); background: var(--finance-result-bg); border-radius: 10px; }
+@media (min-width: 1180px) {
+  .home-month-workspace.finance-workspace .home-month-toolbar { border-radius: var(--finance-result-radius) var(--finance-result-radius) 0 0; }
+  .home-month-workspace.finance-workspace [data-primary-payments="true"] { border-radius: 0 0 var(--finance-result-radius) var(--finance-result-radius); }
+}
+@media (max-width: 639px) {
+  .home-month-workspace.finance-workspace, .centre-pro-page .finance-workspace { padding: 12px; }
+  :is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) { font-size: 16px; }
+}
+
+/* QuickCheck already owns its calculator-style surface. */
+.centre-pro-page .finance-workspace .centre-cash-main > .centre-quick-check { border: 0; border-radius: 0; overflow: visible; }
+@media (max-width: 767px), (pointer: coarse) {
+  :is(.home-month-workspace, .centre-pro-page .finance-workspace) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) { font-size: 16px; }
+}
+@media (max-width: 1179px) {
+  .home-month-workspace.finance-workspace .home-month-kpi { padding-block: 6px; }
+  .home-month-workspace.finance-workspace .home-month-kpi-result { padding-block: 12px; }
+  .home-month-workspace.finance-workspace .home-month-kpi-result .home-month-kpi-amount { margin-top: 4px; }
 }

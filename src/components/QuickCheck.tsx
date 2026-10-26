@@ -6,7 +6,7 @@ import type { PlanningData } from '@eavesence/core/planning';
 import type { SavingsPlanInput } from '@eavesence/core/savingsPlan';
 export default function QuickCheck({input,data,onSave,onBalance,onPayments,onSavings,onReview,locale,hasPayments=true}:{input:SavingsPlanInput;data?:PlanningData;onSave:(p:PlanningData)=>void|Promise<void>;onBalance:()=>void;onPayments:()=>void;onSavings?:()=>void;onReview?:(c:SavingsPlanInput['costs'][number])=>void;locale:'de'|'en';hasPayments?:boolean}) {
   const de=locale==='de',t=(a:string,b:string)=>de?a:b,q=useQuickCheck(input,data,onSave,de),button='eavesence-pill-button home-dashboard-action';
-  return <div className="border-t border-[#dfe5dd] bg-white p-4 sm:p-5" aria-label={t('Kurzer regelmäßiger Check','Quick regular check')}>
+  return <div className="finance-result-surface border-t border-[#dfe5dd] bg-white p-4 sm:p-5" aria-label={t('Kurzer regelmäßiger Check','Quick regular check')}>
     <button className="flex min-h-11 w-full items-center justify-between gap-3 text-left text-[13px] font-semibold" type="button" aria-expanded={q.open} onClick={()=>q.setOpen(!q.open)}><span>{t('Plan prüfen','Review plan')}{q.complete?` · ${t('heute erledigt','done today')}`:''}</span><span aria-hidden="true" className={`site-disclosure-icon text-xl text-[#28734d] transition-transform duration-200 motion-reduce:transition-none ${q.open?'-rotate-45':''}`}>+</span></button>
     {q.open&&<div className="mt-3 space-y-4 text-[13px]">
       <p className="text-[#52605b]">{t('Nach einer Abbuchung oder vor einer größeren Ausgabe: Kontostand bestätigen und Zahlungen prüfen.','After a debit or before a larger purchase: confirm your balance and review payments.')}</p>

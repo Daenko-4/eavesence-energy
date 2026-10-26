@@ -77,7 +77,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
     await expect(panel.locator('[data-home-kpi=income]')).toContainText(t('0,00','0.00'));
     await expect(panel.locator('[data-home-month-result]')).toContainText(t('1.635,00','1,635.00'));
     await expect(panel.locator('[data-home-month-result]')).toContainText(t('fehlen','Shortfall'));
-    await expect(panel.locator('[data-home-month-result]').locator('p').nth(1)).toHaveCSS('color','rgb(255, 210, 140)');
+    await expect(panel.locator('[data-home-month-result]').locator('p').nth(1)).toHaveCSS('color','rgb(146, 64, 14)');
 
     await page.evaluate(()=>{
       const profile=JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);delete profile.incomeAmount;profile.incomeDeferred=true;

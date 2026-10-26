@@ -7,6 +7,10 @@ for(const de of [false,true]) for(const width of [320,768,1365]) {
     await page.setViewportSize({width,height:900});
     await page.emulateMedia({reducedMotion:'reduce'});
     await page.clock.setFixedTime(new Date('2026-10-25T12:00:00Z'));
+    await page.goto(de?'/de/rechner':'/calculator');
+    const reference=await page.locator('[data-calculator-shell]').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundImage,border:s.borderColor,radius:s.borderRadius};});
+    const resultReference=await page.locator('[data-calculator-result]').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,color:s.color,border:s.borderColor,radius:s.borderRadius};});
+    const fieldReference=await page.locator('[data-calculator-form] select').first().evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,color:s.color,radius:s.borderRadius,font:s.fontSize};});
     await page.goto(de?'/de/zuhause':'/home');
     await page.getByRole('button',{name:t('Zuhause erstellen','Create my home'),exact:true}).click();
     await page.evaluate(()=>{
@@ -22,6 +26,11 @@ for(const de of [false,true]) for(const width of [320,768,1365]) {
     await page.reload();
     const workspace=page.locator('.home-month-workspace');
     const checklist=page.locator('[data-month-checklist]');
+    const workspaceStyle=await workspace.evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundImage,border:s.borderColor,radius:s.borderRadius};});
+    expect(workspaceStyle).toEqual(reference);
+    const summaryStyle=await page.locator('[data-home-monthly-budget]').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,color:s.color,border:s.borderColor,radius:s.borderRadius};});
+    expect(summaryStyle).toEqual(resultReference);
+
     const remaining=await page.locator('[data-home-remaining]').innerText();
     await checklist.getByRole('checkbox',{name:/^Rent ·/}).check();
     await expect(checklist.getByRole('button',{name:t('Rückgängig','Undo'),exact:true})).toBeVisible();
@@ -55,6 +64,9 @@ for(const de of [false,true]) for(const width of [320,768,1365]) {
     await expect(editor).toBeVisible();
     await expect(page.locator('[data-cost-manager]')).toBeHidden();
     await expect(page.locator('#household-cost-amount')).toHaveValue('40');
+    const editorField=await page.locator('#household-cost-amount').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,color:s.color,radius:s.borderRadius,font:s.fontSize};});
+    expect(editorField).toEqual(fieldReference);
+
     await page.locator('#household-cost-amount').fill('35');
     await page.locator('#household-cost-amount').press('Enter');
     await expect(editor).toHaveCount(0);
@@ -94,6 +106,9 @@ for(const de of [false,true]) for(const width of [320,768,1365]) {
     await cash.getByLabel(t('Alltagsausgaben bis zum Gehalt','Everyday spending until payday'),{exact:true}).fill('200');
     await cash.getByRole('button',{name:t('Verfügbares Geld anzeigen','Show available money'),exact:true}).click();
     await expect(cash.locator('[data-payday-result]')).toBeVisible();
+    expect(await cash.evaluate(el=>getComputedStyle(el).backgroundImage)).toBe(reference.background);
+    expect(await cash.locator('[data-payday-hero]').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(resultReference.background);
+
     await expect(cash.locator('[data-payday-calculation]')).toHaveAttribute('open','');
     if(width>=1180) {
       const left=(await cash.locator('.centre-cash-summary').boundingBox())!,middle=(await cash.locator('.centre-cash-main').boundingBox())!,right=(await cash.locator('.centre-cash-tools').boundingBox())!;
