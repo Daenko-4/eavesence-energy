@@ -23,6 +23,19 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     // The first payment should be reachable without scrolling a full screen.
     const firstRow=(await open.getByRole('checkbox').first().boundingBox())!;
     expect(firstRow.y+firstRow.height).toBeLessThan(width < 900 ? 700 : 620);
+    const alignedFigures=async()=>{
+      const figures=workspace.locator(width<640?'[data-home-kpi]:not([data-home-kpi=remaining])':'[data-home-kpi]');
+      const boxes=await figures.evaluateAll(cards=>cards.map(card=>{const a=card.querySelector('.home-month-kpi-amount')!.getBoundingClientRect(),l=card.querySelector('.home-month-kpi-label')!.getBoundingClientRect(),b=card.getBoundingClientRect();return {amount:a.y,label:l.y,labelBottom:l.bottom,width:b.width,center:a.x+a.width/2-(b.x+b.width/2)};}));
+      expect(Math.max(...boxes.map(b=>b.amount))-Math.min(...boxes.map(b=>b.amount))).toBeLessThanOrEqual(1);
+      if(width>=640) {
+        expect(Math.max(...boxes.map(b=>b.label))-Math.min(...boxes.map(b=>b.label))).toBeLessThanOrEqual(1);
+        expect(Math.max(...boxes.map(b=>b.width))-Math.min(...boxes.map(b=>b.width))).toBeLessThanOrEqual(1);
+      }
+      for(const b of boxes){expect(Math.abs(b.center)).toBeLessThanOrEqual(1);expect(b.amount).toBeGreaterThanOrEqual(b.labelBottom);}
+    };
+    await alignedFigures();
+    await expect(workspace.locator('[data-home-month-result]')).toHaveCSS('background-color','rgb(224, 241, 228)');
+    await expect(workspace.locator('[data-home-remaining]')).toHaveCSS('color','rgb(8, 122, 69)');
     if(width>=640 && width<1180) {
       const cards=await workspace.locator('[data-home-kpi]').evaluateAll(nodes=>nodes.map(node=>{const b=node.getBoundingClientRect();return {top:b.top,left:b.left};}));
       expect(new Set(cards.map(card=>card.top)).size).toBe(1);
@@ -33,6 +46,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await next.click();
     await expect(workspace.locator('[data-home-kpi=income]')).toContainText(t('4.400,00','4,400.00'));
     await expect(workspace.locator('[data-checklist-month]')).toContainText('November 2026');
+    await alignedFigures();
     await workspace.getByRole('button',{name:t('Dieser Monat','This month'),exact:true}).click();
     const name=/^Bill 1 ·/;
     await workspace.getByRole('checkbox',{name}).check();

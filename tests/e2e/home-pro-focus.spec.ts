@@ -36,7 +36,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(heading.getByRole('heading')).toHaveText(de ? 'Unser Zuhause' : 'Our home');
     const budget = page.locator('[data-home-monthly-budget]');
     await homeDetail(page, 'budget');
-    await expect(budget.locator('article').nth(2)).toHaveCSS('background-color', 'rgb(246, 246, 240)');
+    await expect(budget.locator('article').nth(2)).toHaveCSS('background-color', 'rgb(224, 241, 228)');
     await expect(budget.locator('article').nth(2)).toContainText(de ? '2.360,00' : '2,360.00');
     await expect(page.locator('[data-cost-manager]')).toBeHidden();
     await expect(page.locator('[data-cost-manager]')).toHaveCSS('background-color', 'rgb(255, 255, 255)');

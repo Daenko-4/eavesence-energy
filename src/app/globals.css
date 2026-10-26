@@ -1294,3 +1294,27 @@ a {
   .home-month-kpi[data-home-kpi="income"] .home-month-kpi-note { display: none; }
   .home-month-income-note { display: block; margin-top: 8px; color: var(--finance-result-muted); font-size: 12px; line-height: 1.5; text-align: center; }
 }
+
+/* Shared label and amount rows keep the monthly figures on one optical axis. */
+@media (min-width: 640px) {
+  .home-month-workspace .home-month-kpis { grid-template-columns: repeat(3,minmax(0,1fr)); grid-template-rows: auto auto auto; }
+  .home-month-workspace.finance-workspace .home-month-kpi { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: subgrid; grid-row: 1 / span 3; row-gap: 0; align-items: center; }
+  .home-month-workspace.finance-workspace .home-month-kpi .home-month-kpi-amount { margin-top: 6px; font-size: 24px; line-height: 1.25; }
+  .home-month-workspace.finance-workspace .home-month-kpi-result .home-month-kpi-amount { font-size: 24px; }
+  .home-month-workspace .home-month-kpi-note { margin-top: 6px; }
+}
+.home-month-workspace.finance-workspace .home-month-kpi-result { background: #e0f1e4; }
+.home-month-workspace.finance-workspace .home-month-kpi-result .home-month-kpi-label { color: #196441; font-weight: 650; }
+.home-month-workspace.finance-workspace .home-month-kpi-result .home-month-kpi-amount { color: #087a45; font-weight: 800; }
+.home-month-workspace.finance-workspace .home-month-kpi-result[data-home-shortfall="true"] { background: #fff1dc; }
+.home-month-workspace.finance-workspace .home-month-kpi-result[data-home-shortfall="true"] :is(.home-month-kpi-label,.home-month-kpi-amount) { color: #92400e; }
+.centre-pro-page [data-payday-shortfall="false"] [data-payday-result], .centre-pro-page [data-planning-tone="result"] .planning-card-amount { color: #087a45; }
+.centre-pro-page :is([data-payday-result],.planning-card-amount,.centre-result-card > strong) { font-variant-numeric: tabular-nums; }
+.centre-pro-page :is([data-payday-summary] > div,.centre-breakdown > div) { align-items: baseline; }
+@media (max-width: 639px) {
+  .home-month-workspace.finance-workspace .home-month-kpi:not(.home-month-kpi-result) { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 36px auto; gap: 0; align-items: center; }
+  .home-month-workspace.finance-workspace .home-month-kpi:not(.home-month-kpi-result) .home-month-kpi-amount { margin: 4px 0 0; font-size: 16px; line-height: 1.5; }
+}
+@media (min-width: 640px) {
+  .home-month-workspace .home-month-kpi-label { align-self: start; }
+}
