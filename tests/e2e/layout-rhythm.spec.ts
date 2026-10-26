@@ -5,7 +5,8 @@ import { homeWorkspace } from './home-navigation';
 for (const de of [false, true]) for (const width of [320, 390, 768, 1365]) {
   test(`guided layout and scroll continuity ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
     const t = (a: string, b: string) => de ? a : b;
-    await page.setViewportSize({ width, height: 900 });
+    const viewportHeight = width < 640 ? 740 : 900;
+    await page.setViewportSize({ width, height: viewportHeight });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.clock.setFixedTime(new Date('2026-10-24T12:00:00Z'));
     await page.goto(de ? '/de/zuhause' : '/home');
@@ -41,7 +42,7 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1365]) {
     const unobscured = async (field: Locator) => {
       const f = (await field.boundingBox())!, header = (await page.locator('header').boundingBox())!;
       expect(f.y).toBeGreaterThanOrEqual(header.y + header.height);
-      expect(f.y + f.height).toBeLessThanOrEqual(900);
+      expect(f.y + f.height).toBeLessThanOrEqual(viewportHeight);
     };
     await aligned(balance);
     await balance.fill('1200');

@@ -23,6 +23,12 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     // The first payment should be reachable without scrolling a full screen.
     const firstRow=(await open.getByRole('checkbox').first().boundingBox())!;
     expect(firstRow.y+firstRow.height).toBeLessThan(width < 900 ? 700 : 620);
+    if(width>=640 && width<1180) {
+      const cards=await workspace.locator('[data-home-kpi]').evaluateAll(nodes=>nodes.map(node=>{const b=node.getBoundingClientRect();return {top:b.top,left:b.left};}));
+      expect(new Set(cards.map(card=>card.top)).size).toBe(1);
+      expect(cards[2].left).toBeLessThan(cards[0].left);
+      expect((await workspace.locator('[data-home-monthly-budget]').boundingBox())!.height).toBeLessThan(135);
+    }
     const next=workspace.getByRole('button',{name:t('Nächster Monat','Next month'),exact:true});
     await next.click();
     await expect(workspace.locator('[data-home-kpi=income]')).toContainText(t('4.400,00','4,400.00'));

@@ -1168,3 +1168,39 @@ a {
   .home-month-workspace.finance-workspace .home-month-kpi-result { padding-block: 12px; }
   .home-month-workspace.finance-workspace .home-month-kpi-result .home-month-kpi-amount { margin-top: 4px; }
 }
+
+/* Keep the task close to its result, especially before the desktop rails fit. */
+@media (min-width: 640px) and (max-width: 1179px) {
+  .home-month-kpis { display: grid; grid-template-columns: 1.2fr 1fr 1fr; align-items: stretch; }
+  .home-month-workspace.finance-workspace .home-month-kpi { display: block; padding: 12px; }
+  .home-month-workspace.finance-workspace .home-month-kpi + .home-month-kpi { border-top: 0; }
+  .home-month-workspace.finance-workspace .home-month-kpi:not(.home-month-kpi-result) { border-left: 1px solid var(--finance-result-border); }
+  .home-month-workspace.finance-workspace .home-month-kpi-result { grid-column: auto; border-left: 0; }
+  .home-month-kpi:not(.home-month-kpi-result) .home-month-kpi-amount { margin-top: 6px; font-size: 16px; }
+}
+@media (max-width: 639px) {
+  .home-month-workspace.finance-workspace .home-month-kpi-result { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 4px 10px; }
+  .home-month-workspace.finance-workspace .home-month-kpi-result .home-month-kpi-amount { margin: 0; }
+  .home-month-kpi-result .home-month-kpi-note { grid-column: 1 / -1; }
+}
+@media (max-width: 899px) {
+  .centre-pro-page [data-editor-open="true"] [data-payday-hero] { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 12px; padding: 12px 16px; }
+  .centre-pro-page [data-editor-open="true"] [data-payday-hero] > :is(p:first-child,h2) { grid-column: 1; margin: 0; }
+  .centre-pro-page [data-editor-open="true"] [data-payday-hero] > div.flex { grid-column: 2; grid-row: 1 / span 2; margin: 0; }
+  .centre-pro-page [data-editor-open="true"] [data-payday-edit-action] { padding-inline: 10px; }
+  .centre-pro-page [data-pro-centre] [data-payday-summary] { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .centre-pro-page [data-payday-summary] > div { display: block; }
+  .centre-pro-page [data-payday-summary] dt { font-size: 11px; overflow-wrap: anywhere; }
+}
+@media (max-width: 1179px) {
+  /* Inline questions and help replace the duplicate guidance rail on smaller screens. */
+  .centre-pro-page [data-editor-open="true"] .centre-cash-tools, .centre-pro-page .centre-savings-guide { display: none; }
+}
+.centre-pro-page .finance-workspace .payday-date-shortcuts { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; max-width: 24rem; }
+.centre-pro-page .finance-workspace .payday-date-shortcuts > button { min-width: 0; min-height: 44px; padding-inline: 4px; border-color: var(--panel-border); background: var(--panel-field); color: var(--panel-action); }
+.centre-pro-page .finance-workspace .payday-date-shortcuts > button:hover { background: var(--panel-field-focus); border-color: var(--panel-action); }
+.centre-pro-page .savings-choice > p:first-child, .centre-pro-page .savings-edit > p:first-child { margin-top: 0; }
+.centre-pro-page .savings-edit > form > label { align-self: end; }
+.centre-pro-page .finance-workspace .planning-detail-navigation { border-color: var(--panel-border); }
+.centre-pro-page .finance-workspace .planning-detail-navigation > button { color: var(--panel-action); }
+.centre-pro-page .finance-workspace .planning-detail-navigation > button:hover { background: var(--panel-field); }
