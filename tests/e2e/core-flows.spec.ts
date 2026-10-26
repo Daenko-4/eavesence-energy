@@ -741,7 +741,7 @@ test("calculator updates live and a saved calculation can be deleted", async ({
     savedDevices.getByText("1 saved device", { exact: true }),
   ).toBeVisible();
   await expect(
-    savedDevices.getByRole("link", { name: "Add an energy tile to My Home" }),
+    savedDevices.getByRole("link", { name: "View my saved devices →" }),
   ).toHaveAttribute("href", "/home#home-devices");
   await expect(savedDevices.getByText("Coffee machine", { exact: true }))
     .toHaveCount(0);
@@ -776,7 +776,7 @@ test("calculator updates live and a saved calculation can be deleted", async ({
       }),
     );
   });
-  await savedDevices.getByRole("link", { name: "Add an energy tile to My Home" }).click();
+  await savedDevices.getByRole("link", { name: "View my saved devices →" }).click();
   await expect(page).toHaveURL(/\/home#home-devices$/);
   const householdDevices = page.locator("#home-devices");
   await expect(householdDevices.getByText("Coffee machine", { exact: true }))

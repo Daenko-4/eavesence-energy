@@ -507,6 +507,7 @@ function MyDevicesPanel(
     return (
       <section
         id="meine-geraete"
+        data-device-save-destination
         className="mt-6 scroll-mt-[104px] border-t border-slate-200/80 pt-5"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -520,10 +521,10 @@ function MyDevicesPanel(
             href={locale === "de" ? "/de/zuhause#home-devices" : "/home#home-devices"}
             className="eavesence-pill-link"
           >
-            {text.viewHome}
+            {locale === "de" ? "Meine gespeicherten Geräte ansehen →" : "View my saved devices →"}
           </a>
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-slate-500">{locale === "de" ? "Optional: Deine gespeicherten Geräte erscheinen in einer eigenen Stromkachel. Dort gilt der Strompreis aus deiner gespeicherten Strombasis; abweichende Geräteschätzungen werden neu berechnet. Sie werden nicht zusätzlich vom Monatsbudget abgezogen." : "Optional: saved devices appear in a dedicated energy tile using the price from your saved electricity basis. Different device estimates are recalculated. They are not deducted again from your monthly budget."}</p>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">{locale === "de" ? "Deine Geräte findest du in Mein Zuhause unter Strom & Geräte. Dort gilt dein gespeicherter Strompreis. Dein Stromabschlag und Monatsbudget bleiben durch das Speichern unverändert." : "Find your devices in My Home under Electricity & devices, using your saved electricity price. Saving a device does not change your electricity payment or monthly budget."}</p>
       </section>
     );
   }
