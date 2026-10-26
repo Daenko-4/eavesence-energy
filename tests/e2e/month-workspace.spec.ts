@@ -18,7 +18,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     const workspace=page.locator('.home-month-workspace');
     const open=workspace.locator('[data-payment-group=open]'),paid=workspace.locator('[data-payment-group=paid]');
     await expect(open.getByRole('checkbox')).toHaveCount(20);
-    await expect(paid).toContainText(t('Noch keine Zahlungen abgehakt.','No payments checked off yet.'));
+    await expect(paid).toHaveCount(0);
     await expect(workspace.locator('[data-home-remaining]')).toContainText(t('2.000,00','2,000.00'));
     // The first payment should be reachable without scrolling a full screen.
     const firstRow=(await open.getByRole('checkbox').first().boundingBox())!;

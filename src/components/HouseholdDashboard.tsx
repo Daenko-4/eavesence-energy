@@ -135,7 +135,7 @@ const copy = {
     onboardingEyebrow: "EAVESENCE",
     onboardingTitle: "Richte dein Zuhause ein",
     onboardingText:
-      "Starte mit deinem Einkommen und deinen regelmäßigen Haushaltskosten. Danach siehst du, was dir im Monat bleibt. Alles bleibt in diesem Browser.",
+      "Beginne mit deinem Monatsnetto. Danach ergänzen wir deine ersten Fixkosten.",
     householdName: "Name des Zuhauses",
     householdNamePlaceholder: "Mein Zuhause",
     price: "Strompreis pro kWh",
@@ -393,7 +393,7 @@ const copy = {
     onboardingEyebrow: "EAVESENCE",
     onboardingTitle: "Set up your home",
     onboardingText:
-      "Start with your income and recurring household costs. Then see what is left each month. Everything stays in this browser.",
+      "Start with your monthly net income. Add your first fixed costs next.",
     householdName: "Home name",
     householdNamePlaceholder: "My home",
     price: "Electricity price per kWh",
@@ -2491,7 +2491,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <button
                   type="button"
                   key={item}
-                  aria-label={item === "payday" ? locale === "de" ? "Geld planen" : "Plan money" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
+                  aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
                   aria-pressed={planQuestion === item}
                   onClick={() => navigatePlanQuestion(item)}
                   className="pro-question-button"

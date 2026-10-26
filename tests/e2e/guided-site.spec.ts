@@ -12,6 +12,7 @@ for(const de of [false,true]) for(const width of [320,1365]) {
     await expect(page.getByRole('button',{name:t('Erste Kosten hinzufügen','Add first cost'),exact:true})).toBeVisible();
     await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).incomeAmount)).toBe(2400.5);
     await homeWorkspace(page,'plan');
+    await page.getByRole('group',{name:t('Planungsfrage wählen','Choose planning question')}).getByRole('button',{name:t('Bis zum Gehalt','Until payday'),exact:true}).click();
     await page.getByLabel(t('Aktueller Kontostand','Current account balance'),{exact:true}).fill('1234');
     const hash=new URL(page.url()).hash;
     await page.locator('[data-header-settings]').click();

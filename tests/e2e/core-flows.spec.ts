@@ -8,7 +8,7 @@ async function disableHeaderIntro(page: Page) {
 
 async function openPlan(page: Page, question: "payday" | "savings" | "progress" = "savings", budget = false) {
   await homeWorkspace(page, 'plan');
-  await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Plan money|Geld planen/ : question === "savings" ? /Find realistic savings|Realistisch sparen/ : /Savings achieved|Erreichte Ersparnis/ }).click();
+  await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Until payday|Bis zum Gehalt/ : question === "savings" ? /Find realistic savings|Realistisch sparen/ : /Savings achieved|Erreichte Ersparnis/ }).click();
   if (budget) await planningPeriod(page, "budget");
 }
 async function openCostManager(page: Page) {

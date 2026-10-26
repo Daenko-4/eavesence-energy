@@ -68,7 +68,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
 
     await savingsTool(page, 'change');
     await expect(primaryChoices.getByRole('button',{name:t('Realistisch sparen','Find realistic savings')})).toHaveAttribute('aria-pressed','true');
-    await expect(primaryChoices.getByRole('button',{name:t('Geld planen','Plan money')})).toHaveAttribute('aria-pressed','false');
+    await expect(primaryChoices.getByRole('button',{name:t('Bis zum Gehalt','Until payday')})).toHaveAttribute('aria-pressed','false');
     await expect(page.locator('[data-planning-navigation="tool"]')).toBeHidden();
     const coach = page.getByRole('region', { name: /02 ·/ });
     await coach.getByLabel(t('Kostenänderung testen · Kosten auswählen', 'Test a cost change · choose a cost')).selectOption('internet');
