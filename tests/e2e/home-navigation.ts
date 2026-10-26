@@ -96,6 +96,5 @@ export async function openCostOrganization(page:Page){
 }
 
 export async function openPaydayPayments(page:Page) {
-  const toggle=page.locator('[data-payday-state]:visible').getByRole('button',{name:/Zahlungen bis zum Gehalt abhaken|Check off payments until payday/});
-  if(await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
+  await expect(page.locator('[data-payday-state]:visible [data-payday-payments-heading]')).toBeVisible();
 }

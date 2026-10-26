@@ -28,8 +28,8 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`month-first
   await page.setViewportSize({width,height:844});await seed(page,de);
   const list=page.getByRole('region',{name:de?'Monatscheckliste':'Monthly checklist'});
   await expect(list).toBeVisible();await expect(list.locator('[data-checklist-open]')).toContainText(de?'1.640,00':'1,640.00');
-  await expect(list.getByRole('button',{name:de?'Monatsrückblick':'Monthly review',exact:true})).toHaveAttribute('aria-expanded','false');
-  await list.getByRole('button',{name:de?'Monatsrückblick':'Monthly review',exact:true}).click();
+  await expect(list.locator('[data-month-review]')).toBeVisible();
+
   await expect(list.getByRole('checkbox')).toHaveCount(8);
   await expect(page.locator('[data-cost-manager]')).toBeHidden();
   await expect(page.locator('#household-costs')).toBeHidden();
@@ -40,7 +40,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`month-first
   await expect(list.locator('[data-checklist-month]')).toContainText('November');
   await expect(rent).not.toBeChecked();await expect(list.locator('[data-checklist-open]')).toContainText(de?'1.020,00':'1,020.00');
   await page.getByRole('group',{name:/^(Choose month|Monat wählen)$/}).getByRole('button',{name:de?'Vorheriger Monat':'Previous month',exact:true}).click();await expect(rent).toBeChecked();
-  await page.reload();await expect(list.getByRole('button',{name:de?'Monatsrückblick':'Monthly review',exact:true})).toHaveAttribute('aria-expanded','false');await list.getByRole('button',{name:de?'Monatsrückblick':'Monthly review',exact:true}).click();await expect(rent).toBeChecked();
+  await page.reload();await expect(list.locator('[data-month-review]')).toBeVisible();await expect(rent).toBeChecked();
   await expect(list).toContainText(de?'Monatlich · Termin fehlt':'Monthly · date missing');
   await expect(list).toContainText(de?'Sie fehlen im Betrag oben':'excluded from the amount above');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -51,7 +51,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`month-first
 
 test('payment changes invalidate the old balance and a fresh payday calculation excludes the paid bill',async({page})=>{
   await seed(page,false,false);
-  await page.getByRole('button',{name:'Monthly review',exact:true}).click();
+
   await page.getByRole('checkbox',{name:/^Rent ·/}).check();
   await homeWorkspace(page, 'plan');
   const payday=page.getByRole('region',{name:'Your available budget',exact:true});
@@ -65,7 +65,7 @@ test('payment changes invalidate the old balance and a fresh payday calculation 
 
 test('failed checkmark persistence leaves the payment open with a visible retry message',async({page})=>{
   await seed(page,false,false);
-  await page.getByRole('button',{name:'Monthly review',exact:true}).click();
+
   await page.evaluate(()=>{
     const original=Storage.prototype.setItem;
     Storage.prototype.setItem=function(key,value){if(key==='eavesence-home-profile-v1')throw new DOMException('Quota exceeded','QuotaExceededError');original.call(this,key,value);};

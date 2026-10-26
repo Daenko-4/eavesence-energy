@@ -128,7 +128,7 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     expect(await cash.evaluate(el=>getComputedStyle(el).backgroundImage)).toBe("none");
     expect(await cash.locator('[data-payday-hero]').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(resultReference.background);
 
-    await expect(cash.locator('[data-payday-calculation]')).toHaveAttribute('open','');
+    await expect(cash.locator('[data-payday-calculation]')).toBeVisible();
     const resultBox=(await cash.locator('.centre-cash-summary').boundingBox())!, taskBox=(await cash.locator('.centre-cash-main').boundingBox())!;
     expect(resultBox.y+resultBox.height).toBeLessThanOrEqual(taskBox.y);
     await expect(cash.locator('.centre-cash-summary')).toHaveCSS('position','static');

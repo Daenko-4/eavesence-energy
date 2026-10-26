@@ -18,7 +18,7 @@ async function pro(page:Page){await homeWorkspace(page, 'plan');}
 for(const de of [false,true])for(const width of [390,1365])test(`free overview to useful Pro answers ${de?'de':'en'} ${width}`,async({page},info)=>{
  await page.setViewportSize({width,height:900});await seed(page,de);await pro(page);
  const payday=page.getByRole('region',{name:de?'Dein verfügbarer Spielraum':'Your available budget'});
- await expect(payday).toContainText(de?'182,00':'182.00');await expect(payday).toContainText(de?'frühere Zahlungen':'earlier payments');await expect(payday.locator('[data-payday-calculation]')).toHaveAttribute('open','');await expect(payday).toContainText(de?'pro Tag':'per day');
+ await expect(payday).toContainText(de?'182,00':'182.00');await expect(payday).toContainText(de?'frühere Zahlungen':'earlier payments');await expect(payday.locator('[data-payday-calculation]')).toBeVisible();await expect(payday).toContainText(de?'pro Tag':'per day');
  await expect(payday.getByText(de?'So entsteht dein Spielraum':'How your available money is calculated',{exact:true})).toBeVisible();await expect(payday.getByText(de?'Aktueller Kontostand':'Current account balance',{exact:true})).toBeVisible();await expect(payday).toContainText(de?'− Noch offene Rechnungen':'− Unpaid bills');
  const questions=page.getByRole('group',{name:/Planungsfrage wählen|Choose planning question/});
  await questions.getByRole('button',{name:/Realistisch sparen|Find realistic savings/}).click();

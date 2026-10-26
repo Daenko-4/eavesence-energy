@@ -23,7 +23,8 @@ for (const de of [false, true]) for (const width of [390, 1365]) {
     const questions = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ });
     await plan();
     const payday = page.getByRole('region', { name: /Your available budget|Dein verfügbarer Spielraum/ });
-    await payday.getByRole('button', { name: /^(Review plan|Plan prüfen)/ }).click();
+    await expect(payday.locator('[data-quick-check]')).toBeVisible();
+    await expect(payday.getByRole('button', { name: /^(Review plan|Plan prüfen)/ })).toHaveCount(0);
     await payday.getByRole('button', { name: t('Kontostand und Alltag prüfen', 'Review balance and everyday spending') }).click();
     await expect(payday.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true })).toBeFocused();
     await payday.getByRole('button', { name: t('Einklappen', 'Collapse'), exact: true }).click();
@@ -33,7 +34,10 @@ for (const de of [false, true]) for (const width of [390, 1365]) {
     await payday.getByRole('button', { name: t('Prüfung abschließen', 'Complete review') }).click();
     await expect(payday).toContainText(t('Heute geprüft.', 'Reviewed today.'));
     await page.reload(); await plan();
-    await expect(payday.getByRole('button', { name: /^(Review plan|Plan prüfen)/ })).toContainText(t('heute erledigt', 'done today'));
+    await expect(payday.locator('[data-quick-check] .finance-status-badge')).toHaveText(t('Heute erledigt', 'Done today'));
+    await expect(payday.getByRole('checkbox',{name:t('Offene und bezahlte Zahlungen geprüft','Reviewed unpaid and paid payments'),exact:true})).toBeChecked();
+    await expect(payday.getByRole('button',{name:t('Prüfung abschließen','Complete review'),exact:true})).toHaveCount(0);
+    await payday.locator('[data-quick-check]').screenshot({path:info.outputPath(`visible-quick-check-${de?'de':'en'}-${width}.png`)});
     await questions.getByRole('button', { name: /Find realistic savings|Realistisch sparen/ }).click();
     const tools = page.getByRole('region', { name: t('Rechnungen und Abos planen', 'Plan bills and subscriptions') });
     await savingsTool(page, 'reserves');

@@ -44,7 +44,6 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(page.locator('#home-detail-upcoming')).toContainText('Internet');
     await homeDetail(page, 'budget');
     await expect(panels).toHaveCount(0);
-    await page.locator('[data-month-calculation] > summary').click();
     await expect(page.locator('[data-income-extras-summary]')).toContainText(de ? '30.800,00' : '30,800.00');
     await expect(page.locator('#home-detail-upcoming')).toBeVisible();
     await page.getByRole('group',{name:de?'Monat wählen':'Choose month'}).getByRole('button',{name:de?'Dieser Monat':'This month',exact:true}).click();
@@ -82,22 +81,19 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await page.screenshot({ fullPage: true, path: info.outputPath(`home-row-budget-${de ? 'de' : 'en'}-${width}.png`) });
 
     const list = page.locator('[data-month-checklist]');
-    const toggle = list.getByRole('button', { name: de ? 'Monatsrückblick' : 'Monthly review', exact: true });
     const review = list.locator('[data-month-review]');
-    await expect(review).toBeHidden();
-    await toggle.click();
     await expect(review).toBeVisible();
     await list.getByRole('checkbox', { name: /^Internet ·/ }).check();
     await expect(review.getByRole('button', { name: de ? 'Monat abschließen' : 'Close month', exact: true })).toBeEnabled();
-    await toggle.click(); await expect(review).toBeHidden();
-    await toggle.click(); await expect(list.getByRole('checkbox', { name: /^Internet ·/ })).toBeChecked();
+    await expect(review).toBeVisible();
+    await expect(list.getByRole('checkbox', { name: /^Internet ·/ })).toBeChecked();
     await list.screenshot({ path: info.outputPath(`payments-and-review-${de ? 'de' : 'en'}-${width}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await expect(page.locator('header .navigation-pro-label')).toHaveCount(0);
     await page.reload();
     await expect(nav.locator('[aria-expanded=true]')).toHaveCount(0);
-    await expect(review).toBeHidden();
-    await toggle.click(); await expect(list.getByRole('checkbox', { name: /^Internet ·/ })).toBeChecked();
+    await expect(review).toBeVisible();
+    await expect(list.getByRole('checkbox', { name: /^Internet ·/ })).toBeChecked();
   });
 }
 

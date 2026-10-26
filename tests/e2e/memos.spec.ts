@@ -7,11 +7,12 @@ async function seed(page:Page,de=false){
 }
 for(const de of [false,true])for(const width of [320,390,1365])test(`memos and always-visible checklist in ${de?'de':'en'} at ${width}px`,async({page},info)=>{
  await page.setViewportSize({width,height:844});await seed(page,de);
- const list=page.getByRole('region',{name:de?'Monatscheckliste':'Monthly checklist'}),toggle=list.getByRole('button',{name:de?'Monatsrückblick':'Monthly review',exact:true});
- await expect(toggle).toHaveAttribute('aria-expanded','false');await toggle.click();
- const payment=list.getByRole('checkbox',{name:/^Rent ·/});await payment.check();await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','false');await expect(payment).toBeVisible();await expect(payment).toBeChecked();await expect(list.locator('[data-checklist-open]')).toBeVisible();await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 1 bezahlt':'1 of 1 paid');
- await list.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`checklist-review-closed-${de?'de':'en'}-${width}.png`)});
- await toggle.click();await expect(payment).toBeChecked();expect(await toggle.locator('span').last().evaluate(el=>getComputedStyle(el).rotate)).toBe('-45deg');
+ const list=page.getByRole('region',{name:de?'Monatscheckliste':'Monthly checklist'}),review=list.locator('[data-month-review]');
+ await expect(review).toBeVisible();
+ await expect(list.getByRole('button',{name:de?'Monatsrückblick':'Monthly review',exact:true})).toHaveCount(0);
+ const payment=list.getByRole('checkbox',{name:/^Rent ·/});await payment.check();await expect(payment).toBeVisible();await expect(payment).toBeChecked();await expect(list.locator('[data-checklist-open]')).toBeVisible();await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 1 bezahlt':'1 of 1 paid');
+ await list.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`checklist-review-visible-${de?'de':'en'}-${width}.png`)});
+ await expect(review).toBeVisible();await expect(payment).toBeChecked();
  const memos=page.getByRole('region',{name:de?'Merken & erinnern':'Notes & reminders'});
  await homeDetail(page,'notes');await memos.getByRole('button',{name:de?'Notiz hinzufügen':'Add note',exact:true}).click();
  const form=memos.getByRole('form',{name:de?'Notiz bearbeiten':'Edit note'});
