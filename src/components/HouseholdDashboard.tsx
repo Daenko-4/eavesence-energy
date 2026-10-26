@@ -1803,6 +1803,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function navigatePlanQuestion(question: "payday" | "savings" | "progress") {
+    // An already selected question must not schedule a focus jump over a new entry.
+    if (question === planQuestion && (question !== "payday" || planPeriod === "payday") && (question !== "savings" || planTool === "change")) return;
     setPlanQuestion(question);
     if (question === "payday") setPlanPeriod("payday");
     if (question === "savings") setPlanTool("change");
