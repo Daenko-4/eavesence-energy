@@ -1406,3 +1406,6 @@ a {
   .home-month-workspace [data-primary-payments="true"] .centre-payments-summary p:last-child { grid-column: 1 / -1; }
   .home-month-workspace [data-primary-payments="true"] .centre-payments-summary :is([data-checklist-open],[data-checklist-paid]) { font-size: 18px; }
 }
+.centre-cash-tools [data-payday-calculation] dl > div { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: start; gap: 4px 12px; }
+.centre-cash-tools [data-payday-calculation] dt { min-width: 0; overflow-wrap: anywhere; }
+.centre-cash-tools [data-payday-calculation] dd { text-align: right; white-space: nowrap; }
