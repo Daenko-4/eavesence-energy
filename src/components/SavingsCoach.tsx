@@ -72,7 +72,7 @@ export default function SavingsCoach({
   return (
     <section
       data-savings-coach={mode}
-      className={mode === "progress" ? "min-w-0" : mode === "opportunities" ? "mt-5 min-w-0" : "mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"}
+      className={mode === "progress" ? "finance-workspace min-w-0" : mode === "opportunities" ? "mt-5 min-w-0" : "mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"}
       aria-label={mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
     >
       {mode === "progress" ? <div className="planning-section-intro"><h2 className="site-section-title">{t("Deine bestätigte Ersparnis", "Your confirmed savings")}</h2><p>{shownActions.length ? t("Hier zählen nur umgesetzte und bestätigte Kostenänderungen.", "Only cost changes you have made and confirmed count here.") : t("Noch keine bestätigte Ersparnis. Plane eine konkrete Kostenänderung und bestätige sie erst nach der Umsetzung.", "No confirmed savings yet. Plan a specific cost change and confirm it after it happens.")}</p></div> : mode === "all" ? <h3 className="site-card-title">{t("Welche Kosten möchtest du senken?", "Which cost would you like to lower?")}</h3> : null}
@@ -94,7 +94,7 @@ export default function SavingsCoach({
         </p>
       )}
       {(mode === "progress" || mode !== "opportunities" && actions.some((a) => a.status === "confirmed")) && (
-        <div className="planning-task-card planning-savings-result" data-planning-tone={shownActions.some(action => action.status === "confirmed" && !p.outdated.includes(action)) ? "result" : "setup"}>
+        <div className="finance-result-surface planning-task-card planning-savings-result" data-planning-tone={shownActions.some(action => action.status === "confirmed" && !p.outdated.includes(action)) ? "result" : "setup"}>
           <p className="planning-card-label">
             {t(
               "Bis heute eingespart",
@@ -120,8 +120,8 @@ export default function SavingsCoach({
           )}
         </p>
       )}
-      <div className={mode === "opportunities" ? "planning-task-card savings-review-layout" : undefined} data-has-selection={!!p.selected}>
-      {mode === "opportunities" && <aside className="centre-savings-summary">
+      <div className={mode === "opportunities" ? "finance-workspace planning-task-card savings-review-layout" : undefined} data-has-selection={!!p.selected}>
+      {mode === "opportunities" && <aside className="centre-savings-summary finance-result-surface">
         <div className="centre-result-card" data-savings-centre-result>
           <p>{t("Geplantes Plus pro Monat", "Planned extra per month")}</p>
           <strong>{p.preview ? money(p.preview.totalDifference / 12) : p.plannedMonthly > 0 ? money(p.plannedMonthly) : "—"}</strong>
@@ -129,13 +129,13 @@ export default function SavingsCoach({
         </div>
         <dl className="centre-breakdown"><div><dt>{t("Bestätigt pro Monat", "Confirmed per month")}</dt><dd>{money(p.confirmedMonthly)}</dd></div><div><dt>{t("Bis heute eingespart", "Saved so far")}</dt><dd>{money(p.totals.scheduled)}</dd></div></dl>
       </aside>}
-      <div className={mode === "opportunities" ? "savings-choice" : undefined} hidden={mode === "progress"}>
+      <div className={mode === "opportunities" ? "savings-choice finance-dark-panel" : undefined} hidden={mode === "progress"}>
       {mode !== "progress" && p.reviewable.length > 0 && <p className="mt-4 text-[13px] font-semibold">{t("1 · Kostenposten auswählen", "1 · Choose one cost")}</p>}
       {mode !== "progress" && !p.selected && <div className="mt-3 grid max-w-lg items-start gap-3">
         {p.tasks.slice(0,1).map((c) => (
           <article
             key={c.id}
-            className="min-w-0 rounded-xl bg-[#f4f6f2] p-3 text-[13px]"
+            className="finance-result-surface min-w-0 rounded-xl bg-[#f4f6f2] p-3 text-[13px]"
           >
             <h4 className="font-bold">{c.name}</h4>
             <p className="mt-1">
@@ -152,14 +152,14 @@ export default function SavingsCoach({
         ))}
       </div>}
       {mode !== "progress" && p.reviewable.length > 0 && <label className="mt-4 grid max-w-lg gap-1 text-[13px] font-semibold">{t("Kostenänderung testen · Kosten auswählen", "Test a cost change · choose a cost")}<select className={field} value={p.selected?.id ?? ""} onChange={e => {const cost=input.costs.find(c=>c.id===e.target.value);if(cost)p.choose(cost);else p.cancel();}}><option value="">{t("Kosten auswählen", "Choose a cost")}</option>{p.reviewable.map(c=><option key={c.id} value={c.id}>{c.name} · {money(c.amount)}</option>)}</select></label>}
-      {mode === "opportunities" && p.selected && <aside className="savings-selected-cost">
+      {mode === "opportunities" && p.selected && <aside className="savings-selected-cost finance-result-surface">
         <p className="font-semibold">{p.selected.name}</p>
         <p className="mt-1">{money(p.selected.amount)} {cadence(p.selected.frequency)}</p>
         <p className="mt-3 text-[#52605b]">{costReviewTip(p.selected.category, de, p.selected.frequency)}</p>
       </aside>}
       </div>
-      {mode === "opportunities" && !p.selected && <aside className="home-month-tool-card centre-savings-guide"><p className="centre-eyebrow">{t("So geht’s weiter", "Your next step")}</p><h3 className="centre-context-title">{t("Eine Ausgabe auswählen", "Choose one cost")}</h3><p className="centre-caption">{t("Neuen Preis testen, Änderung vormerken und erst nach der Umsetzung bestätigen.", "Try a new price, save your plan and confirm only after making the change.")}</p></aside>}
-      <div className={mode === "opportunities" ? "savings-edit" : undefined} hidden={mode === "progress" || !p.selected}>
+      {mode === "opportunities" && !p.selected && <aside className="home-month-tool-card finance-dark-panel centre-savings-guide"><p className="centre-eyebrow">{t("So geht’s weiter", "Your next step")}</p><h3 className="centre-context-title">{t("Eine Ausgabe auswählen", "Choose one cost")}</h3><p className="centre-caption">{t("Neuen Preis testen, Änderung vormerken und erst nach der Umsetzung bestätigen.", "Try a new price, save your plan and confirm only after making the change.")}</p></aside>}
+      <div className={mode === "opportunities" ? "savings-edit finance-dark-panel" : undefined} hidden={mode === "progress" || !p.selected}>
       {mode !== "progress" && p.selected && <p className="mt-4 text-[13px] font-semibold">{t("2 · Neuen Betrag prüfen und vormerken", "2 · Check a new amount and save the plan")}</p>}
       {mode !== "progress" && p.selected && (
         <form
@@ -201,7 +201,7 @@ export default function SavingsCoach({
               "This starts as a plan. Your recurring costs change only after you confirm it happened.",
             )}
           </p>
-          {p.preview && <div className="rounded-xl border border-[#cddbd0] bg-white p-3 text-[13px] sm:col-span-2" data-pro-payday-impact>
+          {p.preview && <div className="finance-result-surface rounded-xl border border-[#cddbd0] bg-white p-3 text-[13px] sm:col-span-2" data-pro-payday-impact>
             <p className="font-semibold">{t("Hilft das schon bis zum nächsten Gehalt?", "Will this help before your next payday?")}</p>
             {p.cashImpact ? <><p className="mt-2">{t("Zusätzlich verfügbar", "Extra money available")}: {money(p.cashImpact.before)} → <strong>{money(p.cashImpact.after)}</strong></p><p className="mt-1 text-[#52605b]">{p.cashImpact.saving > 0 ? t(`Wenn die Änderung rechtzeitig umgesetzt wird: ${money(p.cashImpact.saving)} mehr bis zum Gehalt.`, `If the change happens in time: ${money(p.cashImpact.saving)} more until payday.`) : t("Bis zu diesem Gehalt ändert sich nichts. Bezahlte und bekannte Rechnungen bleiben gleich; spätere Termine zählen danach.", "No change before this payday. Paid and existing invoices stay the same; later payment dates count afterwards.")}</p></> : <><p className="mt-2 text-[#52605b]">{t("Für diesen Vergleich fehlen aktuelle Angaben unter „Bis zum Gehalt“. Dein Vorhaben kannst du trotzdem speichern.", "This comparison needs current entries under Until payday. You can still save your plan.")}</p></>}
             <p className="mt-2 text-[#52605b]">{t("Vorschau – dein Kontostand und deine Kosten bleiben unverändert.", "Preview — your balance and costs stay unchanged.")}</p>
@@ -223,7 +223,7 @@ export default function SavingsCoach({
       {shownActions.length > 0 && (
         <section
           ref={changes} data-savings-changes
-          className={mode === "progress" ? "mt-4 border-t border-[#dfe5dd] pt-4" : "mt-3 rounded-xl border border-[#dfe5dd] p-3"}
+          className={mode === "progress" ? "finance-result-surface mt-4 border-t border-[#dfe5dd] p-4" : "finance-result-surface mt-3 rounded-xl border border-[#dfe5dd] p-3"}
         >
           <h4 tabIndex={-1} className="text-[13px] font-bold outline-none">
             {mode === "progress" ? t("Bestätigte Änderungen & Schätzungen", "Confirmed changes & estimates") : t("Vorgemerkte Änderungen", "Planned changes")}{" "}

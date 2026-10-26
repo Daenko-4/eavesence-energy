@@ -50,7 +50,7 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
       </li>})}</ul>;
   }
   const reviewToggle=<button type="button" aria-expanded={open} aria-controls={bodyId} onClick={()=>setOpen(!open)} className="flex min-h-12 w-full items-center justify-between gap-4 border-t border-[#dfe5dd] bg-[#f4f6f2] px-4 text-left text-[13px] font-semibold text-[#17211f] sm:px-5"><span>{primary ? t("Monatsrückblick","Monthly review") : t("Zahlungen & Monatsrückblick","Payments & monthly review")}</span><span aria-hidden="true" className={`site-disclosure-icon text-xl text-[#17211f] ${open?"-rotate-45":""}`}>+</span></button>;
-  return <section aria-label={t('Monatscheckliste','Monthly checklist')} className="mt-6 scroll-mt-24 overflow-hidden rounded-2xl border border-[#dfe5dd] bg-white" data-month-checklist data-primary-payments={primary}>
+  return <section aria-label={t('Monatscheckliste','Monthly checklist')} className={`mt-6 scroll-mt-24 overflow-hidden rounded-2xl border border-[#dfe5dd] bg-white ${primary ? "finance-result-surface" : ""}`} data-month-checklist data-primary-payments={primary}>
 
     <div className="bg-[#f4f6f2] p-4 text-[#17211f] sm:p-5">
       <div hidden={Boolean(onMonthChange)} className="flex flex-wrap items-center justify-between gap-4">
@@ -89,7 +89,7 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
   </section>;
 }
 
-export function PaymentAmountForm({c,locale}:{c:ReturnType<typeof usePaymentChecklist>;locale:"de"|"en"}) {const t=(a:string,b:string)=>locale==="de"?a:b;return c.editing&&<form onSubmit={e=>{e.preventDefault();void c.saveAmount();}} className="mt-3 rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-3">
+export function PaymentAmountForm({c,locale}:{c:ReturnType<typeof usePaymentChecklist>;locale:"de"|"en"}) {const t=(a:string,b:string)=>locale==="de"?a:b;return c.editing&&<form onSubmit={e=>{e.preventDefault();void c.saveAmount();}} className="finance-result-surface mt-3 rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-3">
         <label className="grid gap-2 text-[13px] font-semibold">{c.editing.cost.name} · {t('Rechnungsbetrag','Invoice amount')}<input autoFocus inputMode="decimal" value={c.amount} onChange={e=>c.setAmount(e.target.value)} className="min-h-11 w-full rounded-xl border border-[#cddbd0] bg-white px-3"/></label>
         <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{t('Nur diese Zahlung. Der übliche Planbetrag bleibt unverändert. Auch 0 ist möglich.','Only this payment. The usual planning amount stays unchanged. Zero is allowed.')}</p>
         <FormActions className="mt-2"><button type="button" disabled={c.busy} onClick={c.cancelAmount} className="eavesence-pill-button home-dashboard-action">{t('Abbrechen','Cancel')}</button><button type="submit" disabled={c.busy} className="eavesence-pill-button home-dashboard-action">{t('Betrag speichern','Save amount')}</button></FormActions>

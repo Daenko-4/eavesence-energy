@@ -1320,7 +1320,7 @@ export default function EnergyCalculator({
       <div
         data-calculator-shell
         onChangeCapture={() => trackCalculatorEngagement("field_change")}
-        className={`grid w-full min-w-0 max-w-full rounded-[1.65rem] border border-[#34413e] bg-[linear-gradient(135deg,#1d2725_0%,#17211f_62%,#141c1a_100%)] text-white shadow-[0_28px_70px_-44px_rgba(18,35,30,0.52)] xl:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] ${
+        className={`grid w-full min-w-0 max-w-full finance-workspace xl:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] ${
         homePresentation
           ? "gap-4 p-4 sm:p-5 lg:gap-6 lg:p-5"
           : "gap-5 p-4 sm:p-6 lg:gap-8 lg:p-7"
@@ -2107,7 +2107,7 @@ export default function EnergyCalculator({
       <div
         ref={resultRef}
         data-calculator-result
-        className={`relative flex min-w-0 flex-col justify-center overflow-hidden rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] ${calculationIsValid ? "!pb-0" : ""} text-[#24302d] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_30px_-28px_rgba(35,48,44,0.32)] ${
+        className={`relative flex min-w-0 flex-col justify-center overflow-hidden finance-result-surface ${calculationIsValid ? "!pb-0" : ""}  ${
           homePresentation
             ? "min-h-[280px] p-6 sm:p-7"
             : "min-h-[420px] p-6 sm:p-8 lg:p-10"

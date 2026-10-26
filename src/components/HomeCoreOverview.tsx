@@ -47,13 +47,13 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
       <button type="button" className="eavesence-pill-button home-dashboard-action mt-3" onClick={needsIncome ? onIncome : onCost} aria-expanded={needsIncome ? incomeOpen : undefined}>{needsIncome ? de ? "Einkommen eintragen" : "Add income" : de ? "Erste Kosten hinzufügen" : "Add first cost"}</button>
       {needsReview && needsIncome && <button type="button" onClick={onSkipIncome} className="ml-2 min-h-11 px-2 text-[13px] font-semibold">{de ? "Einkommen später ergänzen" : "Add income later"}</button>}
     </div>}
-    {count > 0 && <section id="home-detail-upcoming" className="home-month-workspace" aria-label={de ? "Dein Monatsergebnis" : "Your monthly result"} data-home-next-month data-context-active={contextActive}>
-      <div className="home-month-toolbar home-month-navigation" role="group" aria-label={de ? "Monat wählen" : "Choose month"}>
+    {count > 0 && <section id="home-detail-upcoming" className="home-month-workspace finance-workspace" aria-label={de ? "Dein Monatsergebnis" : "Your monthly result"} data-home-next-month data-context-active={contextActive}>
+      <div className="home-month-toolbar home-month-navigation finance-result-surface" role="group" aria-label={de ? "Monat wählen" : "Choose month"}>
         <h2 className="site-section-title">{monthLabel}</h2>
         <div className="flex items-center gap-1"><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd]" aria-label={de ? "Vorheriger Monat" : "Previous month"} onClick={()=>onMonthChange(shiftPlanningMonth(outlook.month,-1))}>‹</button><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd]" aria-label={de ? "Nächster Monat" : "Next month"} onClick={()=>onMonthChange(shiftPlanningMonth(outlook.month,1))}>›</button><button type="button" className="min-h-11 min-w-11 rounded-full border border-[#dfe5dd] disabled:opacity-40" aria-label={de ? "Dieser Monat" : "This month"} title={de ? "Dieser Monat" : "This month"} disabled={outlook.month === localToday().slice(0,7)} onClick={()=>onMonthChange(localToday().slice(0,7))}><span aria-hidden="true">↺</span></button></div>
       </div>
       <aside className="home-month-summary" aria-label={de ? "Dein Monatsüberblick" : "Your month at a glance"}>
-        <div className="home-month-kpis" data-home-monthly-budget>
+        <div className="home-month-kpis finance-result-surface" data-home-monthly-budget>
           {forecastCards.map((card,index)=><article key={index} role={index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "status" : undefined} data-home-shortfall={index === 2 && outlook.remaining !== null && outlook.remaining < 0} data-home-kpi={index === 0 ? "income" : index === 1 ? "costs" : "remaining"} data-home-month-result={index === 2 ? "" : undefined} className={index === 2 ? "home-month-kpi home-month-kpi-result" : "home-month-kpi"}>
             <p className="home-month-kpi-label">{index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? de ? "Nach Fixkosten fehlen" : "Shortfall after fixed costs" : card.label}</p>
             <p className={`home-month-kpi-amount ${index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "text-[#ffd28c]" : ""}`} data-home-remaining={index === 2 ? "" : undefined}>{index === 2 && outlook.remaining !== null ? `${estimate}${money(Math.abs(outlook.remaining))}` : card.value}</p>
@@ -64,12 +64,12 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
       </aside>
       <div className="home-month-payments">{payments}</div>
       <aside className="home-month-tools" aria-label={de ? "Aktionen & Hinweise" : "Actions & information"}>
-        {incomeOpen || costForm ? <section className="home-month-tool-card centre-editor" data-home-context-editor aria-label={incomeOpen ? de ? "Einkommen bearbeiten" : "Edit income" : de ? "Kosten bearbeiten" : "Edit cost"}>
+        {incomeOpen || costForm ? <section className="home-month-tool-card finance-dark-panel centre-editor" data-home-context-editor aria-label={incomeOpen ? de ? "Einkommen bearbeiten" : "Edit income" : de ? "Kosten bearbeiten" : "Edit cost"}>
           <div className="centre-editor-heading"><h3 className="site-card-title">{incomeOpen ? de ? "Einkommen ändern" : "Edit income" : costEditorTitle ?? (de ? "Kosten bearbeiten" : "Edit cost")}</h3><button type="button" className="centre-close-action" onClick={onCloseContext} aria-label={de ? "Bearbeitung schließen" : "Close editor"}>×</button></div>
           {incomeOpen ? incomeForm : costForm}
         </section> : context}
-        <div className="home-month-tool-card centre-navigation">{navigation}<button type="button" onClick={onPlan} className="centre-text-action centre-mobile-plan">{de ? "Bis zum Gehalt planen" : "Plan until payday"} <span aria-hidden="true">→</span></button></div>
-        <div className="home-month-tool-card home-month-explanation" data-month-calculation>
+        <div className="home-month-tool-card finance-dark-panel centre-navigation">{navigation}<button type="button" onClick={onPlan} className="centre-text-action centre-mobile-plan">{de ? "Bis zum Gehalt planen" : "Plan until payday"} <span aria-hidden="true">→</span></button></div>
+        <div className="home-month-tool-card finance-dark-panel home-month-explanation" data-month-calculation>
           <h3 className="site-card-title">{de ? "So wird gerechnet" : "How this is calculated"}</h3>
           <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Monatseinkommen inkl. Sonderzahlungen minus fällige Fixkosten." : "Monthly income including extras, minus fixed costs due."}</p>
           {outlook.incomeIsAverage && <p className="mt-2 text-[12px] leading-5 text-amber-900">{de ? "Dein Einkommen ist ein Jahresdurchschnitt und kann vom tatsächlichen Geldeingang in diesem Monat abweichen." : "Your income is an annual average and may differ from what actually arrives this month."}</p>}

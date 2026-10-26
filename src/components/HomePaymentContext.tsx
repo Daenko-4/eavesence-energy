@@ -31,7 +31,7 @@ export default function HomePaymentContext({ costs, month, planning, selectedKey
     quarterly: t("Alle 3 Monate", "Every 3 months"), "half-yearly": t("Alle 6 Monate", "Every 6 months"),
     weekly: t("Jede Woche", "Every week"), daily: t("Jeden Tag", "Every day"),
   };
-  return <div className="home-month-tool-card" data-home-payment-context>
+  return <div className="home-month-tool-card finance-dark-panel" data-home-payment-context>
     <div className="centre-editor-heading"><p className="centre-eyebrow">{selected ? t("Zahlungsdetails", "Payment details") : t("Als Nächstes", "Up next")}</p>{selected && <button type="button" className="centre-close-action" aria-label={t("Details schließen", "Close details")} onClick={onClose}>×</button>}</div>
     {payment ? <>
       <h3 tabIndex={-1} data-home-context-heading className="centre-context-title outline-none">{payment.cost.name}</h3>
