@@ -41,7 +41,7 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
   }
   const panel = page.locator(section === 'costs' ? '[data-cost-manager]' : '[data-home-memos]');
   if(await panel.isVisible())return;
-  if(section === 'costs' && await page.locator('[data-home-setup]').isVisible()) {
+  if(section === 'costs' && !await page.locator('.home-month-workspace').count()) {
     await page.getByRole('group', { name: /^(Home actions|Aktionen für dein Zuhause)$/ }).getByRole('button', { name: /^(Add cost|Kosten hinzufügen)$/ }).click();
     return;
   }
