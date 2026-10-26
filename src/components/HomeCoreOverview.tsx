@@ -15,12 +15,12 @@ type Props = {
   needsReview?: boolean; onFinishReview?: () => void;
   locale: Locale; currency: string; income: number; fixed: number; count: number;
   outlook: MonthlyOutlook; incomeInformation?: ReactNode;
-  onMonthChange:(month:string)=>void; onPlan:()=>void;
+  onMonthChange:(month:string)=>void;
   incomeOpen: boolean; onIncome: () => void; onCost: () => void;
-  incomeForm: ReactNode; payments: ReactNode; navigation: ReactNode;
+  incomeForm: ReactNode; payments: ReactNode;
   costEditorTitle?: string; context: ReactNode; costForm?: ReactNode; contextActive: boolean; onCloseContext: () => void;
 };
-export default function HomeCoreOverview({ incomeProvided, incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, outlook, incomeInformation, onMonthChange, onPlan, incomeOpen, onIncome, onCost, incomeForm, payments, navigation, context, costForm, contextActive, onCloseContext, costEditorTitle }: Props) {
+export default function HomeCoreOverview({ incomeProvided, incomeDeferred = false, onSkipIncome, needsReview = false, onFinishReview, incomeIsAverage = false, hasVariableCosts = false, locale, currency, income, fixed, count, outlook, incomeInformation, onMonthChange, incomeOpen, onIncome, onCost, incomeForm, payments, context, costForm, contextActive, onCloseContext, costEditorTitle }: Props) {
   const de = locale === "de";
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
   const needsIncome = !(incomeProvided ?? income > 0) && !incomeDeferred;
@@ -60,24 +60,24 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
             {card.note && <p className="home-month-kpi-note">{card.note}</p>}
           </article>)}
         </div>
+        {forecastCards[0].note && <p className="home-month-income-note">{forecastCards[0].note}</p>}
         <p className="home-month-context">{de ? "Für Alltag & Freizeit, nach erfassten Fixkosten. Kein Kontostand." : "For everyday spending, after recorded fixed costs. Not your account balance."}</p>
       </aside>
       <div className="home-month-payments">{payments}</div>
-      <aside className="home-month-tools" aria-label={de ? "Aktionen & Hinweise" : "Actions & information"}>
+      {contextActive && <aside className="home-month-tools" aria-label={de ? "Aktionen & Hinweise" : "Actions & information"}>
         {incomeOpen || costForm ? <section className="home-month-tool-card finance-dark-panel centre-editor" data-home-context-editor aria-label={incomeOpen ? de ? "Einkommen bearbeiten" : "Edit income" : de ? "Kosten bearbeiten" : "Edit cost"}>
           <div className="centre-editor-heading"><h3 className="site-card-title">{incomeOpen ? de ? "Einkommen ändern" : "Edit income" : costEditorTitle ?? (de ? "Kosten bearbeiten" : "Edit cost")}</h3><button type="button" className="centre-close-action" onClick={onCloseContext} aria-label={de ? "Bearbeitung schließen" : "Close editor"}>×</button></div>
           {incomeOpen ? incomeForm : costForm}
         </section> : context}
-        <div className="home-month-tool-card finance-dark-panel centre-navigation">{navigation}<button type="button" onClick={onPlan} className="centre-text-action centre-mobile-plan">{de ? "Bis zum Gehalt planen" : "Plan until payday"} <span aria-hidden="true">→</span></button></div>
-        <div className="home-month-tool-card finance-dark-panel home-month-explanation" data-month-calculation>
-          <h3 className="site-card-title">{de ? "So wird gerechnet" : "How this is calculated"}</h3>
+      </aside>}
+        <details className="home-month-tool-card finance-result-surface home-month-explanation" data-month-calculation>
+          <summary className="site-card-title min-h-11 cursor-pointer">{de ? "So wird gerechnet" : "How this is calculated"}</summary>
           <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Monatseinkommen inkl. Sonderzahlungen minus fällige Fixkosten." : "Monthly income including extras, minus fixed costs due."}</p>
           {outlook.incomeIsAverage && <p className="mt-2 text-[12px] leading-5 text-amber-900">{de ? "Dein Einkommen ist ein Jahresdurchschnitt und kann vom tatsächlichen Geldeingang in diesem Monat abweichen." : "Your income is an annual average and may differ from what actually arrives this month."}</p>}
           {outlook.undatedMonthlyCount > 0 && <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Monatliche Kosten ohne Zahlungstermin zählen einmal in diesem Monat." : "Monthly costs without a payment date count once this month."}</p>}
           {outlook.payments.some(payment=>payment.estimated) && <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{de ? "Variable Beträge sind geschätzt, bis eine Rechnung eingetragen ist." : "Variable amounts are estimates until an invoice is entered."}</p>}
           {incomeInformation}
-        </div>
-      </aside>
+        </details>
     </section>}
     {!count && incomeOpen && incomeForm}
     {!count && hasIncome && <div data-home-monthly-budget className="mt-4"><FinanceCards cards={cards} deficit={deficit} /></div>}

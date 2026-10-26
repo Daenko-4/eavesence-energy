@@ -41,27 +41,15 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await expect(workspace.locator('[data-checklist-paid]')).toContainText(t('20,00','20.00'));
     // Payment status affects unpaid money, never the month's scheduled fixed costs.
     await expect(workspace.locator('[data-home-remaining]')).toContainText(t('2.000,00','2,000.00'));
-    if(width>=1180){
-      const left=(await workspace.locator('.home-month-summary').boundingBox())!,middle=(await workspace.locator('.home-month-payments').boundingBox())!,right=(await workspace.locator('.home-month-tools').boundingBox())!;
-      for(const card of await workspace.locator('[data-home-kpi]').all()) {
-        const box=(await card.boundingBox())!;
-        expect(Math.abs(box.width-left.width)).toBeLessThanOrEqual(2);
-      }
-      expect(left.x+left.width).toBeLessThan(middle.x);
-      expect(middle.x+middle.width).toBeLessThan(right.x);
-      await page.evaluate(()=>scrollTo({top:450,behavior:'instant'}));
-      for(const selector of ['.home-month-summary','.home-month-tools'])expect((await workspace.locator(selector).boundingBox())!.y).toBeGreaterThanOrEqual(90);
-      const tools=workspace.locator('.home-month-tools');
-      expect((await tools.boundingBox())!.height).toBeLessThanOrEqual(788);
-      await tools.evaluate(el=>{el.scrollTop=el.scrollHeight;});
-      expect((await tools.locator('[data-income-extras-summary] li').last().boundingBox())!.y+(await tools.locator('[data-income-extras-summary] li').last().boundingBox())!.height).toBeLessThanOrEqual(900);
-      await tools.evaluate(el=>{el.scrollTop=0;});
-      await page.screenshot({path:info.outputPath(`workspace-scrolled-${de?'de':'en'}-${width}.png`)});
-    } else {
-      const month=(await workspace.locator('.home-month-toolbar').boundingBox())!,summary=(await workspace.locator('.home-month-summary').boundingBox())!,list=(await workspace.locator('.home-month-payments').boundingBox())!;
-      expect(month.y+month.height).toBeLessThanOrEqual(summary.y);
-      expect(summary.y+summary.height).toBeLessThanOrEqual(list.y);
-    }
+    const summary=workspace.locator('.home-month-summary');
+    const monthBox=(await workspace.locator('.home-month-toolbar').boundingBox())!, summaryBox=(await summary.boundingBox())!, listBox=(await workspace.locator('.home-month-payments').boundingBox())!;
+    expect(monthBox.y+monthBox.height).toBeLessThanOrEqual(summaryBox.y);
+    expect(summaryBox.y+summaryBox.height).toBeLessThanOrEqual(listBox.y);
+    expect(Math.abs(summaryBox.x+summaryBox.width/2-width/2)).toBeLessThan(2);
+    await expect(summary).toHaveCSS('position','static');
+    await expect(workspace.locator('.home-month-tools')).toHaveCount(0);
+    await page.evaluate(()=>scrollTo({top:450,behavior:'instant'}));
+    expect((await summary.boundingBox())!.y).toBeLessThan(summaryBox.y-400);
     await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
     await page.screenshot({fullPage:true,path:info.outputPath(`workspace-${de?'de':'en'}-${width}.png`)});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -85,8 +73,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     const shortSummary=(await workspace.locator('.home-month-summary').boundingBox())!;
     const shortList=(await workspace.locator('.home-month-payments').boundingBox())!;
     expect(shortToolbar.height).toBeLessThan(100);
-    if(width>=1180) expect(Math.abs(shortList.y-shortToolbar.y-shortToolbar.height)).toBeLessThanOrEqual(1);
-    else expect(shortList.y-shortSummary.y-shortSummary.height).toBeLessThanOrEqual(12);
+    expect(shortList.y-shortSummary.y-shortSummary.height).toBeLessThanOrEqual(12);
     await page.screenshot({fullPage:true,path:info.outputPath(`workspace-short-${de?'de':'en'}-${width}.png`)});
   });
 }

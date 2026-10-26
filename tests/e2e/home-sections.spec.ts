@@ -26,11 +26,13 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await seed(page, de);
     const nav = page.locator('[data-home-section-navigation]');
+    await page.locator('[data-header-settings]').click();
     const panels = page.locator('[data-cost-manager]:visible, [data-home-memos]:visible');
     await expect(nav.getByRole('button')).toHaveCount(2);
     await expect(nav.locator('[aria-expanded=true]')).toHaveCount(0);
     await expect(panels).toHaveCount(0);
     await expect(nav.locator('[data-home-section=notes]')).toContainText('1');
+    await page.locator('[data-header-settings]').click();
     await page.screenshot({ fullPage: true, path: info.outputPath(`home-row-closed-${de ? 'de' : 'en'}-${width}.png`) });
 
     await homeDetail(page, 'budget');
@@ -42,6 +44,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await expect(page.locator('#home-detail-upcoming')).toContainText('Internet');
     await homeDetail(page, 'budget');
     await expect(panels).toHaveCount(0);
+    await page.locator('[data-month-calculation] > summary').click();
     await expect(page.locator('[data-income-extras-summary]')).toContainText(de ? '30.800,00' : '30,800.00');
     await expect(page.locator('#home-detail-upcoming')).toBeVisible();
     await page.getByRole('group',{name:de?'Monat wählen':'Choose month'}).getByRole('button',{name:de?'Dieser Monat':'This month',exact:true}).click();
@@ -67,6 +70,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     }
     await homeDetail(page, 'notes');
     await expect(draft).toHaveValue('Keep this draft while reviewing costs');
+    await page.locator('[data-header-settings]').click();
     await nav.locator('[data-home-section=notes]').press('Enter');
     await expect(panels).toHaveCount(0);
     await expect(page.locator('[data-home-monthly-budget] article')).toHaveCount(3);
@@ -97,13 +101,16 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
 test('section indicators animate in both directions and respect reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await seed(page, false);
+  await page.locator('[data-header-settings]').click();
   const button = page.locator('[data-home-section=notes]');
   const icon = button.locator('.site-disclosure-icon');
   const duration = await icon.evaluate(el => parseFloat(getComputedStyle(el).transitionDuration));
   expect(duration).toBeGreaterThanOrEqual(.3);
   await button.click();
+  await page.locator('[data-header-settings]').click();
   await expect(icon).toHaveCSS('transform', 'matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)');
   await button.click();
+  await page.locator('[data-header-settings]').click();
   await expect(icon).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(icon).toHaveCSS('transition-duration', '0s');

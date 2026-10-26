@@ -39,19 +39,19 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
     if(await panel.evaluate(el=>el.tagName==='DETAILS') && await panel.getAttribute('open')===null)await panel.locator(':scope > summary').click();
     return;
   }
-  // After reload, wait for the saved home or its setup before choosing navigation.
-  await expect(page.locator('[data-home-section="costs"], [data-home-setup]').first()).toBeVisible();
+  const panel = page.locator(section === 'costs' ? '[data-cost-manager]' : '[data-home-memos]');
+  if(await panel.isVisible())return;
+  if(section === 'costs' && await page.locator('[data-home-setup]').isVisible()) {
+    await page.getByRole('group', { name: /^(Home actions|Aktionen für dein Zuhause)$/ }).getByRole('button', { name: /^(Add cost|Kosten hinzufügen)$/ }).click();
+    return;
+  }
+  const settings=page.locator('[data-header-settings]');
+  await expect(settings).toBeVisible();
+  if(await settings.getAttribute('aria-expanded')!=='true')await settings.click();
   const button = page.locator(`[data-home-section="${section}"]`);
-  if (section !== 'costs') await expect(button).toBeVisible();
-  if (await button.isVisible()) {
-    if (await button.getAttribute('aria-expanded') !== 'true') await button.click();
-    return;
-  }
-  if (section === 'costs') {
-    if (!await page.locator('[data-cost-manager]').isVisible()) await page.getByRole('group', { name: /^(Home actions|Aktionen für dein Zuhause)$/ }).getByRole('button', { name: /^(Add cost|Kosten hinzufügen)$/ }).click();
-    return;
-  }
-  throw new Error(`No visible navigation for My Home section: ${section}`);
+  await expect(button).toBeVisible();
+  await button.click();
+  return;
 }
 
 export async function planningPeriod(page: Page, period: 'payday' | 'forecast' | 'budget') {

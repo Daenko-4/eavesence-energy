@@ -15,13 +15,13 @@ for(const de of [false,true])for(const width of [320,1365])test(`result first an
   const result=page.locator('[data-home-remaining]');
   await expect(result).toBeVisible();await expect(result).toContainText(t('1.500,00','1,500.00'));
   await expect(page.locator('[data-home-monthly-budget]')).not.toHaveAttribute('open');
-  await expect(page.locator('[data-home-section-navigation] button')).toHaveCount(2);
+  await expect(page.locator('.home-month-workspace [data-home-section-navigation]')).toHaveCount(0);
   const month=page.getByRole('group',{name:t('Monat wählen','Choose month'),exact:true});
   await month.getByRole('button',{name:t('Nächster Monat','Next month'),exact:true}).click();
   await expect(result).toContainText(t('3.500,00','3,500.00'));
   await expect(page.locator('[data-checklist-month]')).toContainText('November 2026');
   await page.screenshot({fullPage:true,path:info.outputPath(`guided-home-${de?'de':'en'}-${width}.png`)});
-  await page.getByRole('button',{name:t('Bis zum Gehalt planen','Plan until payday'),exact:true}).click();
+  await homeWorkspace(page,'plan');
   const plan=page.locator('[data-payday-state]');
   await expect(plan).toBeVisible();await expect(plan).toHaveAttribute('data-payday-step','0');
   await expect(plan.locator('form input:visible')).toHaveCount(1);

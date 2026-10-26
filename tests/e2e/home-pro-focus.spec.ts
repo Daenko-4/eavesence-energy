@@ -28,7 +28,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThan(2);
     await expect(page.getByRole('group',{name:de?'Aktionen für dein Zuhause':'Home actions',exact:true}).getByRole('button')).toHaveCount(2);
     await expect(page.locator('[data-workspace]')).toHaveCount(0);
-    await heading.locator('[data-home-identity]').getByRole('button').click();
+    await page.locator('[data-header-settings]').click();
     const settings = page.locator('[data-home-settings]');
     await expect(settings.locator('input').first()).toBeFocused();
     await settings.locator('input').first().fill(de ? 'Unser Zuhause' : 'Our home');
@@ -154,7 +154,7 @@ test('standalone CSS and bottom navigation keep home, costs and Pro connected', 
   await expect(page.locator('#household-costs')).toBeVisible();
   await nav.getByRole('link', { name: 'Overview', exact: true }).click();
   await expect(page.locator('[data-home-heading]')).toBeVisible();
-  await page.locator('[data-home-identity]').getByRole('button').click();
+  await page.locator('[data-header-settings]').click();
   await expect(page.locator('[data-home-settings]')).toBeVisible();
   await nav.getByRole('link', { name: 'Plan', exact: true }).click();
   await expect(page.locator('[data-home-settings]')).toBeHidden();
@@ -166,7 +166,7 @@ for (const de of [false, true]) {
   test(`settings confirmation expires, resets on another save and keeps errors visible ${de ? 'de' : 'en'}`, async ({ page }) => {
     await seed(page, de);
     await page.clock.install({ time: new Date('2026-10-13T12:00:00Z') });
-    const settingsButton = page.locator('[data-home-identity]').getByRole('button');
+    const settingsButton = page.locator('[data-header-settings]');
     const settings = page.locator('[data-home-settings]');
     const save = settings.getByRole('button', { name: de ? 'Einstellungen speichern' : 'Save settings', exact: true });
     const notice = page.locator('[data-home-notice]');
@@ -260,7 +260,7 @@ for (const de of [false, true]) {
       await expect(slider).toHaveValue('25');
       await expect(goal).toContainText(t('3,75', '3.75'));
       await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).savingsGoalPercent)).toBe(25);
-      await page.locator('[data-home-identity]').getByRole('button').click();
+      await page.locator('[data-header-settings]').click();
       const settings = page.locator('[data-home-settings]');
       await settings.locator('input').first().fill('Pending home');
       await settings.locator('select').selectOption('CHF');

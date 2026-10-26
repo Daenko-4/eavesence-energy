@@ -13,18 +13,18 @@ type Props = {
   locale: "de" | "en";
   currency: string;
   onEdit: (cost: HouseholdCost, trigger: HTMLButtonElement) => void;
-  onPlan: () => void;
   onClose: () => void;
 };
 
-export default function HomePaymentContext({ costs, month, planning, selectedKey, locale, currency, onEdit, onPlan, onClose }: Props) {
+export default function HomePaymentContext({ costs, month, planning, selectedKey, locale, currency, onEdit, onClose }: Props) {
   const de = locale === "de";
   const t = (a: string, b: string) => de ? a : b;
   const data = readPlanningData(planning);
   const list = monthChecklist(costs, month, data.paidPayments, data.actualPayments);
   const selected = list.payments.find(p => paymentKey({costId:p.cost.id, month:p.month, date:p.date}) === selectedKey);
+  if (!selected) return null;
   const closed = data.monthReviews?.some(review => review.month === month);
-  const payment = selected ?? (closed ? undefined : list.nextDue ?? list.open[0]);
+  const payment = selected;
   const money = (value: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", {style:"currency",currency}).format(value);
   const frequencies = {
     monthly: t("Jeden Monat", "Every month"), yearly: t("Jedes Jahr", "Every year"),
@@ -41,6 +41,6 @@ export default function HomePaymentContext({ costs, month, planning, selectedKey
       <button type="button" onClick={event => onEdit(costs.find(cost => cost.id === payment.cost.id) ?? payment.cost,event.currentTarget)} className="eavesence-pill-button home-dashboard-action home-outlined-action">{t("Kosten bearbeiten", "Edit cost")}</button>
       {payment.cost.variableAmount && <p className="centre-caption mt-2">{t("Den tatsächlichen Rechnungsbetrag änderst du direkt in der Zahlungsliste.", "Edit the actual invoice amount directly in the payment list.")}</p>}
     </> : <><h3 className="centre-context-title">{closed ? t("Monat abgeschlossen", "Month closed") : list.payments.length ? t("Alles abgehakt", "All checked off") : t("Keine Zahlungen geplant", "No payments scheduled")}</h3><p className="centre-caption">{t("Wähle einen Eintrag für Details oder ergänze weitere Kosten.", "Select an entry for details or add another cost.")}</p></>}
-    <div className="centre-context-link"><button type="button" className="centre-text-action" onClick={onPlan}>{t("Bis zum Gehalt planen", "Plan until payday")} <span aria-hidden="true">→</span></button><p className="centre-caption">{t("Mit deinem aktuellen Kontostand.", "Using your current account balance.")}</p></div>
+
   </div>;
 }

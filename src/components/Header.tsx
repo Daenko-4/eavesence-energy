@@ -24,6 +24,8 @@ type HeaderProps = {
   calculatorHrefOverride?: string;
   languageHrefOverride?: string;
   onLanguageChange?: () => void;
+  onSettings?: () => void;
+  settingsOpen?: boolean;
 };
 
 type NavigationKey = "calculator" | "household" | "planning" | "faq";
@@ -84,6 +86,8 @@ function HeaderContent({
   calculatorHrefOverride,
   languageHrefOverride,
   onLanguageChange,
+  onSettings,
+  settingsOpen,
 }: HeaderProps) {
   const pathname = usePathname();
   const homeHref = getHomeHref(locale);
@@ -496,6 +500,9 @@ function HeaderContent({
             <span className="text-xl leading-none">{menuOpen ? "×" : "☰"}</span>
           </button>
 
+          {onSettings && <button type="button" data-header-settings onClick={() => { closeMenu(); onSettings(); }} aria-label={locale === "de" ? "Einstellungen" : "Settings"} title={locale === "de" ? "Einstellungen" : "Settings"} aria-expanded={settingsOpen} aria-controls="home-settings" className="header-settings-action">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true"><path d="M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11"/><circle cx="10" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/></svg>
+          </button>}
           <Link
             data-header-language
             href={languageHref}
