@@ -546,8 +546,9 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
   const settingsAction = page.getByRole("button", { name: "Settings", exact: true });
-  await expect(settingsAction).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-  await expect(settingsAction).toHaveCSS("font-size", "12px");
+  await expect(settingsAction).toHaveCSS("width", "44px");
+  await expect(settingsAction).toHaveAttribute("aria-controls", "home-settings");
+  await expect(settingsAction).toHaveAttribute("aria-expanded", "true");
   const compactActions = [
     { action: page.getByRole("button", { name: "Save settings" }), fontSize: "11px", background: "rgb(221, 248, 233)" },
     { action: page.locator("[data-manage-data-import]"), fontSize: "11px", background: "rgb(221, 248, 233)" },

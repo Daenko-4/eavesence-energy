@@ -27,7 +27,10 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     const workspace=page.locator('.home-month-workspace');
     const checklist=page.locator('[data-month-checklist]');
     const workspaceStyle=await workspace.evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundImage,border:s.borderColor,radius:s.borderRadius};});
-    expect(workspaceStyle).toEqual(reference);
+    expect(workspaceStyle.background).toBe("none");
+    expect(await page.locator(".home-month-toolbar").evaluate(el=>getComputedStyle(el).backgroundImage)).toBe(reference.background);
+    await expect(workspace.locator("[data-home-payment-context]")).toHaveCount(0);
+    await expect(workspace.locator("[data-home-section-navigation]")).toHaveCount(0);
     const summaryStyle=await page.locator('[data-home-monthly-budget]').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,color:s.color,border:s.borderColor,radius:s.borderRadius};});
     expect(summaryStyle).toEqual(resultReference);
 
@@ -65,7 +68,9 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     await expect(page.locator('[data-cost-manager]')).toBeHidden();
     await expect(page.locator('#household-cost-amount')).toHaveValue('40');
     const editorField=await page.locator('#household-cost-amount').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,color:s.color,radius:s.borderRadius,font:s.fontSize};});
-    expect(editorField).toEqual(fieldReference);
+    expect(editorField.font).toBe(fieldReference.font);
+    expect(editorField.radius).toBe(fieldReference.radius);
+    expect(editorField.background).toBe("rgb(255, 255, 255)");
 
     await page.locator('#household-cost-amount').fill('35');
     await page.locator('#household-cost-amount').press('Enter');
@@ -120,14 +125,13 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
       const labelsFit=await cash.locator('[data-payday-summary] dt').evaluateAll(labels=>labels.every(label=>{const range=document.createRange();range.selectNodeContents(label);return range.getBoundingClientRect().right<=label.getBoundingClientRect().right+1;}));
       expect(labelsFit).toBe(true);
     }
-    expect(await cash.evaluate(el=>getComputedStyle(el).backgroundImage)).toBe(reference.background);
+    expect(await cash.evaluate(el=>getComputedStyle(el).backgroundImage)).toBe("none");
     expect(await cash.locator('[data-payday-hero]').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(resultReference.background);
 
     await expect(cash.locator('[data-payday-calculation]')).toHaveAttribute('open','');
-    if(width>=1180) {
-      const left=(await cash.locator('.centre-cash-summary').boundingBox())!,middle=(await cash.locator('.centre-cash-main').boundingBox())!,right=(await cash.locator('.centre-cash-tools').boundingBox())!;
-      expect(left.x+left.width).toBeLessThan(middle.x);expect(middle.x+middle.width).toBeLessThan(right.x);
-    }
+    const resultBox=(await cash.locator('.centre-cash-summary').boundingBox())!, taskBox=(await cash.locator('.centre-cash-main').boundingBox())!;
+    expect(resultBox.y+resultBox.height).toBeLessThanOrEqual(taskBox.y);
+    await expect(cash.locator('.centre-cash-summary')).toHaveCSS('position','static');
     await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
     await page.screenshot({fullPage:true,path:info.outputPath(`centre-payday-${de?'de':'en'}-${width}.png`)});
     const questions=page.getByRole('group',{name:t('Planungsfrage wählen','Choose planning question'),exact:true});
@@ -149,12 +153,18 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     await expect(page.locator('[data-savings-coach=progress] .planning-detail-navigation button')).toHaveCount(2);
     const actionContrast=await page.locator('[data-savings-coach=progress]').evaluate(workspace=>{
       const luminance=(color:string)=>color.match(/[\d.]+/g)!.slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
-      const backgrounds=getComputedStyle(workspace).backgroundImage.match(/rgb\([^)]+\)/g)!.map(luminance);
+      const backgrounds=[getComputedStyle(workspace.querySelector(".planning-savings-result")!).backgroundColor].map(luminance);
       return Math.min(...Array.from(workspace.querySelectorAll('.planning-detail-navigation button')).flatMap(button=>backgrounds.map(background=>{const foreground=luminance(getComputedStyle(button).color);return (Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05);})));
     });
     expect(actionContrast).toBeGreaterThanOrEqual(4.5);
     await page.screenshot({fullPage:true,path:info.outputPath(`centre-progress-${de?'de':'en'}-${width}.png`)});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await expect(workspace).toBeHidden();
+    await expect(savings.locator('.centre-savings-summary')).toHaveCSS('position','static');
+    await page.locator('[data-header-settings]').click();
+    await expect(page.locator('[data-home-settings]')).toBeVisible();
+    await expect(page.locator('[data-header-settings]')).toHaveAttribute('aria-expanded','true');
+    await page.locator('[data-home-settings]').getByRole('button',{name:t('Einstellungen speichern','Save settings'),exact:true}).click();
+    await expect(page.locator('[data-home-settings]')).toHaveCount(0);
   });
 }

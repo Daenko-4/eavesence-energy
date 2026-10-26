@@ -52,11 +52,11 @@ for (const locale of ['en', 'de'] as const) for (const width of [320, 390, 1365]
     }));
     expect(styles).toHaveLength(2);
     expect(styles[1]).toEqual(styles[0]);
-    await page.locator('[data-home-identity]').getByRole('button', { name: de ? 'Einstellungen' : 'Settings', exact: true }).click();
+    await page.locator('[data-header-settings]').click();
     const settings = page.locator('[data-home-settings]');
     await expect(settings.locator('input').first()).toBeFocused();
     await expect.poll(() => settings.evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(300);
-    await page.locator('[data-home-identity]').getByRole('button', { name: de ? 'Einstellungen' : 'Settings', exact: true }).click();
+    await page.locator('[data-header-settings]').click();
     await expect(settings).toHaveCount(0);
     const overview = page.getByRole('region', { name: de ? 'Finanzen im Überblick' : 'Your household at a glance' });
     await expect(overview.locator('[data-home-monthly-budget] article')).toHaveCount(0);

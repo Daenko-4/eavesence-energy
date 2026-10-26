@@ -12,8 +12,8 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`memos and a
  const payment=list.getByRole('checkbox',{name:/^Rent ·/});await payment.check();await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','false');await expect(payment).toBeVisible();await expect(payment).toBeChecked();await expect(list.locator('[data-checklist-open]')).toBeVisible();await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 1 bezahlt':'1 of 1 paid');
  await list.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`checklist-review-closed-${de?'de':'en'}-${width}.png`)});
  await toggle.click();await expect(payment).toBeChecked();expect(await toggle.locator('span').last().evaluate(el=>getComputedStyle(el).rotate)).toBe('-45deg');
- const memos=page.getByRole('region',{name:de?'Merken & erinnern':'Notes & reminders'}),summary=page.locator('[data-home-section=notes]');
- await expect(summary).toHaveAttribute('aria-expanded','false');await summary.click();await memos.getByRole('button',{name:de?'Notiz hinzufügen':'Add note',exact:true}).click();
+ const memos=page.getByRole('region',{name:de?'Merken & erinnern':'Notes & reminders'});
+ await homeDetail(page,'notes');await memos.getByRole('button',{name:de?'Notiz hinzufügen':'Add note',exact:true}).click();
  const form=memos.getByRole('form',{name:de?'Notiz bearbeiten':'Edit note'});
  await form.getByLabel(de?'Notiz':'Note',{exact:true}).fill('Review annual billing for three subscriptions');await form.getByRole('button',{name:de?'Jahresende':'Year end',exact:true}).click();await form.getByRole('button',{name:de?'Notiz speichern':'Save note',exact:true}).click();
  await expect(memos.getByText(de?'Später (1)':'Later (1)',{exact:true})).toBeVisible();const note=memos.getByRole('checkbox',{name:/Review annual billing/});await expect(note).toBeHidden();
