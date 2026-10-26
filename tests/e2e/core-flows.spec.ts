@@ -1568,7 +1568,8 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
  const fields=await panel.locator('form input:visible').evaluateAll(inputs=>inputs.map(input=>{const box=input.getBoundingClientRect();return {top:box.top,left:box.left,width:box.width,height:box.height,fontSize:getComputedStyle(input).fontSize};}));
  expect(fields).toHaveLength(1);
  await expect(panel.getByLabel('Money to keep in reserve (optional)',{exact:true})).toBeHidden();
- for(const field of fields){expect(field.height).toBe(44);expect(field.fontSize).toBe(width<768?'16px':'13px');}
+ // Match the calculator: 14px on desktop, 16px on mobile to avoid input zoom.
+ for(const field of fields){expect(field.height).toBe(44);expect(field.fontSize).toBe(width<768?'16px':'14px');}
 
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
  await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await paydayStep(page,1);await panel.getByLabel('Next payday',{exact:true}).fill(day);await paydayStep(page,2);await panel.getByText('Keep some money in reserve (optional)',{exact:true}).click();await paydayStep(page,2);await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await paydayStep(page,2);await panel.getByLabel('Everyday spending until payday',{exact:true}).fill('150');await paydayStep(page,2);await panel.getByRole('button',{name:'Show available money'}).click();
