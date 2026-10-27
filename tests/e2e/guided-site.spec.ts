@@ -8,7 +8,9 @@ for(const de of [false,true]) for(const width of [320,1365]) {
     await page.goto(de?'/de/zuhause':'/home');
     await expect(page.getByLabel(t('Name des Zuhauses','Home name'),{exact:true})).toBeHidden();
     await page.getByLabel(t('Dein monatliches Nettoeinkommen','Your monthly net income'),{exact:true}).fill(de?'2.400,50':'2,400.50');
-    await page.getByRole('button',{name:t('Zuhause erstellen','Create my home'),exact:true}).click();
+    await page.getByRole('button',{name:t('Weiter zur ersten Fixausgabe','Continue to first fixed cost'),exact:true}).click();
+    await page.getByRole('button',{name:t('Kosten später ergänzen','Add costs later'),exact:true}).click();
+    await page.getByRole('button',{name:t('Übersicht speichern und öffnen','Save and open overview'),exact:true}).click();
     await expect(page.getByRole('button',{name:t('Erste Kosten hinzufügen','Add first cost'),exact:true})).toBeVisible();
     await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).incomeAmount)).toBe(2400.5);
     await homeWorkspace(page,'plan');
@@ -81,3 +83,84 @@ for(const de of [false,true]) test(`offline page uses one language ${de?'de':'en
  await expect(page.getByRole('link',{name:de?'Erneut versuchen':'Try again',exact:true})).toHaveAttribute('href',de?'/de/zuhause':'/home');
  await context.close();
 });
+
+for (const de of [false, true]) for (const width of [320, 1365]) {
+ const t = (a:string,b:string) => de ? a : b;
+ test(`first month guides income cost and provisional result ${de?'de':'en'} ${width}`, async ({page},info) => {
+  await page.setViewportSize({width,height:900});
+  await page.goto(de?'/de/zuhause':'/home');
+  const income=page.getByLabel(t('Dein monatliches Nettoeinkommen','Your monthly net income'),{exact:true});
+  await income.fill('-1');
+  await page.getByRole('button',{name:t('Weiter zur ersten Fixausgabe','Continue to first fixed cost'),exact:true}).click();
+  await expect(page.getByRole('alert').filter({hasText:t('Betrag ab 0','amount of 0')})).toBeVisible();
+  await income.fill(de?'2.400,50':'2,400.50');
+  await page.getByRole('button',{name:t('Weiter zur ersten Fixausgabe','Continue to first fixed cost'),exact:true}).click();
+  const setup=page.locator('[data-first-month-setup]:visible');
+  await expect(setup.getByRole('heading')).toBeFocused();
+  await expect(page.locator('[data-home-overview-content]')).toHaveCount(0);
+  await setup.getByRole('button',{name:t('Vorläufiges Ergebnis anzeigen','Show provisional result'),exact:true}).click();
+  await expect(setup.getByRole('alert')).toBeVisible();
+  await setup.getByLabel(t('Bezeichnung','Cost name'),{exact:true}).fill(t('Versicherung','Insurance'));
+  const amount=setup.getByLabel(t('Betrag','Amount')+' (EUR)',{exact:true});
+  await amount.fill('1200');
+  await setup.getByLabel(t('Wie oft?','How often?'),{exact:true}).selectOption('yearly');
+  await setup.getByRole('button',{name:t('Zurück zum Einkommen','Back to income'),exact:true}).click();
+  await expect(income).toBeFocused();
+  await expect(income).toHaveValue(de?'2.400,50':'2,400.50');
+  await page.getByRole('button',{name:t('Weiter zur ersten Fixausgabe','Continue to first fixed cost'),exact:true}).click();
+  await expect(amount).toHaveValue('1200');
+  await setup.getByRole('button',{name:t('Vorläufiges Ergebnis anzeigen','Show provisional result'),exact:true}).click();
+  const result=setup.locator('[data-setup-result]');
+  await expect(result.locator('dd').nth(1)).toContainText(t('100,00','100.00'));
+  await expect(result.locator('dd').nth(2)).toContainText(t('2.300,50','2,300.50'));
+  await expect(setup).toContainText(t('noch kein frei verfügbares Budget','not yet your spending budget'));
+  expect(await page.evaluate(()=>localStorage.getItem('eavesence-home-profile-v1'))).toBeNull();
+  const boxes=await result.locator(':scope > div').evaluateAll(elements=>elements.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right};}));
+  if(width===320){expect(Math.abs(boxes[0].y-boxes[1].y)).toBeLessThan(1);expect(boxes[2].y).toBeGreaterThan(boxes[0].y);}
+  else {expect(boxes[2].x).toBeGreaterThan(boxes[1].x);expect(Math.abs(boxes[0].y-boxes[2].y)).toBeLessThan(1);}
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await setup.screenshot({path:info.outputPath(`first-month-${de?'de':'en'}-${width}.png`)});
+  await setup.getByRole('button',{name:t('Kosten ändern','Change cost'),exact:true}).click();
+  await expect(amount).toHaveValue('1200');
+  await setup.getByRole('button',{name:t('Vorläufiges Ergebnis anzeigen','Show provisional result'),exact:true}).click();
+  await setup.getByRole('button',{name:t('Übersicht speichern und öffnen','Save and open overview'),exact:true}).click();
+  await expect(page.locator('[data-home-overview-content]')).toBeVisible();
+  await page.reload();
+  await expect(page.locator('[data-home-overview-content]')).toBeVisible();
+  const stored=await page.evaluate(()=>({profile:JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!),costs:JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!)}));
+  expect(stored.profile.incomeAmount).toBe(2400.5);
+  expect(stored.costs).toHaveLength(1);
+  expect(stored.costs[0]).toMatchObject({amount:1200,frequency:'yearly',nextDueDate:''});
+ });
+}
+
+for (const de of [false,true]) {
+ const t=(a:string,b:string)=>de?a:b;
+ test(`zero income shows a shortfall and saving can be retried ${de?'de':'en'}`,async({page})=>{
+  await page.goto(de?'/de/zuhause':'/home');
+  await page.getByLabel(t('Dein monatliches Nettoeinkommen','Your monthly net income'),{exact:true}).fill('0');
+  await page.getByRole('button',{name:t('Weiter zur ersten Fixausgabe','Continue to first fixed cost'),exact:true}).click();
+  const setup=page.locator('[data-first-month-setup]:visible');
+  await setup.getByLabel(t('Bezeichnung','Cost name'),{exact:true}).fill('Rent');
+  await setup.getByLabel(t('Betrag','Amount')+' (EUR)',{exact:true}).fill('850');
+  await setup.getByRole('button',{name:t('Vorläufiges Ergebnis anzeigen','Show provisional result'),exact:true}).click();
+  await expect(setup.locator('[data-setup-result]')).toContainText(t('Fehlbetrag / Monat','Monthly shortfall'));
+  await expect(setup.locator('[data-setup-result] dd').last()).toContainText(t('-850,00','-€850.00'));
+  await page.evaluate(()=>{
+   const original=Storage.prototype.setItem;
+   Storage.prototype.setItem=function(key,value){if(key==='eavesence-home-costs-v1'){Storage.prototype.setItem=original;throw new DOMException('Full','QuotaExceededError');}return original.call(this,key,value);};
+  });
+  const save=setup.getByRole('button',{name:t('Übersicht speichern und öffnen','Save and open overview'),exact:true});
+  await save.click();
+  await expect(setup.getByRole('alert')).toContainText(t('Eingaben bleiben erhalten','entries have been kept'));
+  expect(await page.evaluate(()=>localStorage.getItem('eavesence-home-profile-v1'))).toBeNull();
+  await expect(setup.locator('[data-setup-result]')).toContainText(t('850,00','850.00'));
+  await save.click();
+  await page.reload();
+  await expect(page.locator('[data-home-overview-content]')).toBeVisible();
+  const stored=await page.evaluate(()=>({profile:JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!),costs:JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!)}));
+  expect(stored.profile.incomeAmount).toBe(0);
+  expect(stored.profile.incomeDeferred).toBe(false);
+  expect(stored.costs).toHaveLength(1);
+ });
+}

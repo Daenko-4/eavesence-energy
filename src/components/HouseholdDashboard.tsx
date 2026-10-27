@@ -1,5 +1,6 @@
 "use client";
 import FormActions from "@/components/FormActions";
+import FirstMonthSetup from "./FirstMonthSetup";
 
 import ProInsights from "./ProInsights";
 import { monthlyOutlook } from "@eavesence/core/monthlyOutlook";
@@ -784,6 +785,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [householdCosts, setHouseholdCosts] = useState<HouseholdCost[]>([]);
   const [costEvents, setCostEvents] = useState<CostEvent[]>([]);
   const [incomeValue, setIncomeValue] = useState("");
+  const [firstCostSetup, setFirstCostSetup] = useState(false);
   const [incomeExtras, setIncomeExtras] = useState<IncomeExtraDraft[]>([]);
   const [incomeExtrasOpen, setIncomeExtrasOpen] = useState(false);
   const [incomeFrequency, setIncomeFrequency] = useState<"monthly" | "yearly">("monthly");
@@ -1237,25 +1239,40 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function completeOnboarding() {
-    const amount = incomeValue.trim() ? parseIncomeAmount(incomeValue,locale) : null;
-    if (amount !== null && (!Number.isFinite(amount) || amount < 0)) {setIncomeError(locale === "de" ? "Bitte einen Betrag ab 0 eingeben." : "Enter an amount of 0 or more.");return;}
-    changeWorkspace("overview");
-    const nextProfile = createHouseholdProfile({
-      name,
-      currency,
-      electricityPrice: price,
-      savingsGoalPercent: 10,
-      roomNames: [],
-    });
-    try {persistProfile(amount === null ? nextProfile : {...nextProfile,incomeAmount:amount,incomeFrequency:"monthly",incomeDeferred:false});}
-    catch {setIncomeError(locale === "de" ? "Dein Zuhause konnte nicht gespeichert werden. Deine Eingaben bleiben erhalten." : "Could not save your home. Your entries have been kept.");return;}
+    const amount = incomeValue.trim() ? parseIncomeAmount(incomeValue, locale) : null;
+    if (amount !== null && (!Number.isFinite(amount) || amount < 0)) {
+      setIncomeError(locale === "de" ? "Bitte einen Betrag ab 0 eingeben." : "Enter an amount of 0 or more.");
+      return;
+    }
     setIncomeError("");
-    track("Home Onboarding Completed", {
-      locale,
-      currency,
-      room_count: nextProfile.rooms.length,
-      savings_goal: nextProfile.savingsGoalPercent,
+    if (amount !== null) {setFirstCostSetup(true);return;}
+    // Preserve the explicit start-without-income route.
+    try {saveOnboarding(null);} catch {
+      setIncomeError(locale === "de" ? "Dein Zuhause konnte nicht gespeichert werden. Deine Eingaben bleiben erhalten." : "Could not save your home. Your entries have been kept.");
+    }
+  }
+
+  function saveOnboarding(cost: HouseholdCost | null) {
+    const amount = incomeValue.trim() ? parseIncomeAmount(incomeValue, locale) : null;
+    const base = createHouseholdProfile({name, currency, electricityPrice: price, savingsGoalPercent: 10, roomNames: []});
+    const nextProfile = amount === null ? base : {...base, incomeAmount: amount, incomeFrequency: "monthly" as const, incomeDeferred: false};
+    const nextCosts = cost ? [cost, ...householdCosts] : householdCosts;
+    // Commit income and the first cost together, or keep the complete draft on failure.
+    writeHomeStorage(window.localStorage, [
+      [HOUSEHOLD_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile)],
+      [HOUSEHOLD_COSTS_STORAGE_KEY, JSON.stringify(nextCosts)],
+    ]);
+    setFirstCostSetup(false);
+    setProfile(nextProfile);
+    setHouseholdCosts(nextCosts);
+    changeWorkspace("overview");
+    window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
+    requestAnimationFrame(() => {
+      const heading = document.querySelector<HTMLElement>("[data-home-heading] h1");
+      heading?.setAttribute("tabindex", "-1");
+      heading?.focus();
     });
+    track("Home Onboarding Completed", {locale, currency, room_count: nextProfile.rooms.length, savings_goal: nextProfile.savingsGoalPercent});
   }
 
   function saveSettings() {
@@ -1594,6 +1611,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         <Header locale={locale} languageHrefOverride={languageHref} />
         <main className="px-5 py-12 sm:px-6 sm:py-20">
           <section className={`mx-auto max-w-3xl p-6 sm:p-8 ${homeSurfaceClass}`}>
+            <div hidden={firstCostSetup}>
             <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">{text.onboardingEyebrow}</p>
             <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.045em] sm:text-4xl">{text.onboardingTitle}</h1>
             <p className="mt-4 max-w-2xl text-[14px] leading-7 text-[#65716d]">{text.onboardingText}</p>
@@ -1601,7 +1619,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <form onSubmit={(event) => { event.preventDefault(); completeOnboarding(); }}>
             <ol className="home-setup-steps" aria-label={locale === "de" ? "Deine ersten Schritte" : "Your first steps"}><li aria-current="step">1 · {locale === "de" ? "Einkommen" : "Income"}</li><li>2 · {locale === "de" ? "Erste Kosten" : "First costs"}</li><li>3 · {locale === "de" ? "Überblick" : "Overview"}</li></ol>
             <label className="mt-6 grid gap-2 text-[14px] font-semibold">{locale === "de" ? "Dein monatliches Nettoeinkommen" : "Your monthly net income"}<input inputMode="decimal" value={incomeValue} onChange={event=>{setIncomeValue(event.target.value);setIncomeError("");}} placeholder={locale === "de" ? "z. B. 2.400,00" : "e.g. 2,400.00"} className={homeFieldClass} aria-describedby="setup-income-hint" /></label>
-            <p id="setup-income-hint" className="mt-2 text-[13px] text-[#65716d]">{locale === "de" ? "Ein Betrag reicht. Sonderzahlungen kannst du später ergänzen. Du kannst auch ohne Einkommen starten." : "One amount is enough. Add extra income later. You can also start without entering income."}</p>
+            <p id="setup-income-hint" className="mt-2 text-[13px] text-[#65716d]">{locale === "de" ? "Danach erfassen wir deine erste Fixausgabe und zeigen dir das vorläufige Ergebnis. Ohne Betrag kannst du die Einrichtung überspringen." : "Next, add your first fixed cost and see the provisional result. Leave the amount blank to skip setup."}</p>
             {incomeError && <p role="alert" className="mt-3 text-[13px] text-red-700">{incomeError}</p>}
             <details className="home-disclosure mt-5"><summary>{locale === "de" ? "Name und Währung ändern" : "Change name and currency"}</summary>
             <div className="mt-3 grid gap-5 sm:grid-cols-2">
@@ -1619,9 +1637,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
 
             </details>
-            <FormActions className="mt-6"><button type="submit" className={`w-full sm:w-auto ${homePrimaryActionClass}`}>{text.start}</button></FormActions>
+            <FormActions className="mt-6"><button type="submit" className={`w-full sm:w-auto ${homePrimaryActionClass}`}>{incomeValue.trim() ? locale === "de" ? "Weiter zur ersten Fixausgabe" : "Continue to first fixed cost" : text.start}</button></FormActions>
             </form>
             <p className="mt-4 text-[11px] font-medium text-[#65716d]">{text.private}</p>
+            </div>
+            <FirstMonthSetup active={firstCostSetup} locale={locale} currency={currency} income={parseIncomeAmount(incomeValue,locale)} onBack={() => {setFirstCostSetup(false);requestAnimationFrame(() => document.querySelector<HTMLInputElement>('[aria-describedby="setup-income-hint"]')?.focus());}} onComplete={saveOnboarding} />
           </section>
         </main>
         <Footer locale={locale} />
