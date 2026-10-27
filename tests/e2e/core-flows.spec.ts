@@ -274,7 +274,8 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   ).toBeVisible();
   await page.getByText("Change name and currency",{exact:true}).click();
   await page.getByLabel("Home name").fill("Test home");
-  await page.getByLabel("Home name").press("Enter");
+  await page.getByRole("button", { name: "Create my home", exact: true }).click();
+  await expect(page.locator("[data-home-overview-content]")).toBeVisible();
   await openEnergyTile(page);
   await page.getByRole("button", { name: /Electricity Calculator/ }).click();
   await page.getByLabel("Electricity price per kWh").fill("0.35");
@@ -1702,7 +1703,8 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   await page.goto("/home");
   await page.getByText("Change name and currency",{exact:true}).click();
   await page.getByLabel("Home name").fill("Simple home");
-  await page.getByLabel("Home name").press("Enter");
+  await page.getByRole("button", { name: "Create my home", exact: true }).click();
+  await expect(page.locator("[data-home-overview-content]")).toBeVisible();
   const tiles = page.locator("[data-home-tiles] article");
   await expect(tiles).toHaveCount(1);
   await expect(tiles.first()).toContainText("Household costs");
