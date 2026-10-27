@@ -90,6 +90,8 @@ for (const de of [false, true]) for (const width of [320, 1365]) {
   await page.setViewportSize({width,height:900});
   await page.goto(de?'/de/zuhause':'/home');
   const income=page.getByLabel(t('Dein monatliches Nettoeinkommen','Your monthly net income'),{exact:true});
+  await page.getByRole('button',{name:t('Weiter zur ersten Fixausgabe','Continue to first fixed cost'),exact:true}).click();
+  await expect(page.getByRole('alert').filter({hasText:t('Trage dein Monatsnetto','Enter your monthly net income')})).toBeVisible();
   await income.fill('-1');
   await page.getByRole('button',{name:t('Weiter zur ersten Fixausgabe','Continue to first fixed cost'),exact:true}).click();
   await expect(page.getByRole('alert').filter({hasText:t('Betrag ab 0','amount of 0')})).toBeVisible();

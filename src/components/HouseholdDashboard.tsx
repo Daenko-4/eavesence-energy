@@ -1244,9 +1244,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       setIncomeError(locale === "de" ? "Bitte einen Betrag ab 0 eingeben." : "Enter an amount of 0 or more.");
       return;
     }
+    if (amount === null) {
+      setIncomeError(locale === "de" ? "Trage dein Monatsnetto ein oder wähle unten den Start ohne Einkommen." : "Enter your monthly net income or choose the option below to start without income.");
+      return;
+    }
     setIncomeError("");
-    if (amount !== null) {setFirstCostSetup(true);return;}
-    // Preserve the explicit start-without-income route.
+    setFirstCostSetup(true);
+  }
+
+  function startWithoutIncome() {
     try {saveOnboarding(null);} catch {
       setIncomeError(locale === "de" ? "Dein Zuhause konnte nicht gespeichert werden. Deine Eingaben bleiben erhalten." : "Could not save your home. Your entries have been kept.");
     }
@@ -1619,7 +1625,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <form onSubmit={(event) => { event.preventDefault(); completeOnboarding(); }}>
             <ol className="home-setup-steps" aria-label={locale === "de" ? "Deine ersten Schritte" : "Your first steps"}><li aria-current="step">1 · {locale === "de" ? "Einkommen" : "Income"}</li><li>2 · {locale === "de" ? "Erste Kosten" : "First costs"}</li><li>3 · {locale === "de" ? "Überblick" : "Overview"}</li></ol>
             <label className="mt-6 grid gap-2 text-[14px] font-semibold">{locale === "de" ? "Dein monatliches Nettoeinkommen" : "Your monthly net income"}<input inputMode="decimal" value={incomeValue} onChange={event=>{setIncomeValue(event.target.value);setIncomeError("");}} placeholder={locale === "de" ? "z. B. 2.400,00" : "e.g. 2,400.00"} className={homeFieldClass} aria-describedby="setup-income-hint" /></label>
-            <p id="setup-income-hint" className="mt-2 text-[13px] text-[#65716d]">{locale === "de" ? "Danach erfassen wir deine erste Fixausgabe und zeigen dir das vorläufige Ergebnis. Ohne Betrag kannst du die Einrichtung überspringen." : "Next, add your first fixed cost and see the provisional result. Leave the amount blank to skip setup."}</p>
+            <p id="setup-income-hint" className="mt-2 text-[13px] text-[#65716d]">{locale === "de" ? "Danach erfassen wir deine erste Fixausgabe und zeigen dir das vorläufige Ergebnis. Du kannst unten auch ohne Einkommen starten." : "Next, add your first fixed cost and see the provisional result. You can also choose to start without income below."}</p>
             {incomeError && <p role="alert" className="mt-3 text-[13px] text-red-700">{incomeError}</p>}
             <details className="home-disclosure mt-5"><summary>{locale === "de" ? "Name und Währung ändern" : "Change name and currency"}</summary>
             <div className="mt-3 grid gap-5 sm:grid-cols-2">
@@ -1637,8 +1643,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
 
             </details>
-            <FormActions className="mt-6"><button type="submit" className={`w-full sm:w-auto ${homePrimaryActionClass}`}>{incomeValue.trim() ? locale === "de" ? "Weiter zur ersten Fixausgabe" : "Continue to first fixed cost" : text.start}</button></FormActions>
+            <FormActions className="mt-6"><button type="submit" className={`w-full sm:w-auto ${homePrimaryActionClass}`}>{locale === "de" ? "Weiter zur ersten Fixausgabe" : "Continue to first fixed cost"}</button></FormActions>
             </form>
+            {!incomeValue.trim() && <div className="mt-5 border-t border-[#dde2d8] pt-4"><p id="setup-without-income" className="text-[12px] text-[#65716d]">{locale === "de" ? "Du möchtest ohne Einkommen starten?" : "Prefer to start without income?"}</p><button type="button" aria-describedby="setup-without-income" className="eavesence-pill-button mt-2" onClick={startWithoutIncome}>{text.start}</button></div>}
             <p className="mt-4 text-[11px] font-medium text-[#65716d]">{text.private}</p>
             </div>
             <FirstMonthSetup active={firstCostSetup} locale={locale} currency={currency} income={parseIncomeAmount(incomeValue,locale)} onBack={() => {setFirstCostSetup(false);requestAnimationFrame(() => document.querySelector<HTMLInputElement>('[aria-describedby="setup-income-hint"]')?.focus());}} onComplete={saveOnboarding} />
