@@ -8,6 +8,7 @@ async function seed(page: Page, de: boolean) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(de ? '/de/zuhause' : '/home');
   await page.getByRole('button', { name: de ? 'Zuhause erstellen' : 'Create my home', exact: true }).click();
+  await expect(page.locator('[data-home-overview-content]')).toBeVisible();
   await page.evaluate(() => {
     const profile = JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);
     Object.assign(profile, { incomeAmount: 2400, overviewReviewed: true, backupReminderDismissed: true });
