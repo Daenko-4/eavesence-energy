@@ -52,15 +52,24 @@ export default function PwaLifecycle() {
         if (disposed) return;
 
         setRegistration(nextRegistration);
-        setUpdateAvailable(Boolean(nextRegistration.waiting));
+        setUpdateAvailable(Boolean(
+          nextRegistration.active && nextRegistration.waiting &&
+          nextRegistration.waiting !== nextRegistration.active,
+        ));
 
         nextRegistration.addEventListener("updatefound", () => {
           const installingWorker = nextRegistration.installing;
           if (!installingWorker) return;
+          // Remember whether this install replaces an existing worker. The first
+          // worker can claim the page before its queued statechange is handled.
+          const replacesActiveWorker = Boolean(
+            nextRegistration.active && nextRegistration.active !== installingWorker,
+          );
 
           installingWorker.addEventListener("statechange", () => {
             if (
               installingWorker.state === "installed" &&
+              replacesActiveWorker &&
               navigator.serviceWorker.controller
             ) {
               setUpdateAvailable(true);

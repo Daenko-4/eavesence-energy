@@ -8,6 +8,22 @@ export async function closeSettings(page:Page) {
   }
 }
 
+/** Wait for the deep-link scroll and layout to settle before typing or clicking. */
+async function settleWorkspace(page: Page, selector: string) {
+  await page.locator(selector).evaluate(element => new Promise<void>(resolve => {
+    let previous = "", stableFrames = 0;
+    function check() {
+      const rect = element.getBoundingClientRect();
+      const position = [window.scrollX, window.scrollY, rect.top, rect.height].join(":");
+      stableFrames = position === previous ? stableFrames + 1 : 0;
+      previous = position;
+      if (stableFrames >= 4) resolve();
+      else requestAnimationFrame(check);
+    }
+    requestAnimationFrame(check);
+  }));
+}
+
 /** Use the navigation users actually see, including the mobile menu. */
 export async function homeWorkspace(page: Page, destination: 'overview' | 'plan') {
   await closeSettings(page);
@@ -19,7 +35,7 @@ export async function homeWorkspace(page: Page, destination: 'overview' | 'plan'
   // On reload the initial render can precede the bookmarked workspace effect.
   if (linkedView) {
     await expect(page.locator(linkedView === 'plan' ? '[data-home-plan-content]' : '[data-home-overview-content]')).toBeVisible();
-    if (linkedView === destination) return;
+    if (linkedView === destination) { await settleWorkspace(page, destination === 'plan' ? '[data-home-plan-content]' : '[data-home-overview-content]'); return; }
   } else if (await content.isVisible()) return;
   const link = header.locator(`.header-navigation-link[href$="${hash}"]:visible`).first();
   if (!await link.isVisible()) {
@@ -29,6 +45,7 @@ export async function homeWorkspace(page: Page, destination: 'overview' | 'plan'
   }
   await link.click();
   await expect(page.locator(destination === 'plan' ? '[data-home-plan-content]' : '[data-home-overview-content]')).toBeVisible();
+  await settleWorkspace(page, destination === 'plan' ? '[data-home-plan-content]' : '[data-home-overview-content]');
 }
 
 /** Open a detail through the visible section row, or the setup action before it exists. */
@@ -90,6 +107,7 @@ export async function openPayday(page:Page){
 export async function paydayStep(page:Page,target:number){
   const panel=page.locator('[data-payday-state]:visible');
   for(let attempts=0;attempts<3;attempts++){
+    await settleWorkspace(page, '[data-payday-state]:visible');
     const step=Number(await panel.getAttribute('data-payday-step'));
     if(step===target)return;
     if(step>target)await panel.getByRole('button',{name:/^(Back|Zurück)$/}).click();
