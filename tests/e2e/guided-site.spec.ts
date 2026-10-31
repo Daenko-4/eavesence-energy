@@ -43,7 +43,9 @@ for(const de of [false,true]) {
   await page.evaluate(()=>localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'rent',name:'Rent',amount:860,frequency:'monthly',category:'housing',nextDueDate:'',updatedAt:'2026-10-26T00:00:00Z'}])));
   await page.reload();await homeWorkspace(page,'plan');
   const panel=page.locator('[data-payday-state]');
-  await panel.getByLabel(t('Aktueller Kontostand','Current account balance'),{exact:true}).fill('1800');
+  const balance=panel.getByLabel(t('Aktueller Kontostand','Current account balance'),{exact:true});
+  await balance.fill('1800');
+  await expect(balance).toHaveValue('1800');
   await paydayStep(page,1);
   await panel.getByRole('button',{name:t('In 7 Tagen','In 7 days'),exact:true}).click();
   await expect(panel).toContainText(t('Du kannst weiterplanen.','You can continue planning.'));
