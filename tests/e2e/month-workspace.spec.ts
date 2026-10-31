@@ -16,6 +16,17 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     });
     await page.reload();
     const workspace=page.locator('.home-month-workspace');
+    const annualSummary=workspace.locator('[data-income-extras-summary]');
+    await expect(annualSummary.locator('.income-annual-metrics dd')).toHaveCount(2);
+    const annualHierarchy=await annualSummary.evaluate(el=>{
+      const metrics=Array.from(el.querySelectorAll('.income-annual-metrics dd'));
+      const extras=Array.from(el.querySelectorAll('.income-extra-payments li > span:last-child'));
+      return {metrics:metrics.map(n=>({size:parseFloat(getComputedStyle(n).fontSize),y:n.getBoundingClientRect().y,bottom:n.getBoundingClientRect().bottom})),extras:extras.map(n=>({size:parseFloat(getComputedStyle(n).fontSize),y:n.getBoundingClientRect().y}))};
+    });
+    expect(Math.abs(annualHierarchy.metrics[0].y-annualHierarchy.metrics[1].y)).toBeLessThanOrEqual(1);
+    expect(Math.min(...annualHierarchy.metrics.map(n=>n.size))).toBeGreaterThan(Math.max(...annualHierarchy.extras.map(n=>n.size)));
+    expect(Math.max(...annualHierarchy.metrics.map(n=>n.bottom))).toBeLessThan(Math.min(...annualHierarchy.extras.map(n=>n.y)));
+
     const open=workspace.locator('[data-payment-group=open]'),paid=workspace.locator('[data-payment-group=paid]');
     await expect(open.getByRole('checkbox')).toHaveCount(20);
     await expect(paid).toHaveCount(0);
@@ -94,5 +105,19 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     expect(shortToolbar.height).toBeLessThan(100);
     expect(shortList.y-shortSummary.y-shortSummary.height).toBeLessThanOrEqual(12);
     await page.screenshot({fullPage:true,path:info.outputPath(`workspace-short-${de?'de':'en'}-${width}.png`)});
+    await workspace.getByRole('checkbox',{name:/^Bill 1 ·/}).check();
+    const paymentSummary=workspace.locator('.centre-payments-summary');
+    await expect(paymentSummary.locator('[data-checklist-open]')).toContainText(t('0,00','0.00'));
+    await expect(paymentSummary.locator('[data-checklist-progress]')).toHaveText(t('1 von 1 bezahlt','1 of 1 paid'));
+    const textBoxes=await paymentSummary.locator('[data-checklist-open], [data-checklist-progress], [data-checklist-paid], [data-checklist-paid-label]').evaluateAll(elements=>elements.map(el=>{
+      const range=document.createRange();range.selectNodeContents(el);const r=range.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom};
+    }));
+    const [unpaidAmount,progress,paidAmount,paidLabel]=textBoxes;
+    expect(progress.y).toBeGreaterThanOrEqual(unpaidAmount.bottom);
+    expect(paidLabel.y).toBeGreaterThanOrEqual(paidAmount.bottom);
+    expect(Math.abs(unpaidAmount.y-paidAmount.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(progress.y-paidLabel.y)).toBeLessThanOrEqual(1);
+    for(const [amount,label] of [[unpaidAmount,progress],[paidAmount,paidLabel]])expect(Math.abs(width<640 ? amount.x-label.x : amount.right-label.right)).toBeLessThanOrEqual(1);
+    await paymentSummary.screenshot({path:info.outputPath(`payment-summary-${de?'de':'en'}-${width}.png`)});
   });
 }

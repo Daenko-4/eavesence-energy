@@ -13,7 +13,7 @@ for(const de of [false,true])for(const width of [320,1365])test(`monthly focus a
  await expect(page.locator('[data-cost-manager]')).toBeHidden();await expect(page.locator('.home-month-workspace [data-home-section=notes]')).toHaveCount(0);await page.screenshot({fullPage:true,path:info.outputPath(`visit-collapsed-${de?'de':'en'}-${width}.png`)});
  await expect(month.locator('[data-month-review]')).toBeVisible();
  await month.getByRole('checkbox',{name:/^Rent ·/}).check();await expect(month.locator('[data-checklist-next]')).toContainText('Internet');await expect(month.locator('[data-checklist-paid]')).toContainText(t('900,00','900.00'));await expect(month.locator('[data-checklist-open]')).toContainText(t('40,00','40.00'));
- await expect(month).toContainText(t('1 Zahlung','1 payment'));
+ await expect(month.locator('[data-checklist-progress]')).toHaveText(t('1 von 2 bezahlt','1 of 2 paid'));
  await month.screenshot({path:info.outputPath(`month-focus-${de?'de':'en'}-${width}.png`)});
  await homeWorkspace(page, 'plan');
  const payday=page.getByRole('region',{name:t('Dein verfügbarer Spielraum','Your available budget'),exact:true});await expect(payday).toHaveAttribute('data-payday-state', 'stale');await expect(payday.locator('[data-payday-result]')).toHaveCount(0);
