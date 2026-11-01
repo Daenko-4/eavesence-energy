@@ -1952,19 +1952,19 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <HomeSettingsDialog locale={locale} onClose={()=>setSettingsOpen(false)}><section id="home-settings" data-home-settings className={`mt-6 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
               <HomeSectionNavigation locale={locale} active={homeSection} onChange={openHomeSection} memos={profile.planning?.memos} />
               {notice?.scope === "home" && <p data-home-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
-              <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }} className="grid gap-4 sm:grid-cols-4">
-              <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b] sm:col-span-2"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
+              <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }} className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_180px]">
+              <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
               <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.currency}</span><select value={currency} onChange={(event) => setCurrency(event.target.value as SavedDeviceCurrency)} className={homeFieldClass}>{currencies.map((item) => <option key={item}>{item}</option>)}</select></label>
-              <FormActions className="sm:col-span-4"><button type="submit" className={homeDashboardActionClass}>{text.saveSettings}</button></FormActions>
+              <FormActions className="sm:col-span-2"><button type="submit" className={homeDashboardActionClass}>{text.saveSettings}</button></FormActions>
               </form>
               <div className="mt-4 rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4">
                 <h2 className="text-[14px] font-bold text-[#17211f]">{text.dataTitle}</h2>
-                <div className="mt-1 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+                <div className="mt-1 grid gap-3">
                   <p data-manage-data-description className="max-w-3xl text-[13px] leading-5 text-[#65716d]">
                     <span className="block">{text.dataText}</span>
                     <span className="block">{text.dataPrivacy}</span>
                   </p>
-                  <div className="flex flex-wrap items-start gap-2 lg:-mt-[3px] lg:flex-nowrap lg:whitespace-nowrap">
+                  <div className="flex flex-wrap items-start gap-2">
                     <input
                       ref={homeImportInputRef}
                       type="file"

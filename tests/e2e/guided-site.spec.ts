@@ -26,6 +26,17 @@ for(const de of [false,true]) for(const width of [320,1365]) {
     await expect(dialog.getByLabel(t('Name des Zuhauses','Home name'),{exact:true})).toBeFocused();
     expect(new URL(page.url()).hash).toBe(hash);
     await expect(page.locator('[data-pwa-shell]')).toHaveAttribute('data-home-workspace','plan');
+    const description=dialog.locator('[data-manage-data-description]');
+    const textBox=(await description.boundingBox())!;
+    const importBox=(await dialog.locator('[data-manage-data-import]').boundingBox())!;
+    expect(importBox.y).toBeGreaterThanOrEqual(textBox.y+textBox.height);
+    expect(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true);
+    if(width>=640){
+      expect((await dialog.boundingBox())!.width).toBeLessThanOrEqual(720);
+      expect((await dialog.boundingBox())!.height).toBeLessThan(460);
+      expect(textBox.width).toBeGreaterThan(500);
+      expect(textBox.height).toBeLessThanOrEqual(100);
+    }
     await dialog.screenshot({path:info.outputPath(`settings-${de?'de':'en'}-${width}.png`)});
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
