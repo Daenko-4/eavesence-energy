@@ -23,6 +23,11 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
       const extras=Array.from(el.querySelectorAll('.income-extra-payments li > span:last-child'));
       return {metrics:metrics.map(n=>({size:parseFloat(getComputedStyle(n).fontSize),y:n.getBoundingClientRect().y,bottom:n.getBoundingClientRect().bottom})),extras:extras.map(n=>({size:parseFloat(getComputedStyle(n).fontSize),y:n.getBoundingClientRect().y}))};
     });
+    const annualCentres=await annualSummary.locator('.income-annual-metrics > div').evaluateAll(cards=>cards.map(card=>{
+      const centre=(node:Element)=>{const range=document.createRange();range.selectNodeContents(node);const box=range.getBoundingClientRect();return box.x+box.width/2;};
+      return Math.abs(centre(card.querySelector('dt')!)-centre(card.querySelector('dd')!));
+    }));
+    for(const delta of annualCentres)expect(delta).toBeLessThanOrEqual(1);
     expect(Math.abs(annualHierarchy.metrics[0].y-annualHierarchy.metrics[1].y)).toBeLessThanOrEqual(1);
     expect(Math.min(...annualHierarchy.metrics.map(n=>n.size))).toBeGreaterThan(Math.max(...annualHierarchy.extras.map(n=>n.size)));
     expect(Math.max(...annualHierarchy.metrics.map(n=>n.bottom))).toBeLessThan(Math.min(...annualHierarchy.extras.map(n=>n.y)));
@@ -39,6 +44,14 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
       const boxes=await figures.evaluateAll(cards=>cards.map(card=>{const a=card.querySelector('.home-month-kpi-amount')!.getBoundingClientRect(),l=card.querySelector('.home-month-kpi-label')!.getBoundingClientRect(),b=card.getBoundingClientRect();return {amount:a.y,label:l.y,labelBottom:l.bottom,width:b.width,center:a.x+a.width/2-(b.x+b.width/2)};}));
       expect(Math.max(...boxes.map(b=>b.amount))-Math.min(...boxes.map(b=>b.amount))).toBeLessThanOrEqual(1);
       if(width>=640) {
+        const paymentCentres=await workspace.evaluate(el=>{
+          const fixed=el.querySelector('[data-home-kpi="costs"]')!.getBoundingClientRect();
+          return ['[data-checklist-open]','[data-checklist-progress]'].map(selector=>{
+            const range=document.createRange();range.selectNodeContents(el.querySelector(selector)!);const box=range.getBoundingClientRect();
+            return Math.abs(box.x+box.width/2-(fixed.x+fixed.width/2));
+          });
+        });
+        for(const delta of paymentCentres)expect(delta).toBeLessThanOrEqual(1);
         expect(Math.max(...boxes.map(b=>b.label))-Math.min(...boxes.map(b=>b.label))).toBeLessThanOrEqual(1);
         expect(Math.max(...boxes.map(b=>b.width))-Math.min(...boxes.map(b=>b.width))).toBeLessThanOrEqual(1);
       }
@@ -117,7 +130,12 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     expect(paidLabel.y).toBeGreaterThanOrEqual(paidAmount.bottom);
     expect(Math.abs(unpaidAmount.y-paidAmount.y)).toBeLessThanOrEqual(1);
     expect(Math.abs(progress.y-paidLabel.y)).toBeLessThanOrEqual(1);
-    for(const [amount,label] of [[unpaidAmount,progress],[paidAmount,paidLabel]])expect(Math.abs(width<640 ? amount.x-label.x : amount.right-label.right)).toBeLessThanOrEqual(1);
+    if(width<640) {
+      for(const [amount,label] of [[unpaidAmount,progress],[paidAmount,paidLabel]])expect(Math.abs(amount.x-label.x)).toBeLessThanOrEqual(1);
+    } else {
+      expect(Math.abs((unpaidAmount.x+unpaidAmount.right)/2-(progress.x+progress.right)/2)).toBeLessThanOrEqual(1);
+      expect(Math.abs(paidAmount.right-paidLabel.right)).toBeLessThanOrEqual(1);
+    }
     await paymentSummary.screenshot({path:info.outputPath(`payment-summary-${de?'de':'en'}-${width}.png`)});
   });
 }
