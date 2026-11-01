@@ -12,7 +12,7 @@ for(const locale of ['de','en'])for(const width of [320,390])test(`native design
  await page.setContent(views.expandedMonth);
  await expect(page.getByRole('checkbox')).toHaveCount(3);
  await expect(page.getByText(locale==='de'?'178,00':'178.00',{exact:false}).first()).toBeVisible();
- await expect(page.getByText(locale==='de'?'Bezahlte Zahlungen':'Paid payments',{exact:false})).toBeVisible();
+ await expect(page.getByRole('button',{name:locale==='de'?/^Bezahlte Zahlungen/:/^Paid payments/})).toBeVisible();
  await expect(page.getByText(locale==='de'?'Miete':'Rent',{exact:true})).toHaveCount(0);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  expect(await page.getByRole('checkbox').first().evaluate(el=>getComputedStyle(el.parentElement!).borderLeftWidth)).toBe('0px');

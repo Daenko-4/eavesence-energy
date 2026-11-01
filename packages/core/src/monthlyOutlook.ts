@@ -1,4 +1,4 @@
-import { summarizeIncome, extraIncomeForMonth, type IncomeProfile } from './income.ts';
+import { summarizeIncome, extraIncomeForMonth, additionalIncomeForMonth, type IncomeProfile } from './income.ts';
 import { monthChecklist, readActualPayments } from './paymentChecklist.ts';
 import type { HouseholdCost } from './householdCosts.ts';
 
@@ -13,7 +13,7 @@ export function monthlyOutlook({ profile, incomeKnown, costs, month, actualPayme
   const list = monthChecklist(costs, month, [], readActualPayments(actualPayments));
   const summary = summarizeIncome(profile, Number(month.slice(0, 4)));
   const round = (amount: number) => Math.round((amount + Number.EPSILON) * 100) / 100;
-  const extraIncome = round(extraIncomeForMonth(summary.extras, month));
+  const extraIncome = round(extraIncomeForMonth(summary.extras, month) + additionalIncomeForMonth(summary.additional, month));
   const income = incomeKnown ? round(summary.monthly + extraIncome) : null;
   const total = round(list.payments.reduce((sum, payment) => sum + payment.cost.amount, 0));
   const complete = income !== null && costs.length > 0 && list.missing.length === 0;

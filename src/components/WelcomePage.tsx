@@ -47,7 +47,7 @@ export default function WelcomePage({ locale }: { locale: Locale }) {
           <div className="flex justify-between gap-3"><dt>{de ? "Nettoeinkommen" : "Net income"}</dt><dd className="font-bold text-[#17211f]">{de ? "2.400 €" : "€2,400"}</dd></div>
           <div className="flex justify-between gap-3"><dt>{de ? "Feste Kosten pro Monat" : "Fixed costs per month"}</dt><dd className="font-bold text-[#17211f]">{de ? "860 €" : "€860"}</dd></div>
         </dl>
-        <div className="mt-5 rounded-xl bg-[#e0f1e4] p-4 text-right"><p className="text-[12px] text-[#52605b]">{de ? "Rest nach Fixkosten" : "Left after fixed costs"}</p><p className="mt-1 text-[28px] font-extrabold text-[#087a45]">{de ? "1.540 €" : "€1,540"}</p></div>
+        <div className="mt-5 rounded-xl bg-[#e0f1e4] p-4 text-right"><p className="text-[12px] text-[#52605b]">{de ? "Voraussichtlich übrig nach Fixkosten" : "Expected amount left after fixed costs"}</p><p className="mt-1 text-[28px] font-extrabold text-[#087a45]">{de ? "1.540 €" : "€1,540"}</p></div>
         <p className="mt-3 text-[11px] leading-5 text-[#52605b]">{de ? "Beispiel mit Monatsdurchschnitten. Lebensmittel, Freizeit und andere Alltagsausgaben gehen davon noch ab." : "Example using monthly averages. Groceries, leisure and other everyday spending still come out of this amount."}</p>
         <span className="mt-5 inline-flex items-center text-[12px] font-bold text-[#087a45]">{de ? "Deinen eigenen Überblick erstellen" : "Create your own overview"} →</span>
       </Link>

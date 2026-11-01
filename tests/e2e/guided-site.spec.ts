@@ -16,7 +16,7 @@ for(const de of [false,true]) for(const width of [320,1365]) {
     await homeWorkspace(page,'plan');
     const balance=page.getByLabel(t('Aktueller Kontostand','Current account balance'),{exact:true});
     await expect(balance).toBeFocused();
-    await page.getByRole('group',{name:t('Planungsfrage wählen','Choose planning question')}).getByRole('button',{name:t('Bis zum Gehalt','Until payday'),exact:true}).click();
+    await page.getByRole('group',{name:t('Planungsfrage wählen','Choose planning question')}).getByRole('button',{name:t('Bis zum nächsten Gehalt','Until next payday'),exact:true}).click();
     await balance.fill('1234');
     await expect(balance).toHaveValue('1234');
     const hash=new URL(page.url()).hash;
@@ -50,7 +50,7 @@ for(const de of [false,true]) {
   await panel.getByRole('button',{name:t('In 7 Tagen','In 7 days'),exact:true}).click();
   await expect(panel).toContainText(t('Du kannst weiterplanen.','You can continue planning.'));
   await paydayStep(page,2);
-  await panel.getByLabel(t('Alltagsausgaben bis zum Gehalt','Everyday spending until payday'),{exact:true}).fill('250');
+  await panel.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt','Everyday spending until next payday'),{exact:true}).fill('250');
   await panel.getByRole('button',{name:t('Verfügbares Geld anzeigen','Show available money'),exact:true}).click();
   await expect(panel).toHaveAttribute('data-payday-state','dates');
   await expect(panel.locator('[data-payday-result]')).toHaveCount(0);

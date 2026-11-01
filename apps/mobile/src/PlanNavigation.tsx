@@ -14,11 +14,11 @@ export function PlanView({ visible, children }: { visible: boolean; children: Re
 export function PlanNavigation<T extends PlanPeriod | PlanTool | PlanGoal>({ kind, value, onChange }: { kind: 'goal' | 'period' | 'tool'; value: T; onChange: (value: T) => void }) {
   const de = useMobileLocale() === 'de';
   const items: { key: string; label: string; accessible?: string }[] = kind === 'goal' ? [
-    {key:'payday',label:de?'Geld planen':'Plan money',accessible:de?'Bis zum Gehalt ausgeben':'Spend until payday'},
+    {key:'payday',label:de?'Geld planen':'Plan money',accessible:de?'Bis zum nächsten Gehalt ausgeben':'Spend until next payday'},
     {key:'savings',label:de?'Kosten senken':'Lower costs',accessible:de?'Realistisch sparen':'Find realistic savings'},
-    {key:'progress',label:de?'Erspart':'Savings achieved',accessible:de?'Erreichte Ersparnis':'Savings achieved'},
+    {key:'progress',label:de?'Erreichte Ersparnis':'Savings achieved',accessible:de?'Erreichte Ersparnis':'Savings achieved'},
   ] : kind === 'period' ? [
-    {key:'payday',label:de?'Bis zum Gehalt':'Until payday'},
+    {key:'payday',label:de?'Bis zum nächsten Gehalt':'Until next payday'},
     {key:'forecast',label:de?'90-Tage-Vorschau':'90-day outlook'},
     {key:'budget',label:de?'Monatsbudget':'Monthly budget'},
   ] : [

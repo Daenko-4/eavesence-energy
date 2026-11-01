@@ -47,7 +47,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await homeWorkspace(page, 'plan');
     await expect(heading).toBeHidden();
     const hero = page.locator('[data-payday-hero]');
-    await expect(hero.getByRole('heading')).toHaveText(de ? 'Bis zum Gehalt' : 'Until payday');
+    await expect(hero.getByRole('heading')).toHaveText(de ? 'Bis zum nächsten Gehalt' : 'Until next payday');
     await expect(hero.locator('[data-payday-result]')).toHaveCount(0);
     expect((await hero.innerText()).length).toBeLessThan(370);
     await page.screenshot({ path: info.outputPath(`focused-pro-empty-${de ? 'de' : 'en'}-${width}.png`) });
@@ -68,7 +68,7 @@ for (const de of [false, true]) {
     await expect(balance).toBeFocused();
     await balance.fill('1000');
     await paydayStep(page,1);await panel.getByLabel(t('Nächstes Gehalt am', 'Next payday'), { exact: true }).fill('2026-10-25');
-    await paydayStep(page,2);await panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true }).fill('200');
+    await paydayStep(page,2);await panel.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt', 'Everyday spending until next payday'), { exact: true }).fill('200');
     await paydayStep(page,2);await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
     await expect(panel).toHaveAttribute('data-payday-state', 'ready');
     await expect(panel.locator('[data-payday-hero]')).toHaveCSS('background-color','rgb(246, 246, 240)');
@@ -127,7 +127,7 @@ for (const de of [false, true]) {
     await page.reload(); await homeWorkspace(page, 'plan');
     await expect(panel).toHaveAttribute('data-payday-state', 'everyday');
     await panel.getByRole('button', { name: t('Kontostand aktualisieren', 'Update account balance'), exact: true }).click();
-    const everyday = panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true });
+    const everyday = panel.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt', 'Everyday spending until next payday'), { exact: true });
     await expect(everyday).toBeFocused(); await everyday.fill('0');
     await paydayStep(page,0);await panel.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true }).fill('-100');
     await paydayStep(page,2);await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
@@ -284,7 +284,7 @@ for (const de of [false, true]) {
       await closeSettings(page);
       await expect(annualBill).toHaveValue('1200');
       await expect(annualKwh).toHaveValue('');
-      const saveEnergy = page.getByRole('button', { name: t('Strombasis speichern', 'Save electricity basis'), exact: true });
+      const saveEnergy = page.getByRole('button', { name: t('Stromangaben speichern', 'Save electricity details'), exact: true });
       await saveEnergy.click();
       const energyNotice = page.locator('[data-energy-notice]');
       await expect(energyNotice).toHaveAttribute('role', 'alert');
@@ -361,7 +361,7 @@ for (const de of [false, true]) for (const width of [320,390,1365]) test(`connec
   await expect(page.locator('#home-plan h1')).toBeFocused();
   const progress=page.getByRole('region',{name:t('03 · Was habe ich tatsächlich eingespart?','03 · What have I actually saved?')});
   await expect(progress).toContainText(t('0,00','0.00'));await expect(progress).toContainText(t('19. Oktober','19 October'));
-  await progress.getByRole('button',{name:t('Geld bis zum Gehalt neu prüfen','Review your money until payday'),exact:true}).click();
+  await progress.getByRole('button',{name:t('Geld bis zum nächsten Gehalt neu prüfen','Review your money until next payday'),exact:true}).click();
   await expect(page.locator('[data-payday-state]')).toHaveAttribute('data-payday-state','stale');
   await expect(page.locator('[data-payday-result]')).toHaveCount(0);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

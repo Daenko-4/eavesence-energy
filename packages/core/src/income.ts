@@ -1,5 +1,5 @@
 export type IncomeExtra = { id: string; kind: "salary13" | "salary14" | "bonus"; amount: number; month: number; year?: number };
-export type IncomeProfile = { incomeAmount?: number; incomeFrequency?: "monthly" | "yearly"; incomeExtras?: IncomeExtra[] };
+export type IncomeProfile = { incomeAmount?: number; incomeFrequency?: "monthly" | "yearly"; incomeExtras?: IncomeExtra[]; additionalIncome?: AdditionalIncome[] };
 export type IncomeExtraDraft = { id: string; kind: IncomeExtra["kind"]; amount: string; month: string; year: string; yearly: boolean };
 
 /** Reject damaged extra-payment records atomically, including duplicate IDs. */
@@ -45,12 +45,33 @@ export function summarizeIncome(profile: IncomeProfile, year = new Date().getFul
   // Legacy annual net may already include all bonuses. Never add extras twice.
   const extras = annualAverage ? [] : readIncomeExtras(profile.incomeExtras) ?? [];
   const extraTotal = extras.filter(extra => extra.year === undefined || extra.year === year).reduce((sum, extra) => sum + extra.amount, 0);
-  const annual = annualAverage ? amount : monthly * 12 + extraTotal;
-  return { monthly, annualAverage, annual, average: annual / 12, extraTotal, extras, year };
+  const additional = readAdditionalIncome(profile.additionalIncome) ?? [];
+  const additionalTotal = additional.filter(entry => Number(entry.date.slice(0,4)) === year).reduce((sum,entry)=>sum+entry.amount,0);
+  const annual = (annualAverage ? amount : monthly * 12 + extraTotal) + additionalTotal;
+  return { monthly, annualAverage, annual, average: annual / 12, extraTotal, extras, additional, additionalTotal, year };
 }
 export function incomeExtraLabel(kind: IncomeExtra["kind"], locale: "de" | "en") {
   return kind === "salary13" ? locale === "de" ? "13. Gehalt" : "13th salary" : kind === "salary14" ? locale === "de" ? "14. Gehalt" : "14th salary" : "Bonus";
 }
 export function incomeMonthLabel(month: number, locale: "de" | "en") {
   return new Intl.DateTimeFormat(locale === "de" ? "de-AT" : "en-GB", { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2026, month - 1, 1)));
+}
+
+/** One-off receipts are separate from salary extras, including legacy annual salaries. */
+export type AdditionalIncome = { id: string; name: string; amount: number; date: string; status: "received" | "planned" };
+const incomeDateOK = (date: unknown): date is string => typeof date === "string" && date >= "1900-01-01" && date <= "2200-12-31" && /^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(date) && !Number.isNaN(Date.parse(date)) && new Date(`${date}T00:00:00Z`).toISOString().slice(0,10) === date;
+export function readAdditionalIncome(value: unknown): AdditionalIncome[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > 500) return null;
+  if (value.some(item => !item || typeof item !== "object" || typeof item.id !== "string" || !item.id.trim() || item.id.length > 100 || typeof item.name !== "string" || item.name.length > 100 || !Number.isFinite(item.amount) || item.amount <= 0 || item.amount > 1e9 || !incomeDateOK(item.date) || !["received","planned"].includes(item.status))) return null;
+  if (new Set(value.map(item => item.id)).size !== value.length) return null;
+  return value as AdditionalIncome[];
+}
+export function createAdditionalIncome(input: Omit<AdditionalIncome,"id"> & {id?:string}, today: string): AdditionalIncome | null {
+  const entry={...input,id:input.id ?? `receipt-${Date.now()}-${Math.random().toString(36).slice(2,10)}`,name:input.name.trim(),amount:Math.round(input.amount*100)/100};
+  if (!incomeDateOK(today) || entry.status === "received" && entry.date > today) return null;
+  return readAdditionalIncome([entry])?.[0] ?? null;
+}
+export function additionalIncomeForMonth(entries: AdditionalIncome[] | undefined, month: string) {
+  return (readAdditionalIncome(entries) ?? []).filter(entry=>entry.date.slice(0,7) === month).reduce((sum,entry)=>sum+entry.amount,0);
 }

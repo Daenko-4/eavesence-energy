@@ -22,7 +22,7 @@ for(const locale of ['de','en']) test(`recorded zero income completes website se
   const budget=page.locator('[data-home-monthly-budget]');
   await expect(budget.locator('article').first()).toContainText(de?'0,00':'0.00');
   await expect(budget.locator('article').last()).toContainText(new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency:'EUR'}).format(40));
-  await expect(budget.getByRole('status')).toContainText(t('Nach Fixkosten fehlen','Shortfall after fixed costs'));
+  await expect(budget.getByRole('status')).toContainText(t('Voraussichtlich fehlen nach Fixkosten','Expected shortfall after fixed costs'));
   const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!));
   expect(stored.incomeAmount).toBe(0);expect(stored.incomeDeferred).toBe(false);
 });

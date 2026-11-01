@@ -15,7 +15,7 @@ for (const de of [false,true]) for (const width of [390,1365]) {
       localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'internet',name:'Internet',amount:40,frequency:'monthly',category:'subscriptions',nextDueDate:'2026-10-25',updatedAt:'2026-10-24T12:00:00Z'}]));
     });
     await page.reload();
-    await page.getByRole('group',{name:t('Aktionen für dein Zuhause','Home actions'),exact:true}).getByRole('button',{name:t('Einkommen ändern','Edit income'),exact:true}).click();
+    await page.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true}).click();
     const income=page.locator('#home-income-form'), period=income.getByLabel(t('Zeitraum','Period'),{exact:true}), summary=income.locator('.income-extras-editor > summary');
     const arrow=(await income.locator('.income-period-chevron').boundingBox())!;
     const disclosureCenter=await summary.evaluate(element=>{

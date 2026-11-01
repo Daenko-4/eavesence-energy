@@ -26,7 +26,7 @@ for (const locale of ['de', 'en']) {
     await expect(page.getByRole('tablist')).toHaveCount(0);
     await expect(page.getByRole('textbox', { name: t('Name deines Zuhauses', 'Home name'), exact: true })).toHaveValue('');
     await page.getByRole('button', { name: t('Zuhause speichern & weiter', 'Save home & continue'), exact: true }).click();
-    const income = page.getByRole('textbox', { name: t('Reguläres Monatsnetto (ohne Extras)', 'Regular monthly net income (excluding extras)'), exact: true });
+    const income = page.getByRole('textbox', { name: t('Monatliches Nettoeinkommen (ohne Extras)', 'Monthly net income (excluding extras)'), exact: true });
     await income.fill('240');
     await page.getByRole('button', { name: t('Einkommen speichern & weiter', 'Save income & continue'), exact: true }).click();
     await page.getByRole('button', { name: t('Zurück zum Einkommen', 'Back to income'), exact: true }).click();
@@ -45,15 +45,27 @@ for (const locale of ['de', 'en']) {
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!)[0].name)).toBe('Internet');
     await page.screenshot({ path: info.outputPath(`app-first-month-${locale}.png`) });
   });
+  test(`full app quick additional income saves and survives reload ${locale}`,async({page})=>{
+    await show(page,locale,320,true);
+    await page.getByRole('button',{name:t('Zusätzliche Einnahme erfassen','Record additional income'),exact:true}).click();
+    await page.getByRole('textbox',{name:t('Betrag','Amount')+' (EUR)',exact:true}).fill('500');
+    await page.getByRole('textbox',{name:t('Bezeichnung (optional)','Description (optional)'),exact:true}).fill('Verkauf auf eBay');
+    await page.getByRole('button',{name:t('Einnahme speichern','Save income entry'),exact:true}).click();
+    await expect(page.getByRole('button',{name:t('Zusätzliche Einnahme erfassen','Record additional income'),exact:true})).toBeVisible();
+    const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!));
+    expect(saved.incomeAmount).toBe(2400);expect(saved.additionalIncome).toHaveLength(1);expect(saved.additionalIncome[0]).toMatchObject({amount:500,name:'Verkauf auf eBay',status:'received'});
+    await mountApp(page,locale);await page.getByRole('button',{name:t('Zusätzliche Einnahme erfassen','Record additional income'),exact:true}).click();
+    await expect(page.getByText('Verkauf auf eBay',{exact:true})).toBeVisible();
+  });
   test(`full app records zero income and protects clearing it ${locale}`,async({page})=>{
     await show(page,locale,390,true,0);
     await page.getByRole('button',{name:t('Monatsbudget & Kostenbereiche','Monthly budget & cost areas'),exact:true}).click();
-    await expect(page.getByRole('alert')).toContainText(t('Fixkosten übersteigen dein Einkommen','fixed costs exceed your income'));
+    await expect(page.getByRole('alert')).toContainText(t('Fixkosten sind höher als deine Einnahmen','fixed costs exceed your income'));
     await expect(page.getByText(t('1 · Einkommen eintragen','1 · Add your income'),{exact:true})).toHaveCount(0);
     await show(page,locale,390);
     await page.getByRole('button',{name:t('Monatsbudget & Kostenbereiche','Monthly budget & cost areas'),exact:true}).click();
-    await page.getByRole('button',{name:t('Einkommen ändern','Edit income'),exact:true}).click();
-    const income=page.getByRole('textbox',{name:t('Reguläres Monatsnetto (ohne Extras)','Regular monthly net income (excluding extras)'),exact:true});
+    await page.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true}).click();
+    const income=page.getByRole('textbox',{name:t('Monatliches Nettoeinkommen (ohne Extras)','Monthly net income (excluding extras)'),exact:true});
     await expect(income).toHaveValue('0');
     await income.fill('');
     await page.getByRole('button',{name:t('Zur Kostenliste','Back to costs'),exact:true}).click();
@@ -96,7 +108,7 @@ for (const locale of ['de', 'en']) {
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!).length)).toBe(7);
     await page.getByRole('button', { name: t('Einstellungen', 'Settings'), exact: true }).click();
     await page.screenshot({ path: info.outputPath(`app-settings-${locale}-${width}.png`) });
-    await expect(page.getByRole('button',{name:t('Sicherung exportieren','Export backup'),exact:true})).toHaveCount(0);
+    await expect(page.getByRole('button',{name:t('Datensicherung teilen','Share backup'),exact:true})).toHaveCount(0);
     const homeName=page.getByRole('textbox',{name:'Name',exact:true});
     await homeName.fill('Changed home');
     await page.getByRole('button',{name:t('Zurück','Back'),exact:true}).click();
@@ -107,7 +119,7 @@ for (const locale of ['de', 'en']) {
     await page.getByRole('button',{name:t('Einstellungen','Settings'),exact:true}).click();
     await expect(page.getByRole('textbox',{name:/Strompreis|Electricity price/})).toHaveCount(0);
     await page.getByRole('button',{name:t('Sicherung & Daten','Backup & data'),exact:true}).click();
-    await page.getByRole('button', { name: t('Sicherung exportieren', 'Export backup'), exact: true }).click();
+    await page.getByRole('button', { name: t('Datensicherung teilen', 'Share backup'), exact: true }).click();
     expect(await page.evaluate(() => (window as unknown as { reviewBackup: { costs: unknown[] } }).reviewBackup.costs.length)).toBe(7);
     await page.getByRole('tab', { name: 'Plan', exact: true }).click();
     await page.getByRole('tab', { name: t('Realistisch sparen', 'Find realistic savings'), exact: true }).click();
@@ -148,9 +160,8 @@ for (const locale of ['de','en']) {
     await expect(page.getByRole('checkbox')).toHaveCount(0);
     await page.screenshot({path:info.outputPath(`native-free-home-${locale}-320.png`)});
     await page.getByRole('button',{name:t('Monatsbudget & Kostenbereiche','Monthly budget & cost areas'),exact:true}).click();
-    await expect(page.getByText(t('1.460,00','1,460.00'),{exact:false})).toBeVisible();
-    await page.getByRole('button',{name:t('Sonderzahlungen & Jahresüberblick','Extra income & annual overview'),exact:true}).click();
-    await expect(page.getByText(t('kein heute verfügbares Geld','not money available today'),{exact:false})).toBeVisible();
+    await expect(page.getByText(t('1.240,00','1,240.00'),{exact:false})).toBeVisible();
+    await expect(page.getByText(t('Geplantes Geld steht erst nach Eingang zur Verfügung','Planned money becomes available once received'),{exact:false})).toBeVisible();
     await page.getByRole('button',{name:t('Monatsbudget & Kostenbereiche','Monthly budget & cost areas'),exact:true}).click();
     await page.getByRole('button',{name:/Zahlungen abhaken|Check off payments/}).click();
     await page.getByRole('checkbox',{name:/^Electricity,/}).click();
@@ -167,7 +178,7 @@ for (const locale of ['de','en']) {
     await expect(page.getByRole('checkbox',{name:/^Electricity,/})).toHaveAttribute('aria-checked','true');
     await page.getByRole('button',{name:t('Einstellungen','Settings'),exact:true}).click();
     await page.getByRole('button',{name:t('Sicherung & Daten','Backup & data'),exact:true}).click();
-    await page.getByRole('button',{name:t('Sicherung exportieren','Export backup'),exact:true}).click();
+    await page.getByRole('button',{name:t('Datensicherung teilen','Share backup'),exact:true}).click();
     const backup=await page.evaluate(()=>(window as unknown as {reviewBackup:import('../../apps/mobile/src/backup').MobileBackup}).reviewBackup);
     expect(backup.costs.find(c=>c.id==='electric')!.amount).toBe(80);
     expect(backup.profile.planning!.actualPayments![0].amount).toBe(76.4);
@@ -175,10 +186,10 @@ for (const locale of ['de','en']) {
     expect(backup.profile.incomeExtras).toHaveLength(3);
     // A rejected file and a cancelled valid replacement leave the saved home intact.
     await page.evaluate(()=>{(window as unknown as {reviewImport:string}).reviewImport='{"format":"broken"}';});
-    await page.getByRole('button',{name:t('Sicherung importieren','Import backup'),exact:true}).click();
+    await page.getByRole('button',{name:t('Datensicherung wiederherstellen','Restore backup'),exact:true}).click();
     expect(await page.evaluate(()=>(window as unknown as {reviewAlert:string[]}).reviewAlert[0])).toBe(t('Ungültige Sicherung','Invalid backup'));
     await page.evaluate(backup=>{(window as unknown as {reviewImport:string}).reviewImport=JSON.stringify(backup);},backup);
-    await page.getByRole('button',{name:t('Sicherung importieren','Import backup'),exact:true}).click();
+    await page.getByRole('button',{name:t('Datensicherung wiederherstellen','Restore backup'),exact:true}).click();
     await alertAction(page,0);
     expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!).length)).toBe(4);
     await page.getByRole('button',{name:t('My Home zurücksetzen','Reset My Home'),exact:true}).click();
@@ -308,7 +319,7 @@ for(const locale of ['de','en'])for(const width of [320,390])test(`native connec
  await page.getByRole('button',{name:t('Ergebnis ansehen','See the result'),exact:true}).click();
  await expect(page.getByText(t('Nächste berechnete Ersparnis','Next calculated saving'),{exact:false})).toContainText(t('19. Oktober','19 October'));
  await page.screenshot({path:info.outputPath(`native-connected-result-${locale}-${width}.png`)});
- await page.getByRole('button',{name:t('Geld bis zum Gehalt neu prüfen','Review your money until payday'),exact:true}).click();
+ await page.getByRole('button',{name:t('Geld bis zum nächsten Gehalt neu prüfen','Review your money until next payday'),exact:true}).click();
  await expect(page.getByText(t('Kontostand bestätigen','Confirm account balance'),{exact:true})).toBeVisible();
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning.cash.needsRefresh)).toBe(true);
 });
@@ -330,7 +341,7 @@ for(const locale of ['de','en'])for(const width of [320,390])test(`native Pro fo
  await page.getByRole('tab',{name:t('Tarifwechsel','Switch plans'),exact:true}).click();
  await page.getByRole('button',{name:t('Ausgabe für den Wechselvergleich','Cost for the switch comparison'),exact:true}).click();await page.getByRole('button',{name:/^Internet ·/}).click();
  await page.getByRole('textbox',{name:t('Neuer monatlicher Preis','New monthly price'),exact:true}).fill('20');await page.getByRole('textbox',{name:t('Erste neue Zahlung am (TT.MM.JJJJ)','First new payment on (DD.MM.YYYY)'),exact:true}).fill('20.10.2026');
- await page.getByRole('button',{name:t('Wechselgebühr & doppelte Monate (optional)','Switching fee & overlapping months (optional)'),exact:true}).click();
+ await page.getByRole('button',{name:t('Wechselgebühr und Zeit mit zwei laufenden Verträgen (optional)','Switching fee and time with two contracts (optional)'),exact:true}).click();
  await page.getByRole('textbox',{name:t('Einmalige Wechselgebühr','One-off switching fee'),exact:true}).fill('60');await page.getByRole('textbox',{name:t('Alten Vertrag noch so viele Monate bezahlen','Months still paying the old contract'),exact:true}).fill('1');
  await expect(page.getByText(new RegExp(t('Zusatzkosten ausgeglichen bis 20. Februar 2027','Additional costs recovered by 20 February 2027')))).toBeVisible();
  const result=page.getByText(new RegExp(t('Zusatzkosten ausgeglichen','Additional costs recovered')));await result.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`native-pro-switch-${locale}-${width}.png`)});
@@ -352,7 +363,7 @@ for (const locale of ['de','en']) for (const width of [320,390]) {
     await page.getByRole('button',{name:t('Verfügbares Geld berechnen','Calculate available money'),exact:true}).click();
     const balance=page.getByRole('textbox',{name:t('Aktueller Kontostand','Current account balance'),exact:true});
     await balance.fill('1250');
-    await page.getByRole('textbox',{name:t('Alltagsausgaben bis zum Gehalt','Everyday spending until payday'),exact:true}).fill('180');
+    await page.getByRole('textbox',{name:t('Alltagsausgaben bis zum nächsten Gehalt','Everyday spending until next payday'),exact:true}).fill('180');
     await period.getByRole('tab',{name:t('90-Tage-Vorschau','90-day outlook'),exact:true}).click();
     await expect(page.getByRole('button',{name:t('Die nächsten 90 Tage','The next 90 days'),exact:true})).toHaveCount(0);
     await expect(page.getByRole('button',{name:t('Kontostand & Gehaltstag prüfen','Review balance & payday'),exact:true})).toBeVisible();
@@ -382,7 +393,7 @@ for (const locale of ['de','en']) for (const width of [320,390]) {
     await expect(price).toBeHidden();
     await tools.getByRole('tab',{name:t('Tarifwechsel','Switch plans'),exact:true}).click();
     await expect(price).toHaveValue('20');
-    await goal.getByRole('tab',{name:t('Bis zum Gehalt ausgeben','Spend until payday'),exact:true}).click();
+    await goal.getByRole('tab',{name:t('Bis zum nächsten Gehalt ausgeben','Spend until next payday'),exact:true}).click();
     await expect(balance).toHaveValue('1250');
     await page.getByRole('tablist',{name:t('App-Navigation','App navigation'),exact:true}).getByRole('tab',{name:t('Kosten','Costs'),exact:true}).click();
     await page.getByRole('tab',{name:'Plan',exact:true}).click();
@@ -390,9 +401,9 @@ for (const locale of ['de','en']) for (const width of [320,390]) {
     await period.getByRole('tab',{name:t('Monatsbudget','Monthly budget'),exact:true}).click();
     await expect(everyday).toHaveValue('350');
     await goal.getByRole('tab',{name:t('Erreichte Ersparnis','Savings achieved'),exact:true}).click();
-    await expect(page.getByText(t('Bis heute eingespart','Saved so far'),{exact:true})).toBeVisible();
+    await expect(page.getByText(t('Bisher berechnete Ersparnis','Calculated savings so far'),{exact:true})).toBeVisible();
     await page.screenshot({path:info.outputPath(`native-plan-progress-${locale}-${width}.png`),fullPage:true});
-    await goal.getByRole('tab',{name:t('Bis zum Gehalt ausgeben','Spend until payday'),exact:true}).click();
+    await goal.getByRole('tab',{name:t('Bis zum nächsten Gehalt ausgeben','Spend until next payday'),exact:true}).click();
     await page.screenshot({path:info.outputPath(`native-plan-draft-${locale}-${width}.png`),fullPage:true});
     expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning?.cash)).toBeUndefined();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

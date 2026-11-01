@@ -62,7 +62,7 @@ export default function FirstMonthSetup({active, locale, currency, income, onBac
       <button type="button" className="min-h-11 justify-self-start text-sm text-[#52605b] underline underline-offset-4" onClick={() => {setCost(null);setError("");setStep("result");}}>{t("Kosten später ergänzen", "Add costs later")}</button>
     </form> : <div className="mt-5">
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3" data-setup-result>
-        <div className="rounded-xl border border-[#dde2d8] bg-white p-3 sm:p-4"><dt className="text-xs text-[#52605b]">{t("Nettoeinkommen / Monat", "Net income / month")}</dt><dd className="mt-2 break-words text-base font-bold tabular-nums sm:text-xl">{money(income)}</dd></div>
+        <div className="rounded-xl border border-[#dde2d8] bg-white p-3 sm:p-4"><dt className="text-xs text-[#52605b]">{t("Monatliches Nettoeinkommen", "Monthly net income")}</dt><dd className="mt-2 break-words text-base font-bold tabular-nums sm:text-xl">{money(income)}</dd></div>
         <div className="rounded-xl border border-[#dde2d8] bg-white p-3 sm:p-4"><dt className="text-xs text-[#52605b]">{t("Erfasste Kosten / Monat", "Recorded costs / month")}</dt><dd className="mt-2 break-words text-base font-bold tabular-nums sm:text-xl">{money(fixed)}</dd></div>
         <div className={`col-span-2 rounded-xl p-4 sm:col-span-1 ${left < 0 ? "bg-amber-100 text-amber-900" : "bg-[#e0f1e4] text-[#087a45]"}`}><dt className="text-xs font-semibold">{left < 0 ? t("Fehlbetrag / Monat", "Monthly shortfall") : t("Vorläufig übrig / Monat", "Left so far / month")}</dt><dd className="mt-2 text-2xl font-extrabold tabular-nums">{money(left)}</dd></div>
       </dl>

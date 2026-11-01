@@ -8,7 +8,7 @@ async function disableHeaderIntro(page: Page) {
 
 async function openPlan(page: Page, question: "payday" | "savings" | "progress" = "savings", budget = false) {
   await homeWorkspace(page, 'plan');
-  await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Until payday|Bis zum Gehalt/ : question === "savings" ? /Find realistic savings|Realistisch sparen/ : /Savings achieved|Erreichte Ersparnis/ }).click();
+  await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Until next payday|Bis zum nächsten Gehalt/ : question === "savings" ? /Find realistic savings|Realistisch sparen/ : /Savings achieved|Erreichte Ersparnis/ }).click();
   if (budget) await planningPeriod(page, "budget");
 }
 async function openCostManager(page: Page) {
@@ -288,32 +288,32 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     .toBeVisible();
   const householdOverview = page.getByRole("region", { name: "Your household at a glance" });
   await householdOverview.getByRole("button", { name: "Add income", exact: true }).click();
-  await householdOverview.getByLabel(/Regular monthly net income|Total annual net income/).fill("24000");
+  await householdOverview.getByLabel(/Monthly net income|Total annual net income/).fill("24000");
   await householdOverview.getByLabel("Period").selectOption("yearly");
-  await householdOverview.getByLabel(/Regular monthly net income|Total annual net income/).press("Enter");
+  await householdOverview.getByLabel(/Monthly net income|Total annual net income/).press("Enter");
   await expect(householdOverview).toContainText("€2,000.00");
   await homeDetail(page, 'budget');
   const financeCards = householdOverview.locator("[data-home-monthly-budget] article");
   await expect(financeCards.nth(0)).toContainText("Net income · monthly average");
   await expect(financeCards.nth(1)).toContainText("Recurring costs / month");
-  await expect(financeCards.nth(2)).toContainText("Left after fixed costs");
+  await expect(financeCards.nth(2)).toContainText("Expected amount left · monthly average");
   const collapsedHeights = await financeCards.evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height));
   expect(new Set(collapsedHeights).size).toBe(1);
-  await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Edit income" }).click();
+  await page.getByRole("button", { name: "Edit regular income" }).click();
   await expect(page.locator("[data-home-monthly-budget]")).toBeVisible();
-  await householdOverview.getByLabel(/Regular monthly net income|Total annual net income/).press("Enter");
+  await householdOverview.getByLabel(/Monthly net income|Total annual net income/).press("Enter");
   await homeDetail(page, 'budget');
   expect(await financeCards.evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height))).toEqual(collapsedHeights);
   await openEnergyTile(page);
   await expect(page.getByRole("button", { name: /Monthly values & history/ })).toBeVisible();
   await openCostAreas(page);
-  await page.getByRole("button", { name: /New tile/ }).click();
-  await page.getByLabel("Tile name").fill("Insurance");
-  await page.getByLabel("Tile name").press("Enter");
+  await page.getByRole("button", { name: /Add a cost area/ }).click();
+  await page.getByLabel("Cost area name").fill("Insurance");
+  await page.getByLabel("Cost area name").press("Enter");
   const insuranceTile = page.locator("[data-home-tiles] article").filter({ hasText: "Insurance" });
   await expect(insuranceTile).toBeVisible();
   await insuranceTile.getByRole("button", { name: "Rename" }).click();
-  await page.getByLabel("Tile name").fill("Insurance & contracts");
+  await page.getByLabel("Cost area name").fill("Insurance & contracts");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(insuranceTile.getByText("Insurance & contracts", { exact: true })).toBeVisible();
   await expect(page.getByRole("region", {name:"Install EAVESENCE as an app"})).toHaveCount(0);
@@ -356,9 +356,9 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     ),
   ).toHaveLength(1);
   await openCostAreas(page);
-  await page.getByRole("button", { name: /New tile/ }).click();
-  await page.getByLabel("Tile name").fill("Car");
-  await page.getByRole("button", { name: "Create tile", exact: true }).click();
+  await page.getByRole("button", { name: /Add a cost area/ }).click();
+  await page.getByLabel("Cost area name").fill("Car");
+  await page.getByRole("button", { name: "Create cost area", exact: true }).click();
   await expect(householdCosts.getByRole("heading", { name: "Quick setup" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Monthly values & history/ })).toHaveCount(0);
   await expect(householdCosts.getByText("€900.00", { exact: true })).toHaveCount(0);
@@ -381,7 +381,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     name: "Add monthly value",
   });
   const monthlyReminder = nextStep.getByRole("button", {
-    name: "Monthly reminder",
+    name: "Create a calendar reminder",
   });
   await expect(addMonthlyValue).toHaveCSS("height", "24px");
   await expect(monthlyReminder).toHaveCSS("height", "24px");
@@ -397,7 +397,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     "eavesence-monthly-reminder.ics",
   );
   await expect(
-    page.getByText("The monthly calendar reminder was downloaded."),
+    page.getByText("Calendar file downloaded. Open it and add the reminder to your calendar."),
   ).toBeVisible();
   await openEnergyTile(page);
   const devicesTile = page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first();
@@ -509,7 +509,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await expect(page.getByRole("heading", { name: "Review Coffee machine first" })).toHaveCSS("font-size", "20px");
 
   await monthlyDetails.click();
-  for (const heading of ["Monthly check-in", "History"]) {
+  for (const heading of ["Record electricity consumption or bill amount", "History"]) {
     await expect(page.getByRole("heading", { name: heading })).toHaveCSS("font-size", "20px");
   }
   await septemberEntry.getByRole("button", { name: "Edit" }).click();
@@ -607,7 +607,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await page.getByLabel("Total paid for the year").fill("1200");
   await page.getByLabel("Consumption on the bill").fill("4000");
   await expect(page.getByText("Your all-in price: €0.30 per kWh", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Save electricity basis", exact: true }).click();
+  await page.getByRole("button", { name: "Save electricity details", exact: true }).click();
   await expect(page.getByText("Saved", { exact: true })).toBeVisible();
   await homeWorkspace(page, "overview");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
@@ -866,7 +866,7 @@ test("FAQ navigation opens the answers and reaches one stable position", async (
   }
   await expect(page.getByRole("heading", { name: "My Home", exact: true })).toBeVisible();
   await page.getByText("How are the monthly average and payment forecast calculated?").click();
-  await expect(page.getByText("Costs without dates are excluded and counted separately.", { exact: false })).toBeVisible();
+  await expect(page.getByText("Monthly costs count once per month even without a payment date.", { exact: false })).toBeVisible();
 });
 
 test("language switching keeps an open FAQ expanded and preserves its position", async ({
@@ -1494,14 +1494,14 @@ test("hidden advanced plans survive core edits and export", async ({ page }) => 
   await page.reload(); await openPlan(page);
   await expect(page.getByRole("region", { name: "Plan ahead" })).toHaveCount(0);
   await homeWorkspace(page, 'overview');
-  await page.getByRole("group", { name: "Home actions" }).getByRole("button", { name: "Add income", exact: true }).click();
-  await page.locator("#home-income-form").getByLabel(/Regular monthly net income|Total annual net income/).fill("2400");
+  await page.getByRole("button", { name: "Add income", exact: true }).click();
+  await page.locator("#home-income-form").getByLabel(/Monthly net income|Total annual net income/).fill("2400");
   await page.locator("#home-income-form").getByRole("button", { name: "Save", exact: true }).click();
   const planning = await page.evaluate(() => JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!).planning);
   expect(planning.goals[0].saved).toBe(400); expect(planning.reserves[0].saved).toBe(200);
   await homeWorkspace(page, "overview");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  const downloaded = page.waitForEvent("download"); await page.getByRole("button", { name: "Export backup", exact: true }).click();
+  const downloaded = page.waitForEvent("download"); await page.getByRole("button", { name: "Download backup", exact: true }).click();
   const { readFile } = await import("node:fs/promises");
   const file = await (await downloaded).path();
   expect(JSON.parse(await readFile(file!, "utf8")).profile.planning).toEqual(planning);
@@ -1509,15 +1509,15 @@ test("hidden advanced plans survive core edits and export", async ({ page }) => 
 for (const width of [320, 390, 1365]) {
   test(`Pro questions are separate and fit at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 900 }); await page.goto("/home"); await page.getByRole("button", { name: "Create my home" }).click();
-    await expect(page.getByRole("heading", { name: "Until payday", exact: true })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "Until next payday", exact: true })).toBeHidden();
     await openPlan(page, "payday");
-    await expect(page.getByRole("heading", { name: "Until payday", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Until next payday", exact: true })).toBeVisible();
     const questions = page.getByRole("group", { name: "Choose planning question" });
     await questions.screenshot({ path: info.outputPath(`pro-questions-${width}.png`) });
     // The clear space above a compact pill remains part of its phone tap target.
     await questions.getByRole("button", { name: "Find realistic savings" }).click({ position: { x: 20, y: 2 } });
     await expect(page.getByRole("region", { name: "02 · Where can I realistically save?", exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Until payday", exact: true })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "Until next payday", exact: true })).toBeHidden();
     await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toHaveCount(0);
     await openPlan(page, "progress");
     await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toBeVisible();
@@ -1575,8 +1575,8 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
  for(const field of fields){expect(field.height).toBeCloseTo(44,2);expect(field.fontSize).toBe(width<768?'16px':'14px');}
 
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
- await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await paydayStep(page,1);await panel.getByLabel('Next payday',{exact:true}).fill(day);await paydayStep(page,2);await panel.getByText('Keep some money in reserve (optional)',{exact:true}).click();await paydayStep(page,2);await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await paydayStep(page,2);await panel.getByLabel('Everyday spending until payday',{exact:true}).fill('150');await paydayStep(page,2);await panel.getByRole('button',{name:'Show available money'}).click();
- await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel.locator('h2')).toHaveText('Available until payday');await expect(panel.locator('[data-payday-hero]')).toContainText('Until');
+ await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await paydayStep(page,1);await panel.getByLabel('Next payday',{exact:true}).fill(day);await paydayStep(page,2);await panel.getByText('Keep some money in reserve (optional)',{exact:true}).click();await paydayStep(page,2);await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await paydayStep(page,2);await panel.getByLabel('Everyday spending until next payday',{exact:true}).fill('150');await paydayStep(page,2);await panel.getByRole('button',{name:'Show available money'}).click();
+ await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel.locator('h2')).toHaveText('Available until next payday');await expect(panel.locator('[data-payday-hero]')).toContainText('Until');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.reload();await openPlan(page, 'payday');await expect(panel).toContainText('€650.00');
 });
@@ -1619,16 +1619,16 @@ for (const width of [320, 1365]) test(`home actions reveal their editor and keep
   await page.goto('/home');
   await page.getByRole('button', { name: 'Create my home' }).click();
   const actions = page.getByRole('group', { name: 'Home actions', exact: true });
-  await actions.getByRole('button', { name: 'Add income', exact: true }).click();
+  await page.getByRole('button', { name: 'Add income', exact: true }).click();
   const income = page.locator('#home-income-form');
-  await expect(income.getByLabel('Regular monthly net income (excluding extras)', { exact: true })).toBeFocused();
+  await expect(income.getByLabel('Monthly net income (excluding extras)', { exact: true })).toBeFocused();
   await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().top)).toBeGreaterThanOrEqual(80);
   // Short pages should keep the whole editor visible without artificial scroll space.
   await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().bottom <= window.innerHeight)).toBe(true);
-  await income.getByLabel('Regular monthly net income (excluding extras)', { exact: true }).fill('2500');
+  await income.getByLabel('Monthly net income (excluding extras)', { exact: true }).fill('2500');
   await income.getByRole('button', { name: 'Save', exact: true }).click();
-  await actions.getByRole('button', { name: 'Edit income', exact: true }).click();
-  await expect(income.getByLabel('Regular monthly net income (excluding extras)', { exact: true })).toBeFocused();
+  await page.getByRole('button', { name: 'Edit regular income', exact: true }).click();
+  await expect(income.getByLabel('Monthly net income (excluding extras)', { exact: true })).toBeFocused();
   // Short pages should keep the whole editor visible without artificial scroll space.
   await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().bottom <= window.innerHeight)).toBe(true);
   await actions.getByRole('button', { name: 'Add cost', exact: true }).click();
@@ -1658,28 +1658,28 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   await page.goto('/home');
   await page.getByRole('button', { name: 'Create my home' }).click();
   await openCostAreas(page);
-  const newTile = page.getByRole('button', { name: /New tile/ });
+  const newTile = page.getByRole('button', { name: /Add a cost area/ });
   const form = page.locator('[data-home-tile-form]');
   await newTile.click();
   await expect(newTile).toHaveAttribute('aria-expanded', 'true');
-  await expect(form.getByLabel('Tile name')).toBeFocused();
+  await expect(form.getByLabel('Cost area name')).toBeFocused();
   await expect.poll(() => newTile.evaluate(el => getComputedStyle(el).borderTopColor)).toBe('rgb(114, 220, 163)');
   await page.keyboard.press('Escape');
   await expect(form).toHaveCount(0);
   await expect(newTile).toBeFocused();
   await newTile.click();
-  await form.getByLabel('Tile name').fill('   ');
+  await form.getByLabel('Cost area name').fill('   ');
   await page.getByRole('heading', { name: 'Sections in your home', exact: true }).click();
   await expect(form).toHaveCount(0);
   await newTile.click();
-  await form.getByLabel('Tile name').fill('Insurance');
+  await form.getByLabel('Cost area name').fill('Insurance');
   await page.keyboard.press('Escape');
-  await expect(form.getByLabel('Tile name')).toHaveValue('Insurance');
+  await expect(form.getByLabel('Cost area name')).toHaveValue('Insurance');
   await page.getByRole('heading', { name: 'Sections in your home', exact: true }).click();
-  await expect(form.getByLabel('Tile name')).toHaveValue('Insurance');
+  await expect(form.getByLabel('Cost area name')).toHaveValue('Insurance');
   await newTile.click();
-  await expect(form.getByLabel('Tile name')).toHaveValue('Insurance');
-  await form.getByRole('button', { name: 'Create tile', exact: true }).click();
+  await expect(form.getByLabel('Cost area name')).toHaveValue('Insurance');
+  await form.getByRole('button', { name: 'Create cost area', exact: true }).click();
   await expect(form).toHaveCount(0);
   await expect(newTile).toHaveAttribute('aria-expanded', 'false');
   const customTile = page.locator('[data-home-tiles] article').filter({ hasText: 'Insurance' });
@@ -1715,17 +1715,17 @@ for (const width of [320, 1365]) test(`new tile creation dismisses only empty dr
   const costsTile = tiles.filter({ hasText: "Household costs" }).first().getByRole("button").first();
   await costsTile.click();
   await page.getByRole("button", { name: "Add income", exact: true }).first().click();
-  await page.getByLabel("Regular monthly net income (excluding extras)", { exact: true }).first().fill("2500");
-  await page.getByLabel("Regular monthly net income (excluding extras)", { exact: true }).first().press("Enter");
+  await page.getByLabel("Monthly net income (excluding extras)", { exact: true }).first().fill("2500");
+  await page.getByLabel("Monthly net income (excluding extras)", { exact: true }).first().press("Enter");
   await expect(page.locator("[data-cost-manager]")).toBeHidden();
   await openCostAreas(page);
   await expect(costsTile).toHaveAttribute("aria-expanded", "true");
   await page.reload();
   await expect(tiles).toHaveCount(2);
   await openCostAreas(page);
-  await page.getByRole("button", { name: /New tile/ }).click();
-  await page.getByLabel("Tile name", { exact: true }).fill("Insurance");
-  await page.locator("#home-tile-form").getByRole("button", { name: "Create tile", exact: true }).click();
+  await page.getByRole("button", { name: /Add a cost area/ }).click();
+  await page.getByLabel("Cost area name", { exact: true }).fill("Insurance");
+  await page.locator("#home-tile-form").getByRole("button", { name: "Create cost area", exact: true }).click();
   await expect(tiles).toHaveCount(3);
   await page.reload();
   await expect(tiles).toHaveCount(3);
@@ -1744,7 +1744,7 @@ for (const locale of ['de', 'en'] as const) {
     });
     await page.reload();
     await openPlan(page, 'payday');
-    const question = page.getByRole('heading',{name:locale==='de'?'Bis zum Gehalt':'Until payday',exact:true});
+    const question = page.getByRole('heading',{name:locale==='de'?'Bis zum nächsten Gehalt':'Until next payday',exact:true});
     await expect(question).toBeVisible();
     await question.scrollIntoViewIfNeeded();
     await page.screenshot({path:info.outputPath(`cash-window-${locale}.png`)});

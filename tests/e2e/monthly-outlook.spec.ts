@@ -35,7 +35,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
     await expect(panel.locator('[data-home-kpi=income]')).toContainText(t('2.500,00','2,500.00'));
     await expect(panel.locator('[data-home-kpi=costs]')).toContainText(t('1.635,00','1,635.00'));
     await expect(panel.locator('[data-home-month-result]')).toContainText(t('3.265,00','3,265.00'));
-    await expect(panel.locator('.home-month-context')).toHaveText(t('Für Alltag & Freizeit, nach erfassten Fixkosten. Kein Kontostand.','For everyday spending, after recorded fixed costs. Not your account balance.'));
+    await expect(panel.locator('.home-month-context')).toHaveText(t('Davon bezahlst du noch Lebensmittel, Freizeit und andere nicht erfasste Ausgaben.','Groceries, leisure and other spending you have not recorded still come out of this amount.'));
     await expect(panel).toContainText(t('Monatliche Kosten ohne Zahlungstermin','Monthly costs without a payment date'));
     await expect(panel.locator('li').filter({hasText:'Electricity'})).toContainText(t('95,00','95.00'));
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -49,7 +49,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
       localStorage.setItem('eavesence-home-costs-v1',JSON.stringify(costs));
     });
     await page.reload();await homeDetail(page,'upcoming');
-    await expect(panel.locator('[data-home-kpi=costs]')).toContainText(t('Bekannte Kosten','Known costs'));
+    await expect(panel.locator('[data-home-kpi=costs]')).toContainText(t('Bisher erfasste Fixkosten','Recorded fixed costs'));
     await expect(panel.locator('[data-home-month-result]')).toContainText('—');
     await expect(panel).toContainText(t('Diese Kosten brauchen einen Termin','These costs need a date'));
     await panel.getByRole('button',{name:`Annual bill · ${t('Termin ergänzen','Add date')}`,exact:true}).click();
@@ -76,7 +76,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
     await page.reload();await homeDetail(page,'upcoming');
     await expect(panel.locator('[data-home-kpi=income]')).toContainText(t('0,00','0.00'));
     await expect(panel.locator('[data-home-month-result]')).toContainText(t('1.635,00','1,635.00'));
-    await expect(panel.locator('[data-home-month-result]')).toContainText(t('fehlen','Shortfall'));
+    await expect(panel.locator('[data-home-month-result]')).toContainText(t('fehlen','shortfall'));
     await expect(panel.locator('[data-home-month-result]').locator('p').nth(1)).toHaveCSS('color','rgb(146, 64, 14)');
 
     await page.evaluate(()=>{
@@ -85,7 +85,7 @@ for (const de of [false,true]) for (const width of [320,1365]) {
     });
     await page.reload();await homeDetail(page,'upcoming');
     await expect(panel.locator('[data-home-kpi=income]')).toContainText('—');await expect(panel.locator('[data-home-month-result]')).toContainText('—');
-    await page.getByRole('group',{name:t('Aktionen für dein Zuhause','Home actions'),exact:true}).getByRole('button',{name:t('Einkommen hinzufügen','Add income'),exact:true}).click();
+    await page.getByRole('button',{name:t('Einkommen eintragen','Add income'),exact:true}).click();
     await expect(page.locator('#home-income-form')).toBeVisible();
   });
 }

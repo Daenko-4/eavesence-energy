@@ -92,7 +92,7 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     await context.getByRole('button',{name:t('Kosten bearbeiten','Edit cost'),exact:true}).click();
     await expect(page.locator('#household-cost-amount')).toHaveValue('95');
     await editor.getByRole('button',{name:t('Bearbeitung schließen','Close editor'),exact:true}).click();
-    await actions.getByRole('button',{name:t('Einkommen ändern','Edit income'),exact:true}).click();
+    await page.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true}).click();
     const income=page.locator('#home-income-form input').first();
     await income.fill('2900');
     await checklist.getByRole('checkbox',{name:/^Rent ·/}).check();
@@ -116,7 +116,7 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     for(const b of shortcutBoxes)expect(b.height).toBeGreaterThanOrEqual(44);
     await cash.getByLabel(t('Nächstes Gehalt am','Next payday'),{exact:true}).fill('2026-11-05');
     await paydayStep(page,2);
-    await cash.getByLabel(t('Alltagsausgaben bis zum Gehalt','Everyday spending until payday'),{exact:true}).fill('200');
+    await cash.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt','Everyday spending until next payday'),{exact:true}).fill('200');
     await cash.getByRole('button',{name:t('Verfügbares Geld anzeigen','Show available money'),exact:true}).click();
     await expect(cash.locator('[data-payday-result]')).toBeVisible();
     await expect(cash.locator('[data-payday-summary]')).toHaveCount(0);

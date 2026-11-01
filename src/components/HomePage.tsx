@@ -147,7 +147,7 @@ const content = {
       },
 
       exact: {
-        title: "Genau berechnen",
+        title: "Mit eigenem Verbrauchswert berechnen",
         text:
           "Gib deinen tatsächlichen Verbrauch pro Nutzung ein, wenn du einen Mess- oder Herstellerwert kennst.",
       },
@@ -172,13 +172,14 @@ const content = {
         {
           title: "Mein Zuhause (My Home)",
           items: [
-            { question: "Wie erfasse ich 13./14. Gehalt und Boni?", answer: "Trage dein reguläres Monatsnetto ohne Extras ein. Unter Sonderzahlungen kannst du zusätzliche Nettobeträge und Auszahlungsmonate ergänzen. 13./14. Gehalt sind standardmäßig jährlich, ein Bonus einmalig mit Jahr. Der Jahresdurchschnitt wird separat angezeigt. Geplante Extras sind kein heute verfügbares Geld." },
+            { question: "Wie erfasse ich 13./14. Gehalt und Boni?", answer: "Trage dein reguläres Monatsnetto ohne Extras ein. Über „Reguläres Einkommen ändern“ kannst du unter Sonderzahlungen zusätzliche Nettobeträge und Auszahlungsmonate ergänzen. 13./14. Gehalt sind standardmäßig jährlich, ein Bonus einmalig mit Jahr. Der Jahresdurchschnitt wird separat angezeigt. Geplante Extras sind kein heute verfügbares Geld." },
+            { question: "Wie erfasse ich einen Verkauf oder eine andere einmalige Einnahme?", answer: "Wähle in My Home „Zusätzliche Einnahme erfassen“. Der Betrag reicht; das Datum ist auf heute gesetzt und eine Bezeichnung wie „Verkauf auf eBay“ ist optional. Die Einnahme zählt einmalig im angegebenen Monat und Jahr. Noch nicht erhaltenes Geld kannst du als geplant vormerken. In Pro zählt erhaltenes Geld über deinen aktuellen Kontostand und wird nicht nochmals addiert." },
             { question: "Was kann ich in My Home erfassen?", answer: "Beginne mit deinem regulären Nettoeinkommen, ergänze deine größten regelmäßigen Kosten und prüfe den Rest nach Fixkosten. Alltagsausgaben gehen davon noch ab. Stromgeräte und Pro-Planung sind optionale Ergänzungen." },
-            { question: "Wie entstehen Monatsdurchschnitt und Zahlungsvorschau?", answer: "Jährliche, halbjährliche und andere regelmäßige Kosten werden auf einen Monatsdurchschnitt umgerechnet. Die Vorschau zeigt nur Zahlungen, die im nächsten Monat laut eingetragenem Zahlungstermin fällig sind. Kosten ohne Termin fehlen dort und werden ausdrücklich gezählt." },
-            { question: "Was bedeutet das Budget nach laufenden Kosten?", answer: "Es ist dein eingetragenes monatliches Nettoeinkommen minus der Durchschnitt deiner erfassten regelmäßigen Kosten. Variable Ausgaben wie Einkäufe und nicht erfasste Kosten sind darin nicht berücksichtigt." },
-            { question: "Sind die Werte im Monatsrückblick bereits bezahlte Ausgaben?", answer: "Nein. Der Vergleich geplanter Zahlungen wird aus den heute gespeicherten Kosten rekonstruiert. Änderungen an Kosten protokolliert My Home erst ab ihrer Erfassung. Nur eingetragene Strom-Monatswerte sind tatsächliche Werte." },
+            { question: "Wie entstehen Monatsdurchschnitt und Zahlungsvorschau?", answer: "Die Monatszentrale zeigt die Zahlungen des ausgewählten Monats. Monatliche Kosten zählen auch ohne Zahlungstermin einmal pro Monat. Bei anderen Zahlungsrhythmen fehlt ohne Termin die Zuordnung; ergänze ihn für ein vollständiges Ergebnis. In Pro ist für die Planung bis zum nächsten Gehalt ein genauer Zahlungstermin nötig. Monatsdurchschnitte werden gesondert gekennzeichnet." },
+            { question: "Was bedeutet „Voraussichtlich übrig nach Fixkosten“?", answer: "Von den Einnahmen im ausgewählten Monat werden alle erfassten, diesem Monat zugeordneten Fixkosten abgezogen – bezahlte und noch offene. Zusätzliche Einnahmen zählen nur in ihrem jeweiligen Monat. Bei variablen Rechnungen gilt der eingetragene Rechnungsbetrag, sonst der Planbetrag. Lebensmittel, Freizeit und andere nicht erfasste Ausgaben gehen vom Rest noch ab. Das ist eine Monatsplanung; dein Kontostand zeigt dagegen, wie viel Geld heute auf deinem Konto liegt." },
+            { question: "Sind die Werte im Monatsrückblick bereits bezahlte Ausgaben?", answer: "„Tatsächlich bezahlt“ zählt Zahlungen, die du selbst als bezahlt markiert hast. Bei variablen Kosten ergänze den Rechnungsbetrag; bis dahin bleibt er als Schätzung gekennzeichnet. Der Vergleich ist vollständig, wenn alle Zahlungen geprüft, Rechnungsbeträge eingetragen und fehlende Termine ergänzt sind. Es gibt keinen automatischen Bankabgleich. Geplante Zahlungen werden aus den gespeicherten Kosten und deren erfassten Änderungen berechnet." },
             { question: "Wie funktionieren Kündigungsfrist und Kalendererinnerung?", answer: "Trage die Kündigungsfrist selbst beim Kostenposten ein. Du kannst dafür eine Kalenderdatei mit einer Erinnerung sieben Tage vorher herunterladen. EAVESENCE prüft keine Vertragsbedingungen und verschickt keine automatische Benachrichtigung." },
-            { question: "Wo werden meine Daten gespeichert und wie sichere ich sie?", answer: "My Home und „Meine Geräte“ speichern deine Angaben lokal in diesem Browser, ohne Konto oder geräteübergreifende Synchronisierung. Unter Einstellungen kannst du eine Sicherung exportieren und in einem anderen Browser wieder importieren." },
+            { question: "Wo werden meine Daten gespeichert und wie sichere ich sie?", answer: "My Home und „Meine Geräte“ speichern deine Angaben lokal in diesem Browser, ohne Konto oder geräteübergreifende Synchronisierung. Unter Einstellungen kannst du eine Datensicherung herunterladen und in einem anderen Browser wiederherstellen." },
           ],
         },
       ],
@@ -310,7 +311,7 @@ const content = {
       },
 
       exact: {
-        title: "More precise",
+        title: "Use your own consumption value",
         text:
           "Enter the actual electricity consumption per use if you know a measured or manufacturer value.",
       },
@@ -335,13 +336,14 @@ const content = {
         {
           title: "My Home",
           items: [
-            { question: "How do I record extra salaries and bonuses?", answer: "Enter regular monthly net income without extras. Under extra income, add each additional net amount and payment month. Extra salary payments default to yearly; a bonus defaults to one year only. The annual average is shown separately. Planned extras are not money available today." },
+            { question: "How do I record extra salaries and bonuses?", answer: "Enter regular monthly net income without extras. Choose “Edit regular income”, then add each salary extra and payment month under extra income. Extra salary payments default to yearly; a bonus defaults to one year only. The annual average is shown separately. Planned extras are not money available today." },
+            { question: "How do I record a sale or another one-off income?", answer: "Choose “Record additional income” in My Home. Only the amount is needed; the date defaults to today and a description such as “eBay sale” is optional. It counts once in its dated month and year. Mark money you have not received yet as planned. In Pro, received money counts through your current account balance and is not added again." },
             { question: "What can I track in My Home?", answer: "Start with regular net income, add your largest recurring costs and check what remains after fixed costs. Everyday spending still comes out of that amount. Electricity devices and Pro planning are optional extras." },
-            { question: "How are the monthly average and payment forecast calculated?", answer: "Yearly, half-yearly and other recurring costs are converted to a monthly average. The forecast shows payments due next month according to the payment dates you enter. Costs without dates are excluded and counted separately." },
-            { question: "What does the budget after recurring costs mean?", answer: "It is your recorded monthly net income minus the average of your recorded recurring costs. Variable spending such as groceries and costs you have not added are not included." },
-            { question: "Are the monthly review figures expenses I have paid?", answer: "No. Scheduled payments are reconstructed from the costs currently saved. My Home records cost changes only from the point you make them. Only monthly electricity values you enter are actual values." },
+            { question: "How are the monthly average and payment forecast calculated?", answer: "The month centre shows payments for the selected month. Monthly costs count once per month even without a payment date. Other frequencies need a date to be assigned to a month; add it for a complete result. Pro needs exact payment dates to plan until next payday. Monthly averages are labelled separately." },
+            { question: "What does “Expected amount left after fixed costs” mean?", answer: "All recorded fixed costs assigned to the selected month, paid and unpaid, are deducted from that month’s income. Additional income counts only in its dated month. Variable bills use the entered invoice amount, or the planning amount until you add it. Groceries, leisure and other unrecorded spending still come out of the remainder. This is a monthly plan; your account balance shows how much is in your account today." },
+            { question: "Are the monthly review figures expenses I have paid?", answer: "“Actually paid” counts payments you have marked as paid yourself. For variable costs, enter the invoice amount; until then it remains labelled as an estimate. The comparison is complete once you have checked all payments, entered invoice amounts and added missing dates. There is no automatic bank connection. Scheduled payments use saved costs and recorded changes." },
             { question: "How do cancellation deadlines and reminders work?", answer: "Enter a deadline yourself on a cost. You can download a calendar event with a reminder seven days before it. EAVESENCE does not verify contract terms or send automatic notifications." },
-            { question: "Where is my data stored and how can I back it up?", answer: "My Home and “My devices” store your entries locally in this browser, without an account or automatic sync across devices. You can export a backup in settings and import it in another browser." },
+            { question: "Where is my data stored and how can I back it up?", answer: "My Home and “My devices” store your entries locally in this browser, without an account or automatic sync across devices. You can download a backup in settings and restore it in another browser." },
           ],
         },
       ],

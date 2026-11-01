@@ -11,9 +11,10 @@ import { closeSavingsHistory } from "@eavesence/core/savingsPlan";
 import TileSymbol from "@/components/TileSymbol";
 import TileSymbolPicker from "@/components/TileSymbolPicker";
 import { iconForTile, type TileSymbol as SymbolKey } from '@eavesence/core/tileSymbols';
+import AdditionalIncomeDialog from "./AdditionalIncomeDialog";
 import IncomeExtrasEditor from "@/components/IncomeExtrasEditor";
 import IncomeExtrasSummary from "@/components/IncomeExtrasSummary";
-import { incomeExtraDrafts, incomeExtrasFromDraft, parseIncomeAmount, summarizeIncome, type IncomeExtraDraft } from "@eavesence/core/income";
+import { incomeExtraDrafts, incomeExtrasFromDraft, parseIncomeAmount, summarizeIncome, type AdditionalIncome, type IncomeExtraDraft } from "@eavesence/core/income";
 import { track } from "@vercel/analytics";
 import Link from "next/link";
 import {
@@ -167,7 +168,7 @@ const copy = {
     goalSuffix: "% weniger Jahreskosten",
     rooms: "Räume",
     start: "Zuhause erstellen",
-    private: "Ohne Konto · lokal gespeichert · jederzeit löschbar",
+    private: "Keine Registrierung nötig · in diesem Browser gespeichert",
     overview: "Deine Übersicht",
     energyOverview: "Strom & Energie",
     energyOverviewText:
@@ -176,9 +177,9 @@ const copy = {
     energyDetailsText: "Öffne nur die Auswertung, die du gerade brauchst.",
     workspaceEyebrow: "Dein Zuhause",
     financeTitle: "Dein Haushalt auf einen Blick",
-    financeIncome: "Nettoeinkommen / Monat",
+    financeIncome: "Monatliches Nettoeinkommen",
     financeIncomeEmpty: "Einkommen hinzufügen",
-    financeIncomeEdit: "Einkommen ändern",
+    financeIncomeEdit: "Reguläres Einkommen ändern",
     financeIncomeAmount: "Nettoeinkommen",
     financePeriod: "Zeitraum",
     financeSave: "Speichern",
@@ -197,30 +198,30 @@ const copy = {
     financeNoDates: "Trage bei Kosten ein Fälligkeitsdatum ein, um die nächsten Zahlungen zu sehen.",
     workspaceTitle: "Bereiche in deinem Zuhause",
     workspaceText:
-      "Wähle eine Kachel, um ihre Kosten anzusehen. Mit „Neue Kachel“ kannst du sie in eigene Bereiche gruppieren.",
-    workspaceEmpty: "Lege deine erste Kachel an und wähle aus, welches Werkzeug sich dahinter verbergen soll.",
-    addTile: "Neue Kachel",
+      "Wähle einen Kostenbereich, um seine Einträge anzusehen. Über „Neuen Kostenbereich anlegen“ kannst du weitere Bereiche hinzufügen.",
+    workspaceEmpty: "Lege deinen ersten Bereich für Kosten oder Strom und Geräte an.",
+    addTile: "Neuen Kostenbereich anlegen",
     addTileHint: "Eigenen Bereich anlegen",
-    editTile: "Kachel anpassen",
-    newTile: "Neue Kachel",
-    tileName: "Name der Kachel",
+    editTile: "Kostenbereich bearbeiten",
+    newTile: "Neuen Kostenbereich anlegen",
+    tileName: "Name des Kostenbereichs",
     tileNamePlaceholder: "Zum Beispiel Versicherungen",
-    createTile: "Kachel anlegen",
+    createTile: "Kostenbereich anlegen",
     updateTile: "Änderungen speichern",
     cancelTile: "Abbrechen",
     renameTile: "Umbenennen",
     deleteTile: "Entfernen",
-    deleteTileConfirm: "Diese leere Kachel wirklich entfernen?",
-    deleteTileWithCostsConfirm: "Diese Kachel und ihre {count} gespeicherten Kosten wirklich entfernen?",
-    reorderTile: "Kachel ziehen, um sie zu verschieben",
-    tileNameRequired: "Bitte gib der Kachel einen Namen.",
+    deleteTileConfirm: "Diesen leeren Kostenbereich entfernen?",
+    deleteTileWithCostsConfirm: "Diesen Kostenbereich und seine {count} gespeicherten Kosten entfernen?",
+    reorderTile: "Kostenbereich ziehen, um ihn zu verschieben",
+    tileNameRequired: "Bitte gib dem Kostenbereich einen Namen.",
     tileTitles: {
       costs: "Haushaltskosten",
       energy: "Strom & Geräte",
     },
     tileHints: {
       costs: "Laufende Kosten, Verträge und Zahlungen",
-      energy: "Strombasis, Geräte, Verbrauch und Spartipps",
+      energy: "Stromangaben, Geräte, Verbrauch und Spartipps",
     },
     tileCountCosts: "{count} Kosten angelegt",
     tileCountDevices: "{count} Geräte gespeichert",
@@ -259,7 +260,7 @@ const copy = {
     deviceUnassigned: "Gerätezuordnung wurde entfernt.",
     roomRenamed: "Raum wurde umbenannt.",
     topConsumer: "Größter Kostenpunkt",
-    monthlyCheckIn: "Monatlicher Check-in",
+    monthlyCheckIn: "Stromverbrauch oder Rechnungsbetrag eintragen",
     currentMonthOpen: "{month} noch offen",
     currentMonthOpenText: "Erfasse Verbrauch oder Rechnungsbetrag, sobald dein Monatswert vorliegt.",
     currentMonthComplete: "{month} erfasst",
@@ -275,9 +276,9 @@ const copy = {
     pulseTopDevice: "Größter berechneter Verbraucher: {device} mit {cost} pro Jahr.",
     reviewTopDevice: "Verbraucher prüfen",
     recordCurrentMonth: "Monatswert eintragen",
-    calendarReminder: "Monatlich erinnern",
-    calendarReminderTitle: "Wiederkehrende Erinnerung am 5. jedes Monats zum Kalender hinzufügen",
-    calendarReminderDownloaded: "Die monatliche Kalender-Erinnerung wurde heruntergeladen.",
+    calendarReminder: "Kalender-Erinnerung erstellen",
+    calendarReminderTitle: "Kalender-Erinnerung: am 5. jedes Monats Stromverbrauch oder Rechnungsbetrag eintragen",
+    calendarReminderDownloaded: "Kalenderdatei heruntergeladen. Öffne sie und füge die Erinnerung deinem Kalender hinzu.",
     checkInStreak: "{count} Monate in Folge",
     checkInText:
       "Wähle Verbrauch oder Rechnungsbetrag. Den zweiten Wert berechnen wir automatisch mit deinem Strompreis.",
@@ -316,9 +317,9 @@ const copy = {
     monthlyGoalValues: "Ziel: höchstens {target} · letzter Monat: {current}",
     monthlyGoalReached: "Monatsziel erreicht",
     comparisonTitle: "Schätzung und tatsächlicher Verbrauch",
-    calculatedEstimate: "Berechnete Geräte pro Monat",
+    calculatedEstimate: "Geschätzter Stromverbrauch deiner Geräte",
     actualRecorded: "Tatsächlicher Monatswert",
-    comparisonDifference: "Abweichung",
+    comparisonDifference: "Unterschied zum erfassten Verbrauch",
     comparisonMonth: "Vergleichsmonat: {month}",
     comparisonDataBasis: "Die Schätzung berücksichtigt {devices} gespeicherte Geräte. Nicht erfasste Verbraucher erscheinen als Abweichung.",
     comparisonDataBasisSingle: "Die Schätzung berücksichtigt 1 gespeichertes Gerät. Nicht erfasste Verbraucher erscheinen als Abweichung.",
@@ -368,15 +369,15 @@ const copy = {
       "Diesen Raum löschen? Zugeordnete Geräte bleiben erhalten und werden auf „Noch nicht zugeordnet“ gesetzt.",
     settings: "Einstellungen",
     saveSettings: "Einstellungen speichern",
-    saveEnergy: "Strombasis speichern",
+    saveEnergy: "Stromangaben speichern",
     saved: "Gespeichert",
     saveFailed: "Speichern hat nicht geklappt. Bitte versuche es noch einmal.",
     dataTitle: "Daten verwalten",
     dataText:
-      "Die Sicherung enthält Einkommen und Sonderzahlungen, Kosten, Sparvorhaben, Einstellungen, Kacheln, Geräte und den Monatsverlauf.",
+      "Die Datensicherung enthält Einkommen, Sonderzahlungen und zusätzliche Einnahmen, Kosten, Sparvorhaben, Einstellungen, Kostenbereiche, Geräte und den Monatsverlauf.",
     dataPrivacy: "Sie enthält keine Konto- oder Cloud-Daten.",
-    importHome: "Sicherung importieren",
-    exportHome: "Sicherung exportieren",
+    importHome: "Datensicherung wiederherstellen",
+    exportHome: "Datensicherung herunterladen",
     resetHome: "Mein Zuhause zurücksetzen",
     importedHome: "My-Home-Sicherung importiert.",
     importHomeError: "Diese Sicherungsdatei ist ungültig oder unvollständig.",
@@ -425,7 +426,7 @@ const copy = {
     goalSuffix: "% lower yearly costs",
     rooms: "Rooms",
     start: "Create my home",
-    private: "No account · stored locally · delete at any time",
+    private: "No registration needed · saved in this browser",
     overview: "Your overview",
     energyOverview: "Electricity & energy",
     energyOverviewText:
@@ -434,9 +435,9 @@ const copy = {
     energyDetailsText: "Open only the analysis you need right now.",
     workspaceEyebrow: "Your home",
     financeTitle: "Your household at a glance",
-    financeIncome: "Net income / month",
+    financeIncome: "Monthly net income",
     financeIncomeEmpty: "Add income",
-    financeIncomeEdit: "Edit income",
+    financeIncomeEdit: "Edit regular income",
     financeIncomeAmount: "Net income",
     financePeriod: "Period",
     financeSave: "Save",
@@ -457,13 +458,13 @@ const copy = {
     workspaceText:
       "Choose a tile to view its costs. Use “New tile” to group them into your own areas.",
     workspaceEmpty: "Create your first tile and choose which tool it should contain.",
-    addTile: "New tile",
+    addTile: "Add a cost area",
     addTileHint: "Create your own section",
     editTile: "Edit tile",
-    newTile: "New tile",
-    tileName: "Tile name",
+    newTile: "Add a cost area",
+    tileName: "Cost area name",
     tileNamePlaceholder: "For example Insurance",
-    createTile: "Create tile",
+    createTile: "Create cost area",
     updateTile: "Save changes",
     cancelTile: "Cancel",
     renameTile: "Rename",
@@ -517,7 +518,7 @@ const copy = {
     deviceUnassigned: "Device assignment removed.",
     roomRenamed: "Room renamed.",
     topConsumer: "Highest cost",
-    monthlyCheckIn: "Monthly check-in",
+    monthlyCheckIn: "Record electricity consumption or bill amount",
     currentMonthOpen: "{month} still open",
     currentMonthOpenText: "Add consumption or the bill amount once your monthly value is available.",
     currentMonthComplete: "{month} recorded",
@@ -533,9 +534,9 @@ const copy = {
     pulseTopDevice: "Largest calculated consumer: {device} at {cost} per year.",
     reviewTopDevice: "Review consumer",
     recordCurrentMonth: "Add monthly value",
-    calendarReminder: "Monthly reminder",
-    calendarReminderTitle: "Add a recurring reminder on the fifth of every month to your calendar",
-    calendarReminderDownloaded: "The monthly calendar reminder was downloaded.",
+    calendarReminder: "Create a calendar reminder",
+    calendarReminderTitle: "Create a calendar reminder to record electricity consumption or bill amount on the fifth of every month",
+    calendarReminderDownloaded: "Calendar file downloaded. Open it and add the reminder to your calendar.",
     checkInStreak: "{count} consecutive months",
     checkInText:
       "Choose consumption or bill amount. We calculate the second value automatically using your electricity price.",
@@ -626,15 +627,15 @@ const copy = {
       "Delete this room? Assigned devices will be kept and moved to “Not assigned yet”.",
     settings: "Settings",
     saveSettings: "Save settings",
-    saveEnergy: "Save electricity basis",
+    saveEnergy: "Save electricity details",
     saved: "Saved",
     saveFailed: "Could not save. Please try again.",
     dataTitle: "Manage data",
     dataText:
-      "The backup includes income and extra payments, costs, savings plans, settings, tiles, devices and monthly history.",
+      "The backup includes income, salary extras and additional income, costs, savings plans, settings, cost areas, devices and monthly history.",
     dataPrivacy: "It contains no account or cloud data.",
-    importHome: "Import backup",
-    exportHome: "Export backup",
+    importHome: "Restore backup",
+    exportHome: "Download backup",
     resetHome: "Reset My home",
     importedHome: "My home backup imported.",
     importHomeError: "This backup file is invalid or incomplete.",
@@ -784,6 +785,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [history, setHistory] = useState<MonthlyEnergyEntry[]>([]);
   const [householdCosts, setHouseholdCosts] = useState<HouseholdCost[]>([]);
   const [costEvents, setCostEvents] = useState<CostEvent[]>([]);
+  const [additionalEntry,setAdditionalEntry]=useState<AdditionalIncome|null|undefined>(undefined);
   const [incomeValue, setIncomeValue] = useState("");
   const [firstCostSetup, setFirstCostSetup] = useState(false);
   const [incomeExtras, setIncomeExtras] = useState<IncomeExtraDraft[]>([]);
@@ -1118,6 +1120,17 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setHomeTiles(nextTiles);
   }
 
+  function saveAdditionalIncome(entry: AdditionalIncome) {
+    if(!profile)throw new Error("HOME_MISSING");
+    persistProfile({...profile,additionalIncome:[entry,...(profile.additionalIncome??[]).filter(item=>item.id!==entry.id)],updatedAt:new Date().toISOString()},true);
+    setOverviewMonth(entry.date.slice(0,7));
+    setNotice({kind:"success",scope:"home",message:locale === "de" ? "Zusätzliche Einnahme gespeichert." : "Additional income saved."});
+  }
+  function removeAdditionalIncome(id: string) {
+    if(!profile)throw new Error("HOME_MISSING");
+    persistProfile({...profile,additionalIncome:(profile.additionalIncome??[]).filter(item=>item.id!==id),updatedAt:new Date().toISOString()},true);
+  }
+
   function saveIncome() {
     if (!profile) return;
     if (profile.incomeFrequency === "yearly" && incomeFrequency === "monthly" && !incomeValue.trim()) {
@@ -1143,8 +1156,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       return;
     }
     setIncomeError("");
-    setIncomeOpen(false);
-    requestAnimationFrame(() => {if(contextTrigger.current?.isConnected)contextTrigger.current.focus({preventScroll:true});});
+    closeHomeContext();
   }
 
   function activateTileKind(kind: HomeTileKind) {
@@ -1859,10 +1871,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   function closeHomeContext() {
     setIncomeOpen(false); setCostEditorInContext(false); setCostRequest(null); setSelectedPaymentKey(null);
     requestAnimationFrame(() => {
-      const target = contextTrigger.current?.isConnected ? contextTrigger.current : document.querySelector<HTMLElement>("[data-home-heading] .home-entry-actions button");
+      const target = contextTrigger.current?.isConnected && contextTrigger.current.getClientRects().length ? contextTrigger.current : document.querySelector<HTMLElement>("[data-home-heading] .home-entry-actions button");
       if (!target) return;
       const rect=target.getBoundingClientRect();
       if(rect.top < 90 || rect.bottom > window.innerHeight - 20)target.scrollIntoView({block:"nearest",behavior:"instant"});
+      const visibleTop=(document.querySelector("header")?.getBoundingClientRect().bottom??80)+12;
+      const after=target.getBoundingClientRect();
+      if(after.top<visibleTop)window.scrollBy({top:after.top-visibleTop,behavior:"instant"});
       target.focus({preventScroll:true});
     });
   }
@@ -1927,9 +1942,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
             <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className={`home-entry-actions ${householdCosts.length > 0 ? "home-mobile-entry-actions" : ""}`}>
               <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={event => {openCostForm();contextTrigger.current=event.currentTarget;}}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
-              <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={event => {openIncomeForm();contextTrigger.current=event.currentTarget;}} aria-expanded={incomeOpen} aria-controls="home-income-form">{hasRecordedIncome ? text.financeIncomeEdit : text.financeIncomeEmpty}</button>
+              <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={()=>setAdditionalEntry(null)}>{locale === "de" ? "Zusätzliche Einnahme erfassen" : "Record additional income"}</button>
             </div>
           </section>
+
+          {additionalEntry !== undefined && <AdditionalIncomeDialog locale={locale} currency={profile.currency} entries={profile.additionalIncome??[]} entry={additionalEntry} onSave={saveAdditionalIncome} onRemove={removeAdditionalIncome} onClose={()=>setAdditionalEntry(undefined)}/>}
 
           {settingsOpen && (
             <HomeSettingsDialog locale={locale} onClose={()=>setSettingsOpen(false)}><section id="home-settings" data-home-settings className={`mt-6 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
@@ -2023,7 +2040,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
 
-          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} outlook={selectedMonthOutlook} onMonthChange={month => {setOverviewMonth(month);setSelectedPaymentKey(null);}} incomeInformation={!incomeSummary.annualAverage && <IncomeExtrasSummary compact profile={profile} locale={locale} currency={profile.currency} />} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} payments={<MonthlyPayments primary selectedKey={selectedPaymentKey} onSelect={(key,trigger) => {
+          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} outlook={selectedMonthOutlook} onMonthChange={month => {setOverviewMonth(month);setSelectedPaymentKey(null);}} incomeInformation={<IncomeExtrasSummary compact profile={profile} locale={locale} currency={profile.currency} onManage={()=>setAdditionalEntry(null)}/>} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} payments={<MonthlyPayments primary selectedKey={selectedPaymentKey} onSelect={(key,trigger) => {
               contextTrigger.current = trigger;
               setSelectedPaymentKey(key);setIncomeOpen(false);setCostEditorInContext(false);setCostRequest(null);
               requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -2034,8 +2051,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               }));
             }} month={overviewMonth ?? localToday().slice(0,7)} onMonthChange={setOverviewMonth} costs={householdCosts} data={profile.planning} onSave={planning => persistProfile({...profile,planning,updatedAt:new Date().toISOString()},true)} locale={locale} currency={profile.currency} onEdit={openCostForm} onAdd={() => openCostForm()}/>} costEditorTitle={costRequest?.costId ? locale === "de" ? "Kosten bearbeiten" : "Edit cost" : locale === "de" ? "Kosten hinzufügen" : "Add cost"} contextActive={incomeOpen || costEditorInContext || !!selectedPaymentKey} onCloseContext={closeHomeContext} context={<HomePaymentContext costs={householdCosts} month={selectedMonthOutlook.month} planning={profile.planning} selectedKey={selectedPaymentKey} locale={locale} currency={profile.currency} onClose={closeHomeContext} onEdit={(cost,trigger) => {const previous=contextTrigger.current;openCostForm(cost);contextTrigger.current=selectedPaymentKey && previous?.isConnected ? previous : trigger;}} />} costForm={costEditorInContext && costRequest && activeTile ? <HouseholdCostsPanel key={`context-${costEditorVersion}`} locale={locale} currency={profile.currency} costs={costsForTile(activeTile.id)} embedded compact editorOnly request={costRequest} onChange={next => persistCostsForTile(activeTile.id, next)} onCancel={closeHomeContext} onSaved={() => {closeHomeContext();setNotice({kind:"success",scope:"home",message:locale === "de" ? "Kosten gespeichert." : "Cost saved."});}} /> : undefined} incomeForm={
                   <form id="home-income-form" onSubmit={(event) => { event.preventDefault(); saveIncome(); }} className="mt-4 grid max-w-xl scroll-mt-24 gap-3 rounded-xl border border-[#dfe5dd] bg-white p-4">
-                    <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Reguläres Monatsnetto (ohne Sonderzahlungen)" : "Regular monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
-                    <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<span className="income-period-field"><select aria-label={text.financePeriod} value={incomeFrequency} onChange={(event) => { const next = event.target.value as "monthly" | "yearly"; if (incomeFrequency === "yearly" && next === "monthly") setIncomeValue(""); setIncomeFrequency(next); }} className={`${homeFieldClass} min-w-0 w-full`}><option value="monthly">{locale === "de" ? "Reguläres Monatsnetto" : "Regular monthly net income"}</option><option value="yearly">{locale === "de" ? "Jahresnetto (Monatsdurchschnitt)" : "Annual net income (monthly average)"}</option></select><svg aria-hidden="true" focusable="false" className="income-period-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m1 3 4 4 4-4" /></svg></span></label>
+                    <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{incomeFrequency === "monthly" ? locale === "de" ? "Monatliches Nettoeinkommen (ohne Sonderzahlungen)" : "Monthly net income (excluding extras)" : locale === "de" ? "Jahresnetto insgesamt" : "Total annual net income"}<input value={incomeValue} onChange={(event) => setIncomeValue(event.target.value)} inputMode="decimal" className={homeFieldClass} /></label>
+                    <label className="grid gap-1 text-[11px] font-semibold text-[#52605b]">{text.financePeriod}<span className="income-period-field"><select aria-label={text.financePeriod} value={incomeFrequency} onChange={(event) => { const next = event.target.value as "monthly" | "yearly"; if (incomeFrequency === "yearly" && next === "monthly") setIncomeValue(""); setIncomeFrequency(next); }} className={`${homeFieldClass} min-w-0 w-full`}><option value="monthly">{locale === "de" ? "Monatliches Nettoeinkommen" : "Monthly net income"}</option><option value="yearly">{locale === "de" ? "Jahresnetto (Monatsdurchschnitt)" : "Annual net income (monthly average)"}</option></select><svg aria-hidden="true" focusable="false" className="income-period-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m1 3 4 4 4-4" /></svg></span></label>
                     {incomeSummary.annualAverage && <IncomeExtrasSummary profile={profile} locale={locale} currency={profile.currency} />}
                     <IncomeExtrasEditor locale={locale} frequency={incomeFrequency} drafts={incomeExtras} onChange={setIncomeExtras} open={incomeExtrasOpen} onToggle={setIncomeExtrasOpen} />
                     {incomeError && <p role="alert" className="text-[11px] text-red-700">{incomeError}</p>}
@@ -2121,7 +2138,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 {tileFeedback && <p role="alert" className="mt-2 text-[11px] font-bold text-red-700">{tileFeedback}</p>}
               </div>
             )}
-            {!homeTiles.some(tile => tile.kind === "energy") && <p className="mt-4 text-[11px] leading-relaxed text-[#65716d]">{locale === "de" ? "Stromkosten genauer ansehen?" : "Want to explore device electricity costs?"}{" "}<a href={locale === "de" ? "/de/rechner#rechner" : "/calculator#rechner"} className="eavesence-pill-link">{locale === "de" ? "Zum Stromrechner" : "Open energy calculator"}</a>{" "}{locale === "de" ? "Dort kannst du Geräte speichern und freiwillig als eigene Kachel übernehmen." : "Save devices there and optionally add them as a dedicated tile."}</p>}
+            {!homeTiles.some(tile => tile.kind === "energy") && <p className="mt-4 text-[11px] leading-relaxed text-[#65716d]">{locale === "de" ? "Stromkosten genauer ansehen?" : "Want to explore device electricity costs?"}{" "}<a href={locale === "de" ? "/de/rechner#rechner" : "/calculator#rechner"} className="eavesence-pill-link">{locale === "de" ? "Zum Stromrechner" : "Open energy calculator"}</a>{" "}{locale === "de" ? "Dort kannst du Geräte speichern und als eigenen Bereich hinzufügen." : "Save devices there and optionally add them as a dedicated area."}</p>}
           </section>
 
           </div></details>
@@ -2520,12 +2537,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <button
                   type="button"
                   key={item}
-                  aria-label={item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
+                  aria-label={item === "payday" ? locale === "de" ? "Bis zum nächsten Gehalt" : "Until next payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
                   aria-pressed={planQuestion === item}
                   onClick={() => navigatePlanQuestion(item)}
                   className="pro-question-button"
                 >
-                  <span>{item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erspart" : "Savings"}</span>
+                  <span>{item === "payday" ? locale === "de" ? "Bis zum nächsten Gehalt" : "Until next payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erreichte Ersparnis" : "Achieved savings"}</span>
                 </button>
               ))}
             </div>
@@ -2536,7 +2553,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
           <PaydayPanel onDateSave={(id,date) => {const next=householdCosts.map(c=>c.id===id?{...c,nextDueDate:date,updatedAt:new Date().toISOString()}:c);persistHouseholdCosts(next);}} onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
               </div>
               <div hidden={planPeriod !== "forecast"} data-planning-period="forecast">
-          <ProInsights mode="forecast" locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,incomeKnown:profile.incomeAmount!==undefined&&!profile.incomeDeferred,incomeIsAnnualAverage:incomeSummary.annualAverage,incomeExtras:incomeSummary.extras,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:localToday().slice(0,7)}} data={profile.planning} onSave={planning=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} onApply={applyPlanSuggestion} onEveryday={variableMonthly=>persistProfile({...profile,variableMonthly,updatedAt:new Date().toISOString()})} onReview={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} onNavigate={navigatePlanQuestion} onEditIncome={openIncomeForm} onPayments={showInvoiceChecklist}/>
+          <ProInsights mode="forecast" locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,incomeKnown:profile.incomeAmount!==undefined&&!profile.incomeDeferred,incomeIsAnnualAverage:incomeSummary.annualAverage,incomeExtras:incomeSummary.extras,additionalIncome:profile.additionalIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:localToday().slice(0,7)}} data={profile.planning} onSave={planning=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} onApply={applyPlanSuggestion} onEveryday={variableMonthly=>persistProfile({...profile,variableMonthly,updatedAt:new Date().toISOString()})} onReview={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} onNavigate={navigatePlanQuestion} onEditIncome={openIncomeForm} onPayments={showInvoiceChecklist}/>
               </div>
             </div>
             <div hidden={planQuestion === "payday" && planPeriod !== "budget"}>
@@ -2553,6 +2570,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             currency={profile.currency}
             incomeMonthly={monthlyIncome}
             incomeExtras={incomeSummary.extras}
+            additionalIncome={profile.additionalIncome}
             costs={householdCosts}
             variableMonthly={profile.variableMonthly}
             bufferMonthly={profile.bufferMonthly}

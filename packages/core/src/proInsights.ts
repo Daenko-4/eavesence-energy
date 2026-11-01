@@ -1,6 +1,6 @@
 import { paymentsForMonth, type HouseholdCost } from './householdCosts.ts';
 import { localToday, paydayForecast, validDay } from './homeValue.ts';
-import { extraIncomeForMonth, readIncomeExtras } from './income.ts';
+import { extraIncomeForMonth, readAdditionalIncome, readIncomeExtras } from './income.ts';
 import { paymentIsPaid, paymentKey, resolvePayment } from './paymentChecklist.ts';
 import { readPlanningData, shiftPlanningMonth, type PlanningData } from './planning.ts';
 import type { SavingsPlanInput } from './savingsPlan.ts';
@@ -57,7 +57,7 @@ export function forecast90Days(input:ForecastInput,value:PlanningData|undefined,
     : input.variableMonthly===null || !Number.isFinite(input.variableMonthly) || input.variableMonthly<0 ? 'everyday'
     : missingDates.length ? 'dates' : null;
   if(reason) return {reason,missingDates,end,result:null};
-  if(readIncomeExtras(input.incomeExtras)===null)return {reason:'income' as const,missingDates,end,result:null};
+  if(readIncomeExtras(input.incomeExtras)===null || readAdditionalIncome(input.additionalIncome)===null)return {reason:'income' as const,missingDates,end,result:null};
   const events=new Map<string,{bills:number;income:number;extras:number;estimated:number}>();
   const at=(date:string)=>{const key=date<today?today:date;let row=events.get(key);if(!row){row={bills:0,income:0,extras:0,estimated:0};events.set(key,row);}return row;};
   let overdue=0;
@@ -72,6 +72,10 @@ export function forecast90Days(input:ForecastInput,value:PlanningData|undefined,
     // Only future months: this month's extras may already be in today's balance.
     const date=lastDay(month);
     if(month>today.slice(0,7)&&date<=end)at(date).extras+=extraIncomeForMonth(input.incomeExtras??[],month);
+  }
+  // Received money is already in the confirmed balance. Future receipts use their exact date.
+  for(const entry of input.additionalIncome ?? []) {
+    if(entry.status === 'planned' && entry.date > today && entry.date <= end)at(entry.date).extras += entry.amount;
   }
   for(let offset=0;offset<4;offset++){
     const date=monthlyDate(cash!.payday,offset);

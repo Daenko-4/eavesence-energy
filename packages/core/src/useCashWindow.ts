@@ -54,10 +54,10 @@ export function useCashWindow(
     if (!validDay(payday) || payday <= today || (Date.parse(payday) - Date.parse(today)) / 86400000 > 90) return invalid("payday", de ? "Wähle deinen nächsten Gehaltstag: ab morgen und innerhalb der nächsten 90 Tage." : "Choose your next payday: from tomorrow and within the next 90 days.");
     if (step === 1) return null;
     if (!everyday.trim()) {
-      return invalid("everyday", de ? "Trage dein Alltagsbudget bis zum Gehalt ein oder übernimm den Vorschlag. 0 ist möglich." : "Enter your everyday budget until payday or use the suggestion. 0 is allowed.");
+      return invalid("everyday", de ? "Trage dein Alltagsbudget bis zum nächsten Gehalt ein oder übernimm den Vorschlag. 0 ist möglich." : "Enter your everyday budget until next payday or use the suggestion. 0 is allowed.");
     }
     const parsedEveryday = parseMoney(everyday, locale);
-    if (!Number.isFinite(parsedEveryday) || parsedEveryday < 0) return invalid("everyday", de ? "Trage die Alltagsausgaben bis zum Gehalt als Betrag ab 0 ein." : "Enter everyday spending until payday as an amount of 0 or more.");
+    if (!Number.isFinite(parsedEveryday) || parsedEveryday < 0) return invalid("everyday", de ? "Trage die Alltagsausgaben bis zum nächsten Gehalt als Betrag ab 0 ein." : "Enter everyday spending until next payday as an amount of 0 or more.");
     const parsedProtected = protectedAmount.trim() ? parseMoney(protectedAmount, locale) : 0;
     if (!Number.isFinite(parsedProtected) || parsedProtected < 0) return invalid("protected", de ? "Trage die Reserve als Betrag ab 0 ein oder lasse das Feld leer." : "Enter a reserve of 0 or more, or leave the field blank.");
     return null;

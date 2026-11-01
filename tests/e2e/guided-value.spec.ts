@@ -48,7 +48,7 @@ test('calculator uses the home tariff and large tiles are the only cost-area sel
   await costs.click();
   await expect(costs).toHaveAttribute('aria-expanded','true');
   await expect(energy).toHaveAttribute('aria-expanded','false');
-  await expect(areas.getByRole('button',{name:/New tile/})).toBeVisible();
+  await expect(areas.getByRole('button',{name:/Add a cost area/})).toBeVisible();
   await page.goto('/calculator');
   await expect(page.getByLabel('Electricity price',{exact:true})).toHaveValue('0.27');
 });

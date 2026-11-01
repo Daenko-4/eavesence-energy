@@ -14,7 +14,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`Pro invoice
  const t=(a:string,b:string)=>de?a:b;await page.setViewportSize({width,height:900});await seed(page,de);
  const forecast=page.locator('[data-pro-forecast]');await planningPeriod(page, 'forecast');await expect(forecast).toBeVisible();
  await expect(forecast.locator('[data-forecast-result]')).toContainText(t('knapp ab 20. Oktober','shortfall from 20 October'));
- await expect(forecast.locator('[data-forecast-month]')).toHaveCount(4);await expect(forecast).toContainText(t('Davon Sonderzahlungen','Including extra income'));
+ await expect(forecast.locator('[data-forecast-month]')).toHaveCount(4);await expect(forecast).toContainText(t('Davon zusätzliche Einnahmen','Including extra income'));
  await forecast.getByLabel(t('Alltagsausgaben pro Monat (90-Tage-Plan)','Everyday spending per month (90-day plan)')).fill('600');
  await forecast.getByRole('button',{name:t('Alltagsschätzung speichern','Save everyday estimate'),exact:true}).click();
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).variableMonthly)).toBe(600);
@@ -37,7 +37,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`Pro invoice
  await proposals.getByRole('button',{name:t('Rechnungsbeträge eintragen','Record invoice amounts'),exact:true}).click();await expect(page.locator('[data-month-checklist]').getByRole('checkbox',{name:/^Electricity ·/})).toBeChecked();
  await page.reload();await homeWorkspace(page,'plan');await page.getByRole('group',{name:/Choose planning question|Planungsfrage wählen/}).getByRole('button',{name:/Find realistic savings|Realistisch sparen/}).click();
  await savingsTool(page, 'switch');await expect(comparison.getByText(t('Gemerkte Wechselvergleiche','Saved switch comparisons'),{exact:false})).toBeVisible();await comparison.getByRole('button',{name:t('Vergleich öffnen','Open comparison'),exact:true}).click();
- await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toHaveValue('20');await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toBeFocused();await expect(comparison.getByLabel(t('Einmalige Wechselgebühr','One-off switching fee'),{exact:true})).toHaveValue('60');await expect(comparison.locator('[data-switch-result]')).toContainText(t('zuerst „Bis zum Gehalt“ aktualisieren','Update Until payday first'));
+ await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toHaveValue('20');await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toBeFocused();await expect(comparison.getByLabel(t('Einmalige Wechselgebühr','One-off switching fee'),{exact:true})).toHaveValue('60');await expect(comparison.locator('[data-switch-result]')).toContainText(t('zuerst „Bis zum nächsten Gehalt“ aktualisieren','Update Until next payday first'));
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 test('incomplete forecasts guide to existing inputs and failed comparison writes keep the offer',async({page})=>{

@@ -113,9 +113,9 @@ export function PaydayScreen({
           ? t("Zahlungen wurden geändert. Bestätige den Kontostand aus deiner Banking-App erneut.", "Payments changed. Confirm the balance from your banking app again.")
           : t(`Kontostand vom ${day(p.cash!.asOf)}. Für heute bitte erneut bestätigen.`, `Balance from ${day(p.cash!.asOf)}. Please confirm it for today.`)
         : missingDates > 0
-          ? t(`${missingDates} Kosten ohne Zahlungstermin. Ergänze sie für eine vollständige Rechnung.`, `${missingDates === 1 ? "1 cost has" : `${missingDates} costs have`} no payment date. Add ${missingDates === 1 ? "it" : "them"} for a complete calculation.`)
+          ? t(`${missingDates===1?"1 Ausgabe hat noch keinen Zahlungstermin. Ergänze ihn":`${missingDates} Ausgaben haben noch keinen Zahlungstermin. Ergänze die Termine`} für eine vollständige Rechnung.`, `${missingDates === 1 ? "1 cost has" : `${missingDates} costs have`} no payment date. Add ${missingDates === 1 ? "it" : "them"} for a complete calculation.`)
           : missingEveryday
-            ? t("Wie viel brauchst du bis zum Gehalt noch für den Alltag? Auch 0 ist möglich.", "How much do you still need for everyday spending until payday? 0 is allowed.")
+            ? t("Wie viel brauchst du bis zum nächsten Gehalt noch für den Alltag? Auch 0 ist möglich.", "How much do you still need for everyday spending until next payday? 0 is allowed.")
             : shortfall
               ? t("Prüfe offene Rechnungen und deine Alltagsschätzung.", "Review unpaid bills and your everyday estimate.")
               : t("Rechnungen, Alltag und Reserve sind bereits abgezogen.", "Bills, everyday spending and reserve are already deducted.");
@@ -128,14 +128,14 @@ export function PaydayScreen({
   return (
     <View style={[styles.card, lightHero && styles.setupCard, embedded && styles.embedded]}>
       <View ref={resultTarget} style={[styles.dark, embedded && styles.embeddedDark, lightHero && styles.setup]}>
-        <Text style={[styles.eyebrow, lightHero && styles.setupEyebrow]}>{!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} Tage`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} days`) : t("Dein Geld bis zum Gehalt", "Your money until payday")}</Text>
+        <Text style={[styles.eyebrow, lightHero && styles.setupEyebrow]}>{!open && p.forecast ? t(`Bis ${day(p.cash!.payday)} · ${p.forecast.days} Tage`, `Until ${day(p.cash!.payday)} · ${p.forecast.days} days`) : t("Dein Geld bis zum nächsten Gehalt", "Your money until next payday")}</Text>
         <Text accessibilityRole="header" style={[styles.title, lightHero && styles.setupTitle]}>{open ? t("Deine Angaben", "Your entries")
           : currentResult ? shortfall ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Zusätzlich verfügbar", "Extra money available")
           : state === "stale" ? t("Kontostand bestätigen", "Confirm account balance")
           : state === "expired" ? t("Neuen Zeitraum planen", "Plan your next pay period")
           : state === "dates" ? t("Zahlungstermine ergänzen", "Add payment dates")
           : state === "everyday" ? t("Alltag noch einplanen", "Add everyday spending")
-          : t("Was bleibt bis zum Gehalt?", "What is left until payday?")}</Text>
+          : t("Was bleibt bis zum nächsten Gehalt?", "What is left until next payday?")}</Text>
         {currentResult && !open && <Text style={[styles.amount,shortfall ? styles.shortfallAmount : styles.positive]} accessibilityLiveRegion="polite">{money(Math.abs(p.forecast!.remaining!))}</Text>}
         {!open && <Text accessibilityLiveRegion="polite" style={[styles.light,(state === "stale" || state === "expired" || state === "dates") && styles.warning, lightHero && styles.setupNote]}>{statusText}</Text>}
         {state === "empty" && !open && <View style={styles.steps}>{[t("Kontostand", "Account balance"),t("Gehaltstag", "Payday"),t("Alltag", "Everyday spending")].map((label,index) => <Text key={label} style={[styles.light, lightHero && styles.setupNote]}>{index+1} · {label}</Text>)}</View>}
@@ -194,15 +194,15 @@ export function PaydayScreen({
               {p.preview.overdue > 0 && <Text style={styles.note}>{t(`${p.preview.overdue} frühere Zahlungen dieses Monats sind noch offen und enthalten.`, `${p.preview.overdue} earlier payments this month are still unchecked and included.`)}</Text>}
               {p.preview.estimatedBills > 0 && <Text style={styles.note}>{t(`${p.preview.estimatedBills} Beträge noch geschätzt.`, `${p.preview.estimatedBills} amounts are still estimates.`)}</Text>}
               {bills.length > 0 && <Pressable accessibilityRole="button" style={styles.button} onPress={reviewPayments}><Text style={styles.buttonText}>{t("Zahlungen prüfen", "Review payments")}</Text></Pressable>}
-              {p.preview.missingDates > 0 && <Text style={styles.error}>{t(`${p.preview.missingDates} Kosten brauchen noch einen Zahlungstermin.`, `${p.preview.missingDates} costs still need a payment date.`)}</Text>}
+              {p.preview.missingDates > 0 && <Text style={styles.error}>{t(`${p.preview.missingDates===1?"1 Ausgabe braucht":`${p.preview.missingDates} Ausgaben brauchen`} noch einen Zahlungstermin.`, `${p.preview.missingDates} costs still need a payment date.`)}</Text>}
               {input.costs.filter(c=>!c.nextDueDate).map(c=><Pressable key={c.id} accessibilityRole="button" style={styles.button} onPress={()=>onReviewCost?.(c)}><Text style={styles.buttonText}>{c.name} · {t("Termin ergänzen","Add date")}</Text></Pressable>)}
             </> : <Text style={styles.note}>{t("Wähle oben deinen nächsten Gehaltstag. Dann zeigen wir, welche gespeicherten Rechnungen bis dahin noch anstehen.", "Choose your next payday above to see which saved bills are still due before then.")}</Text>}
           </View>
           <Text style={styles.subTitle}>{t("3 · Dein Alltag bis dahin", "3 · Everyday spending until then")}</Text>
           <FormInput
             label={t(
-              "Alltagsausgaben bis zum Gehalt",
-              "Everyday spending until payday",
+              "Alltagsausgaben bis zum nächsten Gehalt",
+              "Everyday spending until next payday",
             )}
             focusRequest={invalidFocus.field === "everyday" ? invalidFocus.request : 0}
             accessibilityHint={p.errorField === "everyday" ? p.error : undefined}
@@ -215,7 +215,7 @@ export function PaydayScreen({
           {p.suggestedEveryday !== null && <View style={styles.box}><Text style={styles.note}>{t(`Vorschlag für ${p.preview!.days} Tage: ${money(p.suggestedEveryday)} – aus deiner Monatsschätzung von ${money(input.variableMonthly!)}.`, `Suggestion for ${p.preview!.days} days: ${money(p.suggestedEveryday)} – based on your monthly estimate of ${money(input.variableMonthly!)}.`)}</Text>{button(t("Vorschlag übernehmen", "Use suggestion"),()=>p.setEveryday(de?String(p.suggestedEveryday).replace(".",","):String(p.suggestedEveryday)))}</View>}
           <Pressable accessibilityRole="button" accessibilityState={{expanded:reserveOpen}} onPress={()=>setReserveOpen(!reserveOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Geld als Reserve behalten (optional)", "Keep some money in reserve (optional)")}{p.reserved>0?` · ${money(p.reserved)}`:""}</Text><DisclosureIcon open={reserveOpen}/></Pressable>
           {reserveOpen && <>
-            <FormInput label={t("Reserve, die übrig bleiben soll (optional)", "Money to keep in reserve (optional)")} focusRequest={invalidFocus.field === "protected" ? invalidFocus.request : 0} accessibilityHint={p.errorField === "protected" ? p.error : undefined} keyboardType="decimal-pad" value={p.protectedAmount} onChangeText={p.setProtected}/>
+            <FormInput label={t("Geld, das du nicht ausgeben möchtest (optional)", "Money to keep in reserve (optional)")} focusRequest={invalidFocus.field === "protected" ? invalidFocus.request : 0} accessibilityHint={p.errorField === "protected" ? p.error : undefined} keyboardType="decimal-pad" value={p.protectedAmount} onChangeText={p.setProtected}/>
             <Text style={styles.note}>{t("Dieser Teil deines Kontostands soll unangetastet bleiben. Rechnungen und Alltag sind bereits berücksichtigt. Sparziele werden nicht automatisch abgezogen.", "This part of your balance stays untouched. Bills and everyday spending are already accounted for. Savings goals are not deducted automatically.")}</Text>
           </>}
           <Text style={styles.note}>{t("Das nächste Gehalt ist hier noch nicht eingerechnet.", "Your next salary is not included yet.")}</Text>
@@ -224,7 +224,7 @@ export function PaydayScreen({
         </FormSection></View>
       )}
       <QuickCheck input={input} data={data} onSave={onSave} onBalance={reviewBalance} onPayments={reviewPayments} onSavings={onSavings} onReview={onReviewCost}/>
-      {bills.length > 0 && <View ref={billsTarget} onLayout={revealBills} style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:billsOpen}} onPress={()=>setBillsOpen(!billsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Zahlungen bis zum Gehalt abhaken", "Check off payments until payday")} · {bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</Text><DisclosureIcon open={billsOpen}/></Pressable>{billsOpen&&<><Text style={styles.note}>{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</Text>{bills.map(b=>{const paid=checklist.isPaid(b);return <Pressable key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})} accessibilityRole="checkbox" accessibilityState={{checked:paid,disabled:checklist.busy||checklist.isClosed(b)}} accessibilityLabel={`${b.cost.name} · ${day(b.date)} · ${money(b.cost.amount)} · ${t("Bezahlt", "Paid")}`} disabled={checklist.busy||checklist.isClosed(b)} onPress={()=>void checklist.toggle(b)} style={styles.payment}><Text style={styles.check}>{paid?"✓":"○"}</Text><Text style={[styles.paymentName,paid&&styles.paid]}>{b.cost.name} · {day(b.date)}</Text><Text style={styles.note}>{b.estimated?t("ca. ","approx. "):""}{money(b.cost.amount)}</Text></Pressable>})}<PaymentAmountEditor c={checklist} locale={de?"de":"en"}/>{checklist.error&&<Text accessibilityRole="alert" style={styles.error}>{checklist.error}</Text>}</>}</View>}
+      {bills.length > 0 && <View ref={billsTarget} onLayout={revealBills} style={styles.form}><Pressable accessibilityRole="button" accessibilityState={{expanded:billsOpen}} onPress={()=>setBillsOpen(!billsOpen)} style={styles.disclosure}><Text style={styles.note}>{t("Zahlungen bis zum nächsten Gehalt abhaken", "Check off payments until next payday")} · {bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</Text><DisclosureIcon open={billsOpen}/></Pressable>{billsOpen&&<><Text style={styles.note}>{t("Bereits abgebucht oder bezahlt? Hier abhaken. Das Häkchen erscheint auch in deiner Monatscheckliste. Danach den aktuellen Kontostand bestätigen.", "Already debited or paid? Check it off here. The same checkmark appears in your monthly checklist. Then confirm your current account balance.")}</Text>{bills.map(b=>{const paid=checklist.isPaid(b);return <Pressable key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})} accessibilityRole="checkbox" accessibilityState={{checked:paid,disabled:checklist.busy||checklist.isClosed(b)}} accessibilityLabel={`${b.cost.name} · ${day(b.date)} · ${money(b.cost.amount)} · ${t("Bezahlt", "Paid")}`} disabled={checklist.busy||checklist.isClosed(b)} onPress={()=>void checklist.toggle(b)} style={styles.payment}><Text style={styles.check}>{paid?"✓":"○"}</Text><Text style={[styles.paymentName,paid&&styles.paid]}>{b.cost.name} · {day(b.date)}</Text><Text style={styles.note}>{b.estimated?t("ca. ","approx. "):""}{money(b.cost.amount)}</Text></Pressable>})}<PaymentAmountEditor c={checklist} locale={de?"de":"en"}/>{checklist.error&&<Text accessibilityRole="alert" style={styles.error}>{checklist.error}</Text>}</>}</View>}
     </View>
   );
 }

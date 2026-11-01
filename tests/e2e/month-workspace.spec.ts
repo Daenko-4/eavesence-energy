@@ -87,7 +87,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await expect(paid.getByRole('checkbox',{name})).toBeChecked();
     await workspace.getByRole('checkbox',{name}).uncheck();
     await expect(open.getByRole('checkbox',{name})).not.toBeChecked();
-    await page.getByRole('group',{name:t('Aktionen für dein Zuhause','Home actions'),exact:true}).getByRole('button',{name:t('Einkommen ändern','Edit income'),exact:true}).click();
+    await page.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true}).click();
     await expect(open.getByRole('checkbox')).toHaveCount(20);
     const input=page.locator('#home-income-form input').first();await expect(input).toBeFocused();
     await input.fill('2500');await input.press('Enter');
