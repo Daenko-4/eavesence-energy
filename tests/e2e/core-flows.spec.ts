@@ -296,7 +296,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   const financeCards = householdOverview.locator("[data-home-monthly-budget] article");
   await expect(financeCards.nth(0)).toContainText("Net income · monthly average");
   await expect(financeCards.nth(1)).toContainText("Recurring costs / month");
-  await expect(financeCards.nth(2)).toContainText("Expected amount left after fixed costs");
+  await expect(financeCards.nth(2)).toContainText("Expected amount left · monthly average");
   const collapsedHeights = await financeCards.evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height));
   expect(new Set(collapsedHeights).size).toBe(1);
   await page.getByRole("button", { name: "Edit regular income" }).click();

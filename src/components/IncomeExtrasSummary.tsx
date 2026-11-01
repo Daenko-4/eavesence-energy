@@ -3,7 +3,8 @@ import {incomeExtraLabel,incomeMonthLabel,summarizeIncome,type IncomeProfile} fr
 export default function IncomeExtrasSummary({profile,locale,currency,compact=false,onManage}:{profile:IncomeProfile;locale:"de"|"en";currency:string;compact?:boolean;onManage?:()=>void}) {
  const summary=summarizeIncome(profile),de=locale==='de',money=(n:number)=>new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency}).format(n);
  const warning=<p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[12px] leading-5 text-amber-900" data-income-average-note>{de?'Dein Jahresnetto wird durch 12 geteilt. Das ist ein Monatsdurchschnitt. Für eine genaue Monatsplanung trage dein monatliches Nettoeinkommen und die Sonderzahlungen getrennt ein.':'Your annual net income is divided by 12. This is a monthly average. For accurate monthly planning, enter monthly net income and salary extras separately.'}</p>;
- if(summary.annualAverage&&!summary.additional.length)return compact?null:warning;
+ if(summary.annualAverage&&!compact)return warning;
+ if(summary.annualAverage&&!summary.additional.length)return null;
  if(!summary.extras.length&&!summary.additional.length)return null;
  const additional=summary.additional.filter(e=>Number(e.date.slice(0,4))===summary.year).sort((a,b)=>b.date.localeCompare(a.date));
  return <div className="mt-4 rounded-xl bg-[#f4f6f2] p-4" data-income-extras-summary>

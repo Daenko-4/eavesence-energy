@@ -4,6 +4,7 @@ import { LocalizedText as Text } from "./i18n";
 export function IncomeExtrasSummary({ profile, locale, currency, onManage }: { profile: IncomeProfile; locale: "de" | "en"; currency: string; onManage?:()=>void }) {
   const summary = summarizeIncome(profile), de = locale === "de";
   const money = (value: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(value);
+  if(summary.annualAverage&&!onManage)return <View style={styles.warning}><Text style={styles.note}>{de?'Dein Jahresnetto wird durch 12 geteilt. Das ist ein Monatsdurchschnitt. Für eine genaue Monatsplanung trage dein monatliches Nettoeinkommen und die Sonderzahlungen getrennt ein.':'Your annual net income is divided by 12. This is a monthly average. For accurate monthly planning, enter monthly net income and salary extras separately.'}</Text></View>;
   if (!summary.extras.length && !summary.additional.length) return null;
   return <View style={styles.card}>
     <View style={styles.row}><View style={styles.flex}><Text style={styles.note}>{de?`Jahreseinnahmen ${summary.year}`:`Annual income · ${summary.year}`}</Text><Text style={styles.amount}>{money(summary.annual)}</Text></View><View style={styles.flex}><Text style={styles.note}>{de?'Monatsdurchschnitt':'Monthly average'}</Text><Text style={styles.amount}>{money(summary.average)}</Text></View></View>
