@@ -45,6 +45,7 @@ export function convertWebBackup(json: string, locale: "de" | "en" = "en"): Mobi
       incomeAmount: source.profile.incomeAmount === 0 && source.profile.incomeDeferred !== false ? undefined : source.profile.incomeAmount,
       incomeFrequency: source.profile.incomeFrequency,
       incomeExtras: source.profile.incomeExtras,
+      additionalIncome: source.profile.additionalIncome,
       variableMonthly: source.profile.variableMonthly,
       bufferMonthly: source.profile.bufferMonthly,
       goalMonthly: source.profile.goalMonthly,

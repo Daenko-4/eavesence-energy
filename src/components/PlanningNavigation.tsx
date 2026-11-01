@@ -15,7 +15,7 @@ export default function PlanningNavigation<T extends PlanningPeriod | SavingsToo
   const de = locale === "de";
   const chooser = useRef<HTMLDetailsElement>(null);
   const choices: [PlanningPeriod | SavingsTool, string][] = kind === "period" ? [
-    ["payday", de ? "Bis zum Gehalt" : "Until payday"],
+    ["payday", de ? "Bis zum nächsten Gehalt" : "Until next payday"],
     ["forecast", de ? "90-Tage-Vorschau" : "90-day outlook"],
     ["budget", de ? "Monatsbudget" : "Monthly budget"],
   ] : [

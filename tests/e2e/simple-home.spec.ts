@@ -34,7 +34,7 @@ for (const locale of ['de', 'en'] as const) {
     await page.locator('[data-home-review]').getByRole('button',{name:de ? 'Übersicht geprüft' : 'Overview checked',exact:true}).click();
     await expect(page.locator('[data-home-review]')).toHaveCount(0);
     const download = page.waitForEvent('download');
-    await page.locator('[data-home-overview-content]').getByRole('button',{name:de ? 'Sicherung exportieren' : 'Export backup',exact:true}).click();
+    await page.locator('[data-home-overview-content]').getByRole('button',{name:de ? 'Datensicherung herunterladen' : 'Download backup',exact:true}).click();
     expect((await download).suggestedFilename()).toMatch(/^eavesence-home-.*\.json$/);
     await page.reload();
     await expect(page.locator('[data-home-review]')).toHaveCount(0);
@@ -49,7 +49,7 @@ test('editing income from a bookmarked plan stays in overview after saving', asy
   await page.goto('/home#home-plan');
   await expect(page.locator('[data-home-plan-content]')).toBeVisible();
   await homeWorkspace(page, 'overview');
-  await page.getByRole('group', { name: 'Home actions' }).getByRole('button', { name: 'Add income', exact: true }).click();
+  await page.getByRole('button', { name: 'Add income', exact: true }).click();
   await page.locator('#home-income-form input').fill('2000');
   await page.locator('#home-income-form button[type="submit"]').click();
   await expect(page.locator('[data-home-overview-content]')).toBeVisible();
@@ -68,7 +68,7 @@ for(const locale of ['de','en'])test(`website backup replacement preserves the o
  });await page.reload();
  await page.getByRole('button',{name:de?'Einstellungen':'Settings',exact:true}).click();
  const download=page.waitForEvent('download');
- await page.getByRole('button',{name:de?'Sicherung exportieren':'Export backup',exact:true}).click();
+ await page.getByRole('button',{name:de?'Datensicherung herunterladen':'Download backup',exact:true}).click();
  const {readFile}=await import('node:fs/promises');
  const backup=JSON.parse(await readFile((await (await download).path())!,'utf8'));
  backup.profile.name='Imported home';backup.profile.incomeAmount=3000;backup.costs[0].amount=50;

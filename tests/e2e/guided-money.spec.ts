@@ -41,7 +41,7 @@ for(const de of [false,true])for(const width of [320,1365])test(`result first an
   await expect(page.locator('[data-home-plan-content]')).toBeVisible();
   await plan.screenshot({path:info.outputPath(`guided-dates-${de?'de':'en'}-${width}.png`)});
   await paydayStep(page,2);
-  const everyday=plan.getByLabel(t('Alltagsausgaben bis zum Gehalt','Everyday spending until payday'),{exact:true});
+  const everyday=plan.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt','Everyday spending until next payday'),{exact:true});
   await everyday.fill('200');
   await plan.screenshot({path:info.outputPath(`guided-everyday-${de?'de':'en'}-${width}.png`)});
   await plan.getByRole('button',{name:t('Zurück','Back'),exact:true}).click();await paydayStep(page,2);await expect(everyday).toHaveValue('200');

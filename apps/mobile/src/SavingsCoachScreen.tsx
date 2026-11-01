@@ -116,7 +116,7 @@ export function SavingsCoachScreen({
       </Text>
       {mode !== "progress" && p.planned.length > 0 && <View style={styles.box}>
         <Text style={styles.title}>{t("Dein nächster Schritt: Vorhaben umsetzen", "Your next step: put your plan into action")}</Text>
-        <Text style={styles.note}>{p.planned[0].name}{p.planned.length > 1 ? ` + ${p.planned.length - 1}` : ""}{p.plannedMonthly > 0 ? ` · ${t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: ${money(p.plannedMonthly)} ${t("pro Monat im Durchschnitt", "per month on average")}` : ""}</Text>
+        <Text style={styles.note}>{p.planned[0].name}{p.planned.length > 1 ? ` + ${p.planned.length - 1}` : ""}{p.plannedMonthly > 0 ? ` · ${t("Geplante Ersparnis", "Planned savings")}: ${money(p.plannedMonthly)} ${t("pro Monat im Durchschnitt", "per month on average")}` : ""}</Text>
         <Text style={styles.note}>{t("Erst Tarif ändern oder kündigen. Bestätige danach die Umsetzung – vorher zählt nichts als eingespart.", "Change the plan or cancel the cost first. Then confirm it happened — nothing counts as saved beforehand.")}</Text>
         <Pressable accessibilityRole="button" disabled={p.busy} style={styles.button} onPress={reviewPlans}><Text style={styles.buttonText}>{t("Vorgemerkte Änderung prüfen", "Review planned change")}</Text></Pressable>
       </View>}
@@ -135,8 +135,8 @@ export function SavingsCoachScreen({
         <View style={styles.dark}>
           <Text style={styles.light}>
             {t(
-              "Bis heute eingespart",
-              "Saved so far",
+              "Bisher berechnete Ersparnis",
+              "Calculated savings so far",
             )}
           </Text>
           <Text style={styles.amount}>{money(p.totals.scheduled)}</Text>
@@ -192,7 +192,7 @@ export function SavingsCoachScreen({
             keyboardType="decimal-pad"
           />
           <Text style={styles.note}>
-            {t("Wirksam ab Monat", "Effective from month")}: {p.effective}
+            {t("Ab welchem Monat gilt der neue Preis?", "Which month does the new price start?")}: {p.effective}
           </Text>
           <View style={styles.row}>
             {button(t("Vorheriger Monat", "Previous month"), () =>
@@ -210,7 +210,7 @@ export function SavingsCoachScreen({
           </Text>
           {p.preview && <View style={styles.impact}>
             <Text style={styles.title}>{t("Hilft das schon bis zum nächsten Gehalt?", "Will this help before your next payday?")}</Text>
-            {p.cashImpact ? <><Text style={styles.note}>{t("Zusätzlich verfügbar", "Extra money available")}: {money(p.cashImpact.before)} → {money(p.cashImpact.after)}</Text><Text style={styles.note}>{p.cashImpact.saving > 0 ? t(`Wenn die Änderung rechtzeitig umgesetzt wird: ${money(p.cashImpact.saving)} mehr bis zum Gehalt.`, `If the change happens in time: ${money(p.cashImpact.saving)} more until payday.`) : t("Bis zu diesem Gehalt ändert sich nichts. Bezahlte und bekannte Rechnungen bleiben gleich; spätere Termine zählen danach.", "No change before this payday. Paid and existing invoices stay the same; later payment dates count afterwards.")}</Text></> : <><Text style={styles.note}>{t("Für diesen Vergleich fehlen aktuelle Angaben unter „Bis zum Gehalt“. Dein Vorhaben kannst du trotzdem speichern.", "This comparison needs current entries under Until payday. You can still save your plan.")}</Text></>}
+            {p.cashImpact ? <><Text style={styles.note}>{t("Zusätzlich verfügbar", "Extra money available")}: {money(p.cashImpact.before)} → {money(p.cashImpact.after)}</Text><Text style={styles.note}>{p.cashImpact.saving > 0 ? t(`Wenn die Änderung rechtzeitig umgesetzt wird: ${money(p.cashImpact.saving)} mehr bis zum nächsten Gehalt.`, `If the change happens in time: ${money(p.cashImpact.saving)} more until next payday.`) : t("Bis zu diesem Gehalt ändert sich nichts. Bezahlte und bekannte Rechnungen bleiben gleich; spätere Termine zählen danach.", "No change before this payday. Paid and existing invoices stay the same; later payment dates count afterwards.")}</Text></> : <><Text style={styles.note}>{t("Für diesen Vergleich fehlen aktuelle Angaben unter „Bis zum nächsten Gehalt“. Dein Vorhaben kannst du trotzdem speichern.", "This comparison needs current entries under Until next payday. You can still save your plan.")}</Text></>}
             <Text style={styles.note}>{t("Vorschau – dein Kontostand und deine Kosten bleiben unverändert.", "Preview — your balance and costs stay unchanged.")}</Text>
           </View>}
           {p.preview && <Text accessibilityRole="summary" style={styles.note}>{t("In den nächsten 12 Planungsmonaten voraussichtlich", "Estimated over the next 12 planning months")}: {money(p.preview.totalDifference)} {t("weniger Ausgaben. Noch keine bestätigte Ersparnis.", "lower spending. Not a confirmed saving yet.")}</Text>}
@@ -284,7 +284,7 @@ export function SavingsCoachScreen({
       {mode === "progress" && p.totals.estimated > 0 && <Text style={styles.note}>{t("Zusätzlich ohne Zahlungstermin geschätzt", "Additional estimate without payment dates")}: {money(p.totals.estimated)}. {t("Nicht im Betrag oben enthalten.", "Not included in the amount above.")}</Text>}
       {mode === "progress" && p.confirmedMonthly > 0 && <Text style={styles.note}>{t("Deine bestätigten Änderungen senken die laufenden Kosten durchschnittlich um", "Your confirmed changes reduce recurring costs by an average of")} {money(p.confirmedMonthly)} {t("pro Monat. Das ist kein zusätzlich bereits angesparter Betrag.", "per month. This is not extra money already saved.")}</Text>}
       </>}
-      {mode === "progress" && onNavigate && button(t("Geld bis zum Gehalt neu prüfen", "Review your money until payday"), ()=>onNavigate("payday"))}
+      {mode === "progress" && onNavigate && button(t("Geld bis zum nächsten Gehalt neu prüfen", "Review your money until next payday"), ()=>onNavigate("payday"))}
       {onNavigate && mode !== "all" && button(mode === "progress" ? t("Eine Sparmöglichkeit prüfen", "Review a savings opportunity") : t("Erreichte Ersparnis ansehen", "View achieved savings"), () => onNavigate(mode === "progress" ? "savings" : "progress"))}
       {p.error && (
         <Text accessibilityRole="alert" style={styles.error}>

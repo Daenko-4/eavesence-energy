@@ -1421,3 +1421,13 @@ a {
 .centre-cash-tools [data-payday-calculation] dl > div { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: start; gap: 4px 12px; }
 .centre-cash-tools [data-payday-calculation] dt { min-width: 0; overflow-wrap: anywhere; }
 .centre-cash-tools [data-payday-calculation] dd { text-align: right; white-space: nowrap; }
+
+/* Full money labels share a row height; figures remain aligned when labels wrap. */
+.income-annual-metrics { grid-template-rows: auto auto; row-gap: 4px; }
+.income-annual-metrics > div { display: grid; grid-template-rows: subgrid; grid-row: 1 / span 2; }
+.income-annual-metrics dd { margin-top: 0; }
+.home-regular-income-action { justify-self: center; min-height: 32px; font-size: 12px; line-height: 1.4; }
+@media (max-width: 639px) {
+  [data-home-has-month="true"] .home-entry-actions { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; gap: 8px; }
+  [data-home-has-month="true"] .home-entry-actions > .eavesence-pill-button { white-space: normal; min-height: 44px; padding: 4px 8px; }
+}

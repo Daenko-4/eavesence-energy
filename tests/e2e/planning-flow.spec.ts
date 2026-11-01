@@ -36,7 +36,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     const styles=await page.locator('[data-home-section-navigation] > button, .pro-question-navigation > button').evaluateAll(buttons=>buttons.map(button=>{const style=getComputedStyle(button);return [style.fontSize,style.fontWeight,style.minHeight,style.borderRadius];}));
     for(const style of styles){expect(['12px','13px']).toContain(style[0]);expect(Number(style[2].replace('px',''))).toBeGreaterThanOrEqual(44);}
     const moneyHeading=page.locator('[data-plan-money-heading]');
-    await expect(moneyHeading).toHaveText(t('Bis zum Gehalt','Until payday'));
+    await expect(moneyHeading).toHaveText(t('Bis zum nächsten Gehalt','Until next payday'));
     await expect(page.locator('[data-pro-overview]')).toContainText(t('Aus deiner Monatsübersicht übernommen', 'Already included from My Home'));
     await expect(page.locator('[data-pro-overview]')).toContainText(t('2.400,00', '2,400.00'));
     await expect(page.locator('[data-pro-overview]')).toContainText(t('90,00', '90.00'));
@@ -68,7 +68,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
 
     await savingsTool(page, 'change');
     await expect(primaryChoices.getByRole('button',{name:t('Realistisch sparen','Find realistic savings')})).toHaveAttribute('aria-pressed','true');
-    await expect(primaryChoices.getByRole('button',{name:t('Bis zum Gehalt','Until payday')})).toHaveAttribute('aria-pressed','false');
+    await expect(primaryChoices.getByRole('button',{name:t('Bis zum nächsten Gehalt','Until next payday')})).toHaveAttribute('aria-pressed','false');
     await expect(page.locator('[data-planning-navigation="tool"]')).toBeHidden();
     const coach = page.getByRole('region', { name: /02 ·/ });
     await coach.getByLabel(t('Kostenänderung testen · Kosten auswählen', 'Test a cost change · choose a cost')).selectOption('internet');

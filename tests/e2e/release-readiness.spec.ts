@@ -26,7 +26,7 @@ for(const de of [false,true])for(const width of [390,1365])test(`free overview t
  await coach.getByLabel(de?'Kostenänderung testen · Kosten auswählen':'Test a cost change · choose a cost').selectOption('stream');
  await coach.getByLabel(de?'Neuer Betrag je Zahlung (0 = fällt weg)':'New amount per payment (0 = ends)').fill('0');
  await coach.getByRole('button',{name:de?'Änderung vormerken':'Save this plan',exact:true}).click();
- await expect(coach).toContainText(de?'Vorgemerktes Sparpotenzial':'Planned savings potential');
+ await expect(coach).toContainText(de?'Geplante Ersparnis':'Planned savings');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!).find((c:{id:string})=>c.id==='stream').amount)).toBe(18);
  await coach.getByRole('button',{name:de?'Erreichte Ersparnis ansehen':'View achieved savings',exact:true}).click();
  const progress=page.getByRole('region',{name:de?'03 · Was habe ich tatsächlich eingespart?':'03 · What have I actually saved?'});

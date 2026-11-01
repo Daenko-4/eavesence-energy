@@ -81,7 +81,7 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
 }
 
 export async function planningPeriod(page: Page, period: 'payday' | 'forecast' | 'budget') {
-  const question = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ }).getByRole('button', { name: /Until payday|Bis zum Gehalt/ });
+  const question = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ }).getByRole('button', { name: /Until next payday|Bis zum nächsten Gehalt/ });
   if (await question.getAttribute('aria-pressed') !== 'true') await question.click();
   await page.locator('[data-planning-options="period"] > summary').click();
   await page.locator(`[data-planning-navigation=period] [data-planning-choice=${period}]`).click();

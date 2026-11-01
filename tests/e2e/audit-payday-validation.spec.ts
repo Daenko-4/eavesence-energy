@@ -11,7 +11,7 @@ for(const locale of ['de','en']) test(`payday errors identify and focus the fiel
   await openPayday(page);
   const balance=panel.getByLabel(t('Aktueller Kontostand','Current account balance'),{exact:true});
   const payday=panel.getByLabel(t('Nächstes Gehalt am','Next payday'),{exact:true});
-  const everyday=panel.getByLabel(t('Alltagsausgaben bis zum Gehalt','Everyday spending until payday'),{exact:true});
+  const everyday=panel.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt','Everyday spending until next payday'),{exact:true});
   const save=panel.locator('[data-payday-form] button[type=submit]');
   await save.click();await expect(balance).toBeFocused();await expect(balance).toHaveAttribute('aria-invalid','true');
   await balance.fill('1000');await save.click();await save.click();await expect(payday).toBeFocused();
@@ -22,7 +22,7 @@ for(const locale of ['de','en']) test(`payday errors identify and focus the fiel
   await payday.fill('2026-10-25');await save.click();await save.click();await expect(everyday).toBeFocused();
   await everyday.fill('200');
   await panel.locator('summary').filter({hasText:/Geld als Reserve|Keep some money/}).click();
-  const reserve=panel.getByLabel(t('Reserve, die übrig bleiben soll (optional)','Money to keep in reserve (optional)'),{exact:true});
+  const reserve=panel.getByLabel(t('Geld, das du nicht ausgeben möchtest (optional)','Money to keep in reserve (optional)'),{exact:true});
   await reserve.fill('-1');await save.click();await expect(reserve).toBeFocused();await expect(reserve).toHaveAttribute('aria-invalid','true');
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning?.cash)).toBeUndefined();
   await page.screenshot({path:info.outputPath(`payday-field-validation-${locale}.png`)});

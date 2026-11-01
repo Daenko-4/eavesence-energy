@@ -26,24 +26,24 @@ const money = (amount, locale = "en") => new Intl.NumberFormat(locale === "de" ?
 function render({ costs = [cost()], income = 2500, locale = "en", upcomingOpen = false, incomeIsAverage = false, incomeProvided } = {}) {
   const noop = () => {};
   return renderToStaticMarkup(React.createElement(HomeCoreOverview, {
-    costs, income, incomeIsAverage, incomeProvided, locale, currency: "EUR", upcomingOpen,
+    profile:{incomeAmount:incomeIsAverage?income*12:income,incomeFrequency:incomeIsAverage?"yearly":"monthly"},month:"2026-11",costs, income, incomeIsAverage, incomeProvided, locale, currency: "EUR", upcomingOpen,
     forecast: forecastHouseholdCosts(costs, new Date("2026-10-03T00:00:00Z")),
     onUpcoming: noop, onIncome: noop, onCost: noop, onCosts: noop, onReview: noop,
   }));
 }
-test("native overview separates annual monthly average from dated payment and remainder", () => {
+test("native overview uses selected-month bills instead of smoothing annual payments", () => {
   const html = render({ upcomingOpen: true });
-  assert.ok(html.includes(money(50)));
-  assert.ok(html.includes(money(2450)));
+  assert.ok(html.includes("Income in November"));
+  assert.ok(html.includes(money(1900)));
   assert.ok(html.includes(money(600)));
-  assert.ok(html.includes("not your account balance or a savings amount"));
+  assert.ok(html.includes("Groceries, leisure and other unrecorded spending"));
   assert.ok(html.includes("Edit Insurance"));
 });
-test("undated costs remain in monthly figures with an explicit forecast gap in both languages", () => {
+test("undated yearly costs leave the selected-month result incomplete in both languages", () => {
   for (const locale of ["de", "en"]) {
     const html = render({ locale, costs: [cost({ nextDueDate: "" })], upcomingOpen: true });
-    assert.ok(html.includes(money(2450, locale)));
-    assert.ok(html.includes(locale === "de" ? "Der Monatsdurchschnitt oben berücksichtigt sie trotzdem." : "The monthly average above still includes them."));
+    assert.ok(!html.includes(money(2450, locale)));
+    assert.ok(html.includes(locale === "de" ? "Monatliche Kosten zählen auch ohne Termin im Monatsergebnis." : "Monthly costs count in the monthly result even without a date."));
     assert.ok(html.includes(locale === "de" ? "Keine terminierten Zahlungen" : "No scheduled payments"));
   }
 });
@@ -54,27 +54,27 @@ test("missing inputs give one next step and never treat the whole salary as avai
   const second = render({ costs: [] });
   assert.ok(second.includes("2 · Add your first cost"));
   assert.ok(!second.includes("1 · Add your income"));
-  assert.match(second, /Left after fixed costs<\/span><span>—<\/span>/);
+  assert.match(second, /Expected amount left after fixed costs<\/span><span>—<\/span>/);
   assert.ok(!second.includes("Payments next month"));
 });
 test("fixed costs exceeding income trigger an accessible warning before everyday spending", () => {
   const html = render({ income: 40 });
   assert.ok(html.includes('role="alert"'));
-  assert.ok(html.includes(money(-10)));
-  assert.ok(html.includes("before everyday spending"));
+  assert.ok(html.includes(money(560)));
+  assert.ok(html.includes("Other spending is not included yet"));
 });
 
-test("native legacy annual income labels income and remainder as averages", () => {
+test("native legacy annual income explicitly explains the monthly average", () => {
   const html = render({ incomeIsAverage: true });
-  assert.ok(html.includes("Net income · monthly average"));
-  assert.ok(html.includes("Left after fixed costs · average"));
+  assert.ok(html.includes("Your annual net income is used as a monthly average"));
+  assert.ok(html.includes("Expected amount left after fixed costs"));
 });
 
 test("recorded zero income shows the cost gap without repeating setup in either language", () => {
   for (const locale of ["de", "en"]) {
     const html = render({income:0,incomeProvided:true,locale});
     assert.ok(html.includes(money(0,locale)));
-    assert.ok(html.includes(money(-50,locale)));
+    assert.ok(html.includes(money(600,locale)));
     assert.ok(html.includes('role="alert"'));
     assert.ok(!html.includes(locale === "de" ? "1 · Einkommen eintragen" : "1 · Add your income"));
     assert.ok(render({income:0,incomeProvided:false,locale}).includes(locale === "de" ? "1 · Einkommen eintragen" : "1 · Add your income"));

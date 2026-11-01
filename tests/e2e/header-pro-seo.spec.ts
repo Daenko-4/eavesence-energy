@@ -66,11 +66,11 @@ for (const de of [false, true]) for (const width of [320, 1024, 1365]) test(`min
   await expect(panel.getByRole('alert')).toContainText(t('Alltagsbudget', 'everyday budget'));
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning?.cash)).toBeUndefined();
   await panel.getByRole('button', { name: t('Vorschlag übernehmen', 'Use suggestion'), exact: true }).click();
-  await expect(panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true })).toHaveValue(t('229,98', '229.98'));
+  await expect(panel.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt', 'Everyday spending until next payday'), { exact: true })).toHaveValue(t('229,98', '229.98'));
   await expect(panel.getByRole('alert')).toHaveCount(0);
-  await paydayStep(page,2);await panel.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true }).fill('200');
+  await paydayStep(page,2);await panel.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt', 'Everyday spending until next payday'), { exact: true }).fill('200');
   await paydayStep(page,2);await panel.getByText(t('Geld als Reserve behalten (optional)', 'Keep some money in reserve (optional)'), { exact: true }).click();
-  await paydayStep(page,2);await panel.getByLabel(t('Reserve, die übrig bleiben soll (optional)', 'Money to keep in reserve (optional)'), { exact: true }).fill('100');
+  await paydayStep(page,2);await panel.getByLabel(t('Geld, das du nicht ausgeben möchtest (optional)', 'Money to keep in reserve (optional)'), { exact: true }).fill('100');
   const screenshotStyle = await page.addStyleTag({ content: "header{position:static!important}" });
   await panel.screenshot({ path: info.outputPath(`payday-three-steps-${de ? 'de' : 'en'}-${width}.png`) });
   await paydayStep(page,2);await panel.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();

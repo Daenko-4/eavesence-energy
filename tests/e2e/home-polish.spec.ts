@@ -85,7 +85,7 @@ for (const width of [1365, 390]) {
       const tiles = areaBar.locator('[data-home-tiles]');
       await openCostOrganization(page);await expect(tiles).toBeVisible();
       await expect(areaBar.locator('nav, details')).toHaveCount(0);
-      await expect(tiles.getByRole('button', { name: de ? /Neue Kachel/ : /New tile/ })).toBeVisible();
+      await expect(tiles.getByRole('button', { name: de ? /Neuen Kostenbereich anlegen/ : /Add a cost area/ })).toBeVisible();
       const manager = (await page.locator('[data-cost-manager]').boundingBox())!;
       const grid = (await tiles.boundingBox())!;
       expect(grid.x - manager.x).toBeGreaterThanOrEqual(16);

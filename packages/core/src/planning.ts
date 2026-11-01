@@ -57,7 +57,8 @@ export function goalProgress(goal: NamedGoal, startMonth: string) {
   return { remaining, monthly: Math.ceil(remaining / months * 100) / 100, percent: Math.min(100, goal.saved / goal.target * 100), overdue: goal.targetMonth < startMonth && remaining > 0 };
 }
 export function planningFingerprint(input: SavingsPlanInput) {
-  const base = [input.incomeMonthly,input.variableMonthly,input.bufferMonthly,input.goalMonthly,[...input.costs].sort((a,b)=>a.id.localeCompare(b.id)).map(c=>[c.id,c.amount,c.frequency,c.nextDueDate,c.cancellationDeadline])];
+  const base: unknown[] = [input.incomeMonthly,input.variableMonthly,input.bufferMonthly,input.goalMonthly,[...input.costs].sort((a,b)=>a.id.localeCompare(b.id)).map(c=>[c.id,c.amount,c.frequency,c.nextDueDate,c.cancellationDeadline])];
+  if(input.additionalIncome?.length)base.push([...input.additionalIncome].sort((a,b)=>a.id.localeCompare(b.id)).map(e=>[e.id,e.name,e.amount,e.date,e.status]));
   return JSON.stringify(input.incomeExtras?.length ? [...base,[...input.incomeExtras].sort((a,b)=>a.id.localeCompare(b.id)).map(e=>[e.id,e.kind,e.amount,e.month,e.year])] : base);
 }
 export function billReservePlan(input: SavingsPlanInput, data: PlanningData) {

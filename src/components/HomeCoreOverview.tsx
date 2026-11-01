@@ -27,18 +27,18 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
   const hasIncome = incomeProvided ?? income > 0;
   const deficit = hasIncome && fixed > income;
   const cards = [
-    { label: incomeIsAverage ? de ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : de ? "Reguläres Monatsnetto" : "Regular monthly net income", value: hasIncome ? money(income) : "—" },
+    { label: incomeIsAverage ? de ? "Nettoeinkommen · Monatsdurchschnitt" : "Net income · monthly average" : de ? "Monatliches Nettoeinkommen" : "Monthly net income", value: hasIncome ? money(income) : "—" },
     { label: de ? "Fixkosten pro Monat" : "Recurring costs / month", value: `${hasVariableCosts?(de?"ca. ":"approx. "):""}${money(fixed)}` },
-    { label: incomeIsAverage ? de ? "Rest nach Fixkosten · Durchschnitt" : "Left after fixed costs · average" : de ? "Rest nach Fixkosten" : "Left after fixed costs", value: hasIncome && count > 0 ? `${hasVariableCosts?(de?"ca. ":"approx. "):""}${money(income-fixed)}` : "—", emphasis: true },
+    { label: incomeIsAverage ? de ? "Voraussichtlich übrig · Monatsdurchschnitt" : "Expected amount left · monthly average" : de ? "Voraussichtlich übrig nach Fixkosten" : "Expected amount left after fixed costs", value: hasIncome && count > 0 ? `${hasVariableCosts?(de?"ca. ":"approx. "):""}${money(income-fixed)}` : "—", emphasis: true },
   ];
   const monthDate = new Date(`${outlook.month}-01T00:00:00Z`);
   const monthLabel = new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", {month:"long",year:"numeric",timeZone:"UTC"}).format(monthDate);
   const monthName = new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", {month:"long",timeZone:"UTC"}).format(monthDate);
   const estimate = outlook.estimated ? de ? "ca. " : "approx. " : "";
   const forecastCards = [
-    {label: de ? `Netto im ${monthName}` : `Net income · ${monthName}`, value:outlook.income === null ? "—" : `${outlook.incomeIsAverage ? estimate : ""}${money(outlook.income)}`, note:outlook.income !== null && outlook.extraIncome > 0 ? de ? `Regulär ${money(outlook.regularIncome)} + Sonderzahlungen ${money(outlook.extraIncome)}` : `Regular ${money(outlook.regularIncome)} + extra income ${money(outlook.extraIncome)}` : outlook.income !== null && outlook.incomeIsAverage ? de ? "Monatsdurchschnitt aus deinem Jahresnetto" : "Monthly average from your annual net income" : undefined},
-    {label: outlook.missing.length ? de ? `Bekannte Kosten im ${monthName}` : `Known costs in ${monthName}` : de ? `Fällige Kosten im ${monthName}` : `Costs due in ${monthName}`, value:`${outlook.payments.some(payment => payment.estimated) ? de ? "ca. " : "approx. " : ""}${money(outlook.total)}`},
-    {label: de ? "Rest nach Fixkosten" : "Left after fixed costs", value:outlook.remaining === null ? "—" : `${estimate}${money(outlook.remaining)}`, emphasis:true, note:outlook.remaining === null ? de ? "Angaben für diesen Monat fehlen noch" : "Entries for this month are still missing" : undefined},
+    {label: de ? `Einnahmen im ${monthName}` : `Income in ${monthName}`, value:outlook.income === null ? "—" : `${outlook.incomeIsAverage ? estimate : ""}${money(outlook.income)}`, note:outlook.income !== null && outlook.extraIncome > 0 ? de ? `Reguläres Nettoeinkommen ${money(outlook.regularIncome)} + zusätzliche Einnahmen ${money(outlook.extraIncome)}` : `Regular net income ${money(outlook.regularIncome)} + additional income ${money(outlook.extraIncome)}` : outlook.income !== null && outlook.incomeIsAverage ? de ? "Monatsdurchschnitt aus deinem Jahresnetto" : "Monthly average from your annual net income" : undefined},
+    {label: outlook.missing.length ? de ? `Bisher erfasste Fixkosten im ${monthName}` : `Recorded fixed costs in ${monthName}` : de ? `Fixkosten im ${monthName}` : `Fixed costs in ${monthName}`, value:`${outlook.payments.some(payment => payment.estimated) ? de ? "ca. " : "approx. " : ""}${money(outlook.total)}`},
+    {label: de ? "Voraussichtlich übrig nach Fixkosten" : "Expected amount left after fixed costs", value:outlook.remaining === null ? "—" : `${estimate}${money(outlook.remaining)}`, emphasis:true, note:outlook.remaining === null ? de ? "Angaben für diesen Monat fehlen noch" : "Entries for this month are still missing" : undefined},
   ];
   return <section aria-label={de ? "Finanzen im Überblick" : "Your household at a glance"}>
     {(needsIncome || !count) && <div data-home-setup className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
@@ -55,18 +55,19 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
       <aside className="home-month-summary" aria-label={de ? "Dein Monatsüberblick" : "Your month at a glance"}>
         <div className="home-month-kpis finance-result-surface" data-home-monthly-budget>
           {forecastCards.map((card,index)=><article key={index} role={index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "status" : undefined} data-home-shortfall={index === 2 && outlook.remaining !== null && outlook.remaining < 0} data-home-kpi={index === 0 ? "income" : index === 1 ? "costs" : "remaining"} data-home-month-result={index === 2 ? "" : undefined} className={index === 2 ? "home-month-kpi home-month-kpi-result" : "home-month-kpi"}>
-            <p className="home-month-kpi-label">{index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? de ? "Nach Fixkosten fehlen" : "Shortfall after fixed costs" : card.label}</p>
+            <p className="home-month-kpi-label">{index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? de ? "Voraussichtlich fehlen nach Fixkosten" : "Expected shortfall after fixed costs" : card.label}</p>
             <p className={`home-month-kpi-amount ${index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "text-[#ffd28c]" : ""}`} data-home-remaining={index === 2 ? "" : undefined}>{index === 2 && outlook.remaining !== null ? `${estimate}${money(Math.abs(outlook.remaining))}` : card.value}</p>
             {card.note && <p className="home-month-kpi-note">{card.note}</p>}
           </article>)}
         </div>
+        {!needsIncome && <button type="button" className="centre-text-action home-regular-income-action" onClick={onIncome} aria-expanded={incomeOpen}>{hasIncome ? de ? "Reguläres Einkommen ändern" : "Edit regular income" : de ? "Einkommen eintragen" : "Add income"}</button>}
         {forecastCards[0].note && <p className="home-month-income-note">{forecastCards[0].note}</p>}
-        <p className="home-month-context">{de ? "Für Alltag & Freizeit, nach erfassten Fixkosten. Kein Kontostand." : "For everyday spending, after recorded fixed costs. Not your account balance."}</p>
+        <p className="home-month-context">{outlook.remaining !== null && outlook.remaining < 0 ? de ? "Deine erfassten Fixkosten sind höher als deine Einnahmen. Weitere Ausgaben sind noch nicht enthalten." : "Your recorded fixed costs exceed your income. Other spending is not included yet." : de ? "Davon bezahlst du noch Lebensmittel, Freizeit und andere nicht erfasste Ausgaben." : "Groceries, leisure and other spending you have not recorded still come out of this amount."}</p>
       </aside>
       <div className="home-month-payments">{payments}</div>
       {contextActive && <aside className="home-month-tools" aria-label={de ? "Aktionen & Hinweise" : "Actions & information"}>
-        {incomeOpen || costForm ? <section className="home-month-tool-card finance-dark-panel centre-editor" data-home-context-editor aria-label={incomeOpen ? de ? "Einkommen bearbeiten" : "Edit income" : de ? "Kosten bearbeiten" : "Edit cost"}>
-          <div className="centre-editor-heading"><h3 className="site-card-title">{incomeOpen ? de ? "Einkommen ändern" : "Edit income" : costEditorTitle ?? (de ? "Kosten bearbeiten" : "Edit cost")}</h3><button type="button" className="centre-close-action" onClick={onCloseContext} aria-label={de ? "Bearbeitung schließen" : "Close editor"}>×</button></div>
+        {incomeOpen || costForm ? <section className="home-month-tool-card finance-dark-panel centre-editor" data-home-context-editor aria-label={incomeOpen ? de ? "Einkommen bearbeiten" : "Edit regular income" : de ? "Kosten bearbeiten" : "Edit cost"}>
+          <div className="centre-editor-heading"><h3 className="site-card-title">{incomeOpen ? de ? "Reguläres Einkommen ändern" : "Edit regular income" : costEditorTitle ?? (de ? "Kosten bearbeiten" : "Edit cost")}</h3><button type="button" className="centre-close-action" onClick={onCloseContext} aria-label={de ? "Bearbeitung schließen" : "Close editor"}>×</button></div>
           {incomeOpen ? incomeForm : costForm}
         </section> : context}
       </aside>}
@@ -81,7 +82,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
         </section>
     </section>}
     {!count && incomeOpen && incomeForm}
-    {!count && hasIncome && <div data-home-monthly-budget className="mt-4"><FinanceCards cards={cards} deficit={deficit} /></div>}
+    {!count && hasIncome && <div data-home-monthly-budget className="mt-4"><FinanceCards cards={cards} deficit={deficit} /><button type="button" onClick={onIncome} className="centre-text-action mt-2">{de ? "Reguläres Einkommen ändern" : "Edit regular income"}</button></div>}
     {needsReview && !needsIncome && count > 0 && <div data-home-review className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
       <h3 className="site-card-title">{de ? "3 · Deinen Überblick prüfen" : "3 · Check your overview"}</h3>
       <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{de ? "Sind Miete, Energie, Versicherungen und Abos schon enthalten? Ergänze zuerst deine größten regelmäßigen Kosten. Du musst nicht alles heute erfassen." : "Have you included rent, energy, insurance and subscriptions? Add your largest recurring costs first. You do not have to enter everything today."}</p>

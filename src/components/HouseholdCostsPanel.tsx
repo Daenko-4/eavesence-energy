@@ -428,7 +428,7 @@ export default function HouseholdCostsPanel({
             <label className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b]">
               {text.due}
               <input type="date" value={nextDueDate} onChange={(event) => setNextDueDate(event.target.value)} className={fieldClass} />
-            </label>            <p className="text-[13px] font-normal leading-5">{locale === "de" ? "Für den Plan bis zum Gehalt ist ein Zahlungstermin nötig. Du kannst ihn später ergänzen." : "A payment date is needed for your plan until payday. You can add it later."}</p>
+            </label>            <p className="text-[13px] font-normal leading-5">{locale === "de" ? "Für den Plan bis zum nächsten Gehalt ist ein Zahlungstermin nötig. Du kannst ihn später ergänzen." : "A payment date is needed for your plan until next payday. You can add it later."}</p>
           </div>
           <details open={Boolean(editingId)} className="home-disclosure mt-3 text-[13px]"><summary className="cursor-pointer font-semibold">{locale === "de" ? "Weitere Angaben: Kategorie und Kündigung" : "More details: category and cancellation"}</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b]">
@@ -525,7 +525,7 @@ export default function HouseholdCostsPanel({
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-bold">{cost.name}</p>
                       <p className="mt-0.5 text-[13px] text-[#65716d]">
-                        {text.categories[cost.category]} · {text.frequencies[cost.frequency]}{cost.variableAmount?` · ${locale==='de'?'Planbetrag':'Planning amount'}`:''}
+                        {text.categories[cost.category]} · {text.frequencies[cost.frequency]}{cost.variableAmount?` · ${locale==='de'?'Geplanter Betrag je Rechnung':'Planned amount per invoice'}`:''}
                         {cost.nextDueDate ? ` · ${localDate(cost.nextDueDate, locale)}` : ""}
                       </p>
                     </div>

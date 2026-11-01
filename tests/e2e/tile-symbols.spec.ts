@@ -19,8 +19,8 @@ for(const de of [false,true])for(const width of [320,1365])test(`cost area icons
     await openCostOrganization(page);await expect(page.locator('[data-home-tiles]')).toBeVisible();
   }
   await areas();
-  await page.getByRole('button',{name:de?'Neue Kachel':'New tile',exact:false}).click();
-  await page.getByLabel(de?'Name der Kachel':'Tile name',{exact:true}).fill('Travel');
+  await page.getByRole('button',{name:de?'Neuen Kostenbereich anlegen':'Add a cost area',exact:false}).click();
+  await page.getByLabel(de?'Name des Kostenbereichs':'Cost area name',{exact:true}).fill('Travel');
   const form=page.locator('#home-tile-form');
   await expect(form.getByRole('group')).toHaveCount(0);
   await form.getByRole('button',{name:de?'Symbol: Ohne Symbol':'Icon: No icon',exact:true}).click();
@@ -38,7 +38,7 @@ for(const de of [false,true])for(const width of [320,1365])test(`cost area icons
   await page.screenshot({path:info.outputPath(`tile-symbol-picker-${de?'de':'en'}-${width}.png`)});
   await picker.getByRole('button',{name:de?'Mobilität':'Transport',exact:true}).click();
   await expect(form.getByRole('button',{name:de?'Symbol: Mobilität':'Icon: Transport',exact:true})).toBeFocused();
-  await form.getByRole('button',{name:de?'Kachel anlegen':'Create tile',exact:true}).click();
+  await form.getByRole('button',{name:de?'Kostenbereich anlegen':'Create cost area',exact:true}).click();
   const tile=page.locator('[data-home-tiles] article').filter({hasText:'Travel'});
   await expect(tile.locator('[data-tile-icon="mobility"]')).toBeVisible();
   await page.reload();await areas();

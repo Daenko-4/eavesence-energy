@@ -79,7 +79,7 @@ export default function SavingsCoach({
       {mode === "all" && <p className="mt-1 text-[13px] text-[#52605b]">{t("Starte mit dem Vorschlag oder wähle einen anderen Kostenposten.", "Start with the suggestion or choose another cost.")}</p>}
       {mode !== "progress" && p.planned.length > 0 && <div className="mt-3 rounded-xl border border-[#bfd3c5] bg-[#f4f6f2] p-4 text-[13px]" data-pro-next-step>
         <p className="font-semibold">{t("Dein nächster Schritt", "Your next step")}: {t("Vorhaben umsetzen", "Put your plan into action")}</p>
-        <p className="mt-1">{p.planned[0].name}{p.planned.length > 1 ? ` + ${p.planned.length - 1}` : ""}{p.plannedMonthly > 0 ? ` · ${t("Vorgemerktes Sparpotenzial", "Planned savings potential")}: ${money(p.plannedMonthly)} ${t("pro Monat im Durchschnitt", "per month on average")}` : ""}</p>
+        <p className="mt-1">{p.planned[0].name}{p.planned.length > 1 ? ` + ${p.planned.length - 1}` : ""}{p.plannedMonthly > 0 ? ` · ${t("Geplante Ersparnis", "Planned savings")}: ${money(p.plannedMonthly)} ${t("pro Monat im Durchschnitt", "per month on average")}` : ""}</p>
         <p className="mt-1 text-[#52605b]">{t("Erst Tarif ändern oder kündigen. Bestätige danach die Umsetzung – vorher zählt nichts als eingespart.", "Change the plan or cancel the cost first. Then confirm it happened — nothing counts as saved beforehand.")}</p>
         <button type="button" className={`${button} mt-3`} onClick={reviewPlans}>{t("Vorgemerkte Änderung prüfen", "Review planned change")}</button>
       </div>}
@@ -97,15 +97,15 @@ export default function SavingsCoach({
         <div className="finance-result-surface planning-task-card planning-savings-result" data-planning-tone={shownActions.some(action => action.status === "confirmed" && !p.outdated.includes(action)) ? "result" : "setup"}>
           <p className="planning-card-label">
             {t(
-              "Bis heute eingespart",
-              "Saved so far",
+              "Bisher berechnete Ersparnis",
+              "Calculated savings so far",
             )}
           </p>
           <p className="planning-card-amount">{money(p.totals.scheduled)}</p>
           <p className="planning-card-description">
             {t(
-              "Aus bestätigten Änderungen mit erreichten Zahlungsterminen berechnet. Kein Bankabgleich.",
-              "Calculated from confirmed changes with payment dates already reached. No bank verification.",
+              "Berechnet aus deinen bestätigten Kostensenkungen für bereits fällige Zahlungen. Die Beträge werden nicht mit deinem Bankkonto abgeglichen.",
+              "Calculated from your confirmed cost reductions for payments already due. These amounts are not checked against your bank account.",
             )}
           </p>
         </div>
@@ -115,19 +115,19 @@ export default function SavingsCoach({
       {mode !== "progress" && !p.tasks.length && !actions.length && (
         <p className="mt-3 text-[13px]">
           {t(
-            "Noch keine passende Aufgabe. Ergänze Abos, Energie- oder Versicherungskosten; wir zeigen keine erfundenen Einsparungen.",
-            "No matching task yet. Add subscriptions, energy or insurance costs; we do not invent savings.",
+            "Erfasse ein Abo, einen Stromtarif oder eine Versicherung, um Sparmöglichkeiten zu prüfen.",
+            "Add a subscription, electricity tariff or insurance cost to review savings opportunities.",
           )}
         </p>
       )}
       <div className={mode === "opportunities" ? "finance-workspace planning-task-card savings-review-layout" : undefined} data-has-selection={!!p.selected}>
       {mode === "opportunities" && <aside className="centre-savings-summary finance-result-surface">
         <div className="centre-result-card" data-savings-centre-result>
-          <p>{t("Geplantes Plus pro Monat", "Planned extra per month")}</p>
+          <p>{t("Geplante monatliche Ersparnis", "Planned monthly savings")}</p>
           <strong>{p.preview ? money(p.preview.totalDifference / 12) : p.plannedMonthly > 0 ? money(p.plannedMonthly) : "—"}</strong>
           <p>{t("Monatsdurchschnitt. Geplant, noch nicht eingespart.", "Monthly average. Planned, not saved yet.")}</p>
         </div>
-        <dl className="centre-breakdown"><div><dt>{t("Bestätigt pro Monat", "Confirmed per month")}</dt><dd>{money(p.confirmedMonthly)}</dd></div><div><dt>{t("Bis heute eingespart", "Saved so far")}</dt><dd>{money(p.totals.scheduled)}</dd></div></dl>
+        <dl className="centre-breakdown"><div><dt>{t("Bestätigt pro Monat", "Confirmed per month")}</dt><dd>{money(p.confirmedMonthly)}</dd></div><div><dt>{t("Bisher berechnete Ersparnis", "Calculated savings so far")}</dt><dd>{money(p.totals.scheduled)}</dd></div></dl>
       </aside>}
       <div className={mode === "opportunities" ? "savings-choice finance-dark-panel" : undefined} hidden={mode === "progress"}>
       {mode !== "progress" && p.reviewable.length > 0 && <p className="mt-4 text-[13px] font-semibold">{t("1 · Kostenposten auswählen", "1 · Choose one cost")}</p>}
@@ -186,7 +186,7 @@ export default function SavingsCoach({
             />
           </label>
           <label className="grid gap-1 text-[13px]">
-            {t("Wirksam ab Monat", "Effective from month")}
+            {t("Ab welchem Monat gilt der neue Preis?", "Which month does the new price start?")}
             <input
               type="month"
               min={p.today.slice(0,7)}
@@ -203,7 +203,7 @@ export default function SavingsCoach({
           </p>
           {p.preview && <div className="finance-result-surface rounded-xl border border-[#cddbd0] bg-white p-3 text-[13px] sm:col-span-2" data-pro-payday-impact>
             <p className="font-semibold">{t("Hilft das schon bis zum nächsten Gehalt?", "Will this help before your next payday?")}</p>
-            {p.cashImpact ? <><p className="mt-2">{t("Zusätzlich verfügbar", "Extra money available")}: {money(p.cashImpact.before)} → <strong>{money(p.cashImpact.after)}</strong></p><p className="mt-1 text-[#52605b]">{p.cashImpact.saving > 0 ? t(`Wenn die Änderung rechtzeitig umgesetzt wird: ${money(p.cashImpact.saving)} mehr bis zum Gehalt.`, `If the change happens in time: ${money(p.cashImpact.saving)} more until payday.`) : t("Bis zu diesem Gehalt ändert sich nichts. Bezahlte und bekannte Rechnungen bleiben gleich; spätere Termine zählen danach.", "No change before this payday. Paid and existing invoices stay the same; later payment dates count afterwards.")}</p></> : <><p className="mt-2 text-[#52605b]">{t("Für diesen Vergleich fehlen aktuelle Angaben unter „Bis zum Gehalt“. Dein Vorhaben kannst du trotzdem speichern.", "This comparison needs current entries under Until payday. You can still save your plan.")}</p></>}
+            {p.cashImpact ? <><p className="mt-2">{t("Zusätzlich verfügbar", "Extra money available")}: {money(p.cashImpact.before)} → <strong>{money(p.cashImpact.after)}</strong></p><p className="mt-1 text-[#52605b]">{p.cashImpact.saving > 0 ? t(`Wenn die Änderung rechtzeitig umgesetzt wird: ${money(p.cashImpact.saving)} mehr bis zum nächsten Gehalt.`, `If the change happens in time: ${money(p.cashImpact.saving)} more until next payday.`) : t("Bis zu diesem Gehalt ändert sich nichts. Bezahlte und bekannte Rechnungen bleiben gleich; spätere Termine zählen danach.", "No change before this payday. Paid and existing invoices stay the same; later payment dates count afterwards.")}</p></> : <><p className="mt-2 text-[#52605b]">{t("Für diesen Vergleich fehlen aktuelle Angaben unter „Bis zum nächsten Gehalt“. Dein Vorhaben kannst du trotzdem speichern.", "This comparison needs current entries under Until next payday. You can still save your plan.")}</p></>}
             <p className="mt-2 text-[#52605b]">{t("Vorschau – dein Kontostand und deine Kosten bleiben unverändert.", "Preview — your balance and costs stay unchanged.")}</p>
           </div>}
           {p.preview && <p role="status" className="text-[12px] text-[#52605b] sm:col-span-2" data-savings-impact>{money(p.preview.totalDifference)} {t("in den nächsten 12 Planungsmonaten. Geplant, noch nicht eingespart.", "over the next 12 planning months. Planned, not saved yet.")}</p>}
@@ -310,7 +310,7 @@ export default function SavingsCoach({
         </section>
       )}
       {mode === "progress" && onNavigate && <div className="planning-detail-navigation planning-progress-navigation">
-        <button type="button" onClick={()=>onNavigate("payday")}>{t("Geld bis zum Gehalt neu prüfen", "Review your money until payday")}</button>
+        <button type="button" onClick={()=>onNavigate("payday")}>{t("Geld bis zum nächsten Gehalt neu prüfen", "Review your money until next payday")}</button>
         <button type="button" onClick={()=>onNavigate("savings")}>{t("Eine Sparmöglichkeit prüfen", "Review a savings opportunity")}</button>
       </div>}
       {onNavigate && mode === "opportunities" && <button type="button" className={`${button} mt-3`} onClick={() => onNavigate("progress")}>{t("Erreichte Ersparnis ansehen", "View achieved savings")}</button>}

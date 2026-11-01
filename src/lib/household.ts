@@ -1,5 +1,5 @@
 import { tileIconMetadata } from '@eavesence/core/tileSymbols';
-import { readIncomeExtras, type IncomeExtra } from "@eavesence/core/income";
+import { readAdditionalIncome, readIncomeExtras, type AdditionalIncome, type IncomeExtra } from "@eavesence/core/income";
 import { readPlanningBackup, readPlanningData, type PlanningData } from "@eavesence/core/planning";
 import type { SavedDevice, SavedDeviceCurrency } from "./savedDevices";
 import type { HouseholdCost } from "./householdCosts";
@@ -33,6 +33,7 @@ export type HouseholdProfile = {
   incomeAmount?: number;
   incomeFrequency?: "monthly" | "yearly";
   incomeExtras?: IncomeExtra[];
+  additionalIncome?: AdditionalIncome[];
   variableMonthly?: number | null;
   bufferMonthly?: number;
   goalMonthly?: number;
@@ -294,7 +295,7 @@ export function readHouseholdProfile(value: string | null) {
     ) {
       return null;
     }
-    if (readIncomeExtras(candidate.incomeExtras) === null) return null;
+    if (readIncomeExtras(candidate.incomeExtras) === null || readAdditionalIncome(candidate.additionalIncome) === null) return null;
     if (candidate.variableMonthly !== undefined && candidate.variableMonthly !== null &&
       (typeof candidate.variableMonthly !== "number" || !Number.isFinite(candidate.variableMonthly) || candidate.variableMonthly < 0)) return null;
     if (candidate.planning !== undefined) candidate.planning = readPlanningData(candidate.planning);

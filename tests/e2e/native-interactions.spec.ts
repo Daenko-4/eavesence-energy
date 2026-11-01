@@ -17,7 +17,7 @@ for(const locale of ['de','en']){
   await page.getByRole('button',{name:locale==='de'?'Verfügbares Geld berechnen':'Calculate available money',exact:true}).click();
   await page.getByRole('textbox',{name:locale==='de'?'Aktueller Kontostand':'Current account balance',exact:true}).fill('1000');
   await page.getByRole('button',{name:locale==='de'?'In 14 Tagen':'In 14 days',exact:true}).click();
-  const everyday=page.getByRole('textbox',{name:locale==='de'?'Alltagsausgaben bis zum Gehalt':'Everyday spending until payday',exact:true});
+  const everyday=page.getByRole('textbox',{name:locale==='de'?'Alltagsausgaben bis zum nächsten Gehalt':'Everyday spending until next payday',exact:true});
   await expect(everyday).toHaveAttribute('data-keyboard','decimal-pad');
   await everyday.fill('');
   const save=page.getByRole('button',{name:locale==='de'?'Verfügbares Geld anzeigen':'Show available money',exact:true});

@@ -9,7 +9,7 @@ import type {HouseholdCost} from '@eavesence/core/householdCosts';
 import type {PlanningData} from '@eavesence/core/planning';
 type Props={open:boolean;onToggle:()=>void;costs:HouseholdCost[];data?:PlanningData;onSave:(data:PlanningData)=>void|Promise<void>;locale:'de'|'en';currency:string;onEdit:(cost:HouseholdCost)=>void;onAdd:()=>void;onPlan?:()=>void};
 export function MonthlyPayments({open,onToggle,costs,data,onSave,locale,currency,onEdit,onAdd,onPlan}:Props){
- const [reviewOpen,setReviewOpen]=useState(false);
+
  const [paidOpen,setPaidOpen]=useState(false),de=locale==='de',t=(a:string,b:string)=>de?a:b;
  const c=usePaymentChecklist(costs,data,onSave,de),paid=c.payments.filter(p=>c.isPaid(p));
  const money=(n:number)=>new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency}).format(n);
@@ -39,18 +39,23 @@ export function MonthlyPayments({open,onToggle,costs,data,onSave,locale,currency
 
   {c.missing.length>0&&<View style={s.missing}><Text style={s.note}>{t('Diese Kosten brauchen einen Termin. Sie fehlen im offenen Betrag.','These costs need a date. They are excluded from the unpaid amount.')}</Text>{c.missing.map(cost=><Pressable accessibilityRole="button" key={cost.id} onPress={()=>onEdit(cost)} style={s.today}><Text style={s.link}>{cost.name} · {t('Termin ergänzen','Add date')}</Text></Pressable>)}</View>}
   {c.payments.some(p=>!p.date)&&<Text style={s.note}>{t('Monatliche Kosten ohne Termin zählen einmal pro Monat.','Monthly costs without a date count once each month.')}</Text>}
-  <Text style={s.small}>{t('Du markierst Zahlungen selbst. Kein Bankabgleich.','You mark payments yourself. No bank connection.')}</Text>
+  <Text style={s.small}>{t('Hake Zahlungen selbst ab, sobald sie bezahlt sind. eavesence übernimmt keine Zahlungen automatisch von deiner Bank.','Check off payments yourself once paid. eavesence does not fetch payments automatically from your bank.')}</Text>
   {!costs.length&&<Pressable accessibilityRole="button" onPress={onAdd} style={s.today}><Text style={s.link}>{t('Kosten hinzufügen','Add cost')}</Text></Pressable>}
   </>}
   </>}
-  <Pressable accessibilityRole="button" accessibilityLabel={t('Monatsrückblick','Monthly review')} accessibilityState={{expanded:reviewOpen}} onPress={()=>setReviewOpen(!reviewOpen)} style={s.disclosure}><Text style={s.heading}>{t('Monatsrückblick','Monthly review')}{c.closed?` · ${t('abgeschlossen','closed')}`:''}</Text><DisclosureIcon open={reviewOpen}/></Pressable>
-  {reviewOpen&&<View style={s.editor}><Text style={s.note}>{t('Geplant','Planned')}: {money(c.closed?.planned??c.review.planned)}</Text><Text style={s.note}>{t('Tatsächlich bezahlt','Actually paid')}: {money(c.closed?.paid??c.review.paid)}</Text>
-    {(c.closed||c.review.complete)?<Text style={s.heading}>{(()=>{const delta=c.closed?c.closed.planned-c.closed.paid:c.review.difference!;return delta===0?t('Wie geplant.','As planned.'):`${money(Math.abs(delta))} ${delta>0?t('weniger als geplant bezahlt.','less paid than planned.'):t('mehr als geplant bezahlt.','more paid than planned.')}`;})()}</Text>:<Text style={s.small}>{t('Noch unvollständig: Zahlungen abhaken, Rechnungsbeträge und fehlende Termine ergänzen.','Still incomplete: check off payments and add invoice amounts and missing dates.')}{c.review.estimated?` ${c.review.estimated} ${t('Beträge noch geschätzt.','amounts still estimated.')}`:''}</Text>}
-    <Text style={s.small}>{t('Nur erfasste wiederkehrende Zahlungen, keine Alltagsausgaben. Weniger bezahlt ist nicht automatisch eine dauerhafte Ersparnis.','Recorded recurring payments only, excluding everyday spending. Paying less does not automatically mean lasting savings.')}</Text>
+  <Text accessibilityRole="header" style={s.heading}>{t('Monatsrückblick','Monthly review')}{c.closed?` · ${t('abgeschlossen','closed')}`:''}</Text>
+  {<View style={s.editor}><Text style={s.note}>{t('Geplant','Planned')}: {money(c.closed?.planned??c.review.planned)}</Text><Text style={s.note}>{t('Tatsächlich bezahlt','Actually paid')}: {money(c.closed?.paid??c.review.paid)}</Text>
+    {(c.closed||c.review.complete)?<Text style={s.heading}>{(()=>{const delta=c.closed?c.closed.planned-c.closed.paid:c.review.difference!;return delta===0?t('Wie geplant.','As planned.'):`${money(Math.abs(delta))} ${delta>0?t('weniger als geplant bezahlt.','less paid than planned.'):t('mehr als geplant bezahlt.','more paid than planned.')}`;})()}</Text>:<View style={s.editor}>
+     {c.review.estimated>0&&<Text style={s.small}>{c.review.estimated===1?t('Für 1 Zahlung fehlt noch der Rechnungsbetrag. Bis dahin bleibt der Betrag geschätzt.','1 payment still needs its invoice amount. Until then it remains an estimate.'):t(`Für ${c.review.estimated} Zahlungen fehlen noch die Rechnungsbeträge. Bis dahin bleiben die Beträge geschätzt.`,`${c.review.estimated} payments still need invoice amounts. Until then they remain estimates.`)}</Text>}
+     {c.missing.length>0&&<Text style={s.small}>{t('Zahlungstermin ergänzen bei: ','Add payment dates for: ')}{c.missing.map(cost=>cost.name).join(', ')}.</Text>}
+     {c.open.length>0&&<Text style={s.small}>{t(`${c.open.length} ${c.open.length===1?'Zahlung ist':'Zahlungen sind'} noch offen. Bereits bezahlte Zahlungen kannst du abhaken.`,`${c.open.length} ${c.open.length===1?'payment is':'payments are'} still unpaid. Check off payments you have already made.`)}</Text>}
+    </View>}
+    <Text style={s.small}>{t('Der Vergleich umfasst deine erfassten Zahlungen. Lebensmittel, Freizeit und andere nicht erfasste Ausgaben sind nicht enthalten.','This comparison covers your recorded payments. Groceries, leisure and other unrecorded spending are not included.')}</Text>
+    {(c.closed?c.closed.planned-c.closed.paid:c.review.difference??0)>0&&<Text style={s.small}>{t('Eine niedrigere Rechnung in diesem Monat spart erst dann auch künftig Geld, wenn sich die Kosten dauerhaft verringern.','A lower bill this month only saves money in future months if the cost stays lower.')}</Text>}
     {c.closed?<Pressable accessibilityRole="button" disabled={c.busy} onPress={()=>void c.reopenMonth()} style={s.editButton}><Text style={s.link}>{t('Monat wieder öffnen','Reopen month')}</Text></Pressable>:c.month<=c.current&&c.payments.length>0&&<Pressable accessibilityRole="button" disabled={c.busy||!c.review.complete} style={[s.editButton,(!c.review.complete||c.busy)&&{opacity:.5}]} onPress={()=>void c.closeMonth()}><Text style={s.link}>{t('Monat abschließen','Close month')}</Text></Pressable>}
   </View>}
   {c.error&&<Text accessibilityRole="alert" style={s.error}>{c.error}</Text>}
-  {onPlan&&<Pressable accessibilityRole="button" onPress={onPlan} style={s.plan}><Text style={s.name}>{t('Bis zum Gehalt planen','Plan until payday')}</Text><Text style={s.badge}>Pro</Text><Text style={s.chevron}>›</Text></Pressable>}
+  {onPlan&&<Pressable accessibilityRole="button" onPress={onPlan} style={s.plan}><Text style={s.name}>{t('Bis zum nächsten Gehalt planen','Plan until next payday')}</Text><Text style={s.badge}>Pro</Text><Text style={s.chevron}>›</Text></Pressable>}
  </View>;
 }
 const s=StyleSheet.create({

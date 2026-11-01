@@ -1,4 +1,4 @@
-import { readIncomeExtras } from "@eavesence/core/income";
+import { readAdditionalIncome, readIncomeExtras } from "@eavesence/core/income";
 import { readPlanningBackup } from "@eavesence/core/planning";
 import { readHouseholdCosts, type HouseholdCost } from "@eavesence/core/householdCosts";
 import { readSavingsActions } from "@eavesence/core/savingsPlan";
@@ -54,6 +54,7 @@ export function readMobileBackup(json: string): MobileBackup | null {
       (profile.incomeAmount !== undefined && !positive(profile.incomeAmount)) ||
       (profile.incomeFrequency !== undefined && profile.incomeFrequency !== "monthly" && profile.incomeFrequency !== "yearly") ||
       readIncomeExtras(profile.incomeExtras) === null ||
+      readAdditionalIncome(profile.additionalIncome) === null ||
       (profile.savingsActions !== undefined && (!Array.isArray(profile.savingsActions) || readSavingsActions(profile.savingsActions).length !== profile.savingsActions.length)) ||
       !tiles || !Array.isArray(data.devices) || !Array.isArray(data.history) || !Array.isArray(data.costs) ||
       typeof data.betaInterested !== "boolean") return null;

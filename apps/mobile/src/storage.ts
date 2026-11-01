@@ -1,4 +1,4 @@
-import type { IncomeExtra } from "@eavesence/core/income";
+import type { AdditionalIncome, IncomeExtra } from "@eavesence/core/income";
 import type { PlanningData } from "@eavesence/core/planning";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { SavingsAction } from "@eavesence/core/savingsPlan";
@@ -21,6 +21,7 @@ export type MobileProfile = {
   incomeAmount?: number;
   incomeFrequency?: "monthly" | "yearly";
   incomeExtras?: IncomeExtra[];
+  additionalIncome?: AdditionalIncome[];
   variableMonthly?: number | null;
   bufferMonthly?: number;
   goalMonthly?: number;

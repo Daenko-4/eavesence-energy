@@ -56,7 +56,7 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1365]) {
     await plan.getByRole('button', { name: t('In 14 Tagen', 'In 14 days'), exact: true }).click();
     await page.screenshot({ path: info.outputPath(`rhythm-payday-${width}.png`), fullPage: true });
     await plan.getByRole('button', { name: t('Weiter', 'Continue'), exact: true }).click();
-    const everyday = plan.getByLabel(t('Alltagsausgaben bis zum Gehalt', 'Everyday spending until payday'), { exact: true });
+    const everyday = plan.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt', 'Everyday spending until next payday'), { exact: true });
     await expect(everyday).toBeFocused(); await aligned(everyday); await unobscured(everyday);
     await everyday.fill('200');
     await plan.getByRole('button', { name: t('Zurück', 'Back'), exact: true }).click();
@@ -69,7 +69,7 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1365]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 
     await homeWorkspace(page, 'overview');
-    await page.getByRole('group', { name: t('Aktionen für dein Zuhause', 'Home actions'), exact: true }).getByRole('button', { name: t('Einkommen ändern', 'Edit income'), exact: true }).click();
+    await page.getByRole('button', { name: t('Reguläres Einkommen ändern', 'Edit regular income'), exact: true }).click();
     await expect(page.locator('[data-home-overview-content]')).toHaveCSS('padding-bottom', '0px');
     const input = page.locator('#home-income-form input').first();
     await input.fill('2500'); await input.press('Enter');

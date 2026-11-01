@@ -353,7 +353,7 @@ export default function DevicesPage({
             <div className="mt-6">
               <div className="device-comparison-basis">
                 <label>{locale === "de" ? "Strompreis für den Vergleich (€/kWh)" : "Comparison electricity price (€/kWh)"}<input inputMode="decimal" value={tariff} onChange={event=>setTariff(event.target.value)} aria-invalid={!validTariff} aria-describedby="device-comparison-note" /></label>
-                <p id="device-comparison-note">{locale === "de" ? "Geschätzte Betriebskosten bei typischer Nutzung. Dein Tarif und Verbrauch können abweichen. Gerätekosten werden nicht zusätzlich zu deinen Stromzahlungen abgezogen." : "Estimated running costs at typical usage. Your tariff and consumption may differ. Device costs are not deducted on top of your electricity payments."}</p>
+                <p id="device-comparison-note">{locale === "de" ? "Geschätzte Stromkosten bei typischer Nutzung. Dein Tarif und Verbrauch können abweichen. Gerätekosten werden nicht zusätzlich zu deinen Stromzahlungen abgezogen." : "Estimated electricity costs at typical usage. Your tariff and consumption may differ. Device costs are not deducted on top of your electricity payments."}</p>
               </div>
               <label className="block max-w-md">
                 <span className="sr-only">{text.searchLabel}</span>

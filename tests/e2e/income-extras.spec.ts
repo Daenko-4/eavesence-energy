@@ -33,15 +33,14 @@ for (const locale of ['de', 'en'] as const) {
     await homeDetail(page, 'budget');
     await expect(summary).toContainText(de ? '33.800,00' : '33,800.00');
     await expect(summary).toContainText(de ? '2.816,67' : '2,816.67');
-    await expect(summary).toContainText(de ? 'kein heute verfügbares Geld' : 'not money available today');
-    const actions = page.getByRole('group', { name: de ? 'Aktionen für dein Zuhause' : 'Home actions' });
-    await actions.getByRole('button', { name: de ? 'Einkommen ändern' : 'Edit income', exact: true }).click();
+    await expect(summary).toContainText(de ? 'Geplantes Geld steht erst nach Eingang zur Verfügung' : 'Planned money becomes available once received');
+    await page.getByRole('button', { name: de ? 'Reguläres Einkommen ändern' : 'Edit regular income', exact: true }).click();
     if (await form.locator('details').getAttribute('open') !== null) await form.locator('summary').click();
     await form.locator('input').first().fill('2450');
     await form.locator('button[type="submit"]').click();
     await expect(overview.locator('article').nth(2)).toContainText(de ? '2.410,00' : '2,410.00');
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).incomeExtras.length)).toBe(3);
-    await actions.getByRole('button', { name: de ? 'Einkommen ändern' : 'Edit income', exact: true }).click();
+    await page.getByRole('button', { name: de ? 'Reguläres Einkommen ändern' : 'Edit regular income', exact: true }).click();
     await form.locator('summary').click();
     await form.getByRole('button', { name: '+ Bonus', exact: true }).click();
     await form.locator('button[type="submit"]').click();
@@ -63,7 +62,7 @@ for (const locale of ['de', 'en'] as const) {
       await expect(page.getByText('€3,910.00', { exact: true })).toBeVisible();
       await homeWorkspace(page, 'overview');
     }
-    await actions.getByRole('button', { name: de ? 'Einkommen ändern' : 'Edit income', exact: true }).click();
+    await page.getByRole('button', { name: de ? 'Reguläres Einkommen ändern' : 'Edit regular income', exact: true }).click();
     await page.screenshot({ fullPage: true, path: info.outputPath(`income-extras-editor-${locale}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
@@ -83,8 +82,8 @@ test('legacy annual net stays labelled as average and switching requires actual 
   await expect(overview.locator('article').first()).toContainText('Net income · monthly average');
   await expect(overview.locator('article').first()).toContainText('2,800.00');
   await expect(page.locator('[data-income-average-note]')).toHaveCount(0);
-  await page.getByRole('group', { name: 'Home actions' }).getByRole('button', { name: 'Edit income', exact: true }).click();
-  await expect(page.locator('[data-income-average-note]')).toContainText('not your actual monthly salary');
+  await page.getByRole('button', { name: 'Edit regular income', exact: true }).click();
+  await expect(page.locator('[data-income-average-note]')).toContainText('This is a monthly average');
   await form.locator('summary').click();
   await expect(form).toContainText('not added again');
   await expect(form.getByRole('button', { name: '+ Bonus', exact: true })).toHaveCount(0);

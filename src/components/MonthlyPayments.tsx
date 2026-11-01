@@ -81,14 +81,18 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
       <dl className="month-review-metrics">
         <div><dt>{t('Geplant','Planned')}</dt><dd>{money(c.closed?.planned??c.review.planned)}</dd></div>
         <div><dt>{t('Tatsächlich bezahlt','Actually paid')}</dt><dd>{money(c.closed?.paid??c.review.paid)}</dd></div>
-        <div data-review-difference data-review-tone={!reviewComplete?'pending':reviewDifference!<0?'over':reviewDifference!>0?'under':'equal'}><dt>{t('Abweichung','Difference')}</dt><dd>{reviewComplete?money(Math.abs(reviewDifference!)):'—'}</dd>{reviewComplete && <p>{reviewDifference===0?t('Wie geplant.','As planned.'):reviewDifference!>0?t('weniger als geplant bezahlt.','less paid than planned.'):t('mehr als geplant bezahlt.','more paid than planned.')}</p>}</div>
+        <div data-review-difference data-review-tone={!reviewComplete?'pending':reviewDifference!<0?'over':reviewDifference!>0?'under':'equal'}><dt>{t('Unterschied zur Planung','Difference from plan')}</dt><dd>{reviewComplete?money(Math.abs(reviewDifference!)):'—'}</dd>{reviewComplete && <p>{reviewDifference===0?t('Wie geplant.','As planned.'):reviewDifference!>0?t('weniger als geplant bezahlt.','less paid than planned.'):t('mehr als geplant bezahlt.','more paid than planned.')}</p>}</div>
       </dl>
-      {!reviewComplete && <p className="finance-section-caption">{t('Für den vollständigen Vergleich: Zahlungen prüfen, Rechnungsbeträge und fehlende Termine ergänzen.','To complete the comparison: review payments, invoice amounts and missing dates.')}{c.review.estimated>0?` ${c.review.estimated} ${t('Beträge noch geschätzt.','amounts still estimated.')}`:''}</p>}
-      <div className="month-review-footer"><p className="finance-section-caption">{t('Ohne Alltagsausgaben. Eine Abweichung ist noch keine dauerhafte Ersparnis.','Excludes everyday spending. A difference does not yet mean lasting savings.')}</p>
+      {!reviewComplete && <div className="finance-section-caption" data-review-tasks>
+        {c.review.estimated>0&&<p>{c.review.estimated === 1 ? t('1 Rechnungsbetrag ist noch geschätzt. Trage den tatsächlichen Betrag ein.','1 invoice amount is still estimated. Enter the actual amount.') : t(`${c.review.estimated} Rechnungsbeträge sind noch geschätzt. Trage die tatsächlichen Beträge ein.`,`${c.review.estimated} invoice amounts are still estimated. Enter the actual amounts.`)}</p>}
+        {c.missing.length>0&&<p>{t('Zahlungstermin ergänzen für: ','Add payment dates for: ')}{c.missing.map(cost=>cost.name).join(', ')}.</p>}
+        {c.open.length>0&&<p>{t(`${c.open.length === 1 ? '1 Zahlung ist' : `${c.open.length} Zahlungen sind`} noch offen. Bereits bezahlte Zahlungen kannst du abhaken.`,`${c.open.length === 1 ? '1 payment is' : `${c.open.length} payments are`} still unpaid. Check off payments you have already paid.`)}</p>}
+      </div>}
+      <div className="month-review-footer"><p className="finance-section-caption">{t('Der Vergleich umfasst die hier erfassten Zahlungen.','The comparison includes the payments recorded here.')}{reviewComplete && reviewDifference! > 0 ? ' '+t('Du hast diesen Monat weniger bezahlt als geplant. Eine dauerhaft niedrigere Ausgabe spart dir auch in den nächsten Monaten Geld.','You paid less than planned this month. A permanently lower cost also saves money in future months.') : ''}</p>
         <FormActions>{c.closed?<button type="button" disabled={c.busy} onClick={()=>void c.reopenMonth()} className="eavesence-pill-button home-dashboard-action">{t('Monat wieder öffnen','Reopen month')}</button>:c.month<=c.current&&c.payments.length>0&&<button type="button" disabled={c.busy||!c.review.complete} onClick={()=>void c.closeMonth()} className="eavesence-pill-button home-dashboard-action">{t('Monat abschließen','Close month')}</button>}</FormActions>
       </div>
     </section>
-    <p className="home-payment-source">{t('Manuell geführt · kein Bankabgleich.','Manually maintained · no bank verification.')}</p>
+    <p className="home-payment-source">{t('Hake Zahlungen selbst ab, sobald sie bezahlt sind. eavesence übernimmt keine Zahlungen automatisch von deiner Bank.','Check off payments yourself once paid. eavesence does not import payments automatically from your bank.')}</p>
     </div>
     {c.error&&<p role="alert" className="p-4 text-[13px] text-red-700">{c.error}</p>}
   </section>;
