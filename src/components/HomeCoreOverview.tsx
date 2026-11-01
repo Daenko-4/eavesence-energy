@@ -14,7 +14,7 @@ type Props = {
   incomeDeferred?: boolean; onSkipIncome?: () => void;
   needsReview?: boolean; onFinishReview?: () => void;
   locale: Locale; currency: string; income: number; fixed: number; count: number;
-  outlook: MonthlyOutlook; incomeInformation?: ReactNode;
+  outlook: MonthlyOutlook; incomeInformation?: ReactNode | ((editAction: ReactNode) => ReactNode);
   onMonthChange:(month:string)=>void;
   incomeOpen: boolean; onIncome: () => void; onCost: () => void;
   incomeForm: ReactNode; payments: ReactNode;
@@ -40,6 +40,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
     {label: outlook.missing.length ? de ? `Bisher erfasste Fixkosten im ${monthName}` : `Recorded fixed costs in ${monthName}` : de ? `Fixkosten im ${monthName}` : `Fixed costs in ${monthName}`, value:`${outlook.payments.some(payment => payment.estimated) ? de ? "ca. " : "approx. " : ""}${money(outlook.total)}`},
     {label: de ? "Voraussichtlich übrig nach Fixkosten" : "Expected amount left after fixed costs", value:outlook.remaining === null ? "—" : `${estimate}${money(outlook.remaining)}`, emphasis:true, note:outlook.remaining === null ? de ? "Angaben für diesen Monat fehlen noch" : "Entries for this month are still missing" : undefined},
   ];
+  const incomeEditAction = !needsIncome && <button type="button" className="centre-text-action home-regular-income-action" onClick={onIncome} aria-expanded={incomeOpen}>{hasIncome ? de ? "Reguläres Einkommen ändern" : "Edit regular income" : de ? "Einkommen eintragen" : "Add income"}</button>;
   return <section aria-label={de ? "Finanzen im Überblick" : "Your household at a glance"}>
     {(needsIncome || !count) && <div data-home-setup className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
       <p className="text-[13px] font-bold">{needsIncome ? de ? "1 · Einkommen eintragen" : "1 · Add your income" : de ? "2 · Erste Kosten hinzufügen" : "2 · Add your first cost"}</p>
@@ -71,8 +72,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
         </section> : context}
       </aside>}
         <section className="home-month-explanation" data-month-calculation>
-        {!needsIncome && <button type="button" className="centre-text-action home-regular-income-action" onClick={onIncome} aria-expanded={incomeOpen}>{hasIncome ? de ? "Reguläres Einkommen ändern" : "Edit regular income" : de ? "Einkommen eintragen" : "Add income"}</button>}
-          {incomeInformation}
+          {typeof incomeInformation === "function" ? incomeInformation(incomeEditAction) : <>{incomeEditAction}{incomeInformation}</>}
           <div className="month-calculation-copy">
           <p className="text-[12px] leading-5 text-[#65716d]">{de ? "Monatseinkommen inkl. Sonderzahlungen minus fällige Fixkosten." : "Monthly income including extras, minus fixed costs due."}</p>
           {outlook.incomeIsAverage && <p className="mt-2 text-[12px] leading-5 text-amber-900">{de ? "Dein Einkommen ist ein Jahresdurchschnitt und kann vom tatsächlichen Geldeingang in diesem Monat abweichen." : "Your income is an annual average and may differ from what actually arrives this month."}</p>}

@@ -1362,9 +1362,9 @@ a {
   .quick-check-step h4 { min-height: 0; }
 }
 
-.home-month-explanation:has([data-income-extras-summary]) { display: grid; gap: 12px; padding: 14px; border: 1px solid #dde2d8; border-radius: 12px; background: #f6f6f0; }
+.home-month-explanation:has([data-income-extras-summary]) { display: grid; gap: 12px; width: 100%; max-width: 760px; justify-self: center; padding: 14px; border: 1px solid #dde2d8; border-radius: 12px; background: #f6f6f0; }
 .home-month-explanation:has([data-income-extras-summary]) .month-calculation-copy { padding-top: 10px; border-top: 1px solid #dde2d8; }
-.income-annual-metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 24px; margin-top: 12px; }
+.income-annual-metrics { max-width: 520px; margin-inline: auto; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 24px; margin-top: 12px; }
 .income-annual-metrics > div { min-width: 0; text-align: center; }
 .income-annual-metrics dt { font-size: 12px; line-height: 18px; font-weight: 500; color: #52605b; }
 .income-annual-metrics dd { margin: 4px 0 0; font-size: 20px; line-height: 28px; font-weight: 700; font-variant-numeric: tabular-nums; color: #17211f; overflow-wrap: anywhere; }
@@ -1372,6 +1372,9 @@ a {
 @media(max-width:639px) { .income-annual-metrics { gap: 12px; } .income-annual-metrics dd { font-size: 18px; line-height: 26px; } }
 .home-month-explanation [data-income-extras-summary] { margin: 0; padding: 0; background: transparent; }
 .home-month-explanation h3 { font-size: 14px; font-weight: 650; }
+.income-summary-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; }
+.income-summary-heading .home-regular-income-action { margin: 0; }
+.income-extra-payments li > span:first-child { min-width: 0; overflow-wrap: anywhere; }
 
 .centre-pro-page .quick-check-content { align-items: start; }
 @media (max-width: 639px) {
