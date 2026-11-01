@@ -18,6 +18,15 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     const workspace=page.locator('.home-month-workspace');
     const annualSummary=workspace.locator('[data-income-extras-summary]');
     await expect(annualSummary.locator('.income-annual-metrics dd')).toHaveCount(2);
+    const summaryHeading=annualSummary.locator('.income-summary-heading');
+    await expect(summaryHeading.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true})).toBeVisible();
+    if(width>=640){
+      const title=(await summaryHeading.locator('h3').boundingBox())!, edit=(await summaryHeading.getByRole('button').boundingBox())!;
+      expect(edit.x).toBeGreaterThan(title.x+title.width);
+      expect(Math.abs(title.y+title.height/2-edit.y-edit.height/2)).toBeLessThan(10);
+    }
+    expect((await annualSummary.locator('.income-annual-metrics').boundingBox())!.width).toBeLessThanOrEqual(520);
+
     const annualHierarchy=await annualSummary.evaluate(el=>{
       const metrics=Array.from(el.querySelectorAll('.income-annual-metrics dd'));
       const extras=Array.from(el.querySelectorAll('.income-extra-payments li > span:last-child'));
