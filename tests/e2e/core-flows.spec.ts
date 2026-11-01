@@ -592,9 +592,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   });
   expect(manageDataTextTops.action).not.toBeNull();
   expect(manageDataTextTops.description).not.toBeNull();
-  expect(
-    Math.abs(manageDataTextTops.action! - manageDataTextTops.description!),
-  ).toBeLessThanOrEqual(1);
+  expect(manageDataTextTops.action!).toBeGreaterThan(manageDataTextTops.description!);
   expect(manageDataTextTops.exportAction).toBe(manageDataTextTops.action);
   expect(manageDataTextTops.resetAction).toBe(manageDataTextTops.action);
   await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
