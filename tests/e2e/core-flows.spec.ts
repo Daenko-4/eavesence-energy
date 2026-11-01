@@ -1619,7 +1619,7 @@ for (const width of [320, 1365]) test(`home actions reveal their editor and keep
   await page.goto('/home');
   await page.getByRole('button', { name: 'Create my home' }).click();
   const actions = page.getByRole('group', { name: 'Home actions', exact: true });
-  await actions.getByRole('button', { name: 'Add income', exact: true }).click();
+  await page.getByRole('button', { name: 'Add income', exact: true }).click();
   const income = page.locator('#home-income-form');
   await expect(income.getByLabel('Monthly net income (excluding extras)', { exact: true })).toBeFocused();
   await expect.poll(() => income.evaluate(el => el.getBoundingClientRect().top)).toBeGreaterThanOrEqual(80);

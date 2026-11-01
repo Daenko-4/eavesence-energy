@@ -1156,8 +1156,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       return;
     }
     setIncomeError("");
-    setIncomeOpen(false);
-    requestAnimationFrame(() => {if(contextTrigger.current?.isConnected)contextTrigger.current.focus({preventScroll:true});});
+    closeHomeContext();
   }
 
   function activateTileKind(kind: HomeTileKind) {
@@ -1872,7 +1871,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   function closeHomeContext() {
     setIncomeOpen(false); setCostEditorInContext(false); setCostRequest(null); setSelectedPaymentKey(null);
     requestAnimationFrame(() => {
-      const target = contextTrigger.current?.isConnected ? contextTrigger.current : document.querySelector<HTMLElement>("[data-home-heading] .home-entry-actions button");
+      const target = contextTrigger.current?.isConnected && contextTrigger.current.getClientRects().length ? contextTrigger.current : document.querySelector<HTMLElement>("[data-home-heading] .home-entry-actions button");
       if (!target) return;
       const rect=target.getBoundingClientRect();
       if(rect.top < 90 || rect.bottom > window.innerHeight - 20)target.scrollIntoView({block:"nearest",behavior:"instant"});

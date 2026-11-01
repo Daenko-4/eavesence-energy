@@ -39,7 +39,7 @@ export function MonthlyPayments({open,onToggle,costs,data,onSave,locale,currency
 
   {c.missing.length>0&&<View style={s.missing}><Text style={s.note}>{t('Diese Kosten brauchen einen Termin. Sie fehlen im offenen Betrag.','These costs need a date. They are excluded from the unpaid amount.')}</Text>{c.missing.map(cost=><Pressable accessibilityRole="button" key={cost.id} onPress={()=>onEdit(cost)} style={s.today}><Text style={s.link}>{cost.name} · {t('Termin ergänzen','Add date')}</Text></Pressable>)}</View>}
   {c.payments.some(p=>!p.date)&&<Text style={s.note}>{t('Monatliche Kosten ohne Termin zählen einmal pro Monat.','Monthly costs without a date count once each month.')}</Text>}
-  <Text style={s.small}>{t('Hake Zahlungen selbst ab, sobald sie bezahlt sind. eavesence übernimmt keine Zahlungen automatisch von deiner Bank.','Check off payments yourself once paid. eavesence does not fetch payments automatically from your bank.')}</Text>
+  <Text style={s.small}>{t('Hake bezahlte Zahlungen ab. Bankumsätze werden nicht automatisch übernommen.','Check off paid payments. Bank transactions are not imported automatically.')}</Text>
   {!costs.length&&<Pressable accessibilityRole="button" onPress={onAdd} style={s.today}><Text style={s.link}>{t('Kosten hinzufügen','Add cost')}</Text></Pressable>}
   </>}
   </>}

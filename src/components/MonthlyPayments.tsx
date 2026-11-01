@@ -92,7 +92,7 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
         <FormActions>{c.closed?<button type="button" disabled={c.busy} onClick={()=>void c.reopenMonth()} className="eavesence-pill-button home-dashboard-action">{t('Monat wieder öffnen','Reopen month')}</button>:c.month<=c.current&&c.payments.length>0&&<button type="button" disabled={c.busy||!c.review.complete} onClick={()=>void c.closeMonth()} className="eavesence-pill-button home-dashboard-action">{t('Monat abschließen','Close month')}</button>}</FormActions>
       </div>
     </section>
-    <p className="home-payment-source">{t('Hake Zahlungen selbst ab, sobald sie bezahlt sind. eavesence übernimmt keine Zahlungen automatisch von deiner Bank.','Check off payments yourself once paid. eavesence does not import payments automatically from your bank.')}</p>
+    <p className="home-payment-source">{t('Hake bezahlte Zahlungen ab. Bankumsätze werden nicht automatisch übernommen.','Check off paid payments. Bank transactions are not imported automatically.')}</p>
     </div>
     {c.error&&<p role="alert" className="p-4 text-[13px] text-red-700">{c.error}</p>}
   </section>;

@@ -14,7 +14,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`Pro invoice
  const t=(a:string,b:string)=>de?a:b;await page.setViewportSize({width,height:900});await seed(page,de);
  const forecast=page.locator('[data-pro-forecast]');await planningPeriod(page, 'forecast');await expect(forecast).toBeVisible();
  await expect(forecast.locator('[data-forecast-result]')).toContainText(t('knapp ab 20. Oktober','shortfall from 20 October'));
- await expect(forecast.locator('[data-forecast-month]')).toHaveCount(4);await expect(forecast).toContainText(t('Davon Sonderzahlungen','Including extra income'));
+ await expect(forecast.locator('[data-forecast-month]')).toHaveCount(4);await expect(forecast).toContainText(t('Davon zusätzliche Einnahmen','Including extra income'));
  await forecast.getByLabel(t('Alltagsausgaben pro Monat (90-Tage-Plan)','Everyday spending per month (90-day plan)')).fill('600');
  await forecast.getByRole('button',{name:t('Alltagsschätzung speichern','Save everyday estimate'),exact:true}).click();
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).variableMonthly)).toBe(600);

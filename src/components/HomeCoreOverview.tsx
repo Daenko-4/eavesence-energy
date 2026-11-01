@@ -60,7 +60,6 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
             {card.note && <p className="home-month-kpi-note">{card.note}</p>}
           </article>)}
         </div>
-        {!needsIncome && <button type="button" className="centre-text-action home-regular-income-action" onClick={onIncome} aria-expanded={incomeOpen}>{hasIncome ? de ? "Reguläres Einkommen ändern" : "Edit regular income" : de ? "Einkommen eintragen" : "Add income"}</button>}
         {forecastCards[0].note && <p className="home-month-income-note">{forecastCards[0].note}</p>}
         <p className="home-month-context">{outlook.remaining !== null && outlook.remaining < 0 ? de ? "Deine erfassten Fixkosten sind höher als deine Einnahmen. Weitere Ausgaben sind noch nicht enthalten." : "Your recorded fixed costs exceed your income. Other spending is not included yet." : de ? "Davon bezahlst du noch Lebensmittel, Freizeit und andere nicht erfasste Ausgaben." : "Groceries, leisure and other spending you have not recorded still come out of this amount."}</p>
       </aside>
@@ -72,6 +71,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
         </section> : context}
       </aside>}
         <section className="home-month-explanation" data-month-calculation>
+        {!needsIncome && <button type="button" className="centre-text-action home-regular-income-action" onClick={onIncome} aria-expanded={incomeOpen}>{hasIncome ? de ? "Reguläres Einkommen ändern" : "Edit regular income" : de ? "Einkommen eintragen" : "Add income"}</button>}
           {incomeInformation}
           <div className="month-calculation-copy">
           <p className="text-[12px] leading-5 text-[#65716d]">{de ? "Monatseinkommen inkl. Sonderzahlungen minus fällige Fixkosten." : "Monthly income including extras, minus fixed costs due."}</p>
