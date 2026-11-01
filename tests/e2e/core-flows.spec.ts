@@ -397,7 +397,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
     "eavesence-monthly-reminder.ics",
   );
   await expect(
-    page.getByText("The monthly calendar reminder was downloaded."),
+    page.getByText("Calendar file downloaded. Open it and add the reminder to your calendar."),
   ).toBeVisible();
   await openEnergyTile(page);
   const devicesTile = page.locator("[data-home-tiles] article").filter({ hasText: "Electricity & devices" }).first();
