@@ -1,6 +1,6 @@
 import { homeWorkspace, savingsTool } from './home-navigation';
 import { test, expect } from '@playwright/test';
-for (const de of [false, true]) for (const width of [390, 1365]) {
+for (const de of [false, true]) for (const width of [320, 390, 768, 1024, 1365]) {
   test(`Pro reserves, subscription preview and quick check survive reload ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
     const t = (a: string, b: string) => de ? a : b;
     await page.setViewportSize({ width, height: 900 });
@@ -25,9 +25,32 @@ for (const de of [false, true]) for (const width of [390, 1365]) {
     const payday = page.getByRole('region', { name: /Your available budget|Dein verfügbarer Spielraum/ });
     await expect(payday.locator('[data-quick-check]')).toBeVisible();
     await expect(payday.getByRole('button', { name: /^(Review plan|Plan prüfen)/ })).toHaveCount(0);
+    const editAction=payday.locator('[data-payday-edit-action]');
+    await expect(editAction).toHaveAttribute('aria-expanded','false');
+    await expect(editAction).toHaveCSS('font-size','12px');
+    expect((await editAction.boundingBox())!.height).toBeLessThanOrEqual(32);
+    await expect(editAction.locator('.site-disclosure-icon')).toHaveCount(0);
+    if(width>=640){
+      const cards=await payday.locator('.quick-check-step').evaluateAll(nodes=>nodes.map(el=>{
+        const box=el.getBoundingClientRect();
+        return {top:box.top,bottom:box.bottom,heading:el.querySelector('h4')!.getBoundingClientRect().top,button:el.querySelector('button')!.getBoundingClientRect().top,details:el.querySelector('.quick-check-details')!.getBoundingClientRect().top};
+      }));
+      expect(cards).toHaveLength(3);
+      for(const key of ['top','bottom','heading','button','details'] as const)expect(Math.max(...cards.map(c=>c[key]))-Math.min(...cards.map(c=>c[key]))).toBeLessThanOrEqual(1);
+    }
+    await payday.locator('[data-quick-check]').screenshot({path:info.outputPath(`aligned-quick-check-${de?'de':'en'}-${width}.png`)});
+
     await payday.getByRole('button', { name: t('Kontostand und Alltag prüfen', 'Review balance and everyday spending') }).click();
     await expect(payday.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true })).toBeFocused();
+    await expect(editAction).toHaveAttribute('aria-expanded','true');
+    await expect(editAction).toHaveCSS('font-size','12px');
+    expect((await editAction.boundingBox())!.height).toBeLessThanOrEqual(32);
+    await expect(editAction).toHaveText(t('Einklappen','Collapse'));
+    await expect(editAction.locator('.site-disclosure-icon')).toHaveCount(0);
+
     await payday.getByRole('button', { name: t('Einklappen', 'Collapse'), exact: true }).click();
+    await expect(editAction).toHaveAttribute('aria-expanded','false');
+    await expect(payday.locator('[data-payday-editor]')).toHaveCount(0);
     await payday.getByRole('button', { name: t('Zahlungen ansehen und abhaken', 'View and check off payments') }).click();
     await expect(payday.getByRole('checkbox', { name: /^Streaming ·/ })).toBeVisible();
     await payday.getByRole('checkbox', { name: t('Offene und bezahlte Zahlungen geprüft', 'Reviewed unpaid and paid payments'), exact: true }).check();
