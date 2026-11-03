@@ -55,7 +55,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
       if(width>=640) {
         const paymentCentres=await workspace.evaluate(el=>{
           const fixed=el.querySelector('[data-home-kpi="costs"]')!.getBoundingClientRect();
-          return ['[data-checklist-open]','[data-checklist-progress]'].map(selector=>{
+          return ['[data-checklist-open]','[data-checklist-open-label]'].map(selector=>{
             const range=document.createRange();range.selectNodeContents(el.querySelector(selector)!);const box=range.getBoundingClientRect();
             return Math.abs(box.x+box.width/2-(fixed.x+fixed.width/2));
           });
@@ -131,18 +131,24 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     const paymentSummary=workspace.locator('.centre-payments-summary');
     await expect(paymentSummary.locator('[data-checklist-open]')).toContainText(t('0,00','0.00'));
     await expect(paymentSummary.locator('[data-checklist-progress]')).toHaveText(t('1 von 1 bezahlt','1 of 1 paid'));
-    const textBoxes=await paymentSummary.locator('[data-checklist-open], [data-checklist-progress], [data-checklist-paid], [data-checklist-paid-label]').evaluateAll(elements=>elements.map(el=>{
+    const textBoxes=await paymentSummary.locator('[data-checklist-open-label], [data-checklist-open], [data-checklist-progress], [data-checklist-paid], [data-checklist-paid-label]').evaluateAll(elements=>elements.map(el=>{
       const range=document.createRange();range.selectNodeContents(el);const r=range.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom};
     }));
-    const [unpaidAmount,progress,paidAmount,paidLabel]=textBoxes;
-    expect(progress.y).toBeGreaterThanOrEqual(unpaidAmount.bottom);
+    const [unpaidLabel,unpaidAmount,progress,paidAmount,paidLabel]=textBoxes;
     expect(paidLabel.y).toBeGreaterThanOrEqual(paidAmount.bottom);
     expect(Math.abs(unpaidAmount.y-paidAmount.y)).toBeLessThanOrEqual(1);
-    expect(Math.abs(progress.y-paidLabel.y)).toBeLessThanOrEqual(1);
     if(width<640) {
+      expect(progress.y).toBeGreaterThanOrEqual(unpaidAmount.bottom);
+      expect(Math.abs(progress.y-paidLabel.y)).toBeLessThanOrEqual(1);
       for(const [amount,label] of [[unpaidAmount,progress],[paidAmount,paidLabel]])expect(Math.abs(amount.x-label.x)).toBeLessThanOrEqual(1);
     } else {
-      expect(Math.abs((unpaidAmount.x+unpaidAmount.right)/2-(progress.x+progress.right)/2)).toBeLessThanOrEqual(1);
+      expect(unpaidLabel.y).toBeGreaterThanOrEqual(unpaidAmount.bottom);
+      expect(Math.abs(unpaidLabel.y-paidLabel.y)).toBeLessThanOrEqual(1);
+      expect(progress.right).toBeLessThan(unpaidAmount.x);
+      const styles=await paymentSummary.evaluate(el=>({weight:getComputedStyle(el.querySelector("[data-checklist-progress]")!).fontWeight,left:el.getBoundingClientRect().left+parseFloat(getComputedStyle(el).paddingLeft)}));
+      expect(Number(styles.weight)).toBe(600);
+      expect(Math.abs(progress.x-styles.left)).toBeLessThanOrEqual(1);
+      expect(Math.abs((unpaidAmount.x+unpaidAmount.right)/2-(unpaidLabel.x+unpaidLabel.right)/2)).toBeLessThanOrEqual(1);
       expect(Math.abs(paidAmount.right-paidLabel.right)).toBeLessThanOrEqual(1);
     }
     await paymentSummary.screenshot({path:info.outputPath(`payment-summary-${de?'de':'en'}-${width}.png`)});
