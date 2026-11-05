@@ -27,7 +27,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await seed(page, de);
     const nav = page.locator('[data-home-section-navigation]');
     const panels = page.locator('[data-cost-manager]:visible, [data-home-memos]:visible');
-    await expect(nav.getByRole('button')).toHaveCount(2);
+    await expect(nav.getByRole('button')).toHaveCount(4);
     await expect(nav.locator('[aria-expanded=true]')).toHaveCount(0);
     await expect(panels).toHaveCount(0);
     await expect(nav.locator('[data-home-section=notes]')).toContainText('1');
