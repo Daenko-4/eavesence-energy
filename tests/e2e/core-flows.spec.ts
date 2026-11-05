@@ -1263,13 +1263,13 @@ test.describe("mobile", () => {
     const appNavigation = page.getByRole("navigation", {
       name: "App navigation",
     });
-    await expect(appNavigation).toBeHidden();
+    await expect(appNavigation).toBeVisible();
     await page.addStyleTag({
       content: ".pwa-mobile-navigation { display: grid !important; }",
     });
     await expect(appNavigation).toBeVisible();
     await expect(
-      appNavigation.getByRole("link", { name: "Overview" }),
+      appNavigation.getByRole("link", { name: "Month" }),
     ).toHaveAttribute("aria-current", "location");
     await expect(
       appNavigation.getByRole("link", { name: "Costs" }),

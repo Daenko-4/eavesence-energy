@@ -785,6 +785,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [history, setHistory] = useState<MonthlyEnergyEntry[]>([]);
   const [householdCosts, setHouseholdCosts] = useState<HouseholdCost[]>([]);
   const [costEvents, setCostEvents] = useState<CostEvent[]>([]);
+  const [incomeReceipt,setIncomeReceipt]=useState<AdditionalIncome|null>(null);
   const [additionalEntry,setAdditionalEntry]=useState<AdditionalIncome|null|undefined>(undefined);
   const [incomeValue, setIncomeValue] = useState("");
   const [firstCostSetup, setFirstCostSetup] = useState(false);
@@ -862,6 +863,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
       lastRequestedHash.current = hash;
       window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
     }
+    setIncomeReceipt(null);
     if (next === "plan") setSettingsOpen(false);
     setView(next);
   }
@@ -1124,7 +1126,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     if(!profile)throw new Error("HOME_MISSING");
     persistProfile({...profile,additionalIncome:[entry,...(profile.additionalIncome??[]).filter(item=>item.id!==entry.id)],updatedAt:new Date().toISOString()},true);
     setOverviewMonth(entry.date.slice(0,7));
-    setNotice({kind:"success",scope:"home",message:locale === "de" ? "Zusätzliche Einnahme gespeichert." : "Additional income saved."});
+    setIncomeReceipt(entry);
+    setNotice(null);
   }
   function removeAdditionalIncome(id: string) {
     if(!profile)throw new Error("HOME_MISSING");
@@ -1478,7 +1481,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setHomeTiles(defaultHomeTiles());
     setActiveTileId("default-costs");
     setCheckInFeedback(null);
-    setSettingsOpen(false);
+    setSettingsOpen(false);setIncomeReceipt(null);setAdditionalEntry(undefined);
     setNotice(null);
     window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
     track("Home Reset", { locale, devices_preserved: savedDevices.length });
@@ -1928,7 +1931,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   return (
     <div lang={locale} data-pwa-shell data-home-workspace={view} data-home-has-month={view === "overview" && householdCosts.length > 0} className="min-h-screen bg-[var(--background)] text-[#17211f]">
-      <Header locale={locale} languageHrefOverride={languageHref} onSettings={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} settingsOpen={settingsOpen} />
+      <Header locale={locale} languageHrefOverride={languageHref} onCosts={()=>openHomeSection("costs")} costsActive={view==="overview"&&costManagerOpen} onSettings={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} settingsOpen={settingsOpen} />
       <main id="home-overview" className="scroll-mt-20 px-5 pb-20 pt-10 sm:px-6 sm:pt-14">
         <div className="mx-auto max-w-7xl">
           <section hidden={view !== "overview"} data-home-heading className="home-heading">
@@ -1946,11 +1949,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             </div>
           </section>
 
-          {additionalEntry !== undefined && <AdditionalIncomeDialog locale={locale} currency={profile.currency} entries={profile.additionalIncome??[]} entry={additionalEntry} onSave={saveAdditionalIncome} onRemove={removeAdditionalIncome} onClose={()=>setAdditionalEntry(undefined)}/>}
+          {view==='overview'&&<HomeSectionNavigation locale={locale} active={homeSection} onChange={openHomeSection} memos={profile.planning?.memos} />}
+          {incomeReceipt&&<div className="income-receipt" role="status"><p>{formatMoney(incomeReceipt.amount,locale,profile.currency)} {locale==='de'?'für':'for'} {new Intl.DateTimeFormat(locale==='de'?'de-AT':'en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${incomeReceipt.date}T12:00:00Z`))} {incomeReceipt.status==='planned'?(locale==='de'?'geplant.':'planned.'):(locale==='de'?'erfasst.':'recorded.')}</p>{incomeReceipt.status==='received'&&profile.planning?.cash&&<button type="button" className="centre-text-action" onClick={()=>{changeWorkspace('plan');setPlanQuestion('payday');setPlanPeriod('payday');requestAnimationFrame(()=>{const button=document.querySelector<HTMLButtonElement>('[data-payday-edit-action]');button?.scrollIntoView({block:'center'});if(button?.getAttribute('aria-expanded')==='false')button.click();});}}>{locale==='de'?'Kontostand aktualisieren':'Update account balance'}</button>}<button type="button" className="centre-text-action" aria-label={locale==='de'?'Hinweis schließen':'Dismiss notice'} onClick={()=>setIncomeReceipt(null)}>×</button></div>}
+          {<AdditionalIncomeDialog open={additionalEntry !== undefined} locale={locale} currency={profile.currency} entries={profile.additionalIncome??[]} entry={additionalEntry} onSave={saveAdditionalIncome} onRemove={removeAdditionalIncome} onClose={()=>setAdditionalEntry(undefined)}/>}
 
           {settingsOpen && (
             <HomeSettingsDialog locale={locale} onClose={()=>setSettingsOpen(false)}><section id="home-settings" data-home-settings className={`mt-6 scroll-mt-24 p-5 ${homeSurfaceClass}`}>
-              <HomeSectionNavigation locale={locale} active={homeSection} onChange={openHomeSection} memos={profile.planning?.memos} />
+
               {notice?.scope === "home" && <p data-home-notice role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-[13px] font-semibold ${notice.kind === "error" ? "text-red-700" : "text-[var(--brand-green)]"}`}>{notice.message}</p>}
               <form onSubmit={(event) => { event.preventDefault(); saveSettings(); }} className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_180px]">
               <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.householdName}</span><input value={name} onChange={(event) => setName(event.target.value)} className={homeFieldClass} /></label>
@@ -2040,7 +2045,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
           <div hidden={view !== "overview"} data-home-overview-content className="mt-6">
 
-          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} outlook={selectedMonthOutlook} onMonthChange={month => {setOverviewMonth(month);setSelectedPaymentKey(null);}} incomeInformation={editAction=><IncomeExtrasSummary compact action={editAction} profile={profile} locale={locale} currency={profile.currency} onManage={()=>setAdditionalEntry(null)}/>} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} payments={<MonthlyPayments primary selectedKey={selectedPaymentKey} onSelect={(key,trigger) => {
+          <HomeCoreOverview incomeProvided={hasRecordedIncome} hasVariableCosts={householdCosts.some(c=>c.variableAmount)} incomeDeferred={profile.incomeDeferred} onSkipIncome={() => {setIncomeOpen(false);persistProfile({...profile,incomeDeferred:true});}} needsReview={profile.overviewReviewed === false} onFinishReview={() => {setCostManagerOpen(false);persistProfile({...profile,overviewReviewed:true,updatedAt:new Date().toISOString()});}} incomeIsAverage={incomeSummary.annualAverage} locale={locale} currency={profile.currency} income={monthlyIncome} fixed={householdCostSummary.monthlyTotal} count={householdCosts.length} outlook={selectedMonthOutlook} onMonthChange={month => {setIncomeReceipt(null);setOverviewMonth(month);setSelectedPaymentKey(null);}} incomeInformation={<IncomeExtrasSummary compact year={Number(selectedMonthOutlook.month.slice(0,4))} profile={profile} locale={locale} currency={profile.currency} onManage={()=>setAdditionalEntry(null)}/>} incomeOpen={incomeOpen} onIncome={openIncomeForm} onCost={() => openCostForm()} payments={<MonthlyPayments primary selectedKey={selectedPaymentKey} onSelect={(key,trigger) => {
               contextTrigger.current = trigger;
               setSelectedPaymentKey(key);setIncomeOpen(false);setCostEditorInContext(false);setCostRequest(null);
               requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -2610,7 +2615,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         locale={locale}
 
         view={view}
-        onNavigate={(destination) => { changeWorkspace(destination === "plan" ? "plan" : "overview"); }}
+        onNavigate={(destination) => { if(destination === "costs")openHomeSection("costs");else if(destination === "overview")openHomeSection(null);else changeWorkspace("plan"); }}
         settingsOpen={settingsOpen}
               />
       <ConnectivityStatus locale={locale} />

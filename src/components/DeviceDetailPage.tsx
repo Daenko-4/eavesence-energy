@@ -1,3 +1,6 @@
+"use client";
+
+import {useElectricityTariff} from "./useElectricityTariff";
 import Link from "next/link";
 
 import EnergyCalculator from "@/components/EnergyCalculator";
@@ -25,7 +28,6 @@ type DeviceDetailPageProps = {
   locale?: Locale;
 };
 
-const DEFAULT_ELECTRICITY_PRICE = 0.35;
 const SITE_URL = "https://eavesence.com";
 
 function serializeJsonLd(data: object) {
@@ -161,21 +163,6 @@ function formatNumber(
   );
 }
 
-function formatEuro(
-  value: number,
-  locale: Locale
-) {
-  const valueText = formatNumber(
-    value,
-    locale,
-    2,
-    2
-  );
-
-  return locale === "de"
-    ? `${valueText} €`
-    : `€${valueText}`;
-}
 
 function formatKwh(
   value: number,
@@ -212,6 +199,9 @@ export default function DeviceDetailPage({
   locale = "de",
 }: DeviceDetailPageProps) {
   const text = pageText[locale];
+  const tariff=useElectricityTariff();
+  const price=tariff.price;
+  const money=(value:number,language:Locale)=>new Intl.NumberFormat(language==='de'?'de-AT':'en-GB',{style:'currency',currency:tariff.currency}).format(value);
 
   const localizedDevice =
     getLocalizedDevice(device, locale);
@@ -289,11 +279,11 @@ export default function DeviceDetailPage({
 
   const yearlyCost =
     yearlyKwh *
-    DEFAULT_ELECTRICITY_PRICE;
+    price;
 
   const costPerUse =
     kwhPerUse *
-    DEFAULT_ELECTRICITY_PRICE;
+    price;
 
   const monthlyCost =
     yearlyCost / 12;
@@ -509,7 +499,7 @@ export default function DeviceDetailPage({
                   </p>
 
                   <p className="mt-1 text-xl font-bold text-[var(--brand-green-mint)]">
-                    {formatEuro(
+                    {money(
                       yearlyCost,
                       locale
                     )}
@@ -535,12 +525,12 @@ export default function DeviceDetailPage({
 
               <p className="mt-3 text-xs leading-5 text-slate-500">
                 {text.exampleWith}{" "}
-                {formatEuro(
-                  DEFAULT_ELECTRICITY_PRICE,
+                {money(
+                  price,
                   locale
                 )}
                 /kWh. {text.resultingIn}{" "}
-                {formatEuro(
+                {money(
                   costPerUse,
                   locale
                 )}{" "}
@@ -549,7 +539,7 @@ export default function DeviceDetailPage({
                   : device.usagePattern === "continuous"
                     ? text.perDay
                     : text.perUse},{" "}
-                {formatEuro(
+                {money(
                   monthlyCost,
                   locale
                 )}{" "}
@@ -648,7 +638,7 @@ export default function DeviceDetailPage({
                         kwhPerUse *
                         scenario.usesPerWeek *
                         52 *
-                        DEFAULT_ELECTRICITY_PRICE;
+                        price;
 
                       return (
                         <div
@@ -664,7 +654,7 @@ export default function DeviceDetailPage({
                           </p>
 
                           <p className="mt-5 text-2xl font-extrabold text-[var(--brand-green)]">
-                            {formatEuro(
+                            {money(
                               scenarioYearlyCost,
                               locale
                             )}

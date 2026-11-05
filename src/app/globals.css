@@ -1448,3 +1448,27 @@ a {
 @media (max-width: 639px) {
   .centre-pro-page [data-editor-open="true"] [data-payday-hero] { padding-block: 10px; }
 }
+
+/* Daily actions share one compact rhythm; supporting detail stays secondary. */
+.home-month-income-edit { display: flex; justify-content: flex-start; }
+.home-month-income-edit .home-regular-income-action { margin: 0; min-height: 32px; }
+.income-annual-details > summary { cursor: pointer; margin-top: 10px; color: #087a45; font-size: 12px; font-weight: 600; min-height: 32px; display: flex; align-items: center; }
+.home-month-workspace .month-review { margin-top: 12px; padding-top: 12px; }
+.home-month-workspace .month-review-metrics { margin-top: 8px; }
+.home-month-workspace .month-review-footer { margin-top: 8px; }
+[data-home-workspace] > main > div > .home-section-navigation { max-width: 520px; margin: 10px auto 0; }
+.income-receipt { display: flex; align-items: center; justify-content: center; gap: 8px 16px; flex-wrap: wrap; margin: 12px auto; padding: 8px 12px; max-width: 760px; background: #e0f1e4; border-radius: 12px; color: #196441; font-size: 13px; }
+.quick-check-next { color: #196441; font-weight: 600; }
+.device-tariff-details { margin-top: 12px; font-size: 12px; color: #52605b; }
+.device-tariff-details > summary { cursor: pointer; min-height: 32px; }
+.device-tariff-details .device-comparison-basis { margin-block: 8px; }
+.device-category-filter { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: #52605b; font-size: 12px; }
+.device-category-filter select { min-height: 44px; border: 1px solid #cddbd0; border-radius: 10px; padding: 8px 12px; background: #fff; }
+.pwa-install-quiet { max-width: 1060px; margin-inline: auto; }
+.pwa-install-quiet h2 { font-size: 12px; }
+@media(max-width:767px) {
+  .pwa-mobile-navigation { display: grid; }
+  [data-pwa-shell] > footer { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+  [data-pwa-shell] > main { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+  .connectivity-status { bottom: calc(5.9rem + env(safe-area-inset-bottom)); }
+}

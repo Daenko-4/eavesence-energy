@@ -14,7 +14,7 @@ type Props = {
   incomeDeferred?: boolean; onSkipIncome?: () => void;
   needsReview?: boolean; onFinishReview?: () => void;
   locale: Locale; currency: string; income: number; fixed: number; count: number;
-  outlook: MonthlyOutlook; incomeInformation?: ReactNode | ((editAction: ReactNode) => ReactNode);
+  outlook: MonthlyOutlook; incomeInformation?: ReactNode;
   onMonthChange:(month:string)=>void;
   incomeOpen: boolean; onIncome: () => void; onCost: () => void;
   incomeForm: ReactNode; payments: ReactNode;
@@ -62,6 +62,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
           </article>)}
         </div>
         {forecastCards[0].note && <p className="home-month-income-note">{forecastCards[0].note}</p>}
+        <div className="home-month-income-edit">{incomeEditAction}</div>
         <p className="home-month-context">{outlook.remaining !== null && outlook.remaining < 0 ? de ? "Deine erfassten Fixkosten sind höher als deine Einnahmen. Weitere Ausgaben sind noch nicht enthalten." : "Your recorded fixed costs exceed your income. Other spending is not included yet." : de ? "Davon bezahlst du noch Lebensmittel, Freizeit und andere nicht erfasste Ausgaben." : "Groceries, leisure and other spending you have not recorded still come out of this amount."}</p>
       </aside>
       <div className="home-month-payments">{payments}</div>
@@ -72,7 +73,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
         </section> : context}
       </aside>}
         <section className="home-month-explanation" data-month-calculation>
-          {typeof incomeInformation === "function" ? incomeInformation(incomeEditAction) : <>{incomeEditAction}{incomeInformation}</>}
+          {incomeInformation}
           <div className="month-calculation-copy">
           <p className="text-[12px] leading-5 text-[#65716d]">{de ? "Monatseinkommen inkl. Sonderzahlungen minus fällige Fixkosten." : "Monthly income including extras, minus fixed costs due."}</p>
           {outlook.incomeIsAverage && <p className="mt-2 text-[12px] leading-5 text-amber-900">{de ? "Dein Einkommen ist ein Jahresdurchschnitt und kann vom tatsächlichen Geldeingang in diesem Monat abweichen." : "Your income is an annual average and may differ from what actually arrives this month."}</p>}

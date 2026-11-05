@@ -71,12 +71,11 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
     await page.getByRole('group', { name: /^(Home actions|Aktionen für dein Zuhause)$/ }).getByRole('button', { name: /^(Add cost|Kosten hinzufügen)$/ }).click();
     return;
   }
-  const settings=page.locator('[data-header-settings]');
-  await expect(settings).toBeVisible();
-  if(await settings.getAttribute('aria-expanded')!=='true')await settings.click();
   const button = page.locator(`[data-home-section="${section}"]`);
   await expect(button).toBeVisible();
   await button.click();
+  const heading=page.locator(`#home-detail-${section}`).locator('h2,h3').first();
+  await expect(heading).toBeFocused();
   return;
 }
 

@@ -10,6 +10,7 @@ export default function QuickCheck({input,data,onSave,onBalance,onPayments,onSav
     <div className="finance-section-heading"><h3>{t('Plan prüfen','Review plan')}</h3>{q.complete&&<span className="finance-status-badge">{t('Heute erledigt','Done today')}</span>}</div>
     <div className="quick-check-content text-[13px]">
       <p className="text-[#52605b]">{t('Nach einer Abbuchung oder vor einer größeren Ausgabe: Kontostand bestätigen und Zahlungen prüfen.','After a debit or before a larger purchase: confirm your balance and review payments.')}</p>
+      <p className="quick-check-next" data-quick-next>{q.complete?t('Dein Plan ist aktuell. Prüfe ihn nach der nächsten Änderung erneut.','Your plan is up to date. Review it after the next change.'):!q.current?t('Nächster Schritt: Kontostand, Zeitraum und fehlende Angaben bestätigen.','Next step: confirm your balance, time period and any missing entries.'):!q.reviewed?t('Nächster Schritt: offene und bezahlte Zahlungen prüfen und unten bestätigen.','Next step: review unpaid and paid payments and confirm below.'):t('Alles geprüft. Du kannst die Prüfung jetzt abschließen.','Everything reviewed. You can complete the review now.')}</p>
       <div className="quick-check-steps">
         <section className="quick-check-step">
           <h4 className="font-semibold">{t('1 · Kontostand und Zeitraum','1 · Balance and time period')}{q.current?' ✓':''}</h4>

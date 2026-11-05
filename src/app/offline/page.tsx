@@ -9,6 +9,7 @@ function language() {
   const path=window.location.pathname;
   if (/^\/(de(?:\/|$)|geraete(?:\/|$)|datenschutz$|impressum$)/.test(path)) return "de";
   if(path !== "/offline") return "en";
+  try { const saved=localStorage.getItem("eavesence-locale-v1"); if(saved==="de"||saved==="en")return saved; } catch { /* Use browser language without storage. */ }
   return navigator.language.startsWith("de") ? "de" : "en";
 }
 

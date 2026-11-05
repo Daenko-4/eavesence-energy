@@ -73,9 +73,10 @@ for(const de of [false,true]) {
  test(`device comparison uses one tariff and handles invalid input ${de?'de':'en'}`,async({page},info)=>{
   await page.setViewportSize({width:320,height:900});
   await page.goto(de?'/geraete':'/en/devices');
-  const price=page.getByLabel(t('Strompreis für den Vergleich (€/kWh)','Comparison electricity price (€/kWh)'),{exact:true});
+  const price=page.getByLabel(t('Strompreis für den Vergleich (EUR/kWh)','Comparison electricity price (EUR/kWh)'),{exact:true});
   const fridge=page.locator('.device-cost-card').filter({has:page.getByRole('heading',{name:t('Kühlschrank','Refrigerator'),exact:true})});
   await expect(fridge.locator('.device-cost-estimate')).toContainText(t('5,83','5.83'));
+  await page.locator('.device-tariff-details summary').click();
   await price.fill(de?'0,70':'0.70');
   await expect(fridge.locator('.device-cost-estimate')).toContainText(t('11,67','11.67'));
   await expect(fridge.locator('.device-cost-estimate')).toContainText(t('140,00','140.00'));

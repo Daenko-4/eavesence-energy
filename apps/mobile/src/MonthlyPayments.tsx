@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState,type ReactNode} from 'react';
 import {FormInput} from './FormInput';
 import {FormSection,FormSubmitButton} from './FormSection';
 import {DisclosureIcon} from './BrandMotion';
@@ -7,11 +7,11 @@ import {usePaymentChecklist} from '@eavesence/core/usePaymentChecklist';
 import {paymentKey} from '@eavesence/core/paymentChecklist';
 import type {HouseholdCost} from '@eavesence/core/householdCosts';
 import type {PlanningData} from '@eavesence/core/planning';
-type Props={open:boolean;onToggle:()=>void;costs:HouseholdCost[];data?:PlanningData;onSave:(data:PlanningData)=>void|Promise<void>;locale:'de'|'en';currency:string;onEdit:(cost:HouseholdCost)=>void;onAdd:()=>void;onPlan?:()=>void};
-export function MonthlyPayments({open,onToggle,costs,data,onSave,locale,currency,onEdit,onAdd,onPlan}:Props){
+type Props={primary?:boolean;month?:string;onMonthChange?:(month:string)=>void;overview?:ReactNode;open:boolean;onToggle:()=>void;costs:HouseholdCost[];data?:PlanningData;onSave:(data:PlanningData)=>void|Promise<void>;locale:'de'|'en';currency:string;onEdit:(cost:HouseholdCost)=>void;onAdd:()=>void;onPlan?:()=>void};
+export function MonthlyPayments({primary=false,month,onMonthChange,overview,open,onToggle,costs,data,onSave,locale,currency,onEdit,onAdd,onPlan}:Props){
 
  const [paidOpen,setPaidOpen]=useState(false),de=locale==='de',t=(a:string,b:string)=>de?a:b;
- const c=usePaymentChecklist(costs,data,onSave,de),paid=c.payments.filter(p=>c.isPaid(p));
+ const c=usePaymentChecklist(costs,data,onSave,de,month,onMonthChange),paid=c.payments.filter(p=>c.isPaid(p));
  const money=(n:number)=>new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency}).format(n);
  const monthLabel=new Intl.DateTimeFormat(de?'de-AT':'en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${c.month}-01T12:00:00Z`));
  const dateLabel=(d:string)=>new Intl.DateTimeFormat(de?'de-AT':'en-GB',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(`${d}T12:00:00Z`));
@@ -22,11 +22,12 @@ export function MonthlyPayments({open,onToggle,costs,data,onSave,locale,currency
  </View>;}
  const upcoming=c.open.filter(p=>p!==c.nextDue);
  return <View style={s.section} accessibilityLabel={t('Monatscheckliste','Monthly checklist')}>
-  <View style={s.monthRow}><Pressable accessibilityRole="button" accessibilityLabel={t('Vorheriger Monat','Previous month')} onPress={c.previous} style={s.arrow}><Text style={s.arrowText}>‹</Text></Pressable><Text accessibilityRole="header" style={s.title}>{monthLabel}</Text><Pressable accessibilityRole="button" accessibilityLabel={t('Nächster Monat','Next month')} onPress={c.next} style={s.arrow}><Text style={s.arrowText}>›</Text></Pressable></View>
+  <View style={[s.monthRow,primary&&s.monthHeader]}><Pressable accessibilityRole="button" accessibilityLabel={t('Vorheriger Monat','Previous month')} onPress={c.previous} style={s.arrow}><Text style={[s.arrowText,primary&&s.headerInk]}>‹</Text></Pressable><Text accessibilityRole="header" style={[s.title,primary&&s.headerInk]}>{monthLabel}</Text><Pressable accessibilityRole="button" accessibilityLabel={t('Nächster Monat','Next month')} onPress={c.next} style={s.arrow}><Text style={[s.arrowText,primary&&s.headerInk]}>›</Text></Pressable></View>
   {c.month!==c.current&&<Pressable accessibilityRole="button" onPress={c.reset} style={s.today}><Text style={s.link}>{t('Zum aktuellen Monat','Back to this month')}</Text></Pressable>}
-  <View style={s.summary}><View style={s.metric}><Text style={s.caption}>{t('Noch offen','Still unpaid')}{c.missing.length?` · ${t('unvollständig','incomplete')}`:''}</Text><Text style={s.amount} accessibilityLiveRegion="polite">{c.payments.length?money(c.closed?0:c.openTotal):'—'}</Text></View><View style={[s.metric,s.paidMetric]}><Text style={s.caption}>{t('Bezahlt','Paid')}</Text><Text style={s.amount}>{money(c.closed?.paid??c.paidTotal)}</Text></View></View>
-  <Pressable accessibilityRole="button" accessibilityState={{expanded:open}} onPress={onToggle} style={s.disclosure}><Text style={s.heading}>{t('Zahlungen abhaken','Check off payments')} · {paid.length}/{c.payments.length}</Text><DisclosureIcon open={open}/></Pressable>
-  {open && <>
+  {overview}
+  <View style={[s.summary,primary&&s.lightSummary]}><View style={s.metric}><Text style={[s.caption,primary&&s.lightCaption]}>{t('Noch offen','Still unpaid')}{c.missing.length?` · ${t('unvollständig','incomplete')}`:''}</Text><Text style={[s.amount,primary&&s.lightAmount]} accessibilityLiveRegion="polite">{c.payments.length?money(c.closed?0:c.openTotal):'—'}</Text></View><View style={[s.metric,s.paidMetric,primary&&s.lightDivider]}><Text style={[s.caption,primary&&s.lightCaption]}>{t('Bezahlt','Paid')}</Text><Text style={[s.amount,primary&&s.lightAmount]}>{money(c.closed?.paid??c.paidTotal)}</Text></View></View>
+  {!primary&&<Pressable accessibilityRole="button" accessibilityState={{expanded:open}} onPress={onToggle} style={s.disclosure}><Text style={s.heading}>{t('Zahlungen abhaken','Check off payments')} · {paid.length}/{c.payments.length}</Text><DisclosureIcon open={open}/></Pressable>}
+  {(primary||open) && <>
   <Text style={s.small}>{t('Schon abgebucht oder bezahlt? Tippe auf das Kästchen. Die Zahlung wandert zu „Bezahlt“; nächsten Monat beginnt die Liste neu.','Already debited or paid? Tap the checkbox. The payment moves to Paid; next month starts a new checklist.')}</Text>
   <PaymentAmountEditor c={c} locale={locale}/>
   {c.closed?<Text style={s.note}>{t('Dieser Monat ist abgeschlossen. Der Rückblick bleibt gespeichert.','This month is closed. Its review has been saved.')}</Text>:<>
@@ -61,6 +62,8 @@ export function MonthlyPayments({open,onToggle,costs,data,onSave,locale,currency
 const s=StyleSheet.create({
  amountButton:{minHeight:44,paddingLeft:8,justifyContent:'center'},editor:{padding:14,borderWidth:1,borderColor:'#dfe5dd',borderRadius:14,backgroundColor:'#fff',gap:10},editActions:{flexDirection:'row',flexWrap:'wrap',gap:10},editButton:{minHeight:44,paddingHorizontal:12,borderWidth:1,borderColor:'#dfe5dd',borderRadius:20,justifyContent:'center',alignSelf:'flex-start'},
  section:{gap:12,marginBottom:20},monthRow:{flexDirection:'row',alignItems:'center',gap:8},title:{flex:1,fontSize:22,fontWeight:'700',textAlign:'center',color:'#17211f'},arrow:{minWidth:44,minHeight:44,alignItems:'center',justifyContent:'center'},arrowText:{fontSize:30,color:'#17211f'},today:{minHeight:44,justifyContent:'center'},
+ monthHeader:{backgroundColor:'#17211f',borderRadius:14,padding:8},headerInk:{color:'#fff'},lightDivider:{borderColor:'#dfe5dd'},
+ lightSummary:{backgroundColor:'#f6f6f0',borderWidth:1,borderColor:'#dfe5dd',padding:14},lightCaption:{color:'#52605b'},lightAmount:{color:'#17211f',fontSize:20},
  summary:{flexDirection:'row',padding:20,borderRadius:18,backgroundColor:'#24272c'},metric:{flex:1,minWidth:0,gap:8},paidMetric:{borderLeftWidth:1,borderColor:'#59625d',paddingLeft:16,marginLeft:12},caption:{fontSize:13,lineHeight:19,color:'#d1d7d4'},amount:{fontSize:24,fontWeight:'700',letterSpacing:-.5,color:'#fff',flexShrink:1},
  priority:{backgroundColor:'#e6f5ed',borderRadius:16,paddingHorizontal:14,paddingTop:14},eyebrow:{fontSize:11,fontWeight:'600',letterSpacing:.8,color:'#28734d',textTransform:'uppercase'},priorityRow:{borderBottomWidth:0},row:{flexDirection:'row',alignItems:'center',borderBottomWidth:1,borderColor:'#e3e8e2'},checkTarget:{minWidth:44,minHeight:60,alignItems:'center',justifyContent:'center'},check:{width:23,height:23,borderRadius:6,borderWidth:1.5,borderColor:'#52605b'},checked:{backgroundColor:'#28734d',borderColor:'#28734d'},checkText:{color:'#fff',fontSize:16,textAlign:'center',fontWeight:'700'},payment:{flex:1,minHeight:60,flexDirection:'row',alignItems:'center',gap:10,paddingVertical:10},nameColumn:{flex:1,minWidth:0},name:{fontSize:15,lineHeight:21,fontWeight:'600',color:'#17211f'},value:{fontSize:15,fontWeight:'600',color:'#17211f',flexShrink:1,maxWidth:'38%'},paidName:{textDecorationLine:'line-through',color:'#65716d'},small:{fontSize:12,lineHeight:19,color:'#65716d'},chevron:{fontSize:22,color:'#65716d'},heading:{fontSize:14,fontWeight:'600',color:'#17211f'},progress:{gap:7},track:{height:6,borderRadius:4,backgroundColor:'#e2e7e1',overflow:'hidden'},fill:{height:6,backgroundColor:'#28734d',borderRadius:4},disclosure:{minHeight:52,flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:12},note:{fontSize:13,lineHeight:20,color:'#65716d'},error:{fontSize:13,lineHeight:20,color:'#b42318'},missing:{padding:14,backgroundColor:'#fff5df',borderRadius:14},link:{fontSize:13,fontWeight:'600',color:'#28734d'},plan:{minHeight:56,flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:14,borderRadius:14,backgroundColor:'#edf0ec',marginTop:4},badge:{fontSize:11,fontWeight:'600',color:'#28734d',backgroundColor:'#dcf8e8',paddingHorizontal:8,paddingVertical:3,borderRadius:10,marginLeft:'auto'},
 });

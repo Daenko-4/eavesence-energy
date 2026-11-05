@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import {useElectricityTariff} from "./useElectricityTariff";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { devices, getDeviceTypicalYearlyKwh } from "@/data/devices";
@@ -287,15 +288,19 @@ export default function DevicesPage({
   locale = "de",
 }: DevicesPageProps) {
   const text = pageText[locale];
+  const [categoryFilter,setCategoryFilter]=useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [tariff, setTariff] = useState("0.35");
+  const sharedTariff=useElectricityTariff();
+  const [comparisonTariff,setComparisonTariff]=useState<string|null>(null);
+  const tariff=comparisonTariff??String(sharedTariff.price);
   const parsedTariff = Number(tariff.replace(",", "."));
   const validTariff = tariff.trim() !== "" && Number.isFinite(parsedTariff) && parsedTariff >= 0;
-  const money = (value: number) => new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:"EUR"}).format(value);
+  const money = (value: number) => new Intl.NumberFormat(locale === "de" ? "de-AT" : "en-GB", {style:"currency",currency:sharedTariff.currency}).format(value);
   const normalizedSearch = searchQuery
     .trim()
     .toLocaleLowerCase(locale === "de" ? "de-DE" : "en-GB");
   const visibleDevices = devices.filter((device) => {
+    if(categoryFilter&&device.category!==categoryFilter)return false;
     if (!normalizedSearch) return true;
 
     const localizedDevice = getLocalizedDevice(device, locale);
@@ -333,7 +338,7 @@ export default function DevicesPage({
         <section className="relative overflow-hidden border-b border-[#dfe5dd] bg-[var(--brand-off-white)] px-5 sm:px-6">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(114,220,163,0.13),transparent_30%)]" />
 
-          <div className="relative mx-auto max-w-7xl py-10 sm:py-12">
+          <div className="relative mx-auto max-w-7xl py-5 sm:py-8">
             <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--brand-green)]">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-green-mint)]" />
               {text.badge}
@@ -346,15 +351,11 @@ export default function DevicesPage({
               </span>
             </h1>
 
-            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[#65716d]">
+            <p className="mt-2 max-w-2xl text-[13px] leading-5 text-[#65716d]">
               {text.description}
             </p>
 
             <div className="mt-6">
-              <div className="device-comparison-basis">
-                <label>{locale === "de" ? "Strompreis für den Vergleich (€/kWh)" : "Comparison electricity price (€/kWh)"}<input inputMode="decimal" value={tariff} onChange={event=>setTariff(event.target.value)} aria-invalid={!validTariff} aria-describedby="device-comparison-note" /></label>
-                <p id="device-comparison-note">{locale === "de" ? "Geschätzte Stromkosten bei typischer Nutzung. Dein Tarif und Verbrauch können abweichen. Gerätekosten werden nicht zusätzlich zu deinen Stromzahlungen abgezogen." : "Estimated electricity costs at typical usage. Your tariff and consumption may differ. Device costs are not deducted on top of your electricity payments."}</p>
-              </div>
               <label className="block max-w-md">
                 <span className="sr-only">{text.searchLabel}</span>
                 <span className="relative block">
@@ -380,27 +381,13 @@ export default function DevicesPage({
                 </span>
               </label>
 
+              <details className="device-tariff-details"><summary>{locale === "de" ? "Strompreis" : "Electricity price"}: {tariff} {sharedTariff.currency}/kWh · {locale === "de" ? "ändern" : "change"}</summary><div className="device-comparison-basis">
+                <label>{locale === "de" ? `Strompreis für den Vergleich (${sharedTariff.currency}/kWh)` : `Comparison electricity price (${sharedTariff.currency}/kWh)`}<input inputMode="decimal" value={tariff} onChange={event=>setComparisonTariff(event.target.value)} aria-invalid={!validTariff} aria-describedby="device-comparison-note" /></label>
+                <p id="device-comparison-note">{locale === "de" ? "Geschätzte Stromkosten bei typischer Nutzung. Dein Tarif und Verbrauch können abweichen. Gerätekosten werden nicht zusätzlich zu deinen Stromzahlungen abgezogen." : "Estimated electricity costs at typical usage. Your tariff and consumption may differ. Device costs are not deducted on top of your electricity payments."}</p>
+                {comparisonTariff!==null&&<p className="mt-2 text-[12px]">{locale==='de'?'Nur für diesen Vergleich. Dein gespeicherter Strompreis bleibt unverändert.':'For this comparison only. Your saved electricity price stays the same.'} <button type="button" className="centre-text-action" onClick={()=>setComparisonTariff(null)}>{locale==='de'?'Gespeicherten Preis verwenden':'Use saved price'}</button></p>}
+              </div></details>
               {!validTariff && <p role="alert" className="mt-2 text-[13px] text-red-700">{locale === "de" ? "Bitte einen gültigen Strompreis ab 0 eingeben." : "Enter a valid electricity price of 0 or more."}</p>}
-              {categories.length > 0 && (
-                <nav
-                  className="mt-5 grid grid-cols-2 border-y border-slate-200/80 sm:grid-cols-4 lg:grid-cols-7"
-                  aria-label={text.searchLabel}
-                >
-                  {categories.map(({ category }) => (
-                    <a
-                      key={category}
-                      href={`#${getCategoryAnchor(category, locale)}`}
-                      className="group flex min-h-[72px] items-center gap-2.5 border-b border-r border-slate-200/70 px-4 text-[13px] font-semibold text-slate-700 transition hover:bg-[#eaf8ef] hover:text-[var(--brand-green)] sm:px-5 lg:border-b-0 lg:last:border-r-0"
-                    >
-                      <span className="text-[var(--brand-green)] transition-transform duration-200 group-hover:-translate-y-0.5 [&>svg]:h-5 [&>svg]:w-5">
-                        <CategoryIcon category={category} />
-                      </span>
-
-                      {getLocalizedCategory(category, locale)}
-                    </a>
-                  ))}
-                </nav>
-              )}
+              <label className="device-category-filter">{locale==='de'?'Kategorie':'Category'}<select value={categoryFilter} onChange={event=>setCategoryFilter(event.target.value)}><option value="">{locale==='de'?'Alle Geräte':'All devices'}</option>{categoryOrder.map(category=><option key={category} value={category}>{getLocalizedCategory(category,locale)}</option>)}</select></label>
             </div>
           </div>
         </section>

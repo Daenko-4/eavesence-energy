@@ -1,17 +1,22 @@
+import {useState} from 'react';
 import { Pressable, StyleSheet, View } from "react-native";
 import { incomeExtraLabel, incomeMonthLabel, summarizeIncome, type IncomeProfile } from "@eavesence/core/income";
 import { LocalizedText as Text } from "./i18n";
-export function IncomeExtrasSummary({ profile, locale, currency, onManage }: { profile: IncomeProfile; locale: "de" | "en"; currency: string; onManage?:()=>void }) {
-  const summary = summarizeIncome(profile), de = locale === "de";
+export function IncomeExtrasSummary({ profile, locale, currency, onManage,year,compact=false }: { profile: IncomeProfile; locale: "de" | "en"; currency: string; onManage?:()=>void;year?:number;compact?:boolean }) {
+  const summary = summarizeIncome(profile,year), de = locale === "de";
+  const [expanded,setExpanded]=useState(false);
   const money = (value: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(value);
   if(summary.annualAverage&&!onManage)return <View style={styles.warning}><Text style={styles.note}>{de?'Dein Jahresnetto wird durch 12 geteilt. Das ist ein Monatsdurchschnitt. Für eine genaue Monatsplanung trage dein monatliches Nettoeinkommen und die Sonderzahlungen getrennt ein.':'Your annual net income is divided by 12. This is a monthly average. For accurate monthly planning, enter monthly net income and salary extras separately.'}</Text></View>;
   if (!summary.extras.length && !summary.additional.length) return null;
   return <View style={styles.card}>
     <View style={styles.row}><View style={styles.flex}><Text style={styles.note}>{de?`Jahreseinnahmen ${summary.year}`:`Annual income · ${summary.year}`}</Text><Text style={styles.amount}>{money(summary.annual)}</Text></View><View style={styles.flex}><Text style={styles.note}>{de?'Monatsdurchschnitt':'Monthly average'}</Text><Text style={styles.amount}>{money(summary.average)}</Text></View></View>
+    {compact&&<Pressable accessibilityRole="button" accessibilityLabel={de?'Sonderzahlungen und Einzelheiten':'Salary extras and details'} accessibilityState={{expanded}} style={styles.toggle} onPress={()=>setExpanded(!expanded)}><Text style={styles.title}>{de?'Sonderzahlungen und Einzelheiten':'Salary extras and details'}</Text><Text>{expanded?'−':'+'}</Text></Pressable>}
+    {(!compact||expanded)&&<>
     <Text style={styles.note}>{de?'Jahresplanung inklusive Sonderzahlungen und zusätzlicher Einnahmen. Geplantes Geld steht erst nach Eingang zur Verfügung.':'Annual plan including salary extras and additional income. Planned money becomes available once received.'}</Text>
     {summary.extras.map(extra => <View key={extra.id} style={styles.row}><Text style={[styles.note, styles.flex]}>{incomeExtraLabel(extra.kind, locale)} · {incomeMonthLabel(extra.month, locale)} {extra.year ?? (de ? "jährlich" : "every year")}</Text><Text style={styles.title}>+ {money(extra.amount)}</Text></View>)}
     {summary.additional.filter(entry=>Number(entry.date.slice(0,4))===summary.year).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3).map(entry=><View key={entry.id} style={styles.row}><Text style={[styles.note,styles.flex]}>{entry.name||(de?'Zusätzliche Einnahme':'Additional income')} · {entry.date} · {entry.status==='received'?(de?'Erhalten':'Received'):(de?'Geplant':'Planned')}</Text><Text style={styles.title}>+ {money(entry.amount)}</Text></View>)}
     {!!summary.additional.length&&onManage&&<Pressable accessibilityRole="button" onPress={onManage} style={styles.toggle}><Text style={styles.title}>{de?'Zusätzliche Einnahmen verwalten':'Manage additional income'} ({summary.additional.length})</Text></Pressable>}
+    </>}
   </View>;
 }
 
