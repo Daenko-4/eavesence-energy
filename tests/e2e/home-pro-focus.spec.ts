@@ -27,7 +27,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     const heading = page.locator('[data-home-heading]');
     const box = (await heading.boundingBox())!;
     expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThan(2);
-    await expect(page.getByRole('group',{name:de?'Aktionen für dein Zuhause':'Home actions',exact:true}).getByRole('button')).toHaveCount(2);
+    await expect(page.getByRole('group',{name:de?'Aktionen für dein Zuhause':'Home actions',exact:true}).getByRole('button')).toHaveText(de ? ['Kosten hinzufügen', 'Kosten verwalten', 'Zusätzliche Einnahme erfassen', 'Notizen'] : ['Add cost', 'Manage costs', 'Record additional income', 'Notes']);
     await expect(page.locator('[data-workspace]')).toHaveCount(0);
     await page.locator('[data-header-settings]').click();
     const settings = page.locator('[data-home-settings]');

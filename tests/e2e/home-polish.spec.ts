@@ -67,13 +67,16 @@ for (const width of [1365, 390]) {
       const headingBox = (await heading.boundingBox())!;
       expect(Math.abs(headingBox.x + headingBox.width / 2 - width / 2)).toBeLessThan(2);
       await expect(page.locator('[data-header-settings]')).toHaveAccessibleName(de ? 'Einstellungen' : 'Settings');
-      await expect(page.getByRole('group',{name:de?'Aktionen für dein Zuhause':'Home actions',exact:true}).getByRole('button')).toHaveCount(2);
+      await expect(page.getByRole('group',{name:de?'Aktionen für dein Zuhause':'Home actions',exact:true}).getByRole('button')).toHaveText(de ? ['Kosten hinzufügen', 'Kosten verwalten', 'Zusätzliche Einnahme erfassen', 'Notizen'] : ['Add cost', 'Manage costs', 'Record additional income', 'Notes']);
       const settings=(await page.locator('[data-header-settings]').boundingBox())!;
       const language=(await page.locator('[data-header-language]').boundingBox())!;
       const name=(await heading.locator('h1').boundingBox())!;
       expect(settings.x+settings.width).toBeLessThanOrEqual(language.x);
       expect(Math.abs(name.x+name.width/2-width/2)).toBeLessThan(2);
-      expect(headingBox.height).toBeLessThan(170);
+      // The mobile toolbar now contains two rows of four shared actions.
+      const toolbarBox = (await heading.getByRole('group', { name: de ? 'Aktionen für dein Zuhause' : 'Home actions', exact: true }).boundingBox())!;
+      expect(headingBox.height - toolbarBox.height).toBeLessThan(100);
+      expect(toolbarBox.height).toBeLessThan(width < 640 ? 112 : 44);
       expect(await heading.locator('h1').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeLessThanOrEqual(32);
 
       await heading.screenshot({ path: info.outputPath(`home-heading-${locale}-${width}.png`) });

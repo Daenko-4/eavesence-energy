@@ -1645,7 +1645,7 @@ for (const width of [320, 1365]) test(`home actions reveal their editor and keep
   await expect(page.locator('[data-home-tiles] button[aria-expanded="true"]').first()).toContainText('Household costs');
   await page.mouse.move(10, 180);
   const addCost = actions.getByRole('button', { name: 'Add cost', exact: true });
-  await expect(addCost).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(addCost).toHaveCSS('background-color', 'rgb(246, 246, 240)');
   await expect(addCost).toHaveCSS('border-top-width', '1px');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
