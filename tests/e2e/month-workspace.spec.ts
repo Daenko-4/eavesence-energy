@@ -19,6 +19,11 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     const annualSummary=workspace.locator('[data-income-extras-summary]');
     await expect(annualSummary.locator('.income-annual-metrics dd')).toHaveCount(2);
     await expect(workspace.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true})).toBeVisible();
+    await expect(workspace.locator('[data-home-kpi=income]').getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true})).toBeVisible();
+    await expect(page.locator('.home-month-income-edit')).toHaveCount(0);
+    const tools=page.locator('[data-home-section-navigation]'),monthBar=workspace.locator('.home-month-toolbar');
+    expect(Math.abs((await tools.boundingBox())!.x+(await tools.boundingBox())!.width-(await monthBar.boundingBox())!.x-(await monthBar.boundingBox())!.width)).toBeLessThanOrEqual(1);
+    await expect(tools.locator('.site-disclosure-icon')).toHaveCount(0);
     await annualSummary.locator('summary').click();
     expect((await annualSummary.locator('.income-annual-metrics').boundingBox())!.width).toBeLessThanOrEqual(520);
 
