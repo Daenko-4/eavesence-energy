@@ -1931,7 +1931,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
   return (
     <div lang={locale} data-pwa-shell data-home-workspace={view} data-home-has-month={view === "overview" && householdCosts.length > 0} className="min-h-screen bg-[var(--background)] text-[#17211f]">
-      <Header locale={locale} languageHrefOverride={languageHref} onCosts={()=>openHomeSection("costs")} costsActive={view==="overview"&&costManagerOpen} onSettings={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} settingsOpen={settingsOpen} />
+      <Header locale={locale} languageHrefOverride={languageHref} onSettings={() => settingsOpen ? setSettingsOpen(false) : openAppSettings()} settingsOpen={settingsOpen} />
       <main id="home-overview" className="scroll-mt-20 px-5 pb-20 pt-10 sm:px-6 sm:pt-14">
         <div className="mx-auto max-w-7xl">
           <section hidden={view !== "overview"} data-home-heading className="home-heading">
@@ -1943,13 +1943,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               {view === "overview" && !householdCosts.length && <h1 className="home-name">{localizeDefaultHouseholdName(profile.name, locale)}</h1>}
               <p className="home-subtitle">{text.pageSubtitle}</p>
             </div>
-            <div role="group" aria-label={locale === "de" ? "Aktionen für dein Zuhause" : "Home actions"} className={`home-entry-actions ${householdCosts.length > 0 ? "home-mobile-entry-actions" : ""}`}>
-              <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={event => {openCostForm();contextTrigger.current=event.currentTarget;}}>{locale === "de" ? "Kosten hinzufügen" : "Add cost"}</button>
-              <button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={()=>setAdditionalEntry(null)}>{locale === "de" ? "Zusätzliche Einnahme erfassen" : "Record additional income"}</button>
-            </div>
+            {view==='overview'&&<HomeSectionNavigation locale={locale} active={homeSection} onChange={openHomeSection} memos={profile.planning?.memos}
+              addCost={<button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={event=>{openCostForm();contextTrigger.current=event.currentTarget;}}>{locale==='de'?'Kosten hinzufügen':'Add cost'}</button>}
+              additionalIncome={<button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={()=>setAdditionalEntry(null)}>{locale==='de'?'Zusätzliche Einnahme erfassen':'Record additional income'}</button>}/>}
           </section>
 
-          {view==='overview'&&<HomeSectionNavigation locale={locale} active={homeSection} onChange={openHomeSection} memos={profile.planning?.memos} />}
           {incomeReceipt&&<div className="income-receipt" role="status"><p>{formatMoney(incomeReceipt.amount,locale,profile.currency)} {locale==='de'?'für':'for'} {new Intl.DateTimeFormat(locale==='de'?'de-AT':'en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${incomeReceipt.date}T12:00:00Z`))} {incomeReceipt.status==='planned'?(locale==='de'?'geplant.':'planned.'):(locale==='de'?'erfasst.':'recorded.')}</p>{incomeReceipt.status==='received'&&profile.planning?.cash&&<button type="button" className="centre-text-action" onClick={()=>{changeWorkspace('plan');setPlanQuestion('payday');setPlanPeriod('payday');requestAnimationFrame(()=>{const button=document.querySelector<HTMLButtonElement>('[data-payday-edit-action]');button?.scrollIntoView({block:'center'});if(button?.getAttribute('aria-expanded')==='false')button.click();});}}>{locale==='de'?'Kontostand aktualisieren':'Update account balance'}</button>}<button type="button" className="centre-text-action" aria-label={locale==='de'?'Hinweis schließen':'Dismiss notice'} onClick={()=>setIncomeReceipt(null)}>×</button></div>}
           {<AdditionalIncomeDialog open={additionalEntry !== undefined} locale={locale} currency={profile.currency} entries={profile.additionalIncome??[]} entry={additionalEntry} onSave={saveAdditionalIncome} onRemove={removeAdditionalIncome} onClose={()=>setAdditionalEntry(undefined)}/>}
 

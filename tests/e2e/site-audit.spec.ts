@@ -50,8 +50,8 @@ for (const locale of ['en', 'de'] as const) for (const width of [320, 390, 1365]
       const css = getComputedStyle(button);
       return [css.fontSize, css.fontWeight, css.lineHeight, css.padding, css.borderTopWidth, css.borderRadius, button.getBoundingClientRect().height];
     }));
-    expect(styles).toHaveLength(2);
-    expect(styles[1]).toEqual(styles[0]);
+    expect(styles).toHaveLength(4);
+    for(const style of styles)expect(style).toEqual(styles[0]);
     await page.locator('[data-header-settings]').click();
     const settings = page.locator('[data-home-settings]');
     await expect(settings.locator('input').first()).toBeFocused();

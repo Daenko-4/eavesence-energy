@@ -12,7 +12,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
       const profile=JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);
       Object.assign(profile,{incomeAmount:2400,incomeFrequency:'monthly',incomeDeferred:false,overviewReviewed:true,backupReminderDismissed:true,incomeExtras:[{id:'extra',kind:'salary14',month:11,amount:2000},{id:'summer',kind:'salary13',month:6,amount:2000},{id:'bonus',kind:'bonus',month:12,amount:500}]});
       localStorage.setItem('eavesence-home-profile-v1',JSON.stringify(profile));
-      localStorage.setItem('eavesence-home-costs-v1',JSON.stringify(Array.from({length:20},(_,index)=>({id:`cost-${index}`,name:`Bill ${index+1}`,amount:20,frequency:'monthly',category:'other',nextDueDate:`2026-10-${String(index+1).padStart(2,'0')}`,updatedAt:'2026-10-25T12:00:00Z'}))));
+      localStorage.setItem('eavesence-home-costs-v1',JSON.stringify(Array.from({length:20},(_,index)=>({id:`cost-${index}`,name:`Bill ${index+1}`,amount:20,variableAmount:index===1,frequency:'monthly',category:'other',nextDueDate:`2026-10-${String(index+1).padStart(2,'0')}`,updatedAt:'2026-10-25T12:00:00Z'}))));
     });
     await page.reload();
     const workspace=page.locator('.home-month-workspace');
@@ -21,8 +21,15 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await expect(workspace.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true})).toBeVisible();
     await expect(workspace.locator('[data-home-kpi=income]').getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true})).toBeVisible();
     await expect(page.locator('.home-month-income-edit')).toHaveCount(0);
-    const tools=page.locator('[data-home-section-navigation]'),monthBar=workspace.locator('.home-month-toolbar');
-    expect(Math.abs((await tools.boundingBox())!.x+(await tools.boundingBox())!.width-(await monthBar.boundingBox())!.x-(await monthBar.boundingBox())!.width)).toBeLessThanOrEqual(1);
+    const tools=page.locator('[data-home-section-navigation]');
+    const buttons=tools.getByRole('button');
+    await expect(buttons).toHaveText([t('Kosten hinzufügen','Add cost'),t('Kosten verwalten','Manage costs'),t('Zusätzliche Einnahme erfassen','Record additional income'),t('Notizen','Notes')]);
+    const actionBoxes=await buttons.evaluateAll(nodes=>nodes.map(node=>{const b=node.getBoundingClientRect();return {x:b.x,y:b.y};}));
+    if(width>=640){expect(new Set(actionBoxes.map(b=>b.y)).size).toBe(1);for(let i=1;i<4;i++)expect(actionBoxes[i].x).toBeGreaterThan(actionBoxes[i-1].x);}
+    else{expect(actionBoxes[0].y).toBe(actionBoxes[1].y);expect(actionBoxes[2].y).toBe(actionBoxes[3].y);expect(actionBoxes[2].y).toBeGreaterThan(actionBoxes[0].y);}
+    await expect(page.locator('header').getByRole('button',{name:t('Kosten','Costs'),exact:true})).toHaveCount(0);
+    const annualPanel=workspace.locator('.home-month-explanation');
+    expect(Math.abs((await annualPanel.boundingBox())!.width-(await workspace.locator('.home-month-payments').boundingBox())!.width)).toBeLessThanOrEqual(1);
     await expect(tools.locator('.site-disclosure-icon')).toHaveCount(0);
     await annualSummary.locator('summary').click();
     expect((await annualSummary.locator('.income-annual-metrics').boundingBox())!.width).toBeLessThanOrEqual(520);
@@ -43,6 +50,15 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
 
     const open=workspace.locator('[data-payment-group=open]'),paid=workspace.locator('[data-payment-group=paid]');
     await expect(open.getByRole('checkbox')).toHaveCount(20);
+    const rowGeometry=await open.evaluate(el=>{
+      const right=(node:Element)=>{const range=document.createRange();range.selectNodeContents(node);return range.getBoundingClientRect().right;};
+      const values=Array.from(el.querySelectorAll('.home-payment-amount')).map(right);
+      const edit=el.querySelector('.home-payment-edit-action')!.getBoundingClientRect(),amount=el.querySelector('.home-payment-row-actions')!.nextElementSibling!.getBoundingClientRect();
+      const heading=el.querySelector('h3')!.getBoundingClientRect(),progress=el.closest('[data-month-checklist]')!.querySelector('[data-checklist-progress]')!;const range=document.createRange();range.selectNodeContents(progress);
+      return {spread:Math.max(...values)-Math.min(...values),editRight:edit.right,amountLeft:amount.left,inset:Math.abs(range.getBoundingClientRect().left-heading.left)};
+    });
+    expect(rowGeometry.spread).toBeLessThanOrEqual(1);expect(rowGeometry.editRight).toBeLessThanOrEqual(rowGeometry.amountLeft);expect(rowGeometry.inset).toBeLessThanOrEqual(1);
+
     await expect(paid).toHaveCount(0);
     await expect(workspace.locator('[data-home-remaining]')).toContainText(t('2.000,00','2,000.00'));
     // The first payment should be reachable without scrolling a full screen.
