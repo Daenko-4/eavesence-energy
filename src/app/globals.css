@@ -1450,13 +1450,21 @@ a {
 }
 
 /* Daily actions share one compact rhythm; supporting detail stays secondary. */
-.home-month-income-edit { display: flex; justify-content: flex-start; }
-.home-month-income-edit .home-regular-income-action { margin: 0; min-height: 32px; }
 .income-annual-details > summary { cursor: pointer; margin-top: 10px; color: #087a45; font-size: 12px; font-weight: 600; min-height: 32px; display: flex; align-items: center; }
 .home-month-workspace .month-review { margin-top: 12px; padding-top: 12px; }
 .home-month-workspace .month-review-metrics { margin-top: 8px; }
 .home-month-workspace .month-review-footer { margin-top: 8px; }
-[data-home-workspace] > main > div > .home-section-navigation { max-width: 520px; margin: 10px auto 0; }
+[data-home-workspace] > main > div > .home-secondary-actions { display: flex; justify-content: flex-end; max-width: 1060px; margin: 8px auto 0; padding: 0; gap: 8px; border: 0; }
+.home-secondary-actions > button { position: relative; flex: 0 1 auto; min-height: 36px; padding: 6px 12px; border: 1px solid #cdd7cf; border-radius: 999px; background: #f6f6f0; color: #52605b; font-size: 12px; line-height: 20px; }
+.home-secondary-actions > button:hover { background: #edf4ed; color: #196441; }
+.home-secondary-actions > button[aria-expanded="true"] { border-color: #a8cbb3; color: #196441; background: #e0f1e4; }
+.home-month-income-trigger { position: relative; display: flex; margin-inline: auto; max-width: 100%; min-height: 18px; align-items: center; justify-content: center; gap: 6px; font: inherit; color: inherit; cursor: pointer; }
+.home-month-income-trigger svg { width: 12px; height: 12px; flex-shrink: 0; color: #087a45; }
+.home-month-income-trigger:hover span { text-decoration: underline; text-underline-offset: 3px; }
+.home-month-income-trigger::after { content: ""; position: absolute; inset: -13px 0; }
+.home-month-income-trigger:focus-visible { outline: 2px solid #087a45; outline-offset: 3px; border-radius: 4px; }
+@media(max-width:639px) { .home-month-income-trigger { min-height: 36px; line-height: 18px; } .home-month-income-trigger::after { inset: -4px 0; } }
+
 .income-receipt { display: flex; align-items: center; justify-content: center; gap: 8px 16px; flex-wrap: wrap; margin: 12px auto; padding: 8px 12px; max-width: 760px; background: #e0f1e4; border-radius: 12px; color: #196441; font-size: 13px; }
 .quick-check-next { color: #196441; font-weight: 600; }
 .device-tariff-details { margin-top: 12px; font-size: 12px; color: #52605b; }
@@ -1472,3 +1480,7 @@ a {
   [data-pwa-shell] > main { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
   .connectivity-status { bottom: calc(5.9rem + env(safe-area-inset-bottom)); }
 }
+
+.home-secondary-actions > button::after { content: ""; position: absolute; inset: -4px 0; }
+
+.home-secondary-actions ~ [data-home-overview-content] { margin-top: 12px; }

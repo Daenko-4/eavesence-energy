@@ -40,7 +40,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
     {label: outlook.missing.length ? de ? `Bisher erfasste Fixkosten im ${monthName}` : `Recorded fixed costs in ${monthName}` : de ? `Fixkosten im ${monthName}` : `Fixed costs in ${monthName}`, value:`${outlook.payments.some(payment => payment.estimated) ? de ? "ca. " : "approx. " : ""}${money(outlook.total)}`},
     {label: de ? "Voraussichtlich übrig nach Fixkosten" : "Expected amount left after fixed costs", value:outlook.remaining === null ? "—" : `${estimate}${money(outlook.remaining)}`, emphasis:true, note:outlook.remaining === null ? de ? "Angaben für diesen Monat fehlen noch" : "Entries for this month are still missing" : undefined},
   ];
-  const incomeEditAction = !needsIncome && <button type="button" className="centre-text-action home-regular-income-action" onClick={onIncome} aria-expanded={incomeOpen}>{hasIncome ? de ? "Reguläres Einkommen ändern" : "Edit regular income" : de ? "Einkommen eintragen" : "Add income"}</button>;
+  const incomeEditLabel = hasIncome ? de ? "Reguläres Einkommen ändern" : "Edit regular income" : de ? "Einkommen eintragen" : "Add income";
   return <section aria-label={de ? "Finanzen im Überblick" : "Your household at a glance"}>
     {(needsIncome || !count) && <div data-home-setup className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
       <p className="text-[13px] font-bold">{needsIncome ? de ? "1 · Einkommen eintragen" : "1 · Add your income" : de ? "2 · Erste Kosten hinzufügen" : "2 · Add your first cost"}</p>
@@ -56,13 +56,12 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
       <aside className="home-month-summary" aria-label={de ? "Dein Monatsüberblick" : "Your month at a glance"}>
         <div className="home-month-kpis finance-result-surface" data-home-monthly-budget>
           {forecastCards.map((card,index)=><article key={index} role={index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "status" : undefined} data-home-shortfall={index === 2 && outlook.remaining !== null && outlook.remaining < 0} data-home-kpi={index === 0 ? "income" : index === 1 ? "costs" : "remaining"} data-home-month-result={index === 2 ? "" : undefined} className={index === 2 ? "home-month-kpi home-month-kpi-result" : "home-month-kpi"}>
-            <p className="home-month-kpi-label">{index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? de ? "Voraussichtlich fehlen nach Fixkosten" : "Expected shortfall after fixed costs" : card.label}</p>
+            <p className="home-month-kpi-label">{index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? de ? "Voraussichtlich fehlen nach Fixkosten" : "Expected shortfall after fixed costs" : index === 0 ? <button type="button" className="home-month-income-trigger" aria-label={incomeEditLabel} title={incomeEditLabel} aria-expanded={incomeOpen} onClick={onIncome}><span>{card.label}</span><svg aria-hidden="true" viewBox="0 0 16 16" fill="none"><path d="m10.5 2.5 3 3M3 10l7.8-7.8a1.4 1.4 0 0 1 2 2L5 12l-3 1 1-3Z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button> : card.label}</p>
             <p className={`home-month-kpi-amount ${index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "text-[#ffd28c]" : ""}`} data-home-remaining={index === 2 ? "" : undefined}>{index === 2 && outlook.remaining !== null ? `${estimate}${money(Math.abs(outlook.remaining))}` : card.value}</p>
             {card.note && <p className="home-month-kpi-note">{card.note}</p>}
           </article>)}
         </div>
         {forecastCards[0].note && <p className="home-month-income-note">{forecastCards[0].note}</p>}
-        <div className="home-month-income-edit">{incomeEditAction}</div>
         <p className="home-month-context">{outlook.remaining !== null && outlook.remaining < 0 ? de ? "Deine erfassten Fixkosten sind höher als deine Einnahmen. Weitere Ausgaben sind noch nicht enthalten." : "Your recorded fixed costs exceed your income. Other spending is not included yet." : de ? "Davon bezahlst du noch Lebensmittel, Freizeit und andere nicht erfasste Ausgaben." : "Groceries, leisure and other spending you have not recorded still come out of this amount."}</p>
       </aside>
       <div className="home-month-payments">{payments}</div>

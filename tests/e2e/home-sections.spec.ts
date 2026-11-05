@@ -91,17 +91,14 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
   });
 }
 
-test('section indicators animate in both directions and respect reduced motion', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'no-preference' });
+test('secondary tools have quiet active states and remain keyboard accessible', async ({ page }) => {
   await seed(page, false);
-  const button = page.locator('[data-home-section=notes]');
-  const icon = button.locator('.site-disclosure-icon');
-  const duration = await icon.evaluate(el => parseFloat(getComputedStyle(el).transitionDuration));
-  expect(duration).toBeGreaterThanOrEqual(.3);
-  await button.click();
-  await expect(icon).toHaveCSS('transform', 'matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)');
-  await button.click();
-  await expect(icon).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)');
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(icon).toHaveCSS('transition-duration', '0s');
+  const button=page.locator('[data-home-section=notes]');
+  await expect(button.locator('.site-disclosure-icon')).toHaveCount(0);
+  await expect(button).toHaveCSS('border-radius','999px');
+  await button.focus();await button.press('Enter');
+  await expect(button).toHaveAttribute('aria-expanded','true');
+  await expect(button).toHaveCSS('background-color','rgb(224, 241, 228)');
+  await expect(page.locator('#home-detail-notes h2')).toBeFocused();
+  await button.press('Enter');await expect(button).toHaveAttribute('aria-expanded','false');
 });
