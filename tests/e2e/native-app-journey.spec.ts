@@ -22,6 +22,7 @@ for (const locale of ['de', 'en']) {
   test(`full app guided setup saves income and first cost ${locale}`, async ({ page }, info) => {
     await show(page, locale, 390);
     if (de) await page.getByRole('button', { name: 'Deutsch', exact: true }).click();
+    await expect(page.getByText(t('Keine Registrierung nötig · auf diesem Gerät gespeichert','No account needed · stored on this device'),{exact:true})).toBeVisible();
     await page.getByRole('button', { name: t('Jetzt starten', 'Get started'), exact: true }).click();
     await expect(page.getByRole('tablist')).toHaveCount(0);
     await expect(page.getByRole('textbox', { name: t('Name deines Zuhauses', 'Home name'), exact: true })).toHaveValue('');
@@ -59,11 +60,9 @@ for (const locale of ['de', 'en']) {
   });
   test(`full app records zero income and protects clearing it ${locale}`,async({page})=>{
     await show(page,locale,390,true,0);
-    await page.getByRole('button',{name:t('Monatsbudget & Kostenbereiche','Monthly budget & cost areas'),exact:true}).click();
     await expect(page.getByRole('alert')).toContainText(t('Fixkosten sind höher als deine Einnahmen','fixed costs exceed your income'));
     await expect(page.getByText(t('1 · Einkommen eintragen','1 · Add your income'),{exact:true})).toHaveCount(0);
     await show(page,locale,390);
-    await page.getByRole('button',{name:t('Monatsbudget & Kostenbereiche','Monthly budget & cost areas'),exact:true}).click();
     await page.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true}).click();
     const income=page.getByRole('textbox',{name:t('Monatliches Nettoeinkommen (ohne Extras)','Monthly net income (excluding extras)'),exact:true});
     await expect(income).toHaveValue('0');
@@ -77,8 +76,6 @@ for (const locale of ['de', 'en']) {
   for (const width of [320, 390]) test(`full app navigation costs settings backup and Pro ${locale} ${width}`, async ({ page }, info) => {
     await show(page, locale, width, true);
     const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
-    await expect(page.getByRole('checkbox')).toHaveCount(0);
-    await page.getByRole('button',{name:/Zahlungen abhaken|Check off payments/}).click();
     await expect(page.getByRole('checkbox')).toHaveCount(6);
     await page.getByRole('checkbox').first().click();
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning.paidPayments.length)).toBe(1);
@@ -157,19 +154,17 @@ for (const locale of ['de','en']) {
     });
     await mountApp(page,locale);
     await expect(page.getByRole('heading',{name:'Test home',exact:true})).toBeVisible();
-    await expect(page.getByRole('checkbox')).toHaveCount(0);
+    await expect(page.getByRole('checkbox')).toHaveCount(4);
     await page.screenshot({path:info.outputPath(`native-free-home-${locale}-320.png`)});
-    await page.getByRole('button',{name:t('Monatsbudget & Kostenbereiche','Monthly budget & cost areas'),exact:true}).click();
     await expect(page.getByText(t('1.240,00','1,240.00'),{exact:false})).toBeVisible();
+    await page.getByRole('button',{name:t('Sonderzahlungen und Einzelheiten','Salary extras and details'),exact:true}).click();
     await expect(page.getByText(t('Geplantes Geld steht erst nach Eingang zur Verfügung','Planned money becomes available once received'),{exact:false})).toBeVisible();
-    await page.getByRole('button',{name:t('Monatsbudget & Kostenbereiche','Monthly budget & cost areas'),exact:true}).click();
-    await page.getByRole('button',{name:/Zahlungen abhaken|Check off payments/}).click();
     await page.getByRole('checkbox',{name:/^Electricity,/}).click();
     const invoice=page.getByRole('textbox',{name:t('Electricity · Rechnungsbetrag','Electricity · Invoice amount'),exact:true});
     await invoice.fill(locale==='de'?'76,40':'76.40');
     await page.getByRole('button',{name:t('Betrag speichern','Save amount'),exact:true}).click();
     await page.getByRole('checkbox',{name:/^Electricity,/}).click();
-    await expect(page.getByRole('button',{name:/Zahlungen abhaken|Check off payments/})).toContainText('1/4');
+    await expect(page.getByRole('button',{name:/Bezahlte Zahlungen|Paid payments/})).toContainText('1');
     await page.getByRole('button',{name:t('Nächster Monat','Next month'),exact:true}).click();
     await expect(page.getByRole('checkbox',{name:/^Electricity,/})).toHaveAttribute('aria-label',/80[,.]00/);
     await expect(page.getByRole('checkbox',{name:/^Electricity,/})).toHaveAttribute('aria-checked','false');
@@ -198,7 +193,7 @@ for (const locale of ['de','en']) {
     await page.getByRole('button',{name:t('Sicherung wiederherstellen','Restore a backup'),exact:true}).click();
     await alertAction(page,1);
     await expect(page.getByRole('heading',{name:'Test home',exact:true})).toBeVisible();
-    await expect(page.getByRole('checkbox')).toHaveCount(0);
+    await expect(page.getByRole('checkbox')).toHaveCount(3);
     await mountApp(page,locale); // New app process, same persistent platform store.
     await expect(page.getByRole('heading',{name:'Test home',exact:true})).toBeVisible();
     const restored=await page.evaluate(()=>({profile:JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!),costs:JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!)}));
@@ -271,12 +266,11 @@ for(const locale of ['de','en'])test(`native payday links open payments and requ
  });
  await mountApp(page,locale);
  await page.getByRole('tab',{name:'Plan',exact:true}).click();
- await expect(page.getByRole('heading',{name:t('Zusätzlich verfügbar','Extra money available'),exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:t('Bis zum nächsten Gehalt verfügbar','Available until next payday'),exact:true})).toBeVisible();
  await expect(page.getByText(t('885,00','885.00'),{exact:false})).toBeVisible();
  await page.screenshot({path:info.outputPath(`native-payday-ready-${locale}-320.png`)});
- await page.getByRole('button',{name:t('Finanzplan prüfen','Review your money plan'),exact:true}).click();
  await page.getByRole('button',{name:t('Zahlungen ansehen und abhaken','View and check off payments'),exact:true}).click();
- await expect(page.getByRole('button',{name:/Zahlungen abhaken|Check off payments/})).toHaveAttribute('aria-expanded','true');
+ await expect(page.getByRole('checkbox').first()).toBeVisible();
  await page.getByRole('checkbox',{name:/^Internet,/}).click();
  await page.getByRole('tab',{name:'Plan',exact:true}).click();
  await expect(page.getByRole('heading',{name:t('Kontostand bestätigen','Confirm account balance'),exact:true})).toBeVisible();
@@ -409,3 +403,14 @@ for (const locale of ['de','en']) for (const width of [320,390]) {
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   });
 }
+
+for(const locale of ['de','en'])test(`app month centre and income draft stay consistent ${locale}`,async({page},info)=>{
+ const de=locale==='de',t=(a:string,b:string)=>de?a:b;
+ await page.clock.setFixedTime(new Date('2026-11-04T12:00:00Z'));await show(page,locale,390,true);
+ await page.evaluate(()=>{const k='eavesence-mobile-profile-v1',p=JSON.parse(localStorage.getItem(k)!);p.incomeExtras=[{id:'winter',kind:'salary14',month:12,amount:2400}];p.planning={cash:{balance:1400,asOf:'2026-11-04',payday:'2026-11-25',protected:100,everydayRemaining:200}};localStorage.setItem(k,JSON.stringify(p));});await mountApp(page,locale);
+ await expect(page.getByText(t('Einnahmen im November','Income in November'),{exact:true})).toBeVisible();await expect(page.getByText(t('1.300,00','1,300.00'),{exact:false})).toBeVisible();await expect(page.getByRole('checkbox')).toHaveCount(6);
+ await page.getByRole('button',{name:t('Nächster Monat','Next month'),exact:true}).click();await expect(page.getByText(t('Einnahmen im Dezember','Income in December'),{exact:true})).toBeVisible();await expect(page.getByText(t('Fixkosten im Dezember','Fixed costs in December'),{exact:true})).toBeVisible();await expect(page.getByText(t('3.700,00','3,700.00'),{exact:false})).toBeVisible();
+ await page.getByRole('button',{name:t('Zusätzliche Einnahme erfassen','Record additional income'),exact:true}).click();await page.getByRole('textbox',{name:t('Betrag','Amount')+' (EUR)',exact:true}).fill('500');await page.getByRole('button',{name:t('Schließen','Close'),exact:true}).click();await page.getByRole('button',{name:t('Zusätzliche Einnahme erfassen','Record additional income'),exact:true}).click();await expect(page.getByRole('textbox',{name:t('Betrag','Amount')+' (EUR)',exact:true})).toHaveValue('500');await page.getByRole('button',{name:t('Entwurf verwerfen','Discard draft'),exact:true}).click();await page.getByRole('button',{name:t('Zusätzliche Einnahme erfassen','Record additional income'),exact:true}).click();await expect(page.getByRole('textbox',{name:t('Betrag','Amount')+' (EUR)',exact:true})).toHaveValue('');await page.getByRole('textbox',{name:t('Betrag','Amount')+' (EUR)',exact:true}).fill('500');await page.getByRole('button',{name:t('Einnahme speichern','Save income entry'),exact:true}).click();await expect(page.getByText(t('Einnahmen im November','Income in November'),{exact:true})).toBeVisible();
+ await page.screenshot({path:info.outputPath(`app-month-centre-${locale}.png`)});
+ await page.getByRole('button',{name:t('Kontostand aktualisieren','Update account balance'),exact:true}).click();await expect(page.getByRole('textbox',{name:t('Aktueller Kontostand','Current account balance'),exact:true})).toBeFocused();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).planning.cash.balance)).toBe(1400);
+});

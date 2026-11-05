@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { monthlyCost, type forecastHouseholdCosts, type HouseholdCost } from "@eavesence/core/householdCosts";
 
 type Props = {
-  profile:IncomeProfile; actualPayments?:unknown; month?:string;
+  compact?:boolean;profile:IncomeProfile; actualPayments?:unknown; month?:string;
   incomeIsAverage?: boolean;
   incomeProvided?: boolean;
   locale: "de" | "en";
@@ -22,7 +22,7 @@ type Props = {
   onReview: (cost: HouseholdCost) => void;
 };
 
-export function HomeCoreOverview({ profile,actualPayments,month=localToday().slice(0,7),incomeProvided,locale,currency,income,costs, forecast, upcomingOpen, onUpcoming, onIncome, onCost, onCosts, onReview }: Props) {
+export function HomeCoreOverview({ compact=false,profile,actualPayments,month=localToday().slice(0,7),incomeProvided,locale,currency,income,costs, forecast, upcomingOpen, onUpcoming, onIncome, onCost, onCosts, onReview }: Props) {
   const de = locale === "de";
   const t = (a: string, b: string) => de ? a : b;
   const money = (n: number) => new Intl.NumberFormat(de ? "de-AT" : "en-GB", { style: "currency", currency }).format(n);
@@ -36,6 +36,15 @@ export function HomeCoreOverview({ profile,actualPayments,month=localToday().sli
     {label:outlook.missing.length?t(`Bisher erfasste Fixkosten im ${monthName}`,`Recorded fixed costs in ${monthName}`):t(`Fixkosten im ${monthName}`,`Fixed costs in ${monthName}`),value:approx+money(outlook.total)},
     {label:deficit?t('Voraussichtlich fehlen nach Fixkosten','Expected shortfall after fixed costs'):t('Voraussichtlich übrig nach Fixkosten','Expected amount left after fixed costs'),value:outlook.remaining===null?'—':approx+money(Math.abs(outlook.remaining)),emphasis:true},
   ];
+  if(compact)return <View style={styles.compactSection}>
+    <View style={styles.compactMetrics}>{cards.map((card,index)=><View key={card.label} style={[styles.compactMetric,index===2&&styles.compactResult,index===2&&deficit&&styles.compactWarning]}>
+      <Text style={[styles.label,index<2&&styles.compactLabel,index===2&&styles.darkLabel]}>{card.label}</Text><Text style={[styles.compactAmount,index===2&&styles.darkAmount,index===2&&deficit&&styles.warningAmount]}>{card.value}</Text>
+    </View>)}</View>
+    <Pressable accessibilityRole="button" onPress={onIncome} style={styles.incomeAction}><Text style={styles.actionText}>{hasIncome?t('Reguläres Einkommen ändern','Edit regular income'):t('Einkommen eintragen','Add income')}</Text></Pressable>
+    <Text accessibilityRole={deficit?'alert':undefined} style={styles.note}>{deficit?t('Deine erfassten Fixkosten sind höher als deine Einnahmen. Weitere Ausgaben sind noch nicht enthalten.','Your recorded fixed costs exceed your income. Other spending is not included yet.'):t('Davon bezahlst du noch Lebensmittel, Freizeit und andere nicht erfasste Ausgaben.','Groceries, leisure and other unrecorded spending still come out of this amount.')}</Text>
+    {outlook.incomeIsAverage&&<Text style={styles.note}>{t('Monatsdurchschnitt aus deinem Jahresnetto.','Monthly average from your annual net income.')}</Text>}
+    {!!outlook.missing.length&&<Text accessibilityRole="alert" style={styles.warning}>{t('Für das vollständige Ergebnis fehlen Zahlungstermine bei: ','Add payment dates for a complete result: ')}{outlook.missing.map(c=>c.name).join(', ')}.</Text>}
+  </View>;
   return <View style={styles.section}>
     <Text accessibilityRole="header" style={styles.heading}>{t("Dein Monatsbudget", "Your monthly budget")}</Text>
     {cards.map(card => <View key={card.label} style={[styles.card, card.emphasis && styles.darkCard]}>
@@ -72,6 +81,7 @@ export function HomeCoreOverview({ profile,actualPayments,month=localToday().sli
 }
 
 const styles = StyleSheet.create({
+  compactSection:{gap:8},compactMetrics:{flexDirection:'row',flexWrap:'wrap',borderWidth:1,borderColor:'#dfe5dd',borderRadius:16,overflow:'hidden',backgroundColor:'#f6f6f0'},compactMetric:{width:'50%',padding:12,gap:6,alignItems:'center'},compactLabel:{minHeight:36,textAlign:'center',lineHeight:18},compactAmount:{fontSize:20,fontWeight:'800',color:'#17211f',textAlign:'center'},compactResult:{width:'100%',backgroundColor:'#e0f1e4'},compactWarning:{backgroundColor:'#fff1dc'},incomeAction:{minHeight:44,justifyContent:'center',alignSelf:'center'},
   section: { marginTop: 20, gap: 12 },
   heading: { fontSize: 20, fontWeight: "800", color: "#17211f" },
   card: { borderWidth: 1, borderColor: "#dfe5dd", borderRadius: 16, backgroundColor: "#ffffff", padding: 16, gap: 8 },

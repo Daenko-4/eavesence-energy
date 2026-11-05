@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n/config";
 
 const copy = {
-  de: { navigation: "App-Navigation", overview: "Übersicht", costs: "Kosten", addDevice: "Neu", energy: "Energie", settings: "Einstellungen" },
-  en: { navigation: "App navigation", overview: "Overview", costs: "Costs", addDevice: "Add", energy: "Energy", settings: "Settings" },
+  de: { navigation: "App-Navigation", overview: "Monat", costs: "Kosten", addDevice: "Neu", energy: "Energie", settings: "Einstellungen" },
+  en: { navigation: "App navigation", overview: "Month", costs: "Costs", addDevice: "Add", energy: "Energy", settings: "Settings" },
 } as const;
 
 function OverviewIcon() {

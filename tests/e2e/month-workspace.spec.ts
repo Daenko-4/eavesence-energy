@@ -18,13 +18,8 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     const workspace=page.locator('.home-month-workspace');
     const annualSummary=workspace.locator('[data-income-extras-summary]');
     await expect(annualSummary.locator('.income-annual-metrics dd')).toHaveCount(2);
-    const summaryHeading=annualSummary.locator('.income-summary-heading');
-    await expect(summaryHeading.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true})).toBeVisible();
-    if(width>=640){
-      const title=(await summaryHeading.locator('h3').boundingBox())!, edit=(await summaryHeading.getByRole('button').boundingBox())!;
-      expect(edit.x).toBeGreaterThan(title.x+title.width);
-      expect(Math.abs(title.y+title.height/2-edit.y-edit.height/2)).toBeLessThan(10);
-    }
+    await expect(workspace.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true})).toBeVisible();
+    await annualSummary.locator('summary').click();
     expect((await annualSummary.locator('.income-annual-metrics').boundingBox())!.width).toBeLessThanOrEqual(520);
 
     const annualHierarchy=await annualSummary.evaluate(el=>{

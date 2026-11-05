@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
 import { LocalizedText as Text, useMobileLocale } from './i18n';
-import { DisclosureIcon } from './BrandMotion';
 
 export type PlanPeriod = 'payday' | 'forecast' | 'budget';
 export type PlanTool = 'change' | 'switch' | 'annual' | 'reserves' | 'invoices';
@@ -31,7 +30,6 @@ export function PlanNavigation<T extends PlanPeriod | PlanTool | PlanGoal>({ kin
   return <View accessibilityRole="tablist" accessibilityLabel={kind==='goal' ? de?'Planungsfrage wählen':'Choose planning question' : kind==='period' ? de?'Planungszeitraum wählen':'Choose planning period' : de?'Sparwerkzeug wählen':'Choose savings tool'} style={[styles.row,kind==='goal'&&styles.goals,kind==='period'&&styles.periods]}>
     {items.map(item => <Pressable key={item.key} accessibilityRole="tab" accessibilityLabel={item.accessible??item.label} accessibilityState={{selected:value===item.key}} onPress={()=>{Keyboard.dismiss();onChange(item.key as T);}} style={[styles.choice,kind==='goal'&&styles.goal,kind==='period'&&styles.period,value===item.key&&(kind==='goal'?styles.goalSelected:kind==='period'?styles.periodSelected:styles.selected)]}>
       <Text style={[styles.label,kind==='goal'&&styles.goalLabel,value===item.key&&(kind==='goal'?styles.goalLabelSelected:kind==='period'?styles.periodLabelSelected:styles.labelSelected)]}>{item.label}</Text>
-      {kind==='goal'&&<DisclosureIcon size={16} open={value===item.key} color={value===item.key?'#72dca3':'#28734d'}/>}
     </Pressable>)}
   </View>;
 }

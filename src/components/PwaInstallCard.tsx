@@ -101,7 +101,7 @@ export default function PwaInstallCard({ locale }: { locale: Locale }) {
     <section
       aria-label={text.ariaLabel}
       data-pwa-install-card
-      className="mt-6 flex flex-col gap-4 rounded-2xl border border-[#cfe7d7] bg-[#f8fcf8] p-4 sm:flex-row sm:items-center sm:justify-between"
+      className="pwa-install-quiet mt-4 flex flex-col gap-2 rounded-xl border border-[#dfe5dd] p-3 sm:flex-row sm:items-center sm:justify-between"
     >
       <div className="flex min-w-0 items-start gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
@@ -111,14 +111,14 @@ export default function PwaInstallCard({ locale }: { locale: Locale }) {
           <h2 className="text-[14px] font-bold tracking-[-0.02em] text-[#17211f]">
             {text.title}
           </h2>
-          <p className="mt-1 max-w-3xl text-[13px] leading-5 text-[#65716d]">
+          <details className="mt-1 text-[12px]"><summary>{locale === "de" ? "So funktioniert die Installation" : "How to install"}</summary><p className="mt-1 max-w-3xl text-[13px] leading-5 text-[#65716d]">
             {text.text}
           </p>
           {!installEvent && (
             <p className="mt-1 text-[11px] leading-4 text-[#74807b]">
               {isIOS ? text.ios : text.browser}
             </p>
-          )}
+          )}</details>
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">

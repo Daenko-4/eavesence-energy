@@ -24,6 +24,8 @@ type HeaderProps = {
   calculatorHrefOverride?: string;
   languageHrefOverride?: string;
   onLanguageChange?: () => void;
+  onCosts?:()=>void;
+  costsActive?:boolean;
   onSettings?: () => void;
   settingsOpen?: boolean;
 };
@@ -87,6 +89,8 @@ function HeaderContent({
   languageHrefOverride,
   onLanguageChange,
   onSettings,
+  onCosts,
+  costsActive,
   settingsOpen,
 }: HeaderProps) {
   const pathname = usePathname();
@@ -131,6 +135,7 @@ function HeaderContent({
 
   useEffect(() => {
     document.documentElement.lang = locale;
+    try { localStorage.setItem("eavesence-locale-v1",locale); } catch { /* Navigation still works without storage. */ }
   }, [locale]);
 
   useEffect(() => {
@@ -467,9 +472,10 @@ function HeaderContent({
               }`}
             >
               <div className="header-navigation-links">
-                <NavigationLink href={`${householdHref}#home-overview`} active={activeNavigation === "household"} navigationKey="household">
+                <NavigationLink href={`${householdHref}#home-overview`} active={activeNavigation === "household" && !costsActive} navigationKey="household">
                   {text.household}
                 </NavigationLink>
+                {onCosts&&<button type="button" className="header-navigation-link" onClick={onCosts} aria-current={costsActive?'location':undefined}>{locale==='de'?'Kosten':'Costs'}</button>}
                 <NavigationLink href={planningHref} active={activeNavigation === "planning"} navigationKey="planning">
                   {text.planning}
                 </NavigationLink>

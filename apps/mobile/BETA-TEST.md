@@ -117,11 +117,12 @@ pay for. Do not promise automatic sync or bank-verified savings.
 Automated logic, storage-failure and web-flow checks do not replace native
 keyboard, signing or physical-device testing.
 
-## Native parity and free-core regression (October 2026)
+## Native parity and free-core regression (November 2026)
 
-The native Month screen now groups the home name and Settings above separate
-Add cost / Edit income actions. The payment checklist starts collapsed; the
-payment link from payday planning opens it. Calculator preferences and the
+The native Month screen puts Settings in the header. Add cost and additional
+income actions precede the selected month; income, due fixed costs and remaining
+money appear above the open payment checklist. The payday payment link returns
+to this checklist. Regular income can be edited beside the monthly figures. Calculator preferences and the
 always-visible electricity target are in Energy. Target changes save directly;
 price changes have their own save action and do not change household bills.
 The compact payday result uses the same empty/incomplete/stale/ready states as
@@ -141,8 +142,10 @@ native storage/file/notification boundaries substituted for browser testing:
 - 2,400 monthly income plus optional 13th/14th salary and a dated bonus keep the
   regular monthly budget separate from annual averages.
 - Rent 800, internet 40, variable electricity plan 80 and annual insurance 240
-  give 940 monthly costs and 1,460 before everyday spending. An actual 76.40
-  invoice affects that occurrence only; its paid status survives restoration.
+  average 940 per month. In October, when the 240 annual insurance payment is due,
+  the month shows 1,160 fixed costs and 1,240 left from 2,400 income. An actual
+  76.40 electricity invoice affects that occurrence only; its paid status survives
+  restoration.
 - Export, invalid-file rejection, cancelled replacement, reset and restore from
   the welcome screen preserve the full app profile, costs, notes and payments.
 - Storage failure preserves the entered draft and the previous persisted price;
@@ -152,3 +155,16 @@ native storage/file/notification boundaries substituted for browser testing:
 Still required on a physical iPhone: keyboard/accessory clearance, native date
 picker, VoiceOver/large text, airplane-mode relaunch, Files share/import, and
 notification permissions. Browser component tests do not simulate these APIs.
+
+### Daily-flow checks
+
+- Change November to December: all income, fixed-cost, remaining-money and payment
+  labels refer to December. Salary extras count in their payment month.
+- Advance to January of the next year: the annual summary follows that year.
+- Enter an additional-income draft, close it, and reopen it. Its fields remain.
+  Save it once; check the confirmation and month assignment. Received money must
+  not be silently added to the separately confirmed account balance.
+- Review a plan after a debit or on a later day: completing the review requires
+  a current balance, not merely checking the reviewed-payments box.
+- On the English welcome screen, all storage guidance is English and refers to
+  the device. Check keyboard clearance and the receipt-to-balance link on iPhone.

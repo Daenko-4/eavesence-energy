@@ -153,7 +153,7 @@ test('standalone CSS and bottom navigation keep home, costs and Pro connected', 
   await nav.getByRole('link', { name: 'Costs', exact: true }).click();
   await expect(page.locator('[data-cost-manager]')).toBeVisible();
   await expect(page.locator('#household-costs')).toBeVisible();
-  await nav.getByRole('link', { name: 'Overview', exact: true }).click();
+  await nav.getByRole('link', { name: 'Month', exact: true }).click();
   await expect(page.locator('[data-home-heading]')).toBeVisible();
   await page.locator('[data-header-settings]').click();
   await expect(page.locator('[data-home-settings]')).toBeVisible();

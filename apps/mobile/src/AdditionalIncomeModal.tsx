@@ -7,12 +7,13 @@ import {FormInput,KeyboardScrollContext} from './FormInput';
 import {FormSection,FormSubmitButton} from './FormSection';
 import {revealInput} from './ScrollNavigation';
 
-export function AdditionalIncomeModal({locale,currency,entries,onSave,onRemove,onClose}:{locale:'de'|'en';currency:string;entries:AdditionalIncome[];onSave:(entry:AdditionalIncome)=>Promise<void>;onRemove:(id:string)=>Promise<void>;onClose:()=>void}){
+export function AdditionalIncomeModal({locale,currency,entries,open=true,onSave,onRemove,onClose}:{open?:boolean;locale:'de'|'en';currency:string;entries:AdditionalIncome[];onSave:(entry:AdditionalIncome)=>Promise<void>;onRemove:(id:string)=>Promise<void>;onClose:()=>void}){
  const t=(de:string,en:string)=>locale==='de'?de:en,today=localToday();
  const [editing,setEditing]=useState<AdditionalIncome|null>(null),[amount,setAmount]=useState(''),[name,setName]=useState(''),[date,setDate]=useState(today),[planned,setPlanned]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false),[shown,setShown]=useState(10),[focus,setFocus]=useState(1);
  const saving=useRef(false),scroll=useRef<ScrollView>(null);
  const money=(n:number)=>new Intl.NumberFormat(locale==='de'?'de-AT':'en-GB',{style:'currency',currency}).format(n);
- async function work(action:()=>Promise<void>,close=false){if(saving.current)return;saving.current=true;setBusy(true);setError('');try{await action();if(close)onClose();}catch{setError(t('Speichern fehlgeschlagen. Deine Eingaben bleiben erhalten. Versuche es erneut.','Could not save. Your entries have been kept. Try again.'));}finally{saving.current=false;setBusy(false);}}
+ function resetDraft(){setEditing(null);setAmount('');setName('');setDate(localToday());setPlanned(false);setError('');}
+ async function work(action:()=>Promise<void>,close=false){if(saving.current)return;saving.current=true;setBusy(true);setError('');try{await action();if(close){resetDraft();onClose();}}catch{setError(t('Speichern fehlgeschlagen. Deine Eingaben bleiben erhalten. Versuche es erneut.','Could not save. Your entries have been kept. Try again.'));}finally{saving.current=false;setBusy(false);}}
  async function save(){
   const entry=createAdditionalIncome({...editing,name,amount:parseIncomeAmount(amount,locale),date,status:planned?'planned':'received'},today);
   if(!entry){setError(t('Prüfe Betrag und Datum (JJJJ-MM-TT). Erhaltenes Geld braucht ein Datum bis heute.','Check the amount and date (YYYY-MM-DD). Received money needs a date no later than today.'));return;}
@@ -20,7 +21,7 @@ export function AdditionalIncomeModal({locale,currency,entries,onSave,onRemove,o
   await work(()=>onSave(entry),true);
  }
  function edit(entry:AdditionalIncome){setEditing(entry);setAmount(String(entry.amount));setName(entry.name);setDate(entry.date);setPlanned(entry.status==='planned');setError('');scroll.current?.scrollTo({y:0,animated:true});setFocus(n=>n+1);}
- return <Modal animationType="slide" onRequestClose={()=>{if(!busy)onClose();}}><SafeAreaView style={s.safe}><KeyboardAvoidingView style={s.safe} behavior={Platform.OS==='ios'?'padding':undefined}>
+ return <Modal visible={open} animationType="slide" onRequestClose={()=>{if(!busy)onClose();}}><SafeAreaView style={s.safe}><KeyboardAvoidingView style={s.safe} behavior={Platform.OS==='ios'?'padding':undefined}>
   <View style={s.header}><Text accessibilityRole="header" style={s.title}>{editing?t('Einnahme bearbeiten','Edit income entry'):t('Zusätzliche Einnahme erfassen','Record additional income')}</Text><Pressable accessibilityRole="button" disabled={busy} onPress={onClose} style={s.button}><Text>{t('Schließen','Close')}</Text></Pressable></View>
   <KeyboardScrollContext.Provider value={input=>revealInput(scroll.current,input)}><ScrollView ref={scroll} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets={Platform.OS==='ios'}>
    <Text style={s.note}>{t('Ein Verkauf, eine Erstattung oder ein Geschenk: Trage den Betrag ein, der bei dir angekommen ist.','A sale, refund or gift: enter the amount you received.')}</Text>
@@ -32,13 +33,14 @@ export function AdditionalIncomeModal({locale,currency,entries,onSave,onRemove,o
     <Pressable accessibilityRole="checkbox" accessibilityState={{checked:planned}} onPress={()=>setPlanned(!planned)} style={s.button}><Text>{planned?'☑ ':'☐ '}{t('Noch nicht erhalten – als geplant vormerken','Not received yet — mark as planned')}</Text></Pressable>
     {!!error&&<Text accessibilityRole="alert" style={s.error}>{error}</Text>}
     <FormSubmitButton disabled={busy} label={t('Einnahme speichern','Save income entry')} style={[s.button,s.primary]} textStyle={s.bold}/>
+    {(editing||amount||name||planned||date!==today)&&<Pressable accessibilityRole="button" disabled={busy} onPress={()=>{resetDraft();onClose();}} style={s.button}><Text>{t('Entwurf verwerfen','Discard draft')}</Text></Pressable>}
    </FormSection>
    <Text style={s.note}>{t('Dein reguläres Nettoeinkommen bleibt unverändert. Bei „Bis zum nächsten Gehalt“ zählen erhaltene Einnahmen über deinen aktuellen Kontostand.','Your regular net income stays unchanged. Until next payday uses received income through your current account balance.')}</Text>
    {!!entries.length&&<Text accessibilityRole="header" style={s.title}>{t('Deine zusätzlichen Einnahmen','Your additional income')}</Text>}
    {[...entries].sort((a,b)=>b.date.localeCompare(a.date)||a.id.localeCompare(b.id)).slice(0,shown).map(entry=><View key={entry.id} style={s.entry}>
     <View style={s.row}><Text style={[s.bold,s.flex]}>{entry.name||t('Zusätzliche Einnahme','Additional income')}</Text><Text style={s.bold}>+ {money(entry.amount)}</Text></View>
     <Text style={s.note}>{entry.date} · {entry.status==='received'?t('Erhalten','Received'):t('Geplant','Planned')}</Text>
-    <View style={s.row}><Pressable accessibilityRole="button" disabled={busy} onPress={()=>edit(entry)} style={s.button}><Text>{t('Bearbeiten','Edit')}</Text></Pressable>{entry.status==='planned'&&<Pressable accessibilityRole="button" disabled={busy} onPress={()=>void work(()=>onSave({...entry,date:today,status:'received'}))} style={s.button}><Text>{t('Heute erhalten','Received today')}</Text></Pressable>}<Pressable accessibilityRole="button" disabled={busy} onPress={()=>Alert.alert(t('Diese Einnahme entfernen?','Remove this income entry?'),undefined,[{text:t('Abbrechen','Cancel'),style:'cancel'},{text:t('Entfernen','Remove'),style:'destructive',onPress:()=>void work(()=>onRemove(entry.id))}])} style={s.button}><Text>{t('Entfernen','Remove')}</Text></Pressable></View>
+    <View style={s.row}><Pressable accessibilityRole="button" disabled={busy} onPress={()=>edit(entry)} style={s.button}><Text>{t('Bearbeiten','Edit')}</Text></Pressable>{entry.status==='planned'&&<Pressable accessibilityRole="button" disabled={busy} onPress={()=>void work(()=>onSave({...entry,date:today,status:'received'}))} style={s.button}><Text>{t('Heute erhalten','Received today')}</Text></Pressable>}<Pressable accessibilityRole="button" disabled={busy} onPress={()=>Alert.alert(t('Diese Einnahme entfernen?','Remove this income entry?'),undefined,[{text:t('Abbrechen','Cancel'),style:'cancel'},{text:t('Entfernen','Remove'),style:'destructive',onPress:()=>void work(async()=>{await onRemove(entry.id);if(editing?.id===entry.id)resetDraft();})}])} style={s.button}><Text>{t('Entfernen','Remove')}</Text></Pressable></View>
    </View>)}
    {entries.length>shown&&<Pressable accessibilityRole="button" onPress={()=>setShown(shown+10)} style={s.button}><Text>{t('Weitere Einnahmen anzeigen','Show more income entries')}</Text></Pressable>}
   </ScrollView></KeyboardScrollContext.Provider>

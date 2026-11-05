@@ -2,8 +2,9 @@
 
 Shared Expo/React Native application for iOS and Android. It is local-first:
 onboarding, recurring household costs, net income, devices and monthly history
-are stored on the device. The home screen previews payments next month when
-payment dates are entered. The cost calculations are shared with the website;
+are stored on the device. The Month screen shows income, scheduled fixed costs and the expected amount
+left for the selected month above its payment checklist. Changing months updates
+all four together. The cost calculations are shared with the website;
 mobile data is currently separate from website data. A RevenueCat
 SDK key enables real store offerings only after Apple and Google products have
 been configured.
