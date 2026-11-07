@@ -1,3 +1,4 @@
+import { openSavingsHistory } from './home-navigation';
 import { openPayday, paydayStep, openCostOrganization } from './home-navigation';
 import { homeWorkspace, homeDetail, planningPeriod, savingsTool } from './home-navigation';
 import { expect, test, type Page } from "@playwright/test";
@@ -8,7 +9,8 @@ async function disableHeaderIntro(page: Page) {
 
 async function openPlan(page: Page, question: "payday" | "savings" | "progress" = "savings", budget = false) {
   await homeWorkspace(page, 'plan');
-  await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Until next payday|Bis zum nächsten Gehalt/ : question === "savings" ? /Find realistic savings|Realistisch sparen/ : /Savings achieved|Erreichte Ersparnis/ }).click();
+  await page.getByRole("group", { name: /Choose planning question|Planungsfrage wählen/ }).getByRole("button", { name: question === "payday" ? /Until payday|Bis zum Gehalt/ : /Lower costs|Kosten senken/ }).click();
+  if (question === "progress") await openSavingsHistory(page);
   if (budget) await planningPeriod(page, "budget");
 }
 async function openCostManager(page: Page) {
@@ -1513,7 +1515,7 @@ for (const width of [320, 390, 1365]) {
     const questions = page.getByRole("group", { name: "Choose planning question" });
     await questions.screenshot({ path: info.outputPath(`pro-questions-${width}.png`) });
     // The clear space above a compact pill remains part of its phone tap target.
-    await questions.getByRole("button", { name: "Find realistic savings" }).click({ position: { x: 20, y: 2 } });
+    await questions.getByRole("button", { name: "Lower costs" }).click({ position: { x: 20, y: 2 } });
     await expect(page.getByRole("region", { name: "02 · Where can I realistically save?", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Until next payday", exact: true })).toBeHidden();
     await expect(page.getByRole("region", { name: "03 · What have I actually saved?", exact: true })).toHaveCount(0);
@@ -1574,7 +1576,7 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
 
  const today=new Date(),later=new Date(today);later.setDate(later.getDate()+14);const day=`${later.getFullYear()}-${String(later.getMonth()+1).padStart(2,'0')}-${String(later.getDate()).padStart(2,'0')}`;
  await panel.getByLabel('Current account balance',{exact:true}).fill('1000');await paydayStep(page,1);await panel.getByLabel('Next payday',{exact:true}).fill(day);await paydayStep(page,2);await panel.getByText('Keep some money in reserve (optional)',{exact:true}).click();await paydayStep(page,2);await panel.getByLabel('Money to keep in reserve (optional)',{exact:true}).fill('200');await paydayStep(page,2);await panel.getByLabel('Everyday spending until next payday',{exact:true}).fill('150');await paydayStep(page,2);await panel.getByRole('button',{name:'Show available money'}).click();
- await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel.locator('h2')).toHaveText('Available until next payday');await expect(panel.locator('[data-payday-hero]')).toContainText('Until');
+ await expect(panel).toHaveCount(1);await expect(panel).toContainText('€650.00');await expect(panel.locator('h2')).toHaveText('Available to spend until next payday');await expect(panel.locator('[data-payday-hero]')).toContainText('Until');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.reload();await openPlan(page, 'payday');await expect(panel).toContainText('€650.00');
 });

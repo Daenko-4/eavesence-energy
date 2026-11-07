@@ -42,7 +42,9 @@ export default function PlanningNavigation<T extends PlanningPeriod | SavingsToo
         if (chooser.current) chooser.current.open = false;
         requestAnimationFrame(() => {
           const surface = chooser.current?.closest<HTMLElement>(".planning-workspace-content");
-          const heading = Array.from(surface?.querySelectorAll<HTMLElement>("h2, h3") ?? []).find(element => element.getClientRects().length > 0);
+          const heading = Array.from(surface?.querySelectorAll<HTMLElement>("h2, h3") ?? []).find(
+            element => element.getClientRects().length > 0 && !element.closest("details:not([open]), [data-savings-history]"),
+          );
           if (heading) { heading.tabIndex = -1; heading.focus({preventScroll: true}); }
           surface?.scrollIntoView({block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
         });

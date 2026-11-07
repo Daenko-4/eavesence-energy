@@ -62,7 +62,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
           </article>)}
         </div>
         {forecastCards[0].note && <p className="home-month-income-note">{forecastCards[0].note}</p>}
-        <p className="home-month-context">{outlook.remaining !== null && outlook.remaining < 0 ? de ? "Deine erfassten Fixkosten sind höher als deine Einnahmen. Weitere Ausgaben sind noch nicht enthalten." : "Your recorded fixed costs exceed your income. Other spending is not included yet." : de ? "Davon bezahlst du noch Lebensmittel, Freizeit und andere nicht erfasste Ausgaben." : "Groceries, leisure and other spending you have not recorded still come out of this amount."}</p>
+        <p className="home-month-context">{outlook.remaining !== null && outlook.remaining < 0 ? de ? "Deine erfassten Fixkosten sind höher als deine Einnahmen. Weitere Ausgaben sind noch nicht enthalten." : "Your recorded fixed costs exceed your income. Other spending is not included yet." : de ? "Davon gehen deine Alltagsausgaben noch ab, zum Beispiel für Lebensmittel und Freizeit." : "Everyday spending, such as groceries and leisure, still comes out of this amount."}</p>
       </aside>
       <div className="home-month-payments">{payments}</div>
       {contextActive && <aside className="home-month-tools" aria-label={de ? "Aktionen & Hinweise" : "Actions & information"}>

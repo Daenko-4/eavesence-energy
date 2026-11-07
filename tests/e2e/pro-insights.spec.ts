@@ -19,7 +19,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`Pro invoice
  await forecast.getByRole('button',{name:t('Alltagsschätzung speichern','Save everyday estimate'),exact:true}).click();
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).variableMonthly)).toBe(600);
  await forecast.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`pro-90days-${de?'de':'en'}-${width}.png`)});
- await page.getByRole('group',{name:/Choose planning question|Planungsfrage wählen/}).getByRole('button',{name:/Find realistic savings|Realistisch sparen/}).click();
+ await page.getByRole('group',{name:/Choose planning question|Planungsfrage wählen/}).getByRole('button',{name:/Lower costs|Kosten senken/}).click();
  const proposals=page.locator('[data-variable-suggestions]');await savingsTool(page, 'invoices');
  await expect(proposals.locator('[data-variable-proposal]')).toContainText(t('120,00','120.00'));
  const comparison=page.locator('[data-switch-comparison]');await savingsTool(page, 'switch');
@@ -35,7 +35,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`Pro invoice
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!).find((c:{id:string})=>c.id==='electric').amount)).toBe(120);
  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!));expect(stored.planning.actualPayments.filter((a:{estimated?:boolean})=>!a.estimated).length).toBe(3);expect(stored.savingsActions??[]).toHaveLength(0);
  await proposals.getByRole('button',{name:t('Rechnungsbeträge eintragen','Record invoice amounts'),exact:true}).click();await expect(page.locator('[data-month-checklist]').getByRole('checkbox',{name:/^Electricity ·/})).toBeChecked();
- await page.reload();await homeWorkspace(page,'plan');await page.getByRole('group',{name:/Choose planning question|Planungsfrage wählen/}).getByRole('button',{name:/Find realistic savings|Realistisch sparen/}).click();
+ await page.reload();await homeWorkspace(page,'plan');await page.getByRole('group',{name:/Choose planning question|Planungsfrage wählen/}).getByRole('button',{name:/Lower costs|Kosten senken/}).click();
  await savingsTool(page, 'switch');await expect(comparison.getByText(t('Gemerkte Wechselvergleiche','Saved switch comparisons'),{exact:false})).toBeVisible();await comparison.getByRole('button',{name:t('Vergleich öffnen','Open comparison'),exact:true}).click();
  await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toHaveValue('20');await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toBeFocused();await expect(comparison.getByLabel(t('Einmalige Wechselgebühr','One-off switching fee'),{exact:true})).toHaveValue('60');await expect(comparison.locator('[data-switch-result]')).toContainText(t('zuerst „Bis zum nächsten Gehalt“ aktualisieren','Update Until next payday first'));
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -44,7 +44,7 @@ test('incomplete forecasts guide to existing inputs and failed comparison writes
  await seed(page,false);await page.evaluate(()=>{const p=JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!);p.variableMonthly=null;localStorage.setItem('eavesence-home-profile-v1',JSON.stringify(p));});await page.reload();await homeWorkspace(page,'plan');
  const f=page.locator('[data-pro-forecast]');await planningPeriod(page, 'forecast');await expect(f.locator('[data-forecast-result]')).toHaveCount(0);
  await f.getByLabel('Everyday spending per month (90-day plan)').fill('0');await f.getByRole('button',{name:'Save everyday estimate',exact:true}).click();await expect(f.locator('[data-forecast-result]')).toBeVisible();
- await page.getByRole('group',{name:'Choose planning question'}).getByRole('button',{name:'Find realistic savings'}).click();const c=page.locator('[data-switch-comparison]');await savingsTool(page, 'switch');await c.getByLabel('Cost for the switch comparison').selectOption('internet');await c.getByLabel('New monthly price',{exact:true}).fill('20');
+ await page.getByRole('group',{name:'Choose planning question'}).getByRole('button',{name:'Lower costs'}).click();const c=page.locator('[data-switch-comparison]');await savingsTool(page, 'switch');await c.getByLabel('Cost for the switch comparison').selectOption('internet');await c.getByLabel('New monthly price',{exact:true}).fill('20');
  await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='eavesence-home-profile-v1')throw new DOMException('full','QuotaExceededError');return original.call(this,k,v);};});
  await c.getByRole('button',{name:'Save comparison',exact:true}).click();await expect(page.locator('[data-pro-insights="costs"]').getByRole('alert')).toContainText('Could not save');await expect(c.getByLabel('New monthly price',{exact:true})).toHaveValue('20');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning.switchPlans??[])).toHaveLength(0);

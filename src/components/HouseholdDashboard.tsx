@@ -806,7 +806,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   useEffect(() => { window.dispatchEvent(new CustomEvent("eavesence:home-view", { detail: view })); }, [view]);
   const [planTool,setPlanTool] = useState<SavingsTool>("change");
   const [planPeriod, setPlanPeriod] = useState<PlanningPeriod>("payday");
-  const [planQuestion, setPlanQuestion] = useState<"payday" | "savings" | "progress">("payday");
+  const [planQuestion, setPlanQuestion] = useState<"payday" | "savings">("payday");
   const [name, setName] = useState(locale === "de" ? "Mein Zuhause" : "My home");
   const [currency, setCurrency] = useState<SavedDeviceCurrency>("EUR");
   const [price, setPrice] = useState(0.3);
@@ -1845,13 +1845,25 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   }
 
   function navigatePlanQuestion(question: "payday" | "savings" | "progress") {
-    // An already selected question must not schedule a focus jump over a new entry.
-    if (question === planQuestion && (question !== "payday" || planPeriod === "payday") && (question !== "savings" || planTool === "change")) return;
-    setPlanQuestion(question);
-    if (question === "payday") setPlanPeriod("payday");
-    if (question === "savings") setPlanTool("change");
+    const destination = question === "payday" ? "payday" : "savings";
+    const section = document.getElementById("home-plan");
+    const history = section?.querySelector<HTMLDetailsElement>("[data-savings-history]");
+    const closeHistory = question === "savings" && history?.open;
+    if (question !== "progress" && !closeHistory && destination === planQuestion &&
+        (destination === "payday" ? planPeriod === "payday" : planTool === "change")) return;
+    if (closeHistory && history) history.open = false;
+    setPlanQuestion(destination);
+    if (destination === "payday") setPlanPeriod("payday");
+    else setPlanTool("change");
     requestAnimationFrame(() => {
-      const section = document.getElementById("home-plan");
+      if (question === "progress") {
+        if (history) {
+          history.open = true;
+          history.querySelector("summary")?.focus({preventScroll: true});
+          history.scrollIntoView({block: "nearest"});
+        }
+        return;
+      }
       section?.querySelector("h1")?.focus({preventScroll: true});
       section?.scrollIntoView({block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
     });
@@ -2530,22 +2542,17 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <span className="home-preview-note">{locale === "de" ? "Vorschau · derzeit kostenlos" : "Preview · currently free"}</span>
               </div>
             </div>
-            <section className="centre-pro-origin" aria-label={locale === "de" ? "Deine Planungsgrundlage" : "Your planning starting point"} data-pro-overview>
-              <p>{locale === "de" ? "Aus deiner Monatsübersicht übernommen" : "Already included from My Home"}</p>
-              <dl><div><dt>{locale === "de" ? incomeSummary.annualAverage ? "Nettoeinkommen · Monatsdurchschnitt" : "Nettoeinkommen pro Monat" : incomeSummary.annualAverage ? "Net income · monthly average" : "Net income per month"}</dt><dd>{hasRecordedIncome ? formatMoney(monthlyIncome,locale,profile.currency) : "—"}</dd></div><div><dt>{locale === "de" ? "Fixkosten · Monatsdurchschnitt" : "Fixed costs · monthly average"}</dt><dd>{formatMoney(householdCostSummary.monthlyTotal,locale,profile.currency)}</dd></div></dl>
-            </section>
             <div className="planning-workspace">
             <div role="group" aria-label={locale === "de" ? "Planungsfrage wählen" : "Choose planning question"} className="home-section-navigation pro-question-navigation">
-              {(["payday", "savings", "progress"] as const).map((item) => (
+              {(["payday", "savings"] as const).map((item) => (
                 <button
                   type="button"
                   key={item}
-                  aria-label={item === "payday" ? locale === "de" ? "Bis zum nächsten Gehalt" : "Until next payday" : item === "savings" ? locale === "de" ? "Realistisch sparen" : "Find realistic savings" : locale === "de" ? "Erreichte Ersparnis" : "Savings achieved"}
                   aria-pressed={planQuestion === item}
                   onClick={() => navigatePlanQuestion(item)}
                   className="pro-question-button"
                 >
-                  <span>{item === "payday" ? locale === "de" ? "Bis zum nächsten Gehalt" : "Until next payday" : item === "savings" ? locale === "de" ? "Kosten senken" : "Lower costs" : locale === "de" ? "Erreichte Ersparnis" : "Achieved savings"}</span>
+                  <span>{item === "payday" ? locale === "de" ? "Bis zum Gehalt" : "Until payday" : locale === "de" ? "Kosten senken" : "Lower costs"}</span>
                 </button>
               ))}
             </div>
@@ -2553,7 +2560,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <div hidden={planQuestion !== "payday"}>
 
               <div hidden={planPeriod !== "payday"} data-planning-period="payday">
-          <PaydayPanel onDateSave={(id,date) => {const next=householdCosts.map(c=>c.id===id?{...c,nextDueDate:date,updatedAt:new Date().toISOString()}:c);persistHouseholdCosts(next);}} onSavings={()=>navigatePlanQuestion("savings")} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
+          <PaydayPanel onDateSave={(id,date) => {const next=householdCosts.map(c=>c.id===id?{...c,nextDueDate:date,updatedAt:new Date().toISOString()}:c);persistHouseholdCosts(next);}} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
               </div>
               <div hidden={planPeriod !== "forecast"} data-planning-period="forecast">
           <ProInsights mode="forecast" locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,incomeKnown:profile.incomeAmount!==undefined&&!profile.incomeDeferred,incomeIsAnnualAverage:incomeSummary.annualAverage,incomeExtras:incomeSummary.extras,additionalIncome:profile.additionalIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:localToday().slice(0,7)}} data={profile.planning} onSave={planning=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} onApply={applyPlanSuggestion} onEveryday={variableMonthly=>persistProfile({...profile,variableMonthly,updatedAt:new Date().toISOString()})} onReview={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} onNavigate={navigatePlanQuestion} onEditIncome={openIncomeForm} onPayments={showInvoiceChecklist}/>
@@ -2567,7 +2574,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             onNavigate={navigatePlanQuestion}
             tool={planTool}
             onTool={setPlanTool}
-            section={planQuestion === "payday" ? "budget" : planQuestion === "progress" ? "progress" : "savings"}
+            section={planQuestion === "payday" ? "budget" : "savings"}
             advanced={homeRelease.advancedPlanning}
             locale={locale}
             currency={profile.currency}

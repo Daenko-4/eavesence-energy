@@ -1510,3 +1510,47 @@ a {
 
 .home-month-workspace.finance-workspace .home-month-kpi .home-month-kpi-amount { align-self: start; }
 @media(min-width:640px) and (max-width:899px) { .home-month-workspace.finance-workspace .home-month-kpi .home-month-kpi-amount { font-size: 20px; } }
+
+/* Pro starts with one result and its inputs, followed by optional details. */
+.centre-pro-page :is(.planning-page-heading, .planning-workspace) {
+  max-width: 1060px;
+  margin-inline: auto;
+}
+.centre-pro-page [data-payday-status] { text-align: center; }
+.centre-pro-page .payday-breakdown + [data-payday-payments] { margin-top: 8px; }
+.centre-pro-page .pro-question-navigation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.centre-pro-page .payday-breakdown {
+  padding: 12px 16px;
+  border-top: 1px solid #dfe5dd;
+}
+.payday-breakdown dl {
+  max-width: 540px;
+  margin-inline: auto;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.payday-breakdown dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+  padding-block: 4px;
+}
+.payday-breakdown dd { font-weight: 650; text-align: right; }
+.centre-pro-page .savings-history {
+  margin-bottom: 12px;
+  padding: 0 14px;
+  border: 1px solid #dfe5dd;
+  border-radius: 12px;
+}
+.savings-history > summary {
+  min-height: 44px;
+  padding-block: 12px;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.savings-history[open] { padding-bottom: 12px; }

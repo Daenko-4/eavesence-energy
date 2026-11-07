@@ -95,7 +95,7 @@ for (const de of [false, true]) {
     await expect(panel.locator('[data-payday-result]')).toHaveCount(0);
     await page.clock.setFixedTime(new Date('2026-10-25T12:00:00Z')); await page.reload();
     await expect(panel).toHaveAttribute('data-payday-state', 'expired');
-    await panel.getByRole('button', { name: t('Kontostand aktualisieren', 'Update account balance'), exact: true }).click();
+    await panel.getByRole('button', { name: t('Zeitraum aktualisieren', 'Update pay period'), exact: true }).click();
     await expect(panel.getByLabel(t('Nächstes Gehalt am', 'Next payday'), { exact: true })).toBeFocused();
   });
 
@@ -126,7 +126,7 @@ for (const de of [false, true]) {
     });
     await page.reload(); await homeWorkspace(page, 'plan');
     await expect(panel).toHaveAttribute('data-payday-state', 'everyday');
-    await panel.getByRole('button', { name: t('Kontostand aktualisieren', 'Update account balance'), exact: true }).click();
+    await panel.getByRole('button', { name: t('Alltag einplanen', 'Add everyday spending'), exact: true }).click();
     const everyday = panel.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt', 'Everyday spending until next payday'), { exact: true });
     await expect(everyday).toBeFocused(); await everyday.fill('0');
     await paydayStep(page,0);await panel.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true }).fill('-100');
@@ -342,7 +342,7 @@ for (const de of [false, true]) for (const width of [320,390,1365]) test(`connec
     p.planning={cash:{balance:1000,asOf:'2026-10-13',payday:'2026-10-31',protected:100,everydayRemaining:200}};
     localStorage.setItem('eavesence-home-profile-v1',JSON.stringify(p));
   });await page.reload();await homeWorkspace(page,'plan');
-  await page.getByRole('button',{name:t('Nächster Schritt: Kosten senken','Next step: lower a cost'),exact:true}).click();
+  await page.getByRole('button',{name:t('Kosten senken','Lower costs'),exact:true}).click();
   const coach=page.getByRole('region',{name:t('02 · Wo kann ich realistisch sparen?','02 · Where can I realistically save?')});
   await coach.getByLabel(t('Kostenänderung testen · Kosten auswählen','Test a cost change · choose a cost')).selectOption('internet');
   await coach.getByLabel(t('Neuer Betrag je Zahlung (0 = fällt weg)','New amount per payment (0 = ends)')).fill('30');
@@ -358,7 +358,10 @@ for (const de of [false, true]) for (const width of [320,390,1365]) test(`connec
   await page.screenshot({path:info.outputPath(`connected-pro-action-${de?'de':'en'}-${width}.png`)});
   page.once('dialog',d=>void d.accept());await plans.getByRole('button',{name:t('Umgesetzt – Kosten aktualisieren','Done — update costs'),exact:true}).click();
   await coach.getByRole('button',{name:t('Ergebnis ansehen','See the result'),exact:true}).click();
-  await expect(page.locator('#home-plan h1')).toBeFocused();
+  const historySummary = page.locator('[data-savings-history] > summary');
+  await expect(historySummary).toBeFocused();
+  await expect(historySummary).toContainText(t('10,00', '10.00'));
+  await expect(historySummary).toContainText(t('weniger pro Monat', 'less per month'));
   const progress=page.getByRole('region',{name:t('03 · Was habe ich tatsächlich eingespart?','03 · What have I actually saved?')});
   await expect(progress).toContainText(t('0,00','0.00'));await expect(progress).toContainText(t('19. Oktober','19 October'));
   await progress.getByRole('button',{name:t('Geld bis zum nächsten Gehalt neu prüfen','Review your money until next payday'),exact:true}).click();

@@ -17,7 +17,7 @@ import type { Locale } from "@/i18n/config";
 import SavingsActionsPanel from "@/components/SavingsActionsPanel";
 
 type Props = {
-  section?: "savings" | "progress" | "budget";
+  section: "savings" | "budget";
   tool: SavingsTool; onTool: (tool: SavingsTool) => void;
   onNavigate?: (question: "payday" | "savings" | "progress") => void;
   advanced?: boolean;
@@ -76,8 +76,12 @@ export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, on
   }
   const panelClass = "planning-surface";
   return <div>
-    <div hidden={section !== "progress"}><section className={panelClass}><SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,additionalIncome,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/><ProTools progressOnly locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,additionalIncome,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/></section></div>
-<section hidden={section === "progress"} id="savings-plan" className={panelClass} data-pro-savings>
+    <section id="savings-plan" className={panelClass} data-pro-savings>
+    <div hidden={section !== "savings"}>
+      <SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,additionalIncome,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}>
+        <ProTools progressOnly locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,additionalIncome,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/>
+      </SavingsCoach>
+    </div>
     {section !== "budget" && tool === "change" && <div className="planning-section-intro savings-review-heading"><h2 className="site-section-title">{de ? "Welche Kosten möchtest du senken?" : "Which cost would you like to lower?"}</h2><p className="mt-2 text-[13px] leading-5 text-[#52605b]">{de ? "Teste einen niedrigeren Preis. Als Ersparnis zählt die Änderung erst nach deiner Bestätigung." : "Try a lower price. The change counts as saved only after you confirm it happened."}</p></div>}
     {result && <div hidden={section === "budget"}>
       <div hidden={tool !== "change"} data-planning-tool="change"><SavingsCoach onNavigate={onNavigate} mode="opportunities" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,additionalIncome,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>
@@ -86,13 +90,12 @@ export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, on
       </div>
       <div hidden={!["change","annual","reserves"].includes(tool)} data-planning-tool="bills"><ProTools tool={tool === "annual" ? "annual" : tool === "reserves" ? "reserves" : "changes"} locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,additionalIncome,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/>
       </div>
-      {!section && <SavingsCoach onNavigate={onNavigate} mode="progress" locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,additionalIncome,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} actions={actions} onSave={onSavePlanning} onActions={onSaveActions} onConfirm={onConfirmAction} onReview={onReviewCost}/>}
       {advanced && section === "savings" && <SavingsActionsPanel embedded locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,additionalIncome,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />}
       {advanced && <PlanningWorkbench input={{ incomeMonthly, incomeExtras, additionalIncome, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} costChange={<SavingsActionsPanel embedded locale={locale} currency={currency} input={{ incomeMonthly, incomeExtras, additionalIncome, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />} />}
     </div>}
-    {section !== "budget" && section !== "progress" && <PlanningNavigation locale={locale} kind="tool" value={tool} onChange={onTool}/>}
+    {section !== "budget" && <PlanningNavigation locale={locale} kind="tool" value={tool} onChange={onTool}/>}
 
-    <form hidden={section !== "budget" && !!section} data-planning-budget onSubmit={event => {event.preventDefault();void save();}}>
+    <form hidden={section !== "budget"} data-planning-budget onSubmit={event => {event.preventDefault();void save();}}>
     <h2 className="mt-2 text-xl font-extrabold">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
     <p className="mt-1 text-[13px] text-[#52605b]">{de ? "Einkommen und Fixkosten sind schon übernommen. Schätze noch deine übrigen Alltagsausgaben – daraus berechnen wir, was dir im Monat bleibt." : "Income and fixed costs are already included. Estimate your other everyday spending to see what is left each month."}</p>
     {(budgetDirty || !budgetDraft) && <p data-budget-preview-note role="status" className="mt-3 text-[12px] font-semibold text-[#28734d]">{!budgetDraft ? de ? "Prüfe deine Eingaben, um die Vorschau zu berechnen. Dein gespeicherter Plan bleibt erhalten." : "Preview paused: enter valid amounts. Your saved values are shown below." : de ? "Vorschau – erst mit „Plan speichern“ werden deine Änderungen übernommen." : "Preview — use Save plan to keep your changes."}</p>}
