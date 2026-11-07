@@ -52,7 +52,7 @@ for (const locale of ['de', 'en'] as const) {
     if (!de) {
 
       await homeWorkspace(page, 'plan');
-      await page.getByRole('button', { name: 'Find realistic savings', exact: true }).click();
+      await page.getByRole('button', { name: 'Lower costs', exact: true }).click();
       await planningPeriod(page, 'budget');
       await page.getByLabel('Everyday spending per month (estimate)', { exact: true }).fill('500');
       await page.getByRole('button', { name: 'Save plan', exact: true }).click();

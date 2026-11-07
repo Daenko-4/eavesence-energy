@@ -1,7 +1,7 @@
 "use client";
 import FormActions from "@/components/FormActions";
 
-import { useRef } from "react";
+import { type ReactNode, useRef } from "react";
 import { savingsActionKey } from "@eavesence/core/savingsPlan";
 import { nextSavingsPayment } from "@eavesence/core/proValue";
 import { useSavingsCoach } from "@eavesence/core/useSavingsCoach";
@@ -27,6 +27,7 @@ export default function SavingsCoach({
   onConfirm,
   onReview,
   onNavigate,
+  children,
   currency,
   mode = "all",
   locale,
@@ -41,6 +42,7 @@ export default function SavingsCoach({
   onNavigate?: (question: "payday" | "savings" | "progress") => void;
   currency: string;
   mode?: "all" | "opportunities" | "progress";
+  children?: ReactNode;
   locale: "de" | "en";
 }) {
   const de = locale === "de",
@@ -69,7 +71,7 @@ export default function SavingsCoach({
   function reviewPlans() { requestAnimationFrame(() => { changes.current?.scrollIntoView({block:"center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"}); changes.current?.querySelector<HTMLElement>("h4")?.focus({preventScroll:true}); }); }
   const nextSaving = nextSavingsPayment(actions,p.today);
   const shownActions = actions.filter(a => mode === "all" || (mode === "progress" ? a.status === "confirmed" : a.status !== "confirmed"));
-  return (
+  const content = (
     <section
       data-savings-coach={mode}
       className={mode === "progress" ? "finance-workspace min-w-0" : mode === "opportunities" ? "mt-5 min-w-0" : "mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"}
@@ -110,7 +112,6 @@ export default function SavingsCoach({
           </p>
         </div>
       )}
-      {mode === "progress" && p.confirmedMonthly > 0 && <p className="mt-3 text-[13px] text-[#52605b]">{t("Bestätigt: laufende Kosten durchschnittlich", "Confirmed: recurring costs reduced by")} {money(p.confirmedMonthly)} {t("pro Monat weniger.", "per month on average.")}</p>}
       {mode === "progress" && nextSaving && <p className="mt-2 text-[13px] text-[#52605b]">{t("Nächste berechnete Ersparnis", "Next calculated saving")}: {money(nextSaving.amount)} {t("am", "on")} {new Intl.DateTimeFormat(de?"de-AT":"en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${nextSaving.date}T00:00:00Z`))}. {t("Sie zählt erst ab diesem Zahlungstermin.", "It counts from that payment date.")}</p>}
       {mode !== "progress" && !p.tasks.length && !actions.length && (
         <p className="mt-3 text-[13px]">
@@ -121,13 +122,12 @@ export default function SavingsCoach({
         </p>
       )}
       <div className={mode === "opportunities" ? "finance-workspace planning-task-card savings-review-layout" : undefined} data-has-selection={!!p.selected}>
-      {mode === "opportunities" && <aside className="centre-savings-summary finance-result-surface">
+      {mode === "opportunities" && (p.preview || p.plannedMonthly > 0) && <aside className="centre-savings-summary finance-result-surface">
         <div className="centre-result-card" data-savings-centre-result>
-          <p>{t("Geplante monatliche Ersparnis", "Planned monthly savings")}</p>
-          <strong>{p.preview ? money(p.preview.totalDifference / 12) : p.plannedMonthly > 0 ? money(p.plannedMonthly) : "—"}</strong>
-          <p>{t("Monatsdurchschnitt. Geplant, noch nicht eingespart.", "Monthly average. Planned, not saved yet.")}</p>
+          <p>{p.preview ? t("Mögliche Ersparnis pro Monat", "Possible monthly savings") : t("Geplante Ersparnis pro Monat", "Planned monthly savings")}</p>
+          <strong>{p.preview ? money(p.preview.totalDifference / 12) : money(p.plannedMonthly)}</strong>
+          <p>{p.preview ? t("Monatsdurchschnitt · Vorschau", "Monthly average · preview") : t("Monatsdurchschnitt. Geplant, noch nicht eingespart.", "Monthly average. Planned, not saved yet.")}</p>
         </div>
-        <dl className="centre-breakdown"><div><dt>{t("Bestätigt pro Monat", "Confirmed per month")}</dt><dd>{money(p.confirmedMonthly)}</dd></div><div><dt>{t("Bisher berechnete Ersparnis", "Calculated savings so far")}</dt><dd>{money(p.totals.scheduled)}</dd></div></dl>
       </aside>}
       <div className={mode === "opportunities" ? "savings-choice finance-dark-panel" : undefined} hidden={mode === "progress"}>
       {mode !== "progress" && p.reviewable.length > 0 && <p className="mt-4 text-[13px] font-semibold">{t("1 · Kostenposten auswählen", "1 · Choose one cost")}</p>}
@@ -146,7 +146,7 @@ export default function SavingsCoach({
               {costReviewTip(c.category, de, c.frequency)}
             </p>
             <button type="button" className={`${button} mt-3`} disabled={p.busy} onClick={()=>p.choose(c)}>{t("Änderung planen", "Plan change")}</button>
-            <div className="mt-3 flex flex-wrap gap-2 border-t border-[#dfe5dd] pt-3"><button type="button" className={button} onClick={()=>onReview(c)}>{t("Angaben prüfen", "Review details")}</button>{c.cancellationDeadline&&c.cancellationDeadline>=p.today&&<button type="button" className={button} onClick={()=>remind(c)}>{t("Kalender-Erinnerung", "Calendar reminder")}</button>}<button type="button" className={button} disabled={p.busy} onClick={()=>p.later(c)}>{t("In 30 Tagen erneut prüfen", "Review again in 30 days")}</button></div>
+            <details className="home-disclosure mt-2"><summary className="min-h-8 cursor-pointer pt-1 text-[12px]">{t("Weitere Aktionen", "More actions")}</summary><div className="flex flex-wrap gap-2 pt-2"><button type="button" className={button} onClick={()=>onReview(c)}>{t("Angaben prüfen", "Review details")}</button>{c.cancellationDeadline&&c.cancellationDeadline>=p.today&&<button type="button" className={button} onClick={()=>remind(c)}>{t("Kalender-Erinnerung", "Calendar reminder")}</button>}<button type="button" className={button} disabled={p.busy} onClick={()=>p.later(c)}>{t("In 30 Tagen erneut prüfen", "Review again in 30 days")}</button></div></details>
 
           </article>
         ))}
@@ -306,7 +306,6 @@ export default function SavingsCoach({
             </article>
           ))}
       {mode === "progress" && p.totals.estimated > 0 && <p className="mt-3 text-[13px] text-[#52605b]">{t("Zusätzlich ohne Zahlungstermin geschätzt", "Additional estimate without payment dates")}: {money(p.totals.estimated)}. {t("Nicht im Betrag oben enthalten.", "Not included in the amount above.")}</p>}
-      {mode === "progress" && p.confirmedMonthly > 0 && <p className="mt-2 text-[13px] text-[#52605b]">{t("Deine bestätigten Änderungen senken die laufenden Kosten durchschnittlich um", "Your confirmed changes reduce recurring costs by an average of")} {money(p.confirmedMonthly)} {t("pro Monat. Das ist kein zusätzlich bereits angesparter Betrag.", "per month. This is not extra money already saved.")}</p>}
         </section>
       )}
       {mode === "progress" && onNavigate && <div className="planning-detail-navigation planning-progress-navigation">
@@ -319,6 +318,19 @@ export default function SavingsCoach({
           {p.error}
         </p>
       )}
+      {children}
     </section>
+  );
+  if (mode !== "progress") return content;
+
+  return (
+    <details className="home-disclosure savings-history finance-result-surface" data-savings-history>
+      <summary>
+        {p.confirmedMonthly > 0
+          ? t(`${money(p.confirmedMonthly)} weniger pro Monat · bestätigt`, `${money(p.confirmedMonthly)} less per month · confirmed`)
+          : t("Bestätigte Änderungen", "Confirmed changes")}
+      </summary>
+      {content}
+    </details>
   );
 }

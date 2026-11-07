@@ -1,7 +1,7 @@
-import { homeWorkspace, savingsTool } from './home-navigation';
+import { homeWorkspace, openPaydayPayments, savingsTool } from './home-navigation';
 import { test, expect } from '@playwright/test';
 for (const de of [false, true]) for (const width of [320, 390, 768, 1024, 1365]) {
-  test(`Pro reserves, subscription preview and quick check survive reload ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
+  test(`Pro reserves, subscription preview and balance updates survive reload ${de ? 'de' : 'en'} ${width}`, async ({ page }, info) => {
     const t = (a: string, b: string) => de ? a : b;
     await page.setViewportSize({ width, height: 900 });
     await page.clock.setFixedTime(new Date('2026-10-07T12:00:00Z'));
@@ -23,24 +23,15 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1024, 1365])
     const questions = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ });
     await plan();
     const payday = page.getByRole('region', { name: /Your available budget|Dein verfügbarer Spielraum/ });
-    await expect(payday.locator('[data-quick-check]')).toBeVisible();
-    await expect(payday.getByRole('button', { name: /^(Review plan|Plan prüfen)/ })).toHaveCount(0);
+    await expect(payday.locator('[data-payday-result]')).toContainText(t('280,00', '280.00'));
+    await expect(payday.locator('[data-payday-calculation] dd')).toHaveCount(4);
+    await expect(payday.locator('[data-quick-check]')).toHaveCount(0);
     const editAction=payday.locator('[data-payday-edit-action]');
     await expect(editAction).toHaveAttribute('aria-expanded','false');
     await expect(editAction).toHaveCSS('font-size','12px');
     expect((await editAction.boundingBox())!.height).toBeLessThanOrEqual(32);
     await expect(editAction.locator('.site-disclosure-icon')).toHaveCount(0);
-    if(width>=640){
-      const cards=await payday.locator('.quick-check-step').evaluateAll(nodes=>nodes.map(el=>{
-        const box=el.getBoundingClientRect();
-        return {top:box.top,bottom:box.bottom,heading:el.querySelector('h4')!.getBoundingClientRect().top,button:el.querySelector('button')!.getBoundingClientRect().top,details:el.querySelector('.quick-check-details')!.getBoundingClientRect().top};
-      }));
-      expect(cards).toHaveLength(3);
-      for(const key of ['top','bottom','heading','button','details'] as const)expect(Math.max(...cards.map(c=>c[key]))-Math.min(...cards.map(c=>c[key]))).toBeLessThanOrEqual(1);
-    }
-    await payday.locator('[data-quick-check]').screenshot({path:info.outputPath(`aligned-quick-check-${de?'de':'en'}-${width}.png`)});
-
-    await payday.getByRole('button', { name: t('Kontostand und Alltag prüfen', 'Review balance and everyday spending') }).click();
+    await editAction.click();
     await expect(payday.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true })).toBeFocused();
     await expect(editAction).toHaveAttribute('aria-expanded','true');
     await expect(editAction).toHaveCSS('font-size','12px');
@@ -51,17 +42,18 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1024, 1365])
     await payday.getByRole('button', { name: t('Einklappen', 'Collapse'), exact: true }).click();
     await expect(editAction).toHaveAttribute('aria-expanded','false');
     await expect(payday.locator('[data-payday-editor]')).toHaveCount(0);
-    await payday.getByRole('button', { name: t('Zahlungen ansehen und abhaken', 'View and check off payments') }).click();
-    await expect(payday.getByRole('checkbox', { name: /^Streaming ·/ })).toBeVisible();
-    await payday.getByRole('checkbox', { name: t('Offene und bezahlte Zahlungen geprüft', 'Reviewed unpaid and paid payments'), exact: true }).check();
-    await payday.getByRole('button', { name: t('Prüfung abschließen', 'Complete review') }).click();
-    await expect(payday).toContainText(t('Heute geprüft.', 'Reviewed today.'));
+    await openPaydayPayments(page);
+    await payday.getByRole('checkbox', { name: /^Streaming ·/ }).check();
+    await expect(payday.locator('[data-payday-result]')).toHaveCount(0);
+    await editAction.click();
+    await payday.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true }).fill('480');
+    await payday.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money') }).click();
+    await expect(payday.locator('[data-payday-result]')).toContainText(t('280,00', '280.00'));
     await page.reload(); await plan();
-    await expect(payday.locator('[data-quick-check] .finance-status-badge')).toHaveText(t('Heute erledigt', 'Done today'));
-    await expect(payday.getByRole('checkbox',{name:t('Offene und bezahlte Zahlungen geprüft','Reviewed unpaid and paid payments'),exact:true})).toBeChecked();
-    await expect(payday.getByRole('button',{name:t('Prüfung abschließen','Complete review'),exact:true})).toHaveCount(0);
-    await payday.locator('[data-quick-check]').screenshot({path:info.outputPath(`visible-quick-check-${de?'de':'en'}-${width}.png`)});
-    await questions.getByRole('button', { name: /Find realistic savings|Realistisch sparen/ }).click();
+    await expect(payday.locator('[data-payday-result]')).toContainText(t('280,00', '280.00'));
+    await openPaydayPayments(page);
+    await expect(payday.getByRole('checkbox', { name: /^Streaming ·/ })).toBeChecked();
+    await questions.getByRole('button', { name: /Lower costs|Kosten senken/ }).click();
     const tools = page.getByRole('region', { name: t('Rechnungen und Abos planen', 'Plan bills and subscriptions') });
     await savingsTool(page, 'reserves');
     await tools.getByLabel(t('Für diese Rechnung reserviertes Geld', 'Money reserved for this bill')).fill('200');
@@ -72,13 +64,15 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1024, 1365])
     await tools.getByLabel(t('Angebot: voller Jahrespreis', 'Offer: full annual price')).fill('180');
     await tools.getByLabel(t('Jahreszahlung am', 'Annual payment on')).fill('2026-10-07');
     await expect(tools).toContainText(t('Pro Jahr günstiger um', 'Costs less per year by'));
-    await expect(tools).toContainText(t('120,00', '120.00'));
+    await expect(tools.getByText(t('Pro Jahr günstiger um', 'Costs less per year by'), { exact: false })).toContainText(t('60,00', '60.00'));
+    // The already paid monthly charge cannot offset the annual payment.
+    await expect(tools.getByText(t('Nach der Umstellung bis zum nächsten Gehalt verfügbar', 'Available until next payday after switching'), { exact: false })).toContainText(t('100,00', '100.00'));
     await tools.getByRole('button', { name: t('Prüfung vormerken', 'Save review reminder') }).click();
     await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning.memos?.length)).toBe(1);
     await tools.screenshot({ path: info.outputPath(`pro-tools-${de ? 'de' : 'en'}-${width}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.reload(); await plan();
-    await questions.getByRole('button', { name: /Find realistic savings|Realistisch sparen/ }).click();
+    await questions.getByRole('button', { name: /Lower costs|Kosten senken/ }).click();
     await savingsTool(page, 'reserves');
     await expect(tools.getByLabel(t('Für diese Rechnung reserviertes Geld', 'Money reserved for this bill'))).toHaveValue('200');
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).planning);
