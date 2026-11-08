@@ -95,8 +95,8 @@ export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, on
     </div>}
     {section !== "budget" && <PlanningNavigation locale={locale} kind="tool" value={tool} onChange={onTool}/>}
 
-    <form hidden={section !== "budget"} data-planning-budget onSubmit={event => {event.preventDefault();void save();}}>
-    <h2 className="mt-2 text-xl font-extrabold">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
+    <form hidden={section !== "budget"} className="pro-tool-card" data-planning-budget onSubmit={event => {event.preventDefault();void save();}}>
+    <h2 className="site-card-title">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
     <p className="mt-1 text-[13px] text-[#52605b]">{de ? "Einkommen und Fixkosten sind schon übernommen. Schätze noch deine übrigen Alltagsausgaben – daraus berechnen wir, was dir im Monat bleibt." : "Income and fixed costs are already included. Estimate your other everyday spending to see what is left each month."}</p>
     {(budgetDirty || !budgetDraft) && <p data-budget-preview-note role="status" className="mt-3 text-[12px] font-semibold text-[#28734d]">{!budgetDraft ? de ? "Prüfe deine Eingaben, um die Vorschau zu berechnen. Dein gespeicherter Plan bleibt erhalten." : "Preview paused: enter valid amounts. Your saved values are shown below." : de ? "Vorschau – erst mit „Plan speichern“ werden deine Änderungen übernommen." : "Preview — use Save plan to keep your changes."}</p>}
     <div className="planning-budget-layout"><div className="planning-budget-inputs">
