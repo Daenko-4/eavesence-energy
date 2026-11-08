@@ -16,7 +16,7 @@ for(const de of [false,true]) for(const width of [320,1365]) {
     await homeWorkspace(page,'plan');
     const balance=page.getByLabel(t('Aktueller Kontostand','Current account balance'),{exact:true});
     await expect(balance).toBeFocused();
-    await page.getByRole('group',{name:t('Planungsfrage wählen','Choose planning question')}).getByRole('button',{name:t('Bis zum nächsten Gehalt','Until next payday'),exact:true}).click();
+    await page.getByRole('group',{name:t('Planungsfrage wählen','Choose planning question')}).getByRole('button',{name:t('Bis zum Gehalt','Until payday'),exact:true}).click();
     await balance.fill('1234');
     await expect(balance).toHaveValue('1234');
     const hash=new URL(page.url()).hash;

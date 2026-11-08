@@ -80,7 +80,7 @@ export async function homeDetail(page: Page, section: 'budget' | 'upcoming' | 'c
 }
 
 export async function planningPeriod(page: Page, period: 'payday' | 'forecast' | 'budget') {
-  const question = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ }).getByRole('button', { name: /Until next payday|Bis zum nächsten Gehalt/ });
+  const question = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ }).getByRole('button', { name: /Until payday|Bis zum Gehalt/ });
   if (await question.getAttribute('aria-pressed') !== 'true') await question.click();
   await page.locator('[data-planning-options="period"] > summary').click();
   await page.locator(`[data-planning-navigation=period] [data-planning-choice=${period}]`).click();
@@ -89,7 +89,7 @@ export async function planningPeriod(page: Page, period: 'payday' | 'forecast' |
 }
 
 export async function savingsTool(page: Page, tool: 'change' | 'switch' | 'annual' | 'reserves' | 'invoices') {
-  const question = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ }).getByRole('button', { name: /Find realistic savings|Realistisch sparen/ });
+  const question = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ }).getByRole('button', { name: /Lower costs|Kosten senken/ });
   if (await question.getAttribute('aria-pressed') !== 'true') await question.click();
   await page.locator('[data-planning-options="tool"] > summary').click();
   await page.locator(`[data-planning-navigation=tool] [data-planning-choice=${tool}]`).click();
@@ -122,5 +122,18 @@ export async function openCostOrganization(page:Page){
 }
 
 export async function openPaydayPayments(page:Page) {
-  await expect(page.locator('[data-payday-state]:visible [data-payday-payments-heading]')).toBeVisible();
+  const payments = page.locator('[data-payday-state]:visible [data-payday-payments]');
+  await expect(payments).toBeVisible();
+  if (await payments.getAttribute('open') === null) await payments.locator('summary').click();
+  await expect(payments.locator('[data-payday-payments-heading]')).toBeVisible();
+}
+
+
+export async function openSavingsHistory(page: Page) {
+  const costs = page.getByRole('group', { name: /Choose planning question|Planungsfrage wählen/ })
+    .getByRole('button', { name: /^(Lower costs|Kosten senken)$/ });
+  if (await costs.getAttribute('aria-pressed') !== 'true') await costs.click();
+  const history = page.locator('[data-savings-history]');
+  if (await history.getAttribute('open') === null) await history.locator('summary').click();
+  await expect(history).toHaveAttribute('open', '');
 }

@@ -1,3 +1,4 @@
+import { openSavingsHistory } from './home-navigation';
 import { expect, test } from '@playwright/test';
 import { homeWorkspace, paydayStep } from './home-navigation';
 
@@ -123,7 +124,7 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     const calculation=cash.locator('[data-payday-calculation]');
     await expect(calculation).toBeVisible();
     const amountEdges=await calculation.locator('dd').evaluateAll(nodes=>nodes.map(node=>node.getBoundingClientRect().right));
-    expect(amountEdges.length).toBe(5);
+    expect(amountEdges.length).toBe(4);
     expect(Math.max(...amountEdges)-Math.min(...amountEdges)).toBeLessThanOrEqual(1);
     expect(await cash.evaluate(el=>getComputedStyle(el).backgroundImage)).toBe("none");
     expect(await cash.locator('[data-payday-hero]').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(resultReference.background);
@@ -135,7 +136,7 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
     await page.screenshot({fullPage:true,path:info.outputPath(`centre-payday-${de?'de':'en'}-${width}.png`)});
     const questions=page.getByRole('group',{name:t('Planungsfrage wählen','Choose planning question'),exact:true});
-    await questions.getByRole('button',{name:t('Realistisch sparen','Find realistic savings'),exact:true}).click();
+    await questions.getByRole('button',{name:t('Kosten senken','Lower costs'),exact:true}).click();
     const savings=page.locator('[data-savings-coach=opportunities]');
     await savings.locator('.savings-choice select').selectOption('internet');
     await expect(savings.locator('.savings-edit')).toBeVisible();
@@ -145,10 +146,10 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
       const effective=(await savings.locator('.savings-edit input[type=month]').boundingBox())!;
       expect(Math.abs(amount.y-effective.y)).toBeLessThanOrEqual(1);
     }
-    await expect(savings.locator('[data-savings-centre-result]')).toContainText(t('Geplant, noch nicht eingespart.','Planned, not saved yet.'));
+    await expect(savings.locator('[data-savings-centre-result]')).toContainText(t('Monatsdurchschnitt · Vorschau','Monthly average · preview'));
     await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
     await page.screenshot({fullPage:true,path:info.outputPath(`centre-savings-${de?'de':'en'}-${width}.png`)});
-    await questions.getByRole('button',{name:t('Erreichte Ersparnis','Savings achieved'),exact:true}).click();
+    await openSavingsHistory(page);
     await expect(page.locator('[data-savings-coach=progress] .planning-card-amount')).toContainText(t('0,00','0.00'));
     await expect(page.locator('[data-savings-coach=progress] .planning-detail-navigation button')).toHaveCount(2);
     const actionContrast=await page.locator('[data-savings-coach=progress]').evaluate(workspace=>{

@@ -1,3 +1,4 @@
+import { openSavingsHistory } from './home-navigation';
 import { homeWorkspace, planningPeriod } from './home-navigation';
 import {test,expect,type Page} from '@playwright/test';
 async function seed(page:Page,de:boolean){
@@ -18,10 +19,10 @@ async function pro(page:Page){await homeWorkspace(page, 'plan');}
 for(const de of [false,true])for(const width of [390,1365])test(`free overview to useful Pro answers ${de?'de':'en'} ${width}`,async({page},info)=>{
  await page.setViewportSize({width,height:900});await seed(page,de);await pro(page);
  const payday=page.getByRole('region',{name:de?'Dein verfügbarer Spielraum':'Your available budget'});
- await expect(payday).toContainText(de?'182,00':'182.00');await expect(payday).toContainText(de?'frühere Zahlungen':'earlier payments');await expect(payday.locator('[data-payday-calculation]')).toBeVisible();await expect(payday).toContainText(de?'pro Tag':'per day');
- await expect(payday.getByText(de?'So entsteht dein Spielraum':'How your available money is calculated',{exact:true})).toBeVisible();await expect(payday.getByText(de?'Aktueller Kontostand':'Current account balance',{exact:true})).toBeVisible();await expect(payday).toContainText(de?'− Noch offene Rechnungen':'− Unpaid bills');
+ await expect(payday).toContainText(de?'182,00':'182.00');await expect(payday).toContainText(de?'frühere Zahlungen':'earlier payments');await expect(payday.locator('[data-payday-calculation]')).toBeVisible();await expect(payday.locator('[data-payday-calculation] dd')).toHaveCount(4);
+ await expect(payday.getByText(de?'Aktueller Kontostand':'Current account balance',{exact:true})).toBeVisible();await expect(payday).toContainText(de?'− Noch offene Rechnungen':'− Unpaid bills');
  const questions=page.getByRole('group',{name:/Planungsfrage wählen|Choose planning question/});
- await questions.getByRole('button',{name:/Realistisch sparen|Find realistic savings/}).click();
+ await questions.getByRole('button',{name:/Kosten senken|Lower costs/}).click();
  const coach=page.getByRole('region',{name:de?'02 · Wo kann ich realistisch sparen?':'02 · Where can I realistically save?'});
  await coach.getByLabel(de?'Kostenänderung testen · Kosten auswählen':'Test a cost change · choose a cost').selectOption('stream');
  await coach.getByLabel(de?'Neuer Betrag je Zahlung (0 = fällt weg)':'New amount per payment (0 = ends)').fill('0');
@@ -32,15 +33,16 @@ for(const de of [false,true])for(const width of [390,1365])test(`free overview t
  const progress=page.getByRole('region',{name:de?'03 · Was habe ich tatsächlich eingespart?':'03 · What have I actually saved?'});
  await expect(progress).toContainText(de?'Noch keine bestätigte Ersparnis':'No confirmed savings yet');
  await progress.getByRole('button',{name:de?'Eine Sparmöglichkeit prüfen':'Review a savings opportunity'}).click();
+ await expect(page.locator('[data-savings-history]')).not.toHaveAttribute('open');
  await expect(coach.locator('[data-savings-changes]')).toBeVisible();page.once('dialog',d=>void d.accept());await coach.getByRole('button',{name:de?'Umgesetzt – Kosten aktualisieren':'Done — update costs'}).click();
  await expect(coach).toContainText(de?'Umsetzung bestätigt':'Change confirmed');
  await coach.getByRole('button',{name:de?'Erreichte Ersparnis ansehen':'View achieved savings',exact:true}).click();
  await expect(progress).toContainText(de?'18,00':'18.00');await expect(progress).toContainText(de?'bereits fällige Zahlungen':'payments already due');
- await page.reload();await pro(page);await questions.getByRole('button',{name:/Erreichte Ersparnis|Savings achieved/}).click();await expect(progress).toContainText(de?'Bestätigt, Kosten aktualisiert':'Confirmed, costs updated');
+ await page.reload();await pro(page);await openSavingsHistory(page);await expect(progress).toContainText(de?'Bestätigt, Kosten aktualisiert':'Confirmed, costs updated');
  await progress.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`release-pro-${de?'de':'en'}-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 for(const de of [false,true])test(`failed monthly budget write keeps draft and shows no false success ${de?'de':'en'}`,async({page})=>{
- await seed(page,de);await pro(page);await page.getByRole('group',{name:/Planungsfrage wählen|Choose planning question/}).getByRole('button',{name:/Realistisch sparen|Find realistic savings/}).click();
+ await seed(page,de);await pro(page);await page.getByRole('group',{name:/Planungsfrage wählen|Choose planning question/}).getByRole('button',{name:/Kosten senken|Lower costs/}).click();
  await planningPeriod(page, 'budget');
  const input=page.getByLabel(de?'Alltagsausgaben pro Monat (geschätzt)':'Everyday spending per month (estimate)',{exact:true});await input.fill(de?'1.234,50':'1,234.50');
  await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='eavesence-home-profile-v1')throw new DOMException('Storage full','QuotaExceededError');return original.call(this,key,value);};});
