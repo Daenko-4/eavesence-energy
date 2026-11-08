@@ -617,7 +617,6 @@ a {
 .planning-workspace-content [data-editor-open="true"] [data-payday-hero] > div { margin-top: 0; }
 .planning-workspace-content [data-editor-open="true"] [data-payday-hero] button { gap: 8px; padding-inline: 10px; font-size: 12px; }
 .planning-workspace-content [data-payday-editor] { padding: 20px 0 0; }
-.planning-workspace-content [data-pro-forecast] { border: 0; border-radius: 0; padding: 0; }
 /* Entry and balance confirmation stay quiet; completed results retain contrast. */
 [data-payday-tone="setup"] { border: 1px solid #dfe5dd; background: #f4f6f2; color: #17211f; }
 [data-payday-tone="setup"] > p:first-child { color: #28734d; }
@@ -1554,3 +1553,98 @@ a {
   cursor: pointer;
 }
 .savings-history[open] { padding-bottom: 12px; }
+
+/* Secondary Pro tools use the same card edges, controls and focus cues. */
+.centre-pro-page .pro-tool-card,
+.centre-pro-page .planning-options {
+  min-width: 0;
+  padding: clamp(12px, 2vw, 20px);
+  border: 1px solid #dfe5dd;
+  border-radius: 16px;
+  background: #f6f6f0;
+}
+.centre-pro-page .planning-options { margin-top: 12px; padding-block: 0; }
+.centre-pro-page .planning-options[open] { padding-bottom: 12px; }
+.centre-pro-page .planning-options .planning-detail-navigation > button {
+  min-height: 44px;
+  border-radius: 10px;
+  background: #fff;
+}
+.centre-pro-page .planning-options .planning-detail-navigation > button[aria-pressed="true"] {
+  color: #196441;
+  border-color: #a8cbb3;
+  background: #e0f1e4;
+}
+.centre-pro-page .pro-tool-card .eavesence-pill-button {
+  min-height: 36px;
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: normal;
+}
+.centre-pro-page .pro-tool-card .home-dashboard-action {
+  color: #196441;
+  border: 1px solid #cdd7cf;
+  background: #fff;
+}
+.centre-pro-page .pro-tool-card .home-dashboard-action:hover:not(:disabled) { background: #e0f1e4; }
+.centre-pro-page .pro-tool-card .home-planning-field { border-radius: 10px; }
+.centre-pro-page .planning-workspace-content :is(h2,h3)[tabindex="-1"]:focus-visible {
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 4px;
+  outline: 2px solid #28734d;
+  outline-offset: 3px;
+}
+.pro-forecast-result {
+  padding: 14px 16px;
+  border: 1px solid #c9dfce;
+  border-radius: 12px;
+  background: #e0f1e4;
+}
+.pro-forecast-result[data-shortfall="true"] { border-color: #ead7b7; background: #fff1dc; }
+.pro-forecast-amount {
+  margin-top: 6px;
+  color: #087a45;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+[data-shortfall="true"] > .pro-forecast-amount { color: #92400e; }
+.pro-forecast-months {
+  border: 1px solid #dfe5dd;
+  border-radius: 12px;
+  background: #fff;
+}
+.pro-forecast-months > li { padding-inline: 12px; }
+.pro-forecast-month-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+}
+.pro-forecast-month-heading > span { font-variant-numeric: tabular-nums; }
+.pro-forecast-assumptions {
+  padding-inline: 12px;
+  border: 1px solid #dfe5dd;
+  border-radius: 12px;
+}
+.pro-forecast-assumptions > summary { min-height: 44px; font-weight: 600; }
+.pro-forecast-assumptions[open] { padding-bottom: 12px; }
+.centre-pro-page :is(.planning-options, .pro-forecast-assumptions) > summary::after { grid-row: 1; }
+.pro-forecast-form {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) auto;
+  align-items: end;
+  justify-content: start;
+  gap: 8px 12px;
+}
+.pro-forecast-form > .form-actions { grid-column: auto; }
+.centre-pro-page .pro-forecast-form .eavesence-pill-button { min-height: 44px; }
+@media (max-width: 639px) {
+  .centre-pro-page .pro-tool-card .eavesence-pill-button { min-height: 44px; }
+  .pro-forecast-form { grid-template-columns: minmax(0, 1fr); }
+}
