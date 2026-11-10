@@ -16,6 +16,7 @@ import {
   getFaqHref,
   getHomeHref,
   getHouseholdHref,
+  homePlanHashes,
   type Locale,
 } from "@/i18n/config";
 
@@ -137,7 +138,7 @@ function HeaderContent({
   useEffect(() => {
     const update = (event?: Event) => {
       const detail = (event as CustomEvent<"overview" | "plan"> | undefined)?.detail;
-      setHomeView(detail ?? (["#home-plan", "#payday-plan", "#savings-plan"].includes(window.location.hash) ? "plan" : "overview"));
+      setHomeView(detail ?? (homePlanHashes.includes(window.location.hash) ? "plan" : "overview"));
     };
     update();
     window.addEventListener("eavesence:home-view", update);

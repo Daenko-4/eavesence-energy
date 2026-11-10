@@ -441,7 +441,8 @@ export default function HomePage({
   }, [locale]);
 
   useEffect(() => {
-    if (!faqOpen || window.location.hash !== "#faq") return;
+    const transferred = window.sessionStorage.getItem(FAQ_LANGUAGE_TRANSFER_KEY) === "true";
+    if (!faqOpen || (window.location.hash !== "#faq" && !transferred)) return;
 
     const scrollTimeout = window.setTimeout(() => {
       const faqElement = document.getElementById("faq");
@@ -456,7 +457,7 @@ export default function HomePage({
 
       window.scrollTo({
         top: Math.min(Math.max(0, requestedTop), maximumTop),
-        behavior: "smooth",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
       });
     }, 340);
 

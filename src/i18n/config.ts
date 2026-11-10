@@ -20,6 +20,8 @@ export function getHouseholdHref(locale: Locale) {
   return locale === "de" ? "/de/zuhause" : "/home";
 }
 
+export const homePlanHashes = ["#home-plan", "#payday-plan", "#savings-plan", "#forecast-plan", "#budget-plan"];
+
 export function getCalculatorHref(locale: Locale) {
   return locale === "de" ? "/de/rechner" : "/calculator";
 }
