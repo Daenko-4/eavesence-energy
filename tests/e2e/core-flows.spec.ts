@@ -894,7 +894,6 @@ test("language switching keeps an open FAQ expanded and preserves its position",
   });
   await expect(englishFaq).toHaveAttribute("aria-expanded", "true");
 
-  const scrollBefore = await page.evaluate(() => window.scrollY);
   await page
     .getByRole("link", { name: "Current language: English. Switch to German." })
     .click();
@@ -904,8 +903,8 @@ test("language switching keeps an open FAQ expanded and preserves its position",
     page.getByRole("button", { name: /Häufige Fragen zu EAVESENCE/ }),
   ).toHaveAttribute("aria-expanded", "true");
   await expect
-    .poll(() => page.evaluate(() => window.scrollY))
-    .toBeGreaterThan(scrollBefore - 8);
+    .poll(() => page.locator("#faq").evaluate((element) => Math.abs(element.getBoundingClientRect().top - 84)))
+    .toBeLessThanOrEqual(4);
 
   await page.getByRole("link", { name: "Aktuelle Sprache: Deutsch. Zu Englisch wechseln." }).click();
   await expect(page).toHaveURL("/calculator");

@@ -20,6 +20,7 @@ import Link from "next/link";
 import {
   useCallback,
   useEffect,
+  useEffectEvent,
   useMemo,
   useRef,
   useState,
@@ -50,7 +51,7 @@ import MyDevicesPanel, {
 import PwaInstallCard from "@/components/PwaInstallCard";
 import PwaMobileNavigation from "@/components/PwaMobileNavigation";
 import { devices } from "@/data/devices";
-import type { Locale } from "@/i18n/config";
+import { homePlanHashes, type Locale } from "@/i18n/config";
 import { getLocalizedDevice } from "@/i18n/devices";
 import {
   calculateHouseholdSummary,
@@ -778,7 +779,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const text = copy[locale];
   const calculatorHref = locale === "de" ? "/de/rechner#rechner" : "/calculator#rechner";
   const savedDevicesHref = locale === "de" ? "/de/zuhause#home-devices" : "/home#home-devices";
-  const languageHref = locale === "de" ? "/home" : "/de/zuhause";
+  const languageBaseHref = locale === "de" ? "/home" : "/de/zuhause";
   const [ready, setReady] = useState(false);
   const [profile, setProfile] = useState<HouseholdProfile | null>(null);
   const [savedDevices, setSavedDevices] = useState<SavedDevice[]>([]);
@@ -807,6 +808,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const [planTool,setPlanTool] = useState<SavingsTool>("change");
   const [planPeriod, setPlanPeriod] = useState<PlanningPeriod>("payday");
   const [planQuestion, setPlanQuestion] = useState<"payday" | "savings">("payday");
+  const translatedPlanHash = planQuestion === "savings" ? "#savings-plan"
+    : planPeriod === "forecast" ? "#forecast-plan"
+    : planPeriod === "budget" ? "#budget-plan" : "#home-plan";
+  const languageHref = view === "plan" ? languageBaseHref + translatedPlanHash : languageBaseHref;
   const [name, setName] = useState(locale === "de" ? "Mein Zuhause" : "My home");
   const [currency, setCurrency] = useState<SavedDeviceCurrency>("EUR");
   const [price, setPrice] = useState(0.3);
@@ -858,7 +863,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
   const lastRequestedHash = useRef<string | null>(null);
   function changeWorkspace(next: "overview" | "plan") {
     // Keep header deep links aligned with the selected workspace.
-    if (["#home-plan", "#payday-plan", "#savings-plan", "#home-overview"].includes(window.location.hash)) {
+    if (homePlanHashes.includes(window.location.hash) || window.location.hash === "#home-overview") {
       const hash = next === "plan" ? "#home-plan" : "#home-overview";
       lastRequestedHash.current = hash;
       window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
@@ -901,17 +906,19 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     };
   }, [tileFormOpen, editingTileId, tileName]);
 
-  const loadLocalData = useCallback(() => {
+  const loadLocalData = useCallback((keepDrafts?: { income: boolean; settings: boolean }) => {
     try {
       recoverHomeStorage(window.localStorage);
       const rawProfile = window.localStorage.getItem(HOUSEHOLD_PROFILE_STORAGE_KEY);
       const storedProfile = readHouseholdProfile(rawProfile);
       if (rawProfile !== null && !storedProfile) throw new Error("Invalid stored home profile");
       setProfile(storedProfile);
-      if (storedProfile) {
+      if (storedProfile && !keepDrafts?.income) {
         setIncomeValue(storedProfile.incomeAmount != null && (storedProfile.incomeAmount > 0 || storedProfile.incomeDeferred === false) ? String(storedProfile.incomeAmount) : "");
         setIncomeFrequency(storedProfile.incomeFrequency ?? "monthly");
         setIncomeExtras(incomeExtraDrafts(storedProfile.incomeExtras));
+      }
+      if (storedProfile && !keepDrafts?.settings) {
         setName(localizeDefaultHouseholdName(storedProfile.name, locale));
         setCurrency(storedProfile.currency);
         setPrice(storedProfile.electricityPrice);
@@ -966,12 +973,19 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     } catch { setStorageFailed(true); }
   }, [locale]);
 
+  const refreshFromOtherTab = useEffectEvent(() => {
+    loadLocalData({ income: incomeOpen, settings: settingsOpen });
+  });
+
   useEffect(() => {
     const initialFrame = window.requestAnimationFrame(() => {
       loadLocalData();
       setReady(true);
     });
-    window.addEventListener("storage", loadLocalData);
+    function onStorage(event: StorageEvent) {
+      if (event.storageArea === window.localStorage) refreshFromOtherTab();
+    }
+    window.addEventListener("storage", onStorage);
     function refreshProfile() {
       if (!preserveProfileDrafts.current) loadLocalData();
     }
@@ -1006,7 +1020,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
     return () => {
       window.cancelAnimationFrame(initialFrame);
-      window.removeEventListener("storage", loadLocalData);
+      window.removeEventListener("storage", onStorage);
       window.removeEventListener(HOUSEHOLD_CHANGED_EVENT, refreshProfile);
     };
   }, [loadLocalData, locale]);
@@ -1033,10 +1047,21 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     if (!ready || !profile) return;
     function openRequestedDetail() {
       const hash = window.location.hash;
-      if (!hash) { lastRequestedHash.current = null; return; }
+      if (!hash) {
+        if (homePlanHashes.includes(lastRequestedHash.current ?? "")) setView("overview");
+        lastRequestedHash.current = null;
+        return;
+      }
       if (lastRequestedHash.current === hash) return;
       lastRequestedHash.current = hash;
-      if (["#savings-plan", "#home-plan", "#payday-plan"].includes(hash)) { setView("plan"); setSettingsOpen(false); setPlanQuestion(hash === "#savings-plan" ? "savings" : "payday"); if (hash === "#savings-plan") setPlanTool("change"); else setPlanPeriod("payday"); }
+      const planRequested = homePlanHashes.includes(hash);
+      if (planRequested) {
+        setView("plan");
+        setSettingsOpen(false);
+        setPlanQuestion(hash === "#savings-plan" ? "savings" : "payday");
+        if (hash === "#savings-plan") setPlanTool("change");
+        else setPlanPeriod(hash === "#forecast-plan" ? "forecast" : hash === "#budget-plan" ? "budget" : "payday");
+      }
       else if (hash.startsWith("#home-") || hash === "#household-costs") setView("overview");
       const requestedKind: HomeTileKind | null =
         hash === "#household-costs"
@@ -1067,10 +1092,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
         setOpenEnergyDetail("saving");
       }
 
-      if (requestedTile || ["#savings-plan", "#home-plan", "#payday-plan", "#home-overview"].includes(hash)) {
+      if (requestedTile || planRequested || hash === "#home-overview") {
         window.requestAnimationFrame(() => {
           window.requestAnimationFrame(() => {
-            document.getElementById(hash.slice(1))?.scrollIntoView({
+            document.getElementById(planRequested ? "home-plan" : hash.slice(1))?.scrollIntoView({
               behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
               block: "start",
             });
@@ -1081,7 +1106,11 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
 
     openRequestedDetail();
     window.addEventListener("hashchange", openRequestedDetail);
-    return () => window.removeEventListener("hashchange", openRequestedDetail);
+    window.addEventListener("popstate", openRequestedDetail);
+    return () => {
+      window.removeEventListener("hashchange", openRequestedDetail);
+      window.removeEventListener("popstate", openRequestedDetail);
+    };
   }, [homeTiles, text.tileTitles, ready, profile]);
 
   const summary = useMemo(
@@ -1623,7 +1652,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     track("Home Monthly Check In Deleted", { locale, month: entry.month });
   }
 
-  if (storageFailed) return <section className="mx-auto max-w-lg p-6" role="alert"><h1 className="text-xl font-semibold">{locale === "de" ? "Daten konnten nicht sicher geladen werden" : "Could not safely load your data"}</h1><p className="mt-3 text-sm leading-6">{locale === "de" ? "Deine bisherigen Daten bleiben erhalten. Gib bei vollem Browserspeicher etwas Platz frei und versuche es erneut." : "Your previous data is being kept. If browser storage is full, free some space and try again."}</p><button type="button" className="eavesence-pill-button mt-4" onClick={loadLocalData}>{locale === "de" ? "Erneut versuchen" : "Try again"}</button></section>;
+  if (storageFailed) return <section className="mx-auto max-w-lg p-6" role="alert"><h1 className="text-xl font-semibold">{locale === "de" ? "Daten konnten nicht sicher geladen werden" : "Could not safely load your data"}</h1><p className="mt-3 text-sm leading-6">{locale === "de" ? "Deine bisherigen Daten bleiben erhalten. Gib bei vollem Browserspeicher etwas Platz frei und versuche es erneut." : "Your previous data is being kept. If browser storage is full, free some space and try again."}</p><button type="button" className="eavesence-pill-button mt-4" onClick={() => loadLocalData()}>{locale === "de" ? "Erneut versuchen" : "Try again"}</button></section>;
   if (!ready) return <div className="min-h-screen bg-[var(--background)]" />;
 
   if (!profile) {

@@ -1,4 +1,4 @@
-import { homeWorkspace, homeDetail } from './home-navigation';
+import { homeWorkspace, homeDetail, planningPeriod } from './home-navigation';
 import { test, expect } from '@playwright/test';
 
 for (const locale of ['de', 'en'] as const) {
@@ -92,4 +92,55 @@ for(const locale of ['de','en'])test(`website backup replacement preserves the o
  await page.reload();
  const overview=page.getByRole('region',{name:de?'Finanzen im Überblick':'Your household at a glance'});
  await expect(overview.locator('article').nth(2)).toContainText(de?'2.950,00':'2,950.00');
+});
+
+
+test('saving settings in a second tab preserves an open income draft', async ({ page, context }) => {
+  await page.goto('/home');
+  await page.getByRole('button', { name: 'Create my home', exact: true }).click();
+  await page.locator('[data-home-setup]').getByRole('button').first().click();
+  const form = page.locator('#home-income-form');
+  const amount = form.locator('input').first();
+  await amount.fill('2400');
+  await form.locator('button[type="submit"]').click();
+
+  const settingsTab = await context.newPage();
+  await settingsTab.goto('/home');
+  await settingsTab.locator('[data-header-settings]').click();
+  const settings = settingsTab.locator('[data-home-settings]');
+  await settings.locator('input').first().fill('Renamed household');
+
+  await page.getByRole('button', { name: 'Edit regular income', exact: true }).click();
+  await amount.fill('2750');
+  await settings.getByRole('button', { name: 'Save settings', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Renamed household', exact: true })).toBeVisible();
+  await expect(amount).toHaveValue('2750');
+
+  await form.locator('button[type="submit"]').click();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Renamed household', exact: true })).toBeVisible();
+  await expect(page.locator('[data-home-monthly-budget]')).toContainText('2,750.00');
+});
+
+test('browser history restores My Home and language switching keeps the forecast open', async ({ page }) => {
+  await page.setViewportSize({ width: 1365, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/home');
+  await page.getByRole('button', { name: 'Create my home', exact: true }).click();
+  await homeWorkspace(page, 'plan');
+  await page.goBack();
+  await expect(page).toHaveURL(/\/home$/);
+  await expect(page.locator('[data-home-overview-content]')).toBeVisible();
+  await expect(page.locator('[data-home-plan-content]')).toBeHidden();
+  await page.goForward();
+  await expect(page.locator('[data-home-plan-content]')).toBeVisible();
+
+  await planningPeriod(page, 'forecast');
+  const forecast = page.locator('[data-pro-forecast]');
+  await expect(forecast.getByRole('heading', { name: 'The next 90 days' })).toBeVisible();
+  await page.locator('[data-header-language]').click();
+  await expect(page).toHaveURL(/\/de\/zuhause#forecast-plan$/);
+  await expect(forecast.getByRole('heading', { name: 'Die nächsten 90 Tage' })).toBeVisible();
+  await page.reload();
+  await expect(forecast).toBeVisible();
 });
