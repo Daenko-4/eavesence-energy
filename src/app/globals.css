@@ -1497,14 +1497,39 @@ a {
   .home-month-explanation:has([data-income-extras-summary]) { grid-template-columns: minmax(0,2fr) minmax(0,1fr); gap: 20px; padding: 16px; }
   .home-month-explanation:has([data-income-extras-summary]) .month-calculation-copy { display: flex; flex-direction: column; justify-content: center; padding: 0 0 0 20px; border-top: 0; border-left: 1px solid #dde2d8; }
 }
-[data-home-workspace] .home-actions-toolbar { display: flex; justify-content: center; flex-wrap: wrap; width: fit-content; max-width: 100%; margin: 12px auto 0; padding: 0; gap: 8px; border: 0; }
-[data-home-workspace][data-home-has-month] .home-actions-toolbar > button { flex: 0 1 auto; min-height: 36px; padding: 6px 12px; border: 1px solid #cdd7cf; border-radius: 999px; background: #f6f6f0; color: #52605b; font-size: 12px; font-weight: 600; line-height: 20px; }
+[data-home-workspace] .home-actions-toolbar {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px auto 0;
+  padding: 0;
+  gap: 12px 6px;
+  border: 0;
+}
+[data-home-workspace][data-home-has-month] .home-actions-toolbar > button {
+  flex: 0 1 auto;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid #cdd7cf;
+  border-radius: 999px;
+  background: #f6f6f0;
+  color: #52605b;
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 18px;
+}
+/* Keep the clickable area at least 44px tall around the compact pills. */
+.home-actions-toolbar.home-entry-actions > button::before { content: none; }
+.home-actions-toolbar > button::after { inset-block: -6px; }
 [data-home-workspace] .home-actions-toolbar > button[aria-expanded="true"] { background: #e0f1e4; color: #196441; border-color: #a8cbb3; }
 [data-home-workspace] [data-home-overview-content] { margin-top: 16px; }
 @media(max-width:639px) {
   .home-month-workspace [data-primary-payments="true"] { --payments-inset: 12px; }
-  [data-home-workspace] .home-actions-toolbar { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: 1fr; align-items: stretch; width: 100%; }
-  [data-home-workspace][data-home-has-month] .home-actions-toolbar > button { min-height: 44px; padding: 4px 8px; white-space: normal; }
+  [data-home-workspace] .home-actions-toolbar { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: 1fr; align-items: stretch; width: min(100%, 320px); gap: 8px 6px; }
+  [data-home-workspace][data-home-has-month] .home-actions-toolbar > button { min-height: 38px; padding-inline: 8px; white-space: normal; }
+  .home-actions-toolbar > button::after { inset-block: -3px; }
 }
 
 .home-month-workspace.finance-workspace .home-month-kpi .home-month-kpi-amount { align-self: start; }
