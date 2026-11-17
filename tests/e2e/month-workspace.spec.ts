@@ -111,6 +111,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await expect(workspace.locator('[data-checklist-paid]')).toContainText(t('20,00','20.00'));
     // Payment status affects unpaid money, never the month's scheduled fixed costs.
     await expect(workspace.locator('[data-home-remaining]')).toContainText(t('2.000,00','2,000.00'));
+    await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
     const summary=workspace.locator('.home-month-summary');
     const monthBox=(await workspace.locator('.home-month-toolbar').boundingBox())!, summaryBox=(await summary.boundingBox())!, listBox=(await workspace.locator('.home-month-payments').boundingBox())!;
     expect(monthBox.y+monthBox.height).toBeLessThanOrEqual(summaryBox.y);

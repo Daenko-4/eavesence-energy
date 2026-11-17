@@ -1879,7 +1879,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     const section = document.getElementById("home-plan");
     const history = section?.querySelector<HTMLDetailsElement>("[data-savings-history]");
     const closeHistory = question === "savings" && history?.open;
-    if (question === "savings" && !closeHistory && planQuestion === "savings" && planTool === "change") return;
+    if (question !== "progress" && !closeHistory && destination === planQuestion &&
+        (destination === "payday" ? planPeriod === "payday" : planTool === "change")) return;
     if (closeHistory && history) history.open = false;
     setPlanQuestion(destination);
     if (destination === "payday") setPlanPeriod("payday");
