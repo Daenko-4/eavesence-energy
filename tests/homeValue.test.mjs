@@ -7,6 +7,7 @@ import {
   paydayForecast,
   readCashWindow,
   savingsToDate,
+  evidencedSavings,
   confirmSavingsChange,
   parseMoney,
   costReviewTip,
@@ -158,4 +159,21 @@ test("review prompts match categories and avoid invented savings claims", () => 
   assert.match(costReviewTip("financing", false), /total cost/);
   assert.match(costReviewTip("subscriptions", true), /doppelte Abos/);
   assert.match(costReviewTip("other", false), /actually make/);
+});
+
+test("actual savings require a lower recorded invoice or paid checkmark", () => {
+  const internet = cost("internet", 45, "monthly", "2026-10-20");
+  const action = createSavingsAction(internet, 35, "2026-10");
+  const implemented = confirmSavingsChange([internet], [action], action, "2026-10-19");
+  const payment = {
+    costId: "internet", month: "2026-10", date: "2026-10-20",
+    frequency: "monthly", anchor: "2026-10-20", amount: 35,
+  };
+  const paidPayments = [{ ...payment, paidAt: "2026-10-20T12:00:00Z" }];
+  const actualPayments = [{ ...payment, amount: 37, plannedAmount: 35, updatedAt: "2026-10-20T11:00:00Z" }];
+  assert.equal(evidencedSavings(implemented.actions, implemented.planning, "2026-10-25").total, 0);
+  assert.equal(evidencedSavings(implemented.actions, { paidPayments }, "2026-10-25").total, 10);
+  assert.equal(evidencedSavings(implemented.actions, { paidPayments, actualPayments }, "2026-10-25").total, 8);
+  assert.equal(evidencedSavings([action], { paidPayments }, "2026-10-25").total, 0);
+  assert.equal(evidencedSavings(implemented.actions, { paidPayments }, "2026-10-19").total, 0);
 });

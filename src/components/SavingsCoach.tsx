@@ -77,7 +77,7 @@ export default function SavingsCoach({
       className={mode === "progress" ? "finance-workspace min-w-0" : mode === "opportunities" ? "mt-5 min-w-0" : "mt-5 rounded-xl border border-[#dfe5dd] bg-white p-4"}
       aria-label={mode === "progress" ? t("03 · Was habe ich tatsächlich eingespart?", "03 · What have I actually saved?") : t("02 · Wo kann ich realistisch sparen?", "02 · Where can I realistically save?")}
     >
-      {mode === "progress" ? <div className="planning-section-intro"><h2 className="site-section-title">{t("Deine bestätigte Ersparnis", "Your confirmed savings")}</h2><p>{shownActions.length ? t("Hier zählen nur umgesetzte und bestätigte Kostenänderungen.", "Only cost changes you have made and confirmed count here.") : t("Noch keine bestätigte Ersparnis. Plane eine konkrete Kostenänderung und bestätige sie erst nach der Umsetzung.", "No confirmed savings yet. Plan a specific cost change and confirm it after it happens.")}</p></div> : mode === "all" ? <h3 className="site-card-title">{t("Welche Kosten möchtest du senken?", "Which cost would you like to lower?")}</h3> : null}
+      {mode === "progress" ? <div className="planning-section-intro"><h2 className="site-section-title">{t("Tatsächlich gespart", "Actually saved")}</h2><p>{shownActions.length ? t("Hier zählen nur umgesetzte und bestätigte Kostenänderungen.", "Only cost changes you have made and confirmed count here.") : t("Noch keine bestätigte Ersparnis. Plane eine konkrete Kostenänderung und bestätige sie erst nach der Umsetzung.", "No confirmed savings yet. Plan a specific cost change and confirm it after it happens.")}</p></div> : mode === "all" ? <h3 className="site-card-title">{t("Welche Kosten möchtest du senken?", "Which cost would you like to lower?")}</h3> : null}
       {mode === "all" && <p className="mt-1 text-[13px] text-[#52605b]">{t("Starte mit dem Vorschlag oder wähle einen anderen Kostenposten.", "Start with the suggestion or choose another cost.")}</p>}
       {mode !== "progress" && p.planned.length > 0 && <div className="mt-3 rounded-xl border border-[#bfd3c5] bg-[#f4f6f2] p-4 text-[13px]" data-pro-next-step>
         <p className="font-semibold">{t("Dein nächster Schritt", "Your next step")}: {t("Vorhaben umsetzen", "Put your plan into action")}</p>
@@ -99,20 +99,21 @@ export default function SavingsCoach({
         <div className="finance-result-surface planning-task-card planning-savings-result" data-planning-tone={shownActions.some(action => action.status === "confirmed" && !p.outdated.includes(action)) ? "result" : "setup"}>
           <p className="planning-card-label">
             {t(
-              "Bisher berechnete Ersparnis",
-              "Calculated savings so far",
+              "Tatsächlich gespart",
+              "Actually saved",
             )}
           </p>
-          <p className="planning-card-amount">{money(p.totals.scheduled)}</p>
+          <p className="planning-card-amount">{money(p.achieved.total)}</p>
           <p className="planning-card-description">
             {t(
-              "Berechnet aus deinen bestätigten Kostensenkungen für bereits fällige Zahlungen. Die Beträge werden nicht mit deinem Bankkonto abgeglichen.",
-              "Calculated from your confirmed cost reductions for payments already due. These amounts are not checked against your bank account.",
+              "Hake günstigere Zahlungen in My Home ab. Hier zählt die Differenz zum alten Preis für erfasste oder als bezahlt markierte Rechnungen.",
+              "Check off lower bills in My Home. This total shows the difference from the old price for recorded invoices or bills marked paid.",
             )}
           </p>
         </div>
       )}
-      {mode === "progress" && nextSaving && <p className="mt-2 text-[13px] text-[#52605b]">{t("Nächste berechnete Ersparnis", "Next calculated saving")}: {money(nextSaving.amount)} {t("am", "on")} {new Intl.DateTimeFormat(de?"de-AT":"en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${nextSaving.date}T00:00:00Z`))}. {t("Sie zählt erst ab diesem Zahlungstermin.", "It counts from that payment date.")}</p>}
+      {mode === "progress" && p.totals.scheduled > 0 && <p className="mt-2 text-[13px] text-[#52605b]">{t("Rechnerische Ersparnis aus fälligen Zahlungen", "Calculated savings from bills due")}: {money(p.totals.scheduled)}</p>}
+      {mode === "progress" && nextSaving && <p className="mt-2 text-[13px] text-[#52605b]">{t("Nächste berechnete Ersparnis", "Next calculated saving")}: {money(nextSaving.amount)} {t("am", "on")} {new Intl.DateTimeFormat(de?"de-AT":"en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${nextSaving.date}T00:00:00Z`))}. {t("Die tatsächliche Ersparnis erscheint nach Bestätigung der günstigeren Rechnung.", "Actual savings appear after you confirm the lower bill.")}</p>}
       {mode !== "progress" && !p.tasks.length && !actions.length && (
         <p className="mt-3 text-[13px]">
           {t(
@@ -245,14 +246,15 @@ export default function SavingsCoach({
                     )
                   : a.status === "confirmed"
                     ? t(
-                        "Bestätigt, Kosten aktualisiert",
-                        "Confirmed, costs updated",
+                        "Umgesetzt",
+                        "Implemented",
                       )
                     : t(
-                        "Vorgemerkt, noch keine Ersparnis",
-                        "Planned, no confirmed saving yet",
+                        "Möglich",
+                        "Possible",
                       )}
               </p>
+              {p.achieved.byAction.has(savingsActionKey(a)) && <p className="mt-2 font-semibold">{t("Tatsächlich gespart", "Actually saved")}: {money(p.achieved.byAction.get(savingsActionKey(a))!)}</p>}
               {a.status === "planned" && a.effectiveMonth > p.today.slice(0,7) && <p className="mt-2 text-[#52605b]">{t("Bestätigen ist ab dem gewählten Monat möglich. Bis dahin bleiben deine laufenden Kosten unverändert.", "Confirmation becomes available in the chosen month. Your recurring costs stay unchanged until then.")}</p>}
               {a.endedOn && <p className="mt-2 text-[#52605b]">{t("Historie: bis", "History: until")} {a.endedOn}. {t("Spätere Kostenänderung; bisherige Ersparnis bleibt erhalten.", "Later cost change; earlier savings are preserved.")}</p>}
               {p.outdated.includes(a) && input.costs.some(c => c.id === a.costId) && (

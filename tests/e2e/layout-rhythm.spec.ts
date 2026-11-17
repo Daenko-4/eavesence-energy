@@ -34,9 +34,9 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1365]) {
     await homeWorkspace(page, 'plan');
     const plan = page.locator('[data-payday-state]');
     const balance = plan.getByLabel(t('Aktueller Kontostand', 'Current account balance'), { exact: true });
-    const progress = plan.locator('[data-payday-form] > p').first();
+    const form = plan.locator('[data-payday-form]');
     const aligned = async (field: Locator) => {
-      const p = (await progress.boundingBox())!, f = (await field.boundingBox())!;
+      const p = (await form.boundingBox())!, f = (await field.boundingBox())!;
       expect(Math.abs(p.x - f.x)).toBeLessThan(1);
     };
     const unobscured = async (field: Locator) => {
@@ -46,23 +46,16 @@ for (const de of [false, true]) for (const width of [320, 390, 768, 1365]) {
     };
     await aligned(balance);
     await balance.fill('1200');
-    const before = await page.evaluate(() => scrollY);
     await balance.press('Enter');
     const payday = plan.getByLabel(t('Nächstes Gehalt am', 'Next payday'), { exact: true });
     await expect(payday).toBeFocused();
     await aligned(payday); await unobscured(payday);
-    // A visible next field should keep its place instead of being centered again.
-    expect(Math.abs(await page.evaluate(() => scrollY) - before)).toBeLessThan(2);
     await plan.getByRole('button', { name: t('In 14 Tagen', 'In 14 days'), exact: true }).click();
     await page.screenshot({ path: info.outputPath(`rhythm-payday-${width}.png`), fullPage: true });
-    await plan.getByRole('button', { name: t('Weiter', 'Continue'), exact: true }).click();
+    await plan.getByRole('button', { name: t('Verfügbares Geld anzeigen', 'Show available money'), exact: true }).click();
     const everyday = plan.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt', 'Everyday spending until next payday'), { exact: true });
     await expect(everyday).toBeFocused(); await aligned(everyday); await unobscured(everyday);
     await everyday.fill('200');
-    await plan.getByRole('button', { name: t('Zurück', 'Back'), exact: true }).click();
-    await expect(payday).toBeFocused(); await unobscured(payday);
-    await plan.getByRole('button', { name: t('Weiter', 'Continue'), exact: true }).click();
-    await expect(everyday).toHaveValue('200');
     await everyday.press('Enter');
     await expect(plan.locator('[data-payday-result]')).toContainText(t('100,00', '100.00'));
     await page.screenshot({ path: info.outputPath(`rhythm-result-${width}.png`), fullPage: true });

@@ -13,6 +13,7 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
   type Change = {payment:MonthPayment; wasPaid:boolean; undo?:boolean};
   const [lastChange,setLastChange] = useState<Change | null>(null);
   const c=usePaymentChecklist(costs,data,onSave,de,month,onMonthChange);
+  const paid = c.payments.filter(payment => c.isPaid(payment));
   const undoPayment=lastChange?.payment.month === c.month && !c.closed ? c.payments.find(p => paymentKey({costId:p.cost.id,month:p.month,date:p.date}) === paymentKey({costId:lastChange.payment.cost.id,month:lastChange.payment.month,date:lastChange.payment.date}) && c.isPaid(p) !== lastChange.wasPaid && !p.estimated) : undefined;
   const money=(n:number)=>new Intl.NumberFormat(de?'de-AT':'en-GB',{style:'currency',currency}).format(n);
   const monthLabel=new Intl.DateTimeFormat(de?'de-AT':'en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${c.month}-01T00:00:00Z`));
@@ -28,9 +29,9 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
       if(!panel?.getClientRects().length || (document.activeElement!==origin && document.activeElement!==document.body))return;
       // Moving a row between groups must not drop keyboard focus or jump the page.
       const remaining=Array.from(panel.querySelectorAll<HTMLInputElement>('[data-payment-group="open"] input[type="checkbox"]'));
-      const choices=remaining.length?remaining:Array.from(panel.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
+      const choices=remaining.length?remaining:Array.from(panel.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')).filter(choice => choice.getClientRects().length);
       choices.sort((a,b)=>Math.abs(a.getBoundingClientRect().top-previousY)-Math.abs(b.getBoundingClientRect().top-previousY));
-      choices[0]?.focus({preventScroll:true});
+      (choices[0] ?? panel.querySelector<HTMLElement>('[data-payment-group="paid"] summary'))?.focus({preventScroll:true});
     });
   }
   function renderRows(payments:typeof c.payments) {
@@ -63,7 +64,7 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
         <div className="flex items-center gap-2"><button type="button" aria-label={t('Vorheriger Monat','Previous month')} onClick={c.previous} className="min-h-11 min-w-11 rounded-full border border-[#65716d] text-lg">‹</button><button type="button" aria-label={t('Nächster Monat','Next month')} onClick={c.next} className="min-h-11 min-w-11 rounded-full border border-[#65716d] text-lg">›</button>{c.month!==c.current&&<button type="button" onClick={c.reset} className="min-h-11 px-2 text-[13px] font-semibold">{t('Dieser Monat','This month')}</button>}</div>
       </div>
       <div className={primary ? "centre-payments-summary" : "mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3"}>
-        <div className="col-span-2 min-w-0 sm:col-span-1"><p className="text-[13px] text-[#52605b]" data-checklist-open-label>{t('Noch offen','Still unpaid')}{c.missing.length>0?` · ${t('unvollständig','incomplete')}`:''}</p><p className="mt-1 text-[20px] font-bold tracking-[-.035em] text-[#17211f]" data-checklist-open aria-live="polite">{c.payments.length?money(c.closed?0:c.openTotal):'—'}</p>{primary ? progress : <p className="mt-1 text-[12px] text-[#52605b]">{`${c.closed?0:c.open.length} ${c.open.length===1?t('Zahlung','payment'):t('Zahlungen','payments')}`}</p>}</div>
+        <div className="col-span-2 min-w-0 sm:col-span-1"><p className="text-[13px] text-[#52605b]" data-checklist-open-label>{(primary ? t('Diesen Monat noch offen','Still due this month') : t('Noch offen','Still unpaid'))}{c.missing.length>0?` · ${t('unvollständig','incomplete')}`:''}</p><p className="mt-1 text-[20px] font-bold tracking-[-.035em] text-[#17211f]" data-checklist-open aria-live="polite">{c.payments.length?money(c.closed?0:c.openTotal):'—'}</p>{primary ? progress : <p className="mt-1 text-[12px] text-[#52605b]">{`${c.closed?0:c.open.length} ${c.open.length===1?t('Zahlung','payment'):t('Zahlungen','payments')}`}</p>}</div>
         <div className="min-w-0">{!primary && paidLabel}<p className="mt-1 text-[20px] font-bold" data-checklist-paid>{money(c.closed?.paid??c.paidTotal)}</p>{primary ? paidLabel : progress}</div>
         <div className="min-w-0" data-checklist-next><p className="text-[13px] text-[#52605b]">{t('Als Nächstes fällig','Next due')}</p>{!c.closed&&c.nextDue?<><p className="mt-1 break-words text-[13px] font-semibold">{c.nextDue.cost.name} · {money(c.nextDue.cost.amount)}</p><p className="mt-1 text-[12px] text-[#52605b]">{dateLabel(c.nextDue.date!)}{c.nextDue.date!<c.today?` · ${t('überfällig','overdue')}`:''}</p></>:<p className="mt-1 text-[13px]">{!c.closed&&(c.open.length||c.missing.length)?t('Zahlungstermine fehlen','Payment dates missing'):t('Alles erledigt','All done')}</p>}</div>
       </div>
@@ -72,8 +73,8 @@ export default function MonthlyPayments({costs,data,onSave,locale,currency,onEdi
     <div className="home-payment-body p-4 sm:p-5">{!c.closed && !primary && <p className="home-payment-instruction mb-3 text-[13px] leading-5 text-[#65716d]">{primary ? t('Bezahlt? Einfach abhaken.','Paid? Check it off.') : t('Abgebucht oder bezahlt? Hake die Zahlung ab. Die nächste Zahlung bleibt offen.','Debited or paid? Check it off. The next payment stays open.')}</p>}
       {!c.closed && (c.payments.length?(primary ? <div className="home-payment-groups">
         <section data-payment-group="open" aria-label={t("Noch offen","Still unpaid")}><h3 className="home-payment-group-title">{t("Noch offen","Still unpaid")} <span>{c.open.length}</span></h3>{c.open.length ? renderRows(c.open) : <p className="py-3 text-[13px] text-[#65716d]">{t("Keine offenen Zahlungen in diesem Monat.","No unpaid payments this month.")}</p>}</section>
-        {c.payments.some(p=>c.isPaid(p)) && <section data-payment-group="paid" aria-label={t("Bereits bezahlt","Already paid")}><h3 className="home-payment-group-title">{t("Bereits bezahlt","Already paid")} <span>{c.payments.length-c.open.length}</span></h3>{c.payments.some(p=>c.isPaid(p)) ? renderRows(c.payments.filter(p=>c.isPaid(p))) : <p className="py-3 text-[13px] text-[#65716d]">{t("Noch keine Zahlungen abgehakt.","No payments checked off yet.")}</p>}</section>}
-      </div> : renderRows([...c.open,...c.payments.filter(p=>c.isPaid(p))])):<p className="text-[13px] leading-5 text-[#52605b]">{costs.length?t('Keine Zahlungen für diesen Monat eingeplant.','No payments scheduled for this month.'):t('Füge deine erste regelmäßige Ausgabe hinzu.','Add your first recurring cost.')}</p>)}
+        {paid.length > 0 && <details key={c.month} className="home-disclosure" data-payment-group="paid"><summary className="home-payment-group-title cursor-pointer">{t("Bereits bezahlt","Already paid")} <span>{paid.length}</span></summary>{renderRows(paid)}</details>}
+      </div> : renderRows([...c.open,...paid])):<p className="text-[13px] leading-5 text-[#52605b]">{costs.length?t('Keine Zahlungen für diesen Monat eingeplant.','No payments scheduled for this month.'):t('Füge deine erste regelmäßige Ausgabe hinzu.','Add your first recurring cost.')}</p>)}
       {!primary && <PaymentAmountForm c={c} locale={locale}/>}
 
       {!c.closed&&c.missing.length>0&&<div className="mt-4 rounded-xl bg-[#f4f6f2] p-3"><p className="text-[13px] leading-5 text-[#52605b]">{t('Diese Kosten brauchen einen Termin, damit wir wissen, in welchem Monat sie anfallen. Sie fehlen im Betrag oben.','These costs need a date so we know which month they fall in. They are excluded from the amount above.')}</p><div className="mt-2 flex flex-wrap gap-2">{c.missing.map(cost=><button type="button" key={cost.id} onClick={()=>onEdit(cost)} className="eavesence-pill-button home-dashboard-action">{cost.name} · {t('Termin ergänzen','Add date')}</button>)}</div></div>}

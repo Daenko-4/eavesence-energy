@@ -223,6 +223,9 @@ export function PaydayScreen({
             <Text style={styles.note}>{t("Dieser Teil deines Kontostands soll unangetastet bleiben. Rechnungen und Alltag sind bereits berücksichtigt. Sparziele werden nicht automatisch abgezogen.", "This part of your balance stays untouched. Bills and everyday spending are already accounted for. Savings goals are not deducted automatically.")}</Text>
           </>}
           <Text style={styles.note}>{t("Das nächste Gehalt ist hier noch nicht eingerechnet.", "Your next salary is not included yet.")}</Text>
+          {p.draftResult !== null && <Text accessibilityLiveRegion="polite" style={styles.subTitle}>
+            {p.draftResult < 0 ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Voraussichtlich verfügbar", "Estimated available")}: {money(Math.abs(p.draftResult))}
+          </Text>}
           <FormSubmitButton label={t("Verfügbares Geld anzeigen", "Show available money")} style={styles.button} textStyle={styles.buttonText}/>
           {p.error && <Text accessibilityRole="alert" style={styles.error}>{p.error}</Text>}
         </FormSection></View>

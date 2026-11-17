@@ -41,8 +41,17 @@ export function useCashWindow(
   const draftCash = readCashWindow({ balance: 0, asOf: today, payday, protected: 0, everydayRemaining: null });
   const preview = paydayForecast(input.costs, draftCash, input.variableMonthly, today, p.paidPayments, p.actualPayments);
   const suggestedEveryday = preview?.everyday == null ? null : Math.round(preview.everyday * 100) / 100;
+  const locale = de ? "de" : "en";
+  const draft = readCashWindow({
+    balance: parseMoney(balance, locale),
+    asOf: today,
+    payday,
+    protected: protectedAmount.trim() ? parseMoney(protectedAmount, locale) : 0,
+    everydayRemaining: parseMoney(everyday, locale),
+  });
+  const draftForecast = paydayForecast(input.costs, draft, input.variableMonthly, today, p.paidPayments, p.actualPayments);
   const saving=useRef(false);
-  function validateStep(step: number): CashInputField | null {
+  function validate(): CashInputField | null {
     const invalid = (field: CashInputField, message: string) => {
       setErrorField(field); setError(message); return field;
     };
@@ -50,9 +59,7 @@ export function useCashWindow(
     const locale = de ? "de" : "en";
     const parsedBalance = parseMoney(balance, locale);
     if (!Number.isFinite(parsedBalance)) return invalid("balance", de ? "Trage deinen aktuellen Kontostand als gültigen Betrag ein. Auch ein Minus ist möglich." : "Enter your current account balance as a valid amount. Negative balances are allowed.");
-    if (step === 0) return null;
     if (!validDay(payday) || payday <= today || (Date.parse(payday) - Date.parse(today)) / 86400000 > 90) return invalid("payday", de ? "Wähle deinen nächsten Gehaltstag: ab morgen und innerhalb der nächsten 90 Tage." : "Choose your next payday: from tomorrow and within the next 90 days.");
-    if (step === 1) return null;
     if (!everyday.trim()) {
       return invalid("everyday", de ? "Trage dein Alltagsbudget bis zum nächsten Gehalt ein oder übernimm den Vorschlag. 0 ist möglich." : "Enter your everyday budget until next payday or use the suggestion. 0 is allowed.");
     }
@@ -64,21 +71,10 @@ export function useCashWindow(
   }
   async function save(onInvalid?: (field: CashInputField) => void) {
     if(saving.current)return false;
-    const invalid = validateStep(2);
+    const invalid = validate();
     if(invalid){onInvalid?.(invalid);return false;}
-    const locale = de ? "de" : "en";
-    const parsedBalance=parseMoney(balance,locale),parsedEveryday=parseMoney(everyday,locale),parsedProtected=protectedAmount.trim()?parseMoney(protectedAmount,locale):0;
-    const next = readCashWindow({
-      balance: parsedBalance,
-      asOf: today,
-      payday,
-      protected: parsedProtected,
-      everydayRemaining: parsedEveryday,
-    });
-    if (
-      !next ||
-      !paydayForecast(input.costs, next, input.variableMonthly, today, p.paidPayments, p.actualPayments)
-    ) {
+    const next = draft;
+    if (!next || !draftForecast) {
       setError(
         de
           ? "Guthaben als gültigen Betrag, Ausgaben und Reserve ab 0 und einen Gehaltstermin innerhalb der nächsten 90 Tage eingeben."
@@ -119,8 +115,8 @@ export function useCashWindow(
     error,
     errorField,
     save,
-    validateStep,
     forecast,
+    draftResult: draftForecast?.remaining ?? null,
     today,
     stale: !!cash && (cash.needsRefresh === true || cash.asOf !== today),
     cash,

@@ -32,6 +32,9 @@ export default function ProInsights(props:ProInsightsProps & {locale:'de'|'en';c
             <p className="pro-forecast-amount">{money(Math.abs(forecast.lowest))}</p>
             <p className="mt-1 text-[#52605b]">{forecast.firstShortfall?t('Größte rechnerische Lücke im Zeitraum.','Largest estimated shortfall in this period.'):t('Niedrigster geplanter Betrag nach deiner geschützten Reserve.','Lowest projected amount after your protected reserve.')}</p>
           </div>
+          {forecast.nextExtra && <p className="rounded-xl bg-[#eefbf3] p-3">
+            {t("Nächste geplante zusätzliche Einnahme", "Next planned extra income")}: <strong>{money(forecast.nextExtra.amount)}</strong> · {day(forecast.nextExtra.date)}
+          </p>}
           <p className="text-[#52605b]">{t(`Vorschau bis ${day(p.forecast.end)}. Monatliche Gehälter werden ab deinem nächsten Gehaltstag fortgeschrieben.`,`Forecast until ${day(p.forecast.end)}. Monthly salary repeats from your next payday.`)}</p>
           {forecast.overdue>0&&<p className="text-amber-800">{t(forecast.overdue===1?"1 frühere Zahlung dieses Monats ist noch offen und enthalten.":`${forecast.overdue} frühere Zahlungen dieses Monats sind noch offen und enthalten.`,forecast.overdue===1?"1 earlier payment this month is still unpaid and included.":`${forecast.overdue} earlier payments this month are still unpaid and included.`)}</p>}
           {forecast.estimatedBills>0&&<p className="text-[#52605b]">{t(forecast.estimatedBills===1?"1 Rechnungsbetrag ist noch geschätzt.":`${forecast.estimatedBills} Rechnungsbeträge sind noch geschätzt.`,forecast.estimatedBills===1?"1 invoice amount is still an estimate.":`${forecast.estimatedBills} invoice amounts are still estimates.`)}</p>}

@@ -38,7 +38,7 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
   const forecastCards = [
     {label: de ? `Einnahmen im ${monthName}` : `Income in ${monthName}`, value:outlook.income === null ? "—" : `${outlook.incomeIsAverage ? estimate : ""}${money(outlook.income)}`, note:outlook.income !== null && outlook.extraIncome > 0 ? de ? `Reguläres Nettoeinkommen ${money(outlook.regularIncome)} + zusätzliche Einnahmen ${money(outlook.extraIncome)}` : `Regular net income ${money(outlook.regularIncome)} + additional income ${money(outlook.extraIncome)}` : outlook.income !== null && outlook.incomeIsAverage ? de ? "Monatsdurchschnitt aus deinem Jahresnetto" : "Monthly average from your annual net income" : undefined},
     {label: outlook.missing.length ? de ? `Bisher erfasste Fixkosten im ${monthName}` : `Recorded fixed costs in ${monthName}` : de ? `Fixkosten im ${monthName}` : `Fixed costs in ${monthName}`, value:`${outlook.payments.some(payment => payment.estimated) ? de ? "ca. " : "approx. " : ""}${money(outlook.total)}`},
-    {label: de ? "Voraussichtlich übrig nach Fixkosten" : "Expected amount left after fixed costs", value:outlook.remaining === null ? "—" : `${estimate}${money(outlook.remaining)}`, emphasis:true, note:outlook.remaining === null ? de ? "Angaben für diesen Monat fehlen noch" : "Entries for this month are still missing" : undefined},
+    {label: needsReview ? de ? "Übrig nach erfassten Fixkosten" : "Left after recorded fixed costs" : de ? "Voraussichtlich übrig nach Fixkosten" : "Expected amount left after fixed costs", value:outlook.remaining === null ? "—" : `${estimate}${money(outlook.remaining)}`, emphasis:true, note:outlook.remaining === null ? de ? "Angaben für diesen Monat fehlen noch" : "Entries for this month are still missing" : undefined},
   ];
   const incomeEditLabel = hasIncome ? de ? "Reguläres Einkommen ändern" : "Edit regular income" : de ? "Einkommen eintragen" : "Add income";
   return <section aria-label={de ? "Finanzen im Überblick" : "Your household at a glance"}>
@@ -71,6 +71,10 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
                 ? de ? "Deine erfassten Fixkosten sind höher als deine Einnahmen. Weitere Ausgaben sind noch nicht enthalten." : "Your recorded fixed costs exceed your income. Other spending is not included yet."
                 : de ? "Davon gehen deine Alltagsausgaben noch ab, zum Beispiel für Lebensmittel und Freizeit." : "Everyday spending, such as groceries and leisure, still comes out of this amount."}
         </p>
+      {needsReview && !needsIncome && <div data-home-review className="home-month-review-actions rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
+        <p className="text-[13px] leading-5 text-[#52605b]">{de ? "Der Betrag basiert auf deinen bisherigen Eingaben. Weitere Kosten kannst du jederzeit ergänzen." : "This amount is based on your entries so far. You can add more costs at any time."}</p>
+        <FormActions className="mt-3"><button className="eavesence-pill-button home-dashboard-action" type="button" onClick={onCost}>{de ? "Weitere Kosten ergänzen" : "Add more costs"}</button><button className="eavesence-pill-button home-primary-action" type="button" onClick={onFinishReview}>{de ? "Zu My Home" : "Go to My Home"}</button></FormActions>
+      </div>}
       </aside>
       <div className="home-month-payments">{payments}</div>
       {contextActive && <aside className="home-month-tools" aria-label={de ? "Aktionen & Hinweise" : "Actions & information"}>
@@ -91,11 +95,6 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
     </section>}
     {!count && incomeOpen && incomeForm}
     {!count && hasIncome && <div data-home-monthly-budget className="mt-4"><FinanceCards cards={cards} deficit={deficit} /><button type="button" onClick={onIncome} className="centre-text-action mt-2">{de ? "Reguläres Einkommen ändern" : "Edit regular income"}</button></div>}
-    {needsReview && !needsIncome && count > 0 && <div data-home-review className="mt-4 rounded-xl border border-[#b8efcc] bg-[#eefbf3] p-4">
-      <h3 className="site-card-title">{de ? "3 · Deinen Überblick prüfen" : "3 · Check your overview"}</h3>
-      <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{de ? "Sind Miete, Energie, Versicherungen und Abos schon enthalten? Ergänze zuerst deine größten regelmäßigen Kosten. Du musst nicht alles heute erfassen." : "Have you included rent, energy, insurance and subscriptions? Add your largest recurring costs first. You do not have to enter everything today."}</p>
-      <FormActions className="mt-3"><button className="eavesence-pill-button home-dashboard-action" type="button" onClick={onCost}>{de ? "Weitere Kosten ergänzen" : "Add more costs"}</button><button className="eavesence-pill-button home-dashboard-action" type="button" onClick={onFinishReview}>{de ? "Übersicht geprüft" : "Overview checked"}</button></FormActions>
-    </div>}
 
   </section>;
 }

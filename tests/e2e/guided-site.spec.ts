@@ -10,7 +10,7 @@ for(const de of [false,true]) for(const width of [320,1365]) {
     await page.getByLabel(t('Dein monatliches Nettoeinkommen','Your monthly net income'),{exact:true}).fill(de?'2.400,50':'2,400.50');
     await page.getByRole('button',{name:t('Weiter zur ersten Fixausgabe','Continue to first fixed cost'),exact:true}).click();
     await page.getByRole('button',{name:t('Kosten später ergänzen','Add costs later'),exact:true}).click();
-    await page.getByRole('button',{name:t('Übersicht speichern und öffnen','Save and open overview'),exact:true}).click();
+    await page.getByRole('button',{name:t('Zu My Home','Go to My Home'),exact:true}).click();
     await expect(page.getByRole('button',{name:t('Erste Kosten hinzufügen','Add first cost'),exact:true})).toBeVisible();
     await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!).incomeAmount)).toBe(2400.5);
     await homeWorkspace(page,'plan');
@@ -139,7 +139,7 @@ for (const de of [false, true]) for (const width of [320, 1365]) {
   await setup.getByRole('button',{name:t('Kosten ändern','Change cost'),exact:true}).click();
   await expect(amount).toHaveValue('1200');
   await setup.getByRole('button',{name:t('Vorläufiges Ergebnis anzeigen','Show provisional result'),exact:true}).click();
-  await setup.getByRole('button',{name:t('Übersicht speichern und öffnen','Save and open overview'),exact:true}).click();
+  await setup.getByRole('button',{name:t('Zu My Home','Go to My Home'),exact:true}).click();
   await expect(page.locator('[data-home-overview-content]')).toBeVisible();
   await page.reload();
   await expect(page.locator('[data-home-overview-content]')).toBeVisible();
@@ -166,7 +166,7 @@ for (const de of [false,true]) {
    const original=Storage.prototype.setItem;
    Storage.prototype.setItem=function(key,value){if(key==='eavesence-home-costs-v1'){Storage.prototype.setItem=original;throw new DOMException('Full','QuotaExceededError');}return original.call(this,key,value);};
   });
-  const save=setup.getByRole('button',{name:t('Übersicht speichern und öffnen','Save and open overview'),exact:true});
+  const save=setup.getByRole('button',{name:t('Zu My Home','Go to My Home'),exact:true});
   await save.click();
   await expect(setup.getByRole('alert')).toContainText(t('Eingaben bleiben erhalten','entries have been kept'));
   expect(await page.evaluate(()=>localStorage.getItem('eavesence-home-profile-v1'))).toBeNull();

@@ -104,6 +104,8 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await workspace.getByRole('button',{name:t('Dieser Monat','This month'),exact:true}).click();
     const name=/^Bill 1 ·/;
     await workspace.getByRole('checkbox',{name}).check();
+    await expect(paid).not.toHaveAttribute('open');
+    await paid.locator('summary').click();
     await expect(paid.getByRole('checkbox',{name})).toBeChecked();
     await expect(open.getByRole('checkbox')).toHaveCount(19);
     await expect(workspace.locator('[data-checklist-paid]')).toContainText(t('20,00','20.00'));
@@ -122,6 +124,8 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await page.screenshot({fullPage:true,path:info.outputPath(`workspace-${de?'de':'en'}-${width}.png`)});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.reload();
+    await expect(paid).not.toHaveAttribute('open');
+    await paid.locator('summary').click();
     await expect(paid.getByRole('checkbox',{name})).toBeChecked();
     await workspace.getByRole('checkbox',{name}).uncheck();
     await expect(open.getByRole('checkbox',{name})).not.toBeChecked();

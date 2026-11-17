@@ -15,7 +15,7 @@ for(const locale of ['de','en']) test(`recorded zero income completes website se
   await page.locator('#household-costs').getByLabel(t('Betrag','Amount'),{exact:true}).fill('40');
   await page.locator('#household-costs').getByRole('button',{name:t('Speichern','Save'),exact:true}).click();
   await expect(page.locator('[data-home-review]')).toBeVisible();
-  await page.getByRole('button',{name:t('Übersicht geprüft','Overview checked'),exact:true}).click();
+  await page.getByRole('button',{name:t('Zu My Home','Go to My Home'),exact:true}).click();
   await page.reload();
   await expect(setup).toHaveCount(0);
   await homeDetail(page, 'budget');

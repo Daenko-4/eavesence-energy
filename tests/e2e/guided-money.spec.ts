@@ -1,5 +1,5 @@
 import {expect,test} from '@playwright/test';
-import {homeWorkspace,paydayStep} from './home-navigation';
+import {homeWorkspace} from './home-navigation';
 for(const de of [false,true])for(const width of [320,1365])test(`result first and guided cash plan ${de?'de':'en'} ${width}`,async({page},info)=>{
   const t=(a:string,b:string)=>de?a:b;
   await page.setViewportSize({width,height:900});await page.emulateMedia({reducedMotion:'reduce'});
@@ -23,16 +23,15 @@ for(const de of [false,true])for(const width of [320,1365])test(`result first an
   await page.screenshot({fullPage:true,path:info.outputPath(`guided-home-${de?'de':'en'}-${width}.png`)});
   await homeWorkspace(page,'plan');
   const plan=page.locator('[data-payday-state]');
-  await expect(plan).toBeVisible();await expect(plan).toHaveAttribute('data-payday-step','0');
-  await expect(plan.locator('form input:visible')).toHaveCount(1);
+  await expect(plan).toBeVisible();await expect(plan).toHaveAttribute('data-payday-editor-mode','full');
+  await expect(plan.locator('form input:visible')).toHaveCount(3);
   await plan.screenshot({path:info.outputPath(`guided-balance-${de?'de':'en'}-${width}.png`)});
   const balance=plan.getByLabel(t('Aktueller Kontostand','Current account balance'),{exact:true});
-  await plan.getByRole('button',{name:t('Weiter','Continue'),exact:true}).click();
-  await expect(plan).toHaveAttribute('data-payday-step','0');await expect(balance).toBeFocused();
-  await balance.fill('1200');await balance.press('Enter');
-  await expect(plan).toHaveAttribute('data-payday-step','1');
+  await plan.getByRole('button',{name:t('Verfügbares Geld anzeigen','Show available money'),exact:true}).click();
+  await expect(balance).toBeFocused();
+  await balance.fill('1200');
   await plan.getByRole('button',{name:t('In 14 Tagen','In 14 days'),exact:true}).click();
-  await expect(plan.getByRole('button',{name:t('Weiter','Continue'),exact:true})).toBeEnabled();
+  await expect(plan.getByRole('button',{name:t('Verfügbares Geld anzeigen','Show available money'),exact:true})).toBeEnabled();
   await expect(plan).toContainText(t('Du kannst weiterplanen.','You can continue planning.'));
   await expect(plan.locator('[data-payday-result]')).toHaveCount(0);
   await plan.getByLabel(`Rent · ${t('Zahlungstermin','Payment date')}`,{exact:true}).fill('2026-10-30');
@@ -40,11 +39,10 @@ for(const de of [false,true])for(const width of [320,1365])test(`result first an
   await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!)[0].nextDueDate)).toBe('2026-10-30');
   await expect(page.locator('[data-home-plan-content]')).toBeVisible();
   await plan.screenshot({path:info.outputPath(`guided-dates-${de?'de':'en'}-${width}.png`)});
-  await paydayStep(page,2);
   const everyday=plan.getByLabel(t('Alltagsausgaben bis zum nächsten Gehalt','Everyday spending until next payday'),{exact:true});
   await everyday.fill('200');
   await plan.screenshot({path:info.outputPath(`guided-everyday-${de?'de':'en'}-${width}.png`)});
-  await plan.getByRole('button',{name:t('Zurück','Back'),exact:true}).click();await paydayStep(page,2);await expect(everyday).toHaveValue('200');
+  await expect(plan.getByText(t('Voraussichtlich verfügbar:','Estimated available:'),{exact:false})).toContainText(t('100,00','100.00'));
   await everyday.press('Enter');
   await expect(plan).toHaveAttribute('data-payday-state','ready');await expect(plan.locator('[data-payday-result]')).toContainText(t('100,00','100.00'));
   await page.screenshot({fullPage:true,path:info.outputPath(`guided-pro-${de?'de':'en'}-${width}.png`)});
