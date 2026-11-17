@@ -48,11 +48,13 @@ export default function PaydayPanel({
     }
     target.focus({ preventScroll: true });
   }
+  const requestedFocus = useRef<CashInputField>("balance");
   useEffect(()=>{
-    const focus=()=>requestAnimationFrame(()=>{const target=balanceInput.current;if(open&&target?.getClientRects().length)target.focus({preventScroll:true});});
+    const focus=()=>requestAnimationFrame(()=>{const target=({balance: balanceInput, payday: paydayInput, everyday: everydayInput, protected: protectedInput})[requestedFocus.current].current;if(open&&target?.getClientRects().length)target.focus({preventScroll:true});});
     focus();window.addEventListener("eavesence:home-view",focus);return()=>window.removeEventListener("eavesence:home-view",focus);
   },[open]);
   function focusInvalid(field: CashInputField) {
+    requestedFocus.current = field;
     if (field !== "balance") setBalanceOnly(false);
     if (field === "protected") setReserveOpen(true);
     requestAnimationFrame(() => {

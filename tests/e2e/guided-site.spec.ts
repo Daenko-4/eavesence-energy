@@ -160,7 +160,7 @@ for (const de of [false,true]) {
   await setup.getByLabel(t('Bezeichnung','Cost name'),{exact:true}).fill('Rent');
   await setup.getByLabel(t('Betrag','Amount')+' (EUR)',{exact:true}).fill('850');
   await setup.getByRole('button',{name:t('Vorläufiges Ergebnis anzeigen','Show provisional result'),exact:true}).click();
-  await expect(setup.locator('[data-setup-result]')).toContainText(t('Fehlbetrag / Monat','Monthly shortfall'));
+  await expect(setup.locator('[data-setup-result]')).toContainText(t('Fehlt nach erfassten Fixkosten','Shortfall after recorded fixed costs'));
   await expect(setup.locator('[data-setup-result] dd').last()).toContainText(t('-850,00','-€850.00'));
   await page.evaluate(()=>{
    const original=Storage.prototype.setItem;

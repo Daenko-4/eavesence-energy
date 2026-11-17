@@ -1,3 +1,4 @@
+import { openPaidPayments } from './home-navigation';
 import { paydayStep } from './home-navigation';
 import { homeWorkspace } from './home-navigation';
 import { test, expect } from '@playwright/test';
@@ -33,14 +34,14 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`month-first
   await expect(list.getByRole('checkbox')).toHaveCount(8);
   await expect(page.locator('[data-cost-manager]')).toBeHidden();
   await expect(page.locator('#household-costs')).toBeHidden();
-  const rent=list.getByRole('checkbox',{name:/^Rent ·/});await rent.check();
-  await expect(rent).toBeChecked();await expect(list.locator('[data-checklist-open]')).toContainText(de?'740,00':'740.00');
+  const rent=list.getByRole('checkbox',{name:/^Rent ·/});await rent.click();
+  await openPaidPayments(list);await expect(rent).toBeChecked();await expect(list.locator('[data-checklist-open]')).toContainText(de?'740,00':'740.00');
   await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 8 bezahlt':'1 of 8 paid');
   await page.getByRole('group',{name:/^(Choose month|Monat wählen)$/}).getByRole('button',{name:de?'Nächster Monat':'Next month',exact:true}).click();
   await expect(list.locator('[data-checklist-month]')).toContainText('November');
   await expect(rent).not.toBeChecked();await expect(list.locator('[data-checklist-open]')).toContainText(de?'1.020,00':'1,020.00');
-  await page.getByRole('group',{name:/^(Choose month|Monat wählen)$/}).getByRole('button',{name:de?'Vorheriger Monat':'Previous month',exact:true}).click();await expect(rent).toBeChecked();
-  await page.reload();await expect(list.locator('[data-month-review]')).toBeVisible();await expect(rent).toBeChecked();
+  await page.getByRole('group',{name:/^(Choose month|Monat wählen)$/}).getByRole('button',{name:de?'Vorheriger Monat':'Previous month',exact:true}).click();await openPaidPayments(list);await expect(rent).toBeChecked();
+  await page.reload();await expect(list.locator('[data-month-review]')).toBeVisible();await openPaidPayments(list);await expect(rent).toBeChecked();
   await expect(list).toContainText(de?'Monatlich · Termin fehlt':'Monthly · date missing');
   await expect(list).toContainText(de?'Sie fehlen im Betrag oben':'excluded from the amount above');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -52,7 +53,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`month-first
 test('payment changes invalidate the old balance and a fresh payday calculation excludes the paid bill',async({page})=>{
   await seed(page,false,false);
 
-  await page.getByRole('checkbox',{name:/^Rent ·/}).check();
+  await page.getByRole('checkbox',{name:/^Rent ·/}).click();
   await homeWorkspace(page, 'plan');
   const payday=page.getByRole('region',{name:'Your available budget',exact:true});
   await expect(payday).toContainText('Payments changed');

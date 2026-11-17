@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Page, type Locator } from '@playwright/test';
 
 export async function closeSettings(page:Page) {
   const dialog=page.getByRole('dialog',{name:/^(Settings|Einstellungen)$/});
@@ -132,4 +132,11 @@ export async function openSavingsHistory(page: Page) {
   const history = page.locator('[data-savings-history]');
   if (await history.getAttribute('open') === null) await history.locator('summary').click();
   await expect(history).toHaveAttribute('open', '');
+}
+
+/** Paid rows remain collapsed until a user asks to see them. */
+export async function openPaidPayments(list: Locator) {
+  const paid = list.locator('[data-payment-group="paid"]');
+  await expect(paid).toBeVisible();
+  if (await paid.getAttribute('open') === null) await paid.locator('summary').click();
 }

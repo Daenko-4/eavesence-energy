@@ -103,7 +103,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await alignedFigures();
     await workspace.getByRole('button',{name:t('Dieser Monat','This month'),exact:true}).click();
     const name=/^Bill 1 ·/;
-    await workspace.getByRole('checkbox',{name}).check();
+    await workspace.getByRole('checkbox',{name}).click();
     await expect(paid).not.toHaveAttribute('open');
     await paid.locator('summary').click();
     await expect(paid.getByRole('checkbox',{name})).toBeChecked();
@@ -127,7 +127,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     await expect(paid).not.toHaveAttribute('open');
     await paid.locator('summary').click();
     await expect(paid.getByRole('checkbox',{name})).toBeChecked();
-    await workspace.getByRole('checkbox',{name}).uncheck();
+    await workspace.getByRole('checkbox',{name}).click();
     await expect(open.getByRole('checkbox',{name})).not.toBeChecked();
     await page.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true}).click();
     await expect(open.getByRole('checkbox')).toHaveCount(20);
@@ -147,7 +147,7 @@ for (const de of [false, true]) for (const width of [320, 768, 1024, 1365]) {
     expect(shortToolbar.height).toBeLessThan(100);
     expect(shortList.y-shortSummary.y-shortSummary.height).toBeLessThanOrEqual(12);
     await page.screenshot({fullPage:true,path:info.outputPath(`workspace-short-${de?'de':'en'}-${width}.png`)});
-    await workspace.getByRole('checkbox',{name:/^Bill 1 ·/}).check();
+    await workspace.getByRole('checkbox',{name:/^Bill 1 ·/}).click();
     const paymentSummary=workspace.locator('.centre-payments-summary');
     await expect(paymentSummary.locator('[data-checklist-open]')).toContainText(t('0,00','0.00'));
     await expect(paymentSummary.locator('[data-checklist-progress]')).toHaveText(t('1 von 1 bezahlt','1 of 1 paid'));

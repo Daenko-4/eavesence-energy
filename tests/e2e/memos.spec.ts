@@ -1,3 +1,4 @@
+import { openPaidPayments } from './home-navigation';
 import { homeDetail } from './home-navigation';
 import {test,expect,type Page} from '@playwright/test';
 async function seed(page:Page,de=false){
@@ -10,7 +11,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`memos and a
  const list=page.getByRole('region',{name:de?'Monatscheckliste':'Monthly checklist'}),review=list.locator('[data-month-review]');
  await expect(review).toBeVisible();
  await expect(list.getByRole('button',{name:de?'Monatsrückblick':'Monthly review',exact:true})).toHaveCount(0);
- const payment=list.getByRole('checkbox',{name:/^Rent ·/});await payment.check();await expect(payment).toBeVisible();await expect(payment).toBeChecked();await expect(list.locator('[data-checklist-open]')).toBeVisible();await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 1 bezahlt':'1 of 1 paid');
+ const payment=list.getByRole('checkbox',{name:/^Rent ·/});await payment.click();await openPaidPayments(list);await expect(payment).toBeVisible();await expect(payment).toBeChecked();await expect(list.locator('[data-checklist-open]')).toBeVisible();await expect(list.locator('[data-checklist-progress]')).toContainText(de?'1 von 1 bezahlt':'1 of 1 paid');
  await list.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`checklist-review-visible-${de?'de':'en'}-${width}.png`)});
  await expect(review).toBeVisible();await expect(payment).toBeChecked();
  const memos=page.getByRole('region',{name:de?'Merken & erinnern':'Notes & reminders'});

@@ -35,10 +35,10 @@ for(const de of [false,true])for(const width of [390,1365])test(`free overview t
  await progress.getByRole('button',{name:de?'Eine Sparmöglichkeit prüfen':'Review a savings opportunity'}).click();
  await expect(page.locator('[data-savings-history]')).not.toHaveAttribute('open');
  await expect(coach.locator('[data-savings-changes]')).toBeVisible();page.once('dialog',d=>void d.accept());await coach.getByRole('button',{name:de?'Umgesetzt – Kosten aktualisieren':'Done — update costs'}).click();
- await expect(coach).toContainText(de?'Umsetzung bestätigt':'Change confirmed');
+ await expect(coach).toContainText(de?'Kündigung umgesetzt':'Cancellation implemented');
  await coach.getByRole('button',{name:de?'Erreichte Ersparnis ansehen':'View achieved savings',exact:true}).click();
- await expect(progress).toContainText(de?'18,00':'18.00');await expect(progress).toContainText(de?'bereits fällige Zahlungen':'payments already due');
- await page.reload();await pro(page);await openSavingsHistory(page);await expect(progress).toContainText(de?'Bestätigt, Kosten aktualisiert':'Confirmed, costs updated');
+ await expect(progress).toContainText(de?'18,00':'18.00');await expect(progress).toContainText(de?'Rechnerische Ersparnis aus fälligen Zahlungen':'Calculated savings from bills due');
+ await page.reload();await pro(page);await openSavingsHistory(page);await expect(progress).toContainText(de?'Umgesetzt':'Implemented');
  await progress.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`release-pro-${de?'de':'en'}-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 for(const de of [false,true])test(`failed monthly budget write keeps draft and shows no false success ${de?'de':'en'}`,async({page})=>{

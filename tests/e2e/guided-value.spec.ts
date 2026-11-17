@@ -64,7 +64,7 @@ test('income can be deferred without inventing a remainder or blocking setup', a
   await page.locator('#household-cost-name').fill('Rent');
   await page.locator('#household-costs').getByLabel('Amount',{exact:true}).fill('800');
   await page.locator('#household-costs').getByRole('button',{name:'Save',exact:true}).click();
-  await page.locator('[data-home-review]').getByRole('button',{name:'Overview checked',exact:true}).click();
+  await page.locator('[data-home-review]').getByRole('button',{name:'Go to My Home',exact:true}).click();
   await expect(page.locator('[data-home-monthly-budget]')).toBeVisible();
   await expect(page.locator('[data-home-remaining]')).toContainText('—');
   await expect(page.locator('.home-month-context')).toHaveText('Enter your income to see what is left after fixed costs.');
