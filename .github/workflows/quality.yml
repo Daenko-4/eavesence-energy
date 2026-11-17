@@ -59,7 +59,7 @@ jobs:
           npx playwright install --with-deps webkit
 
       - name: Run browser tests
-        run: npm run test:e2e
+        run: npm run test:e2e -- --reporter=list,html,github
 
       - name: Upload browser report on failure
         if: failure()

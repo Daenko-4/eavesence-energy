@@ -84,6 +84,9 @@ export function forecast90Days(input:ForecastInput,value:PlanningData|undefined,
   }
   type Month={month:string;from:string;to:string;income:number;extras:number;bills:number;everyday:number;closing:number;lowest:number;lowDate:string};
   const months:Month[]=[];
+  const nextExtra = [...events.entries()]
+    .filter(([, event]) => event.extras > 0)
+    .sort(([a], [b]) => a.localeCompare(b))[0];
   let available=cash!.balance-cash!.protected,lowest=available,lowDate=today,firstShortfall:string|null=available<0?today:null,estimatedBills=0;
   const daysToPayday=(Date.parse(cash!.payday)-Date.parse(today))/86400000;
   for(let date=today;date<=end;date=plusDays(date,1)){
@@ -100,7 +103,7 @@ export function forecast90Days(input:ForecastInput,value:PlanningData|undefined,
     month!.to=date;month!.income+=event.income;month!.extras+=event.extras;month!.bills+=event.bills;month!.everyday+=everyday;month!.closing=available;
     estimatedBills+=event.estimated;
   }
-  return {reason:null,missingDates,end,result:{lowest:cents(lowest),lowDate,firstShortfall,closing:cents(available),overdue,estimatedBills,protected:cash!.protected,months:months.map(m=>({...m,income:cents(m.income),extras:cents(m.extras),bills:cents(m.bills),everyday:cents(m.everyday),closing:cents(m.closing),lowest:cents(m.lowest)}))}};
+  return {reason:null,missingDates,end,result:{nextExtra:nextExtra ? {date:nextExtra[0],amount:cents(nextExtra[1].extras)} : null,lowest:cents(lowest),lowDate,firstShortfall,closing:cents(available),overdue,estimatedBills,protected:cash!.protected,months:months.map(m=>({...m,income:cents(m.income),extras:cents(m.extras),bills:cents(m.bills),everyday:cents(m.everyday),closing:cents(m.closing),lowest:cents(m.lowest)}))}};
 }
 
 export type SwitchDraft={costId:string;newAmount:number;start:string;fee:number;overlapMonths:number};

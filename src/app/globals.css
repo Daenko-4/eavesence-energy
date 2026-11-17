@@ -628,16 +628,16 @@ a {
 .payday-date-shortcuts > button { min-height: 36px; padding: 6px 10px; border: 1px solid #dfe5dd; border-radius: 8px; color: #28734d; font-size: 12px; font-weight: 600; }
 .payday-date-shortcuts > button:hover { background: #eefbf3; }
 .payday-editor button[type="submit"] { min-height: 44px; padding: 10px 18px; border-radius: 10px; background: #24272c; color: #72dca3; }
-/* Each guided step starts at the same left edge; only payday has two related columns. */
+/* Keep payday and its bill summary adjacent on wider screens. */
 .payday-editor { display: grid; grid-template-columns: minmax(0,1fr); align-items: start; gap: 20px; }
 .payday-editor > * { margin-top: 0; }
 .home-planning-field { scroll-margin-block: 112px 24px; }
 [data-payday-hero] h2, [data-payday-state] button { scroll-margin-top: 112px; }
 @media (min-width: 1180px) {
-  [data-payday-step="1"] .payday-editor { grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr); column-gap: 24px; }
-  [data-payday-step="1"] .payday-editor > * { grid-column: 1 / -1; }
-  [data-payday-step="1"] .payday-date-fields { grid-column: 1; }
-  [data-payday-step="1"] .payday-bill-fields { grid-column: 2; }
+  [data-payday-editor-mode="full"] .payday-editor { grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr); column-gap: 24px; }
+  [data-payday-editor-mode="full"] .payday-editor > * { grid-column: 1 / -1; }
+  [data-payday-editor-mode="full"] .payday-date-fields { grid-column: 1; }
+  [data-payday-editor-mode="full"] .payday-bill-fields { grid-column: 2; }
 }
 @media (max-width: 639px) {
   .planning-workspace { margin-top: 20px; }

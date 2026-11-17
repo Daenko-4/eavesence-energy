@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Page, type Locator } from '@playwright/test';
 
 export async function closeSettings(page:Page) {
   const dialog=page.getByRole('dialog',{name:/^(Settings|Einstellungen)$/});
@@ -97,21 +97,17 @@ export async function savingsTool(page: Page, tool: 'change' | 'switch' | 'annua
   await expect(page.locator(".planning-workspace-content :is(h2,h3):focus")).toHaveCount(1);
 }
 
-/** Follow the same progressive form as a user; never fill a hidden step. */
+/** Open the cash planner without changing the saved entries. */
 export async function openPayday(page:Page){
   const panel=page.locator('[data-payday-state]:visible');
   await expect(panel).toBeVisible();
   if(await panel.getAttribute('data-editor-open')!=='true')await panel.locator('[data-payday-edit-action]').click();
 }
-export async function paydayStep(page:Page,target:number){
-  const panel=page.locator('[data-payday-state]:visible');
-  for(let attempts=0;attempts<3;attempts++){
-    await settleWorkspace(page, '[data-payday-state]:visible');
-    const step=Number(await panel.getAttribute('data-payday-step'));
-    if(step===target)return;
-    if(step>target)await panel.getByRole('button',{name:/^(Back|Zurück)$/}).click();
-    else {const next=panel.getByRole('button',{name:/^(Continue|Weiter)$/});if(step===0 && !await next.isVisible())await panel.getByRole('button',{name:/^(Change dates or everyday spending|Zeitraum oder Alltag ändern)$/}).click();else await next.click();}
-    await expect(panel).toHaveAttribute('data-payday-step',String(step+(step>target?-1:1)));
+export async function paydayStep(page: Page, target: number) {
+  const panel = page.locator('[data-payday-state]:visible');
+  await settleWorkspace(page, '[data-payday-state]:visible');
+  if (target > 0 && await panel.getAttribute('data-payday-editor-mode') === 'balance') {
+    await panel.getByRole('button', {name: /^(Change dates or everyday spending|Zeitraum oder Alltag ändern)$/}).click();
   }
 }
 
@@ -136,4 +132,11 @@ export async function openSavingsHistory(page: Page) {
   const history = page.locator('[data-savings-history]');
   if (await history.getAttribute('open') === null) await history.locator('summary').click();
   await expect(history).toHaveAttribute('open', '');
+}
+
+/** Paid rows remain collapsed until a user asks to see them. */
+export async function openPaidPayments(list: Locator) {
+  const paid = list.locator('[data-payment-group="paid"]');
+  await expect(paid).toBeVisible();
+  if (await paid.getAttribute('open') === null) await paid.locator('summary').click();
 }

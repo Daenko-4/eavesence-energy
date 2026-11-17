@@ -246,7 +246,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   await panel.getByRole("button", { name: "Save this plan" }).click();
   await page.reload();
   await openPlan(page);
-  await expect(panel).toContainText("Planned, no confirmed saving yet");
+  await expect(panel).toContainText("Possible");
   await page.evaluate(() => {
     const profile = JSON.parse(localStorage.getItem("eavesence-home-profile-v1")!);
     profile.savingsActions[0].effectiveMonth = sessionStorage.getItem("test-current-month");
@@ -261,7 +261,7 @@ test("savings scenarios persist and ask for confirmation when the effective mont
   await panel.getByRole("button", { name: "Done — update costs" }).click();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("eavesence-home-costs-v1")!)[0].amount)).toBe(25);
   await openPlan(page, "progress");
-  await expect(page.getByRole("region", {name:"03 · What have I actually saved?",exact:true})).toContainText("Confirmed, costs updated");
+  await expect(page.getByRole("region", {name:"03 · What have I actually saved?",exact:true})).toContainText("Implemented");
 });
 
 test("EAVESENCE Home onboarding builds a household and records a monthly check-in", async ({
@@ -331,7 +331,7 @@ test("EAVESENCE Home onboarding builds a household and records a monthly check-i
   await householdCosts.getByLabel("When is payment due? (optional)").fill("2026-10-01");
   await householdCosts.getByRole("textbox", { name: "Amount", exact: true }).press("Enter");
   await expect(householdCosts.getByText("Household cost saved.")).toBeVisible();
-  await page.locator("[data-home-review]").getByRole("button", {name:"Overview checked",exact:true}).click();
+  await page.locator("[data-home-review]").getByRole("button", {name:"Go to My Home",exact:true}).click();
   const installCard = page.getByRole("region", {
     name: "Install EAVESENCE as an app",
   });
@@ -1568,7 +1568,7 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
  await page.setViewportSize({width,height:900});await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
  await openPlan(page, 'payday');const panel=page.getByRole('region',{name:'Your available budget',exact:true});await openPayday(page);
  const fields=await panel.locator('form input:visible').evaluateAll(inputs=>inputs.map(input=>{const box=input.getBoundingClientRect();return {top:box.top,left:box.left,width:box.width,height:box.height,fontSize:getComputedStyle(input).fontSize};}));
- expect(fields).toHaveLength(1);
+ expect(fields).toHaveLength(3);
  await expect(panel.getByLabel('Money to keep in reserve (optional)',{exact:true})).toBeHidden();
  // Match the calculator: 14px on desktop, 16px on mobile to avoid input zoom.
  for(const field of fields){expect(field.height).toBeCloseTo(44,2);expect(field.fontSize).toBe(width<768?'16px':'14px');}
@@ -1583,9 +1583,9 @@ for(const width of [320,1365])test(`payday overview stays readable and recalcula
 test('savings assistant plans a cancellation, confirms it and updates recurring costs',async({page})=>{
  await page.goto('/home');await page.getByRole('button',{name:'Create my home'}).click();
  await page.evaluate(()=>{const today=new Date(),day=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;localStorage.setItem('eavesence-home-costs-v1',JSON.stringify([{id:'streaming',name:'Streaming',amount:18,category:'subscriptions',frequency:'monthly',nextDueDate:day,updatedAt:today.toISOString()}]));});await page.reload();
- await openPlan(page);const coach=page.getByRole('region',{name:'02 · Where can I realistically save?',exact:true});const progress=page.getByRole('region',{name:'03 · What have I actually saved?',exact:true});await coach.getByRole('button',{name:'Plan change',exact:true}).click();await coach.getByLabel('New amount per payment (0 = ends)').fill('0');await coach.getByRole('button',{name:'Save this plan',exact:true}).click();await coach.getByRole('button',{name:'Review planned change',exact:true}).click();await expect(coach).toContainText('Planned, no confirmed saving yet');
- page.once('dialog',dialog=>void dialog.accept());await coach.getByRole('button',{name:'Done — update costs'}).click();await openPlan(page,'progress');await expect(progress).toContainText('€18.00');await expect(progress).toContainText('Confirmed, costs updated');
- expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!))).toHaveLength(0);await page.reload();await openPlan(page,'progress');await expect(progress).toContainText('Confirmed, costs updated');
+ await openPlan(page);const coach=page.getByRole('region',{name:'02 · Where can I realistically save?',exact:true});const progress=page.getByRole('region',{name:'03 · What have I actually saved?',exact:true});await coach.getByRole('button',{name:'Plan change',exact:true}).click();await coach.getByLabel('New amount per payment (0 = ends)').fill('0');await coach.getByRole('button',{name:'Save this plan',exact:true}).click();await coach.getByRole('button',{name:'Review planned change',exact:true}).click();await expect(coach).toContainText('Possible');
+ page.once('dialog',dialog=>void dialog.accept());await coach.getByRole('button',{name:'Done — update costs'}).click();await openPlan(page,'progress');await expect(progress).toContainText('€18.00');await expect(progress).toContainText('Implemented');
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!))).toHaveLength(0);await page.reload();await openPlan(page,'progress');await expect(progress).toContainText('Implemented');
 });
 
 test('PDF text extraction proposes the invoice without uploading it',async({page})=>{
@@ -1751,7 +1751,7 @@ for (const locale of ['de', 'en'] as const) {
     const plan = page.locator('#savings-plan');
     await expect(plan.getByRole('heading',{name:locale==='de'?'Welche Kosten möchtest du senken?':'Which cost would you like to lower?',exact:true})).toBeVisible();
     await openPlan(page, 'progress');
-    const progress = page.getByRole('heading',{name:locale==='de'?'Deine bestätigte Ersparnis':'Your confirmed savings',exact:true});
+    const progress = page.getByRole('heading',{name:locale==='de'?'Tatsächlich gespart':'Actually saved',exact:true});
     await expect(progress).toBeVisible();
     await expect(page.locator('[data-home-plan-content]')).toContainText(locale==='de'?'Noch keine bestätigte Ersparnis':'No confirmed savings yet');
     await progress.scrollIntoViewIfNeeded();

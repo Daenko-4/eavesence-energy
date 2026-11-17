@@ -1,3 +1,4 @@
+import { openPaidPayments } from './home-navigation';
 import { expect, test, type Page } from '@playwright/test';
 import { homeDetail } from './home-navigation';
 
@@ -77,9 +78,10 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     const list = page.locator('[data-month-checklist]');
     const review = list.locator('[data-month-review]');
     await expect(review).toBeVisible();
-    await list.getByRole('checkbox', { name: /^Internet ·/ }).check();
+    await list.getByRole('checkbox', { name: /^Internet ·/ }).click();
     await expect(review.getByRole('button', { name: de ? 'Monat abschließen' : 'Close month', exact: true })).toBeEnabled();
     await expect(review).toBeVisible();
+    await openPaidPayments(list);
     await expect(list.getByRole('checkbox', { name: /^Internet ·/ })).toBeChecked();
     await list.screenshot({ path: info.outputPath(`payments-and-review-${de ? 'de' : 'en'}-${width}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -87,6 +89,7 @@ for (const de of [false, true]) for (const width of [320, 390, 1365]) {
     await page.reload();
     await expect(nav.locator('[aria-expanded=true]')).toHaveCount(0);
     await expect(review).toBeVisible();
+    await openPaidPayments(list);
     await expect(list.getByRole('checkbox', { name: /^Internet ·/ })).toBeChecked();
   });
 }

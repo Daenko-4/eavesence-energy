@@ -1,3 +1,4 @@
+import { openPaidPayments } from './home-navigation';
 import {expect,test,type Page} from '@playwright/test';
 import { homeWorkspace, planningPeriod, savingsTool } from './home-navigation';
 async function seed(page:Page,de:boolean){
@@ -34,7 +35,7 @@ for(const de of [false,true])for(const width of [320,390,1365])test(`Pro invoice
  await savingsTool(page, 'invoices');await proposals.getByRole('button',{name:t('Diesen Planbetrag übernehmen','Use this planning amount'),exact:true}).click();await expect(proposals).toContainText(t('entspricht bereits','already matches'));
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-costs-v1')!).find((c:{id:string})=>c.id==='electric').amount)).toBe(120);
  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('eavesence-home-profile-v1')!));expect(stored.planning.actualPayments.filter((a:{estimated?:boolean})=>!a.estimated).length).toBe(3);expect(stored.savingsActions??[]).toHaveLength(0);
- await proposals.getByRole('button',{name:t('Rechnungsbeträge eintragen','Record invoice amounts'),exact:true}).click();await expect(page.locator('[data-month-checklist]').getByRole('checkbox',{name:/^Electricity ·/})).toBeChecked();
+ await proposals.getByRole('button',{name:t('Rechnungsbeträge eintragen','Record invoice amounts'),exact:true}).click();await openPaidPayments(page.locator('[data-month-checklist]'));await expect(page.locator('[data-month-checklist]').getByRole('checkbox',{name:/^Electricity ·/})).toBeChecked();
  await page.reload();await homeWorkspace(page,'plan');await page.getByRole('group',{name:/Choose planning question|Planungsfrage wählen/}).getByRole('button',{name:/Lower costs|Kosten senken/}).click();
  await savingsTool(page, 'switch');await expect(comparison.getByText(t('Gemerkte Wechselvergleiche','Saved switch comparisons'),{exact:false})).toBeVisible();await comparison.getByRole('button',{name:t('Vergleich öffnen','Open comparison'),exact:true}).click();
  await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toHaveValue('20');await expect(comparison.getByLabel(t('Neuer monatlicher Preis','New monthly price'),{exact:true})).toBeFocused();await expect(comparison.getByLabel(t('Einmalige Wechselgebühr','One-off switching fee'),{exact:true})).toHaveValue('60');await expect(comparison.locator('[data-switch-result]')).toContainText(t('zuerst „Bis zum nächsten Gehalt“ aktualisieren','Update Until next payday first'));

@@ -12,7 +12,7 @@ for(const de of [false,true])for(const width of [320,1365])test(`monthly focus a
  const month=page.getByRole('region',{name:t('Monatscheckliste','Monthly checklist')});await expect(month.locator('[data-checklist-next]')).toContainText('Rent');await expect(page.locator('[data-home-monthly-budget]')).not.toHaveAttribute('open');
  await expect(page.locator('[data-cost-manager]')).toBeHidden();await expect(page.locator('.home-month-workspace [data-home-section=notes]')).toHaveCount(0);await page.screenshot({fullPage:true,path:info.outputPath(`visit-collapsed-${de?'de':'en'}-${width}.png`)});
  await expect(month.locator('[data-month-review]')).toBeVisible();
- await month.getByRole('checkbox',{name:/^Rent ·/}).check();await expect(month.locator('[data-checklist-next]')).toContainText('Internet');await expect(month.locator('[data-checklist-paid]')).toContainText(t('900,00','900.00'));await expect(month.locator('[data-checklist-open]')).toContainText(t('40,00','40.00'));
+ await month.getByRole('checkbox',{name:/^Rent ·/}).click();await expect(month.locator('[data-checklist-next]')).toContainText('Internet');await expect(month.locator('[data-checklist-paid]')).toContainText(t('900,00','900.00'));await expect(month.locator('[data-checklist-open]')).toContainText(t('40,00','40.00'));
  await expect(month.locator('[data-checklist-progress]')).toHaveText(t('1 von 2 bezahlt','1 of 2 paid'));
  await month.screenshot({path:info.outputPath(`month-focus-${de?'de':'en'}-${width}.png`)});
  await homeWorkspace(page, 'plan');

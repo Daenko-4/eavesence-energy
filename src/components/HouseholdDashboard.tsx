@@ -1302,7 +1302,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     }
   }
 
-  function saveOnboarding(cost: HouseholdCost | null) {
+  function saveOnboarding(cost: HouseholdCost | null, addAnother = false) {
     const amount = incomeValue.trim() ? parseIncomeAmount(incomeValue, locale) : null;
     const base = createHouseholdProfile({name, currency, electricityPrice: price, savingsGoalPercent: 10, roomNames: []});
     const nextProfile = amount === null ? base : {...base, incomeAmount: amount, incomeFrequency: "monthly" as const, incomeDeferred: false};
@@ -1317,7 +1317,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     setHouseholdCosts(nextCosts);
     changeWorkspace("overview");
     window.dispatchEvent(new Event(HOUSEHOLD_CHANGED_EVENT));
-    requestAnimationFrame(() => {
+    if (addAnother) openCostForm(undefined, undefined, false, nextCosts.length > 0);
+    else requestAnimationFrame(() => {
       const heading = document.querySelector<HTMLElement>("[data-home-heading] h1");
       heading?.setAttribute("tabindex", "-1");
       heading?.focus();
@@ -1935,13 +1936,13 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => focusContext(document.getElementById("home-income-form"))));
   }
 
-  function openCostForm(cost?: HouseholdCost, template?: HouseholdCostCategory, focusDate = false) {
+  function openCostForm(cost?: HouseholdCost, template?: HouseholdCostCategory, focusDate = false, inContext = householdCosts.length > 0) {
     if (!(document.activeElement instanceof HTMLElement && document.activeElement.closest("[data-home-payment-context]")) || !contextTrigger.current?.isConnected) contextTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     changeWorkspace("overview");
     setNotice(null);
-    setCostManagerOpen(householdCosts.length === 0);
+    setCostManagerOpen(!inContext);
     setIncomeOpen(false);
-    setCostEditorInContext(householdCosts.length > 0);
+    setCostEditorInContext(inContext);
     const tile = cost?.tileId ? homeTiles.find((item) => item.id === cost.tileId) : homeTiles.find((item) => item.kind === "costs");
     const selected = tile ?? activateTileKind("costs");
     setActiveTileId(selected.id);
@@ -2591,7 +2592,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <div hidden={planPeriod !== "payday"} data-planning-period="payday">
           <PaydayPanel onDateSave={(id,date) => {const next=householdCosts.map(c=>c.id===id?{...c,nextDueDate:date,updatedAt:new Date().toISOString()}:c);persistHouseholdCosts(next);}} onReviewCost={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} key={`payday-${profile.createdAt}`} locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:upcomingPayments.month}} data={profile.planning} onSave={(planning)=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})}/>
               </div>
-              <div hidden={planPeriod !== "forecast"} data-planning-period="forecast">
+              <div hidden={planPeriod === "budget"} data-planning-period="forecast">
           <ProInsights mode="forecast" locale={locale} currency={profile.currency} input={{incomeMonthly:monthlyIncome,incomeKnown:profile.incomeAmount!==undefined&&!profile.incomeDeferred,incomeIsAnnualAverage:incomeSummary.annualAverage,incomeExtras:incomeSummary.extras,additionalIncome:profile.additionalIncome,variableMonthly:profile.variableMonthly??null,bufferMonthly:profile.bufferMonthly??0,goalMonthly:profile.goalMonthly??0,costs:householdCosts,startMonth:localToday().slice(0,7)}} data={profile.planning} onSave={planning=>persistProfile({...profile,planning,updatedAt:new Date().toISOString()})} onApply={applyPlanSuggestion} onEveryday={variableMonthly=>persistProfile({...profile,variableMonthly,updatedAt:new Date().toISOString()})} onReview={cost=>openCostForm(cost,undefined,!cost.nextDueDate)} onNavigate={navigatePlanQuestion} onEditIncome={openIncomeForm} onPayments={showInvoiceChecklist}/>
               </div>
             </div>

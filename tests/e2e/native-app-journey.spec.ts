@@ -40,7 +40,9 @@ for (const locale of ['de', 'en']) {
     await page.getByRole('textbox', { name: t('Bezeichnung', 'Name'), exact: true }).fill('Internet');
     await page.getByRole('textbox', { name: t('Betrag', 'Amount'), exact: true }).fill('40');
     await page.getByRole('button', { name: t('Kosten speichern & weiter', 'Save cost & continue'), exact: true }).click();
-    await page.getByRole('button', { name: t('Meine Übersicht öffnen', 'Open my overview'), exact: true }).click();
+    await expect(page.getByText(t('Übrig nach erfassten Fixkosten', 'Left after recorded fixed costs'), { exact: true })).toBeVisible();
+    await expect(page.getByText(t('2.360,00', '2,360.00'), { exact: false })).toBeVisible();
+    await page.getByRole('button', { name: t('Zu My Home', 'Go to My Home'), exact: true }).click();
     await expect(page.getByRole('tab', { name: t('Monat', 'Month'), exact: true })).toBeVisible();
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-mobile-profile-v1')!).incomeAmount)).toBe(2400);
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('eavesence-mobile-costs-v1')!)[0].name)).toBe('Internet');
@@ -395,7 +397,7 @@ for (const locale of ['de','en']) for (const width of [320,390]) {
     await period.getByRole('tab',{name:t('Monatsbudget','Monthly budget'),exact:true}).click();
     await expect(everyday).toHaveValue('350');
     await goal.getByRole('tab',{name:t('Erreichte Ersparnis','Savings achieved'),exact:true}).click();
-    await expect(page.getByText(t('Bisher berechnete Ersparnis','Calculated savings so far'),{exact:true})).toBeVisible();
+    await expect(page.getByText(t('Tatsächlich gespart','Actually saved'),{exact:true})).toBeVisible();
     await page.screenshot({path:info.outputPath(`native-plan-progress-${locale}-${width}.png`),fullPage:true});
     await goal.getByRole('tab',{name:t('Bis zum nächsten Gehalt ausgeben','Spend until next payday'),exact:true}).click();
     await page.screenshot({path:info.outputPath(`native-plan-draft-${locale}-${width}.png`),fullPage:true});

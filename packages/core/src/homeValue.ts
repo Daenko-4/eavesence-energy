@@ -1,5 +1,5 @@
 import { parseIncomeAmount } from "./income.ts";
-import { resolvePayment, paymentIsPaid, type ActualPayment, type PaidPayment } from './paymentChecklist.ts';
+import { resolvePayment, paymentIsPaid, paymentKey, type ActualPayment, type PaidPayment } from './paymentChecklist.ts';
 import {
   createHouseholdCost,
   monthlyCost,
@@ -369,6 +369,40 @@ export function savingsToDate(actions: SavingsAction[], today: string) {
   }
   return { scheduled, estimated, total: scheduled + estimated };
 }
+/** Confirmed tariff changes need a recorded invoice or a paid checkmark for each saving. */
+export function evidencedSavings(actions: SavingsAction[], value: PlanningData | undefined, today: string) {
+  const planning = readPlanningData(value);
+  const payments = new Map((planning.paidPayments ?? []).map(payment => [
+    paymentKey(payment), { ...payment, recordedOn: payment.paidAt.slice(0, 10) },
+  ]));
+  for (const payment of planning.actualPayments ?? []) {
+    if (!payment.estimated) {
+      payments.set(paymentKey(payment), { ...payment, paidAt: payment.updatedAt, recordedOn: payment.updatedAt.slice(0, 10) });
+    }
+  }
+  const history = actions.filter(action => action.status === "confirmed" && action.newAmount > 0)
+    .sort((a, b) => (b.confirmedAt ?? b.effectiveMonth).localeCompare(a.confirmedAt ?? a.effectiveMonth));
+  const savings = new Map<string, number>();
+  for (const payment of payments.values()) {
+    if (payment.recordedOn > today || payment.month > today.slice(0, 7)) continue;
+    const date = payment.date ?? payment.recordedOn;
+    const action = history.find(change =>
+      change.costId === payment.costId &&
+      change.frequency === payment.frequency &&
+      (change.nextDueDate || null) === payment.anchor &&
+      change.effectiveMonth <= payment.month &&
+      (!change.savingsFrom || date >= change.savingsFrom) &&
+      (!change.endedOn || date <= change.endedOn) &&
+      (!payment.date || !change.excludedDates?.includes(payment.date)),
+    );
+    if (!action || payment.amount >= action.originalAmount) continue;
+    const key = savingsActionKey(action);
+    savings.set(key, (savings.get(key) ?? 0) + Math.round((action.originalAmount - payment.amount) * 100));
+  }
+  const byAction = new Map([...savings].map(([key, cents]) => [key, cents / 100]));
+  return { byAction, total: [...savings.values()].reduce((sum, cents) => sum + cents, 0) / 100 };
+}
+
 export function confirmSavingsChange(
   costs: HouseholdCost[],
   actions: SavingsAction[],

@@ -135,21 +135,22 @@ export function SavingsCoachScreen({
         <View style={styles.dark}>
           <Text style={styles.light}>
             {t(
-              "Bisher berechnete Ersparnis",
-              "Calculated savings so far",
+              "Tatsächlich gespart",
+              "Actually saved",
             )}
           </Text>
-          <Text style={styles.amount}>{money(p.totals.scheduled)}</Text>
+          <Text style={styles.amount}>{money(p.achieved.total)}</Text>
           <Text style={styles.light}>
             {t(
-              "Nur bestätigte Änderungen mit bereits erreichten Zahlungsterminen zählen hier. Zukünftiges Sparpotenzial bleibt getrennt. Kein Bankabgleich.",
-              "Only confirmed changes with payment dates already reached count here. Future potential stays separate. No bank verification.",
+              "Hake günstigere Zahlungen in My Home ab. Hier zählt die Differenz zum alten Preis für erfasste oder als bezahlt markierte Rechnungen.",
+              "Check off lower bills in My Home. This total shows the difference from the old price for recorded invoices or bills marked paid.",
             )}
           </Text>
         </View>
       )}
       {mode === "progress" && p.confirmedMonthly > 0 && <Text style={styles.note}>{t("Bestätigt: laufende Kosten durchschnittlich", "Confirmed: recurring costs reduced by")} {money(p.confirmedMonthly)} {t("pro Monat weniger.", "per month on average.")}</Text>}
-      {mode === "progress" && nextSaving && <Text style={styles.note}>{t("Nächste berechnete Ersparnis", "Next calculated saving")}: {money(nextSaving.amount)} {t("am", "on")} {new Intl.DateTimeFormat(de?"de-AT":"en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${nextSaving.date}T00:00:00Z`))}. {t("Sie zählt erst ab diesem Zahlungstermin.", "It counts from that payment date.")}</Text>}
+      {mode === "progress" && p.totals.scheduled > 0 && <Text style={styles.note}>{t("Rechnerische Ersparnis aus fälligen Zahlungen", "Calculated savings from bills due")}: {money(p.totals.scheduled)}</Text>}
+      {mode === "progress" && nextSaving && <Text style={styles.note}>{t("Nächste berechnete Ersparnis", "Next calculated saving")}: {money(nextSaving.amount)} {t("am", "on")} {new Intl.DateTimeFormat(de?"de-AT":"en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${nextSaving.date}T00:00:00Z`))}. {t("Die tatsächliche Ersparnis erscheint nach Bestätigung der günstigeren Rechnung.", "Actual savings appear after you confirm the lower bill.")}</Text>}
       {mode !== "progress" && !p.tasks.length && !actions.length && (
         <Text style={styles.note}>
           {t(
@@ -236,14 +237,15 @@ export function SavingsCoachScreen({
                 )
               : a.status === "confirmed"
                 ? t(
-                    "Bestätigt, Kosten aktualisiert",
-                    "Confirmed, costs updated",
+                    "Umgesetzt",
+                    "Implemented",
                   )
                 : t(
-                    "Vorgemerkt, noch keine Ersparnis",
-                    "Planned, no confirmed saving yet",
+                    "Möglich",
+                    "Possible",
                   )}
           </Text>
+          {p.achieved.byAction.has(savingsActionKey(a)) && <Text style={styles.title}>{t("Tatsächlich gespart", "Actually saved")}: {money(p.achieved.byAction.get(savingsActionKey(a))!)}</Text>}
           {p.outdated.includes(a) && input.costs.some(c => c.id === a.costId) &&
             button(t("Kosten prüfen", "Review cost"), () => {
               const cost = input.costs.find((c) => c.id === a.costId);

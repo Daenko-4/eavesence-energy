@@ -14,7 +14,7 @@ export default function FirstMonthSetup({active, locale, currency, income, onBac
   currency: SavedDeviceCurrency;
   income: number;
   onBack: () => void;
-  onComplete: (cost: HouseholdCost | null) => void;
+  onComplete: (cost: HouseholdCost | null, addAnother?: boolean) => void;
 }) {
   const de = locale === "de";
   const t = (german: string, english: string) => de ? german : english;
@@ -42,6 +42,10 @@ export default function FirstMonthSetup({active, locale, currency, income, onBac
     }
     setCost(next); setError(""); setStep("result");
   }
+  function complete(addAnother = false) {
+    try { onComplete(cost, addAnother); }
+    catch { setError(t("Speichern fehlgeschlagen. Deine Eingaben bleiben erhalten. Versuche es erneut.", "Could not save. Your entries have been kept. Try again.")); }
+  }
   return <div hidden={!active} data-first-month-setup={step}>
     <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--brand-green)]">{t("Dein erster Monatsüberblick", "Your first monthly overview")}</p>
     <h1 ref={heading} tabIndex={-1} className="mt-3 text-2xl font-extrabold tracking-tight outline-none sm:text-3xl">{step === "cost" ? t("Was zahlst du regelmäßig?", "What do you pay regularly?") : t("Das bleibt vorläufig übrig", "What is left so far")}</h1>
@@ -64,13 +68,17 @@ export default function FirstMonthSetup({active, locale, currency, income, onBac
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3" data-setup-result>
         <div className="rounded-xl border border-[#dde2d8] bg-white p-3 sm:p-4"><dt className="text-xs text-[#52605b]">{t("Monatliches Nettoeinkommen", "Monthly net income")}</dt><dd className="mt-2 break-words text-base font-bold tabular-nums sm:text-xl">{money(income)}</dd></div>
         <div className="rounded-xl border border-[#dde2d8] bg-white p-3 sm:p-4"><dt className="text-xs text-[#52605b]">{t("Erfasste Kosten / Monat", "Recorded costs / month")}</dt><dd className="mt-2 break-words text-base font-bold tabular-nums sm:text-xl">{money(fixed)}</dd></div>
-        <div className={`col-span-2 rounded-xl p-4 sm:col-span-1 ${left < 0 ? "bg-amber-100 text-amber-900" : "bg-[#e0f1e4] text-[#087a45]"}`}><dt className="text-xs font-semibold">{left < 0 ? t("Fehlbetrag / Monat", "Monthly shortfall") : t("Vorläufig übrig / Monat", "Left so far / month")}</dt><dd className="mt-2 text-2xl font-extrabold tabular-nums">{money(left)}</dd></div>
+        <div className={`col-span-2 rounded-xl p-4 sm:col-span-1 ${left < 0 ? "bg-amber-100 text-amber-900" : "bg-[#e0f1e4] text-[#087a45]"}`}><dt className="text-xs font-semibold">{left < 0 ? t("Fehlt nach erfassten Fixkosten", "Shortfall after recorded fixed costs") : t("Übrig nach erfassten Fixkosten", "Left after recorded fixed costs")}</dt><dd className="mt-2 text-2xl font-extrabold tabular-nums">{money(left)}</dd></div>
       </dl>
       <p className="mt-4 text-sm leading-6 text-[#52605b]">{cost ? t(`Bisher erfasst: ${cost.name}.`, `Recorded so far: ${cost.name}.`) : t("Noch keine Kosten erfasst.", "No costs recorded yet.")} {t("Weitere Fixkosten, Lebensmittel und Freizeit gehen davon noch ab. Das ist noch kein frei verfügbares Budget.", "Other fixed costs, groceries and leisure still come out of this amount. This is not yet your spending budget.")}</p>
       {cost && cost.frequency !== "monthly" && <p className="mt-2 text-xs leading-5 text-[#65716d]">{t("Für den Monatsüberblick wird diese Ausgabe auf einen Monatsdurchschnitt umgerechnet.", "This cost is converted to a monthly average for the overview.")}</p>}
-      <FormActions className="mt-5"><button type="button" className={primary} onClick={() => {try {onComplete(cost);} catch {setError(t("Speichern fehlgeschlagen. Deine Eingaben bleiben erhalten. Versuche es erneut.", "Could not save. Your entries have been kept. Try again."));}}}>{t("Übersicht speichern und öffnen", "Save and open overview")}</button><button type="button" className="eavesence-pill-button" onClick={() => {setError("");setStep("cost");}}>{t("Kosten ändern", "Change cost")}</button></FormActions>
+      <FormActions className="mt-5">
+        <button type="button" className={primary} onClick={() => complete()}>{t("Zu My Home", "Go to My Home")}</button>
+        <button type="button" className="eavesence-pill-button" onClick={() => complete(true)}>{t("Weitere Kosten ergänzen", "Add more costs")}</button>
+      </FormActions>
+      {cost && <button type="button" className="min-h-11 text-sm text-[#52605b] underline underline-offset-4" onClick={() => {setError("");setStep("cost");}}>{t("Kosten ändern", "Change cost")}</button>}
     </div>}
     {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
-    <p className="mt-4 text-xs text-[#65716d]">{t("Gespeichert wird erst mit „Übersicht speichern und öffnen“ – nur in diesem Browser.", "Saved only when you choose “Save and open overview” — in this browser only.")}</p>
+    <p className="mt-4 text-xs text-[#65716d]">{t("Deine Angaben werden in diesem Browser gespeichert, sobald du die Einrichtung abschließt.", "Your entries are saved in this browser when you finish setup.")}</p>
   </div>;
 }

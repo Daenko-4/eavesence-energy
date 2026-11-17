@@ -22,7 +22,7 @@ for (const locale of ['de', 'en'] as const) {
     await page.locator('#household-costs').getByLabel(de ? 'Betrag' : 'Amount', { exact: true }).fill('40');
     await page.locator('#household-costs').getByRole('button', { name: de ? 'Speichern' : 'Save', exact: true }).click();
     await expect(setup).toHaveCount(0);
-    await expect(page.locator('[data-home-review]')).toContainText(de ? '3 · Deinen Überblick prüfen' : '3 · Check your overview');
+    await expect(page.locator('[data-home-review]')).toContainText(de ? 'Der Betrag basiert auf deinen bisherigen Eingaben.' : 'This amount is based on your entries so far.');
     await page.reload();
     await homeDetail(page, 'costs');
     await expect(page.locator('#household-costs')).toContainText('Internet');
@@ -31,7 +31,7 @@ for (const locale of ['de', 'en'] as const) {
     await expect(overview.locator('.home-month-context')).toContainText(de ? /Alltagsausgaben noch ab/i : /Everyday spending.*still comes out of this amount/i);
     await expect(page.locator('[data-home-plan-content]')).toBeHidden();
     await expect(page.locator('[data-home-review]')).toBeVisible();
-    await page.locator('[data-home-review]').getByRole('button',{name:de ? 'Übersicht geprüft' : 'Overview checked',exact:true}).click();
+    await page.locator('[data-home-review]').getByRole('button',{name:de ? 'Zu My Home' : 'Go to My Home',exact:true}).click();
     await expect(page.locator('[data-home-review]')).toHaveCount(0);
     const download = page.waitForEvent('download');
     await page.locator('[data-home-overview-content]').getByRole('button',{name:de ? 'Datensicherung herunterladen' : 'Download backup',exact:true}).click();

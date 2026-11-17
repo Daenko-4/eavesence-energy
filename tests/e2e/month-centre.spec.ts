@@ -36,7 +36,7 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     expect(summaryStyle).toEqual(resultReference);
 
     const remaining=await page.locator('[data-home-remaining]').innerText();
-    await checklist.getByRole('checkbox',{name:/^Rent ·/}).check();
+    await checklist.getByRole('checkbox',{name:/^Rent ·/}).click();
     await expect(checklist.getByRole('button',{name:t('Rückgängig','Undo'),exact:true})).toBeVisible();
     await checklist.getByRole('button',{name:t('Rückgängig','Undo'),exact:true}).click();
     await expect(checklist.getByRole('checkbox',{name:/^Rent ·/})).not.toBeChecked();
@@ -96,7 +96,7 @@ for(const de of [false,true]) for(const width of [320,768,1024,1365]) {
     await page.getByRole('button',{name:t('Reguläres Einkommen ändern','Edit regular income'),exact:true}).click();
     const income=page.locator('#home-income-form input').first();
     await income.fill('2900');
-    await checklist.getByRole('checkbox',{name:/^Rent ·/}).check();
+    await checklist.getByRole('checkbox',{name:/^Rent ·/}).click();
     await expect(income).toHaveValue('2900');
     await income.press('Enter');
     await expect(income).toHaveCount(0);

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { localToday, parseMoney, savingsToDate } from "./homeValue.ts";
+import { evidencedSavings, localToday, parseMoney, savingsToDate } from "./homeValue.ts";
 import { readPlanningData, type PlanningData } from "./planning.ts";
 import {
   createSavingsAction,
@@ -125,6 +125,7 @@ export function useSavingsCoach(
     preview,
     tasks,
     totals,
+    achieved: evidencedSavings(actions, p, today),
     outdated,
     selected,
     choose,
@@ -138,7 +139,7 @@ export function useSavingsCoach(
     later,
     today,
     cancel: () => setSelected(null),
-    confirm: (a: SavingsAction) => run(async () => { await onConfirm(a); setJustConfirmed(true); setNotice(de ? "Umsetzung bestätigt, Kosten aktualisiert. Die Ersparnis zählt ab heute zu den passenden Zahlungsterminen; bereits bezahlte Rechnungen bleiben ausgenommen." : "Change confirmed, costs updated. Savings count from today on the relevant payment dates; bills already paid are excluded."); }),
+    confirm: (a: SavingsAction) => run(async () => { await onConfirm(a); setJustConfirmed(true); setNotice(a.newAmount === 0 ? de ? "Kündigung umgesetzt. Die vermiedenen Zahlungen bleiben in der berechneten Vorschau sichtbar." : "Cancellation implemented. Avoided bills remain visible in the calculated estimate." : de ? "Umgesetzt. Hake die erste günstigere Rechnung in My Home ab, damit sie zur tatsächlichen Ersparnis zählt." : "Implemented. Check off the first lower bill in My Home to count it as actual savings."); }),
     discard: (a: SavingsAction) =>
       run(() => onActions(actions.filter((item) => savingsActionKey(item) !== savingsActionKey(a)))),
   };
