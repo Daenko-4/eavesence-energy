@@ -1,8 +1,11 @@
+import { projectedSalary, type SalaryGrowth } from './salaryGrowth.ts';
 import { parseIncomeAmount, extraIncomeForMonth, readIncomeExtras, readAdditionalIncome, additionalIncomeForMonth, type AdditionalIncome, type IncomeExtra } from "./income.ts";
 import { monthlyCost, paymentsForMonth, type HouseholdCost, type HouseholdCostFrequency } from "./householdCosts.ts";
 
 export type SavingsPlanInput = {
   incomeMonthly: number;
+  salaryGrowth?: SalaryGrowth;
+  incomeIsAnnualAverage?: boolean;
   incomeExtras?: IncomeExtra[];
   additionalIncome?: AdditionalIncome[];
   variableMonthly: number | null;
@@ -124,8 +127,9 @@ export function createSavingsPlan(input: SavingsPlanInput) {
       .reduce((sum, cost) => sum + monthlyCost(cost.amount, cost.frequency), 0);
     const fixed = scheduled.total + unplannedAverage;
     const extraIncome = extraIncomeForMonth(input.incomeExtras ?? [], key) + additionalIncomeForMonth(input.additionalIncome, key);
-    const remaining = incomeMonthly + extraIncome - fixed - (variableMonthly ?? 0) - bufferMonthly;
-    return { month: key, fixed, extraIncome, remaining, afterGoal: remaining - goalMonthly };
+    const regularIncome = projectedSalary(incomeMonthly, key, input.incomeIsAnnualAverage ? undefined : input.salaryGrowth);
+    const remaining = regularIncome + extraIncome - fixed - (variableMonthly ?? 0) - bufferMonthly;
+    return { month: key, fixed, extraIncome, regularIncome, remaining, afterGoal: remaining - goalMonthly };
   });
   return {
     averageFixed,

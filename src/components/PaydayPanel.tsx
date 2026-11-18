@@ -141,7 +141,7 @@ export default function PaydayPanel({
             : state === "everyday" ? t("Alltag noch einplanen", "Add everyday spending")
             : t("Was bleibt bis zum nächsten Gehalt?", "What is left until next payday?")}
         </h2>
-        {currentResult && !open && <p className={`mt-2 text-[clamp(2rem,4vw,2.6rem)] font-extrabold leading-tight tracking-tight ${shortfall ? "text-[#ffd28c]" : "text-[#72dca3]"}`} data-payday-result aria-live="polite">{money(Math.abs(p.forecast!.remaining!))}</p>}
+        {currentResult && !open && <p data-private-value className={`mt-2 text-[clamp(2rem,4vw,2.6rem)] font-extrabold leading-tight tracking-tight ${shortfall ? "text-[#ffd28c]" : "text-[#72dca3]"}`} data-payday-result aria-live="polite">{money(Math.abs(p.forecast!.remaining!))}</p>}
         <p hidden={open} className={`mx-auto mt-2 max-w-2xl text-[13px] leading-5 ${state === "stale" || state === "expired" || state === "dates" ? "text-[#ffe1a8]" : "text-[#d1d7d4]"}`} data-payday-status role="status">{statusText}</p>
         {currentResult && !open && p.forecast!.overdue > 0 && (
           <p className="mt-2 text-[12px]" data-payday-overdue>
@@ -179,7 +179,7 @@ export default function PaydayPanel({
             <fieldset hidden={quickBalance} className="finance-result-surface payday-bill-fields min-w-0 rounded-xl border border-[#dfe5dd] bg-[#f4f6f2] p-4">
               <legend className="px-1 text-[14px] font-semibold">{t("Offene Rechnungen", "Unpaid bills")}</legend>
               {p.preview ? <>
-                <div className="flex items-baseline justify-between gap-3 text-[13px]"><span>{t(`${p.preview.payments.length} ${p.preview.payments.length === 1 ? "Zahlung" : "Zahlungen"} bis ${day(p.payday)}`, `${p.preview.payments.length} ${p.preview.payments.length === 1 ? "payment" : "payments"} before ${day(p.payday)}`)}</span><strong className="shrink-0" data-payday-preview-bills>{money(p.preview.fixed)}</strong></div>
+                <div className="flex items-baseline justify-between gap-3 text-[13px]"><span>{t(`${p.preview.payments.length} ${p.preview.payments.length === 1 ? "Zahlung" : "Zahlungen"} bis ${day(p.payday)}`, `${p.preview.payments.length} ${p.preview.payments.length === 1 ? "payment" : "payments"} before ${day(p.payday)}`)}</span><strong data-private-value className="shrink-0" data-payday-preview-bills>{money(p.preview.fixed)}</strong></div>
                 <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Aus deiner Monatsübersicht übernommen. Bereits bezahlte Rechnungen abhaken.", "Included from My Home. Check off paid bills so we do not deduct them twice.")}</p>
                 {p.preview.overdue > 0 && <p className="mt-2 text-[13px] text-amber-800">{t(`${p.preview.overdue} frühere Zahlungen dieses Monats sind noch offen und enthalten.`, `${p.preview.overdue} earlier payments this month are still unchecked and included.`)}</p>}
                 {p.preview.estimatedBills > 0 && <p className="mt-2 text-[13px] text-[#52605b]">{t(`${p.preview.estimatedBills} Beträge noch geschätzt.`, `${p.preview.estimatedBills} amounts are still estimates.`)}</p>}
@@ -194,10 +194,10 @@ export default function PaydayPanel({
                 <input ref={everydayInput} aria-invalid={p.errorField === "everyday"} className={field} inputMode="decimal" aria-describedby="payday-everyday-help" value={p.everyday} onChange={e => p.setEveryday(e.target.value)} placeholder={t("z. B. 200,00", "e.g. 200.00")}/>
               </label>
               <p id="payday-everyday-help" className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Lebensmittel, Freizeit & Co. bis zum nächsten Gehalt – ohne die gespeicherten Rechnungen. 0 ist möglich.", "Groceries, leisure and other everyday spending until next payday, excluding saved bills. 0 is allowed.")}</p>
-              {p.suggestedEveryday !== null && <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px] text-[#52605b]"><span>{t(`Vorschlag für ${p.preview!.days} Tage: ${money(p.suggestedEveryday)} – aus deiner Monatsschätzung von ${money(input.variableMonthly!)}.`, `Suggestion for ${p.preview!.days} days: ${money(p.suggestedEveryday)} – based on your monthly estimate of ${money(input.variableMonthly!)}.`)}</span><button type="button" className="eavesence-pill-button home-dashboard-action" onClick={() => p.setEveryday(de ? String(p.suggestedEveryday).replace(".", ",") : String(p.suggestedEveryday))}>{t("Vorschlag übernehmen", "Use suggestion")}</button></div>}
+              {p.suggestedEveryday !== null && <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px] text-[#52605b]"><span data-private-value>{t(`Vorschlag für ${p.preview!.days} Tage: ${money(p.suggestedEveryday)} – aus deiner Monatsschätzung von ${money(input.variableMonthly!)}.`, `Suggestion for ${p.preview!.days} days: ${money(p.suggestedEveryday)} – based on your monthly estimate of ${money(input.variableMonthly!)}.`)}</span><button type="button" className="eavesence-pill-button home-dashboard-action" onClick={() => p.setEveryday(de ? String(p.suggestedEveryday).replace(".", ",") : String(p.suggestedEveryday))}>{t("Vorschlag übernehmen", "Use suggestion")}</button></div>}
             </fieldset>
             <details hidden={quickBalance} className="home-disclosure rounded-xl border border-[#dfe5dd] p-3" open={reserveOpen} onToggle={e => setReserveOpen(e.currentTarget.open)}>
-              <summary className="min-h-10 cursor-pointer text-[13px] font-semibold">{t("Geld als Reserve behalten (optional)", "Keep some money in reserve (optional)")}{p.reserved > 0 ? ` · ${money(p.reserved)}` : ""}</summary>
+              <summary data-private-value className="min-h-10 cursor-pointer text-[13px] font-semibold">{t("Geld als Reserve behalten (optional)", "Keep some money in reserve (optional)")}{p.reserved > 0 ? ` · ${money(p.reserved)}` : ""}</summary>
               <label className="grid max-w-sm gap-2 text-[13px]">
                 <span>{t("Geld, das du nicht ausgeben möchtest (optional)", "Money to keep in reserve (optional)")}</span>
                 <input ref={protectedInput} aria-invalid={p.errorField === "protected"} className={field} inputMode="decimal" value={p.protectedAmount} onChange={e => p.setProtected(e.target.value)}/>
@@ -205,7 +205,7 @@ export default function PaydayPanel({
               <p className="mt-2 text-[13px] leading-5 text-[#52605b]">{t("Dieser Betrag bleibt unangetastet. Sparziele werden hier nicht automatisch abgezogen.", "This amount stays untouched. Savings goals are not deducted automatically here.")}</p>
             </details>
             {p.error && <p role="alert" className="text-[13px] text-red-700">{p.error}</p>}
-            {draftResult !== null && <p className="rounded-xl bg-[#eefbf3] p-3 text-[13px] font-semibold" aria-live="polite">
+            {draftResult !== null && <p data-private-value className="rounded-xl bg-[#eefbf3] p-3 text-[13px] font-semibold" aria-live="polite">
               {draftResult < 0 ? t("Voraussichtlich fehlen", "Estimated shortfall") : t("Voraussichtlich verfügbar", "Estimated available")}: {money(Math.abs(draftResult))}
             </p>}
             <FormActions>
@@ -220,7 +220,7 @@ export default function PaydayPanel({
         <section aria-label={t("So entsteht dein Spielraum", "How your available money is calculated")} data-payday-calculation className="finance-result-surface payday-breakdown">
           <dl>
             {calculationRows.map(([label, value]) => (
-              <div key={String(label)}><dt>{label}</dt><dd>{money(Number(value))}</dd></div>
+              <div key={String(label)}><dt>{label}</dt><dd data-private-value>{money(Number(value))}</dd></div>
             ))}
           </dl>
         </section>
@@ -228,7 +228,7 @@ export default function PaydayPanel({
       {(!open || !quickBalance) && bills.length > 0 && <details ref={paymentList} data-payday-payments className="finance-result-surface home-disclosure border-t border-[#dfe5dd] bg-white p-4 sm:p-5">
         <summary className="cursor-pointer text-[13px] font-semibold">{t("Zahlungen bis zum Gehalt", "Payments before payday")} · {bills.filter(b => !checklist.isPaid(b)).length} {t("offen", "unpaid")}</summary>
         <h3 ref={billsHeading} tabIndex={-1} data-payday-payments-heading className="finance-section-heading outline-none">{t("Zahlungen bis zum nächsten Gehalt abhaken", "Check off payments until next payday")} · {bills.filter(b=>!checklist.isPaid(b)).length} {t("offen", "unpaid")}</h3>
-        <div><p className="my-2 text-[13px] text-[#52605b]">{t("Schon bezahlt? Hier abhaken und danach den aktuellen Kontostand bestätigen.", "Check off paid bills here, then confirm your current account balance.")}</p><ul className="divide-y divide-[#e7ebe5]">{bills.map(b=>{const paid=checklist.isPaid(b);return <li key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})}><label className="flex min-h-12 cursor-pointer items-center gap-3 py-2 text-[13px]"><input type="checkbox" checked={paid} disabled={checklist.busy||checklist.isClosed(b)} onChange={()=>void checklist.toggle(b)} aria-label={`${b.cost.name} · ${day(b.date)} · ${t("Bezahlt", "Paid")}`} className="h-5 w-5 shrink-0 accent-[#28734d]"/><span className={`min-w-0 flex-1 ${paid?"text-[#65716d] line-through":""}`}>{b.cost.name}<span className="block text-[13px] text-[#65716d]">{day(b.date)}</span></span><span className="shrink-0">{b.estimated?t("ca. ","approx. "):""}{money(b.cost.amount)}</span></label>{b.cost.variableAmount&&<button type="button" className="eavesence-pill-button home-dashboard-action" disabled={checklist.busy||checklist.isClosed(b)} onClick={()=>checklist.editAmount(b)}>{b.cost.name} · {t("Rechnungsbetrag","Invoice amount")}</button>}</li>})}</ul><PaymentAmountForm c={checklist} locale={locale}/>{checklist.error&&<p role="alert" className="mt-2 text-[13px] text-red-700">{checklist.error}</p>}</div>
+        <div><p className="my-2 text-[13px] text-[#52605b]">{t("Schon bezahlt? Hier abhaken und danach den aktuellen Kontostand bestätigen.", "Check off paid bills here, then confirm your current account balance.")}</p><ul className="divide-y divide-[#e7ebe5]">{bills.map(b=>{const paid=checklist.isPaid(b);return <li key={paymentKey({costId:b.cost.id,month:b.month,date:b.date})}><label className="flex min-h-12 cursor-pointer items-center gap-3 py-2 text-[13px]"><input type="checkbox" checked={paid} disabled={checklist.busy||checklist.isClosed(b)} onChange={()=>void checklist.toggle(b)} aria-label={`${b.cost.name} · ${day(b.date)} · ${t("Bezahlt", "Paid")}`} className="h-5 w-5 shrink-0 accent-[#28734d]"/><span className={`min-w-0 flex-1 ${paid?"text-[#65716d] line-through":""}`}>{b.cost.name}<span className="block text-[13px] text-[#65716d]">{day(b.date)}</span></span><span data-private-value className="shrink-0">{b.estimated?t("ca. ","approx. "):""}{money(b.cost.amount)}</span></label>{b.cost.variableAmount&&<button type="button" className="eavesence-pill-button home-dashboard-action" disabled={checklist.busy||checklist.isClosed(b)} onClick={()=>checklist.editAmount(b)}>{b.cost.name} · {t("Rechnungsbetrag","Invoice amount")}</button>}</li>})}</ul><PaymentAmountForm c={checklist} locale={locale}/>{checklist.error&&<p role="alert" className="mt-2 text-[13px] text-red-700">{checklist.error}</p>}</div>
       </details>}
       </div>
     </section>

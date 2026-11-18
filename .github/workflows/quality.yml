@@ -17,7 +17,7 @@ jobs:
   quality:
     name: Lint, tests, build and browser flows
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Check out repository
@@ -50,10 +50,10 @@ jobs:
 
       - name: Install WebKit for Safari home journeys
         run: |
-          # Avoid slow Azure mirror downloads exhausting the browser-test time budget.
+          # Avoid slow regional mirror downloads exhausting the browser-test time budget.
           for ubuntu_source_file in /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
             if [ -f "$ubuntu_source_file" ]; then
-              sudo sed -i -E 's|https?://azure[.]archive[.]ubuntu[.]com/ubuntu|https://archive.ubuntu.com/ubuntu|g' "$ubuntu_source_file"
+              sudo sed -i -E 's#https?://(azure[.]archive[.]ubuntu[.]com|[a-z0-9-]+[.]ec2[.]archive[.]ubuntu[.]com)/ubuntu#https://archive.ubuntu.com/ubuntu#g' "$ubuntu_source_file"
             fi
           done
           npx playwright install --with-deps webkit

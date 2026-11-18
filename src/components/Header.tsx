@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
+import ValuePrivacyToggle from "@/components/ValuePrivacyToggle";
 import BrandLogo, { BrandMark } from "@/components/BrandLogo";
 import {
   getCalculatorHref,
@@ -401,7 +402,7 @@ function HeaderContent({
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-[100] border-b border-slate-200/70 bg-white/92 backdrop-blur-xl"
+      className="sticky top-0 z-[100] border-b border-slate-200/70 bg-white/92 backdrop-blur-xl header-with-value-privacy"
     >
       <div className="relative px-5 sm:px-6">
         <div data-header-content-row className="relative mx-auto flex min-h-[68px] max-w-7xl items-center justify-between">
@@ -502,9 +503,12 @@ function HeaderContent({
             <span className="text-xl leading-none">{menuOpen ? "×" : "☰"}</span>
           </button>
 
-          {onSettings && <button type="button" data-header-settings onClick={() => { closeMenu(); onSettings(); }} aria-label={locale === "de" ? "Einstellungen" : "Settings"} title={locale === "de" ? "Einstellungen" : "Settings"} aria-expanded={settingsOpen} aria-controls="home-settings" className="header-settings-action">
+          <div className="header-private-actions">
+            <ValuePrivacyToggle locale={locale} />
+            {onSettings && <button type="button" data-header-settings onClick={() => { closeMenu(); onSettings(); }} aria-label={locale === "de" ? "Einstellungen" : "Settings"} title={locale === "de" ? "Einstellungen" : "Settings"} aria-expanded={settingsOpen} aria-controls="home-settings" className="header-settings-action">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true"><path d="M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11"/><circle cx="10" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/></svg>
           </button>}
+          </div>
           <Link
             data-header-language
             href={languageHref}

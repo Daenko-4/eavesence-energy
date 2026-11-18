@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 
 import BrandStructuredData from "@/components/BrandStructuredData";
+import { valuePrivacyScript } from "@/lib/valuePrivacy";
 import PwaLifecycle from "@/components/PwaLifecycle";
 
 import "./globals.css";
@@ -125,10 +126,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${uiSans.variable} ${geistSans.variable} ${geistMono.variable}`}
       >
+        <script dangerouslySetInnerHTML={{ __html: valuePrivacyScript }} />
         <BrandStructuredData />
         {children}
         <PwaLifecycle />

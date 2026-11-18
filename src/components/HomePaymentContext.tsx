@@ -35,7 +35,7 @@ export default function HomePaymentContext({ costs, month, planning, selectedKey
     <div className="centre-editor-heading"><p className="centre-eyebrow">{selected ? t("Zahlungsdetails", "Payment details") : t("Als Nächstes", "Up next")}</p>{selected && <button type="button" className="centre-close-action" aria-label={t("Details schließen", "Close details")} onClick={onClose}>×</button>}</div>
     {payment ? <>
       <h3 tabIndex={-1} data-home-context-heading className="centre-context-title outline-none">{payment.cost.name}</h3>
-      <p className="centre-context-amount">{payment.estimated ? t("ca. ", "approx. ") : ""}{money(payment.cost.amount)}</p>
+      <p data-private-value className="centre-context-amount">{payment.estimated ? t("ca. ", "approx. ") : ""}{money(payment.cost.amount)}</p>
       <p className="centre-caption">{payment.date ? new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", {day:"numeric",month:"long",timeZone:"UTC"}).format(new Date(`${payment.date}T00:00:00Z`)) : t("Zahlungstermin fehlt", "Payment date missing")}{" · "}{paymentIsPaid(payment, data.paidPayments ?? []) ? t("Bezahlt", "Paid") : closed ? t("Monat abgeschlossen", "Month closed") : t("Noch offen", "Still unpaid")}{!closed && payment.date && payment.date < localToday() && !paymentIsPaid(payment, data.paidPayments ?? []) ? ` · ${t("überfällig", "overdue")}` : ""}</p>
       <dl className="centre-detail"><dt>{t("Wiederholung", "Repeats")}</dt><dd>{frequencies[payment.cost.frequency]}</dd></dl>
       <button type="button" onClick={event => onEdit(costs.find(cost => cost.id === payment.cost.id) ?? payment.cost,event.currentTarget)} className="eavesence-pill-button home-dashboard-action home-outlined-action">{t("Kosten bearbeiten", "Edit cost")}</button>

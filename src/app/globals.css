@@ -1673,3 +1673,31 @@ a {
   .centre-pro-page .pro-tool-card .eavesence-pill-button { min-height: 44px; }
   .pro-forecast-form { grid-template-columns: minmax(0, 1fr); }
 }
+
+
+.header-private-actions { display: flex; flex: 0 0 auto; align-items: center; margin-left: auto; margin-right: 8px; }
+.header-private-actions .header-settings-action { margin: 0; }
+.header-privacy-action[aria-pressed="true"] { background: #e9eee8; color: #17211f; }
+html[data-private-values="true"] [data-private-value],
+html[data-private-values="true"] select:has(option[data-private-value]),
+html[data-private-values="true"] :is(main, [role="dialog"]) :is(input[inputmode="decimal"], input[type="number"], input[type="range"]) {
+  filter: blur(7px);
+  user-select: none;
+}
+@media (max-width: 1023px) {
+  .header-private-actions { margin-left: 0; margin-right: 4px; }
+}
+@media (max-width: 389px) {
+  .header-with-value-privacy [data-header-mobile-logo] > span { gap: 4px; }
+  .header-with-value-privacy [data-header-mobile-logo] svg { width: 28px; height: 28px; flex-shrink: 0; }
+  .header-with-value-privacy .brand-wordmark { font-size: .75rem; }
+  .header-with-value-privacy [data-header-menu-button] { margin-right: 0; flex-shrink: 0; }
+  .header-with-value-privacy .header-language-link { min-width: 54px; gap: 4px; }
+  .header-private-actions { margin-right: 0; }
+}
+
+@media (max-width: 339px) {
+  .header-with-value-privacy [data-header-mobile-logo] > span { gap: 3px; }
+  .header-with-value-privacy [data-header-mobile-logo] svg { width: 26px; height: 26px; }
+  .header-with-value-privacy .brand-wordmark { font-size: .65rem; }
+}

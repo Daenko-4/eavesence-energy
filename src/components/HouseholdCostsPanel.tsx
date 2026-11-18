@@ -386,7 +386,7 @@ export default function HouseholdCostsPanel({
             <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#65716d]">
               {label}
             </p>
-            <p className="mt-2 text-xl font-extrabold tracking-[-0.035em]">
+            <p data-private-value className="mt-2 text-xl font-extrabold tracking-[-0.035em]">
               {value}
             </p>
           </article>
@@ -477,7 +477,7 @@ export default function HouseholdCostsPanel({
                   <p className="text-[13px] font-semibold text-[#52605b]">{text.categories[item.category]}</p>
                   <span className="h-2 w-2 rounded-full bg-[var(--brand-green-mint)]" />
                 </div>
-                <p className="mt-1 text-[15px] font-bold tracking-[-0.02em]">{money(item.monthlyTotal, locale, currency)}</p>
+                <p data-private-value className="mt-1 text-[15px] font-bold tracking-[-0.02em]">{money(item.monthlyTotal, locale, currency)}</p>
                 <p className="text-[13px] text-[#65716d]">
                   {item.entryCount === 1 ? text.categoryCountOne : text.categoryCount.replace("{count}", String(item.entryCount))}
                 </p>
@@ -530,8 +530,8 @@ export default function HouseholdCostsPanel({
                       </p>
                     </div>
                     <div className="sm:text-right">
-                      <p className="text-[13px] font-bold">{cost.variableAmount?(locale==='de'?'ca. ':'approx. '):''}{money(cost.amount, locale, currency)}</p>
-                      <p className="text-[13px] text-[#65716d]">
+                      <p data-private-value className="text-[13px] font-bold">{cost.variableAmount?(locale==='de'?'ca. ':'approx. '):''}{money(cost.amount, locale, currency)}</p>
+                      <p data-private-value className="text-[13px] text-[#65716d]">
                         {text.monthlyEquivalent.replace("{amount}", money(monthlyCost(cost.amount, cost.frequency), locale, currency))}
                       </p>
                     </div>

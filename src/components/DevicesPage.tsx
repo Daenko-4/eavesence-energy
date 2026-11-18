@@ -485,7 +485,7 @@ export default function DevicesPage({
                               <div className="min-w-0">
                                 <h3 className="break-words site-card-title text-[#17211f] transition group-hover:text-[var(--brand-green)]">{localizedDevice.name}</h3>
                                 <p className="mt-1 text-xs text-[#65716d]">{typicalValue}</p>
-                                <dl className="device-cost-estimate"><div><dt>{locale === "de" ? "ca. pro Monat" : "approx. per month"}</dt><dd>{validTariff ? money(getDeviceTypicalYearlyKwh(device)*parsedTariff/12) : "—"}</dd></div><div><dt>{locale === "de" ? "pro Jahr" : "per year"}</dt><dd>{validTariff ? money(getDeviceTypicalYearlyKwh(device)*parsedTariff) : "—"}</dd></div></dl>
+                                <dl className="device-cost-estimate"><div><dt>{locale === "de" ? "ca. pro Monat" : "approx. per month"}</dt><dd data-private-value>{validTariff ? money(getDeviceTypicalYearlyKwh(device)*parsedTariff/12) : "—"}</dd></div><div><dt>{locale === "de" ? "pro Jahr" : "per year"}</dt><dd data-private-value>{validTariff ? money(getDeviceTypicalYearlyKwh(device)*parsedTariff) : "—"}</dd></div></dl>
                               </div>
                             </Link>
                           );
