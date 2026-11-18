@@ -655,7 +655,7 @@ function MyDevicesPanel(
                       </span>
                     </div>
                     <div className="ml-auto shrink-0 text-right">
-                      <span className="block text-xl font-extrabold tracking-[-0.035em] tabular-nums text-[#10283a]">
+                      <span data-private-value className="block text-xl font-extrabold tracking-[-0.035em] tabular-nums text-[#10283a]">
                         {formatMoney(total.yearlyCost, locale, total.currency)}
                       </span>
                       <span className="block text-[11px] text-slate-500">
@@ -683,13 +683,13 @@ function MyDevicesPanel(
                       </div>
                     </div>
                     <p className="text-xs text-slate-500 sm:text-right">
-                      <span className="block font-bold tabular-nums text-slate-700">
+                      <span data-private-value className="block font-bold tabular-nums text-slate-700">
                         {formatMoney(displayMonthlyCost(item), locale, displayCurrency(item))}
                       </span>
                       {text.perMonth}
                     </p>
                     <p className="text-left text-xs text-slate-500 sm:text-right">
-                      <span className="block text-sm font-extrabold tracking-[-0.015em] tabular-nums text-slate-950">
+                      <span data-private-value className="block text-sm font-extrabold tracking-[-0.015em] tabular-nums text-slate-950">
                         {formatMoney(displayYearlyCost(item), locale, displayCurrency(item))}
                       </span>
                       {text.perYear}
@@ -869,7 +869,7 @@ function MyDevicesPanel(
                   <p className="text-xs leading-5 text-slate-500">
                     {text.monthlyTotal}
                   </p>
-                  <p className="mt-1 font-bold text-slate-950">
+                  <p data-private-value className="mt-1 font-bold text-slate-950">
                     {formatMoney(
                       total.monthlyCost,
                       locale,
@@ -882,7 +882,7 @@ function MyDevicesPanel(
                   <p className="text-xs leading-5 text-slate-500">
                     {text.yearlyTotal}
                   </p>
-                  <p className="mt-1 font-bold text-slate-950">
+                  <p data-private-value className="mt-1 font-bold text-slate-950">
                     {formatMoney(
                       total.yearlyCost,
                       locale,
@@ -977,7 +977,7 @@ function MyDevicesPanel(
                     <p className="truncate font-bold text-slate-950">
                     {getDeviceName(item)}
                   </p>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p data-private-value className="mt-1 text-sm text-slate-500">
                     {formatMoney(
                       item.monthlyCost,
                       locale,

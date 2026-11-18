@@ -424,7 +424,7 @@ export default function DeviceDetailPage({
                       {text.annualConsumption}
                     </p>
 
-                    <p className="mt-1 text-xl font-bold">
+                    <p data-private-value className="mt-1 text-xl font-bold">
                       {formatKwh(yearlyKwh, locale)} kWh
                     </p>
                   </div>
@@ -469,7 +469,7 @@ export default function DeviceDetailPage({
                       }
                     </p>
 
-                    <p className="mt-1 text-xl font-bold">
+                    <p data-private-value className="mt-1 text-xl font-bold">
                       {formatKwh(
                         kwhPerUse,
                         locale
@@ -498,7 +498,7 @@ export default function DeviceDetailPage({
                     }
                   </p>
 
-                  <p className="mt-1 text-xl font-bold text-[var(--brand-green-mint)]">
+                  <p data-private-value className="mt-1 text-xl font-bold text-[var(--brand-green-mint)]">
                     {money(
                       yearlyCost,
                       locale
@@ -523,7 +523,7 @@ export default function DeviceDetailPage({
                 </p>
               </details>
 
-              <p className="mt-3 text-xs leading-5 text-slate-500">
+              <p data-private-value className="mt-3 text-xs leading-5 text-slate-500">
                 {text.exampleWith}{" "}
                 {money(
                   price,
@@ -653,7 +653,7 @@ export default function DeviceDetailPage({
                             {scenario.note}
                           </p>
 
-                          <p className="mt-5 text-2xl font-extrabold text-[var(--brand-green)]">
+                          <p data-private-value className="mt-5 text-2xl font-extrabold text-[var(--brand-green)]">
                             {money(
                               scenarioYearlyCost,
                               locale
@@ -664,7 +664,7 @@ export default function DeviceDetailPage({
                             {text.scenarioCost}
                           </p>
 
-                          <p className="mt-4 text-sm text-slate-600">
+                          <p data-private-value className="mt-4 text-sm text-slate-600">
                             {formatNumber(
                               scenario.usesPerWeek,
                               locale,

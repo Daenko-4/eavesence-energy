@@ -165,12 +165,12 @@ export default function HouseholdInsightsPanel({ locale, currency, costs, histor
       <div className="rounded-[1.45rem] border border-[#b8efcc] bg-[#eefbf3] p-5" data-monthly-forecast>
         <h2 className="text-lg font-extrabold">{text.title} · {monthLabel(insight.next.month, locale)}</h2>
         <p className="mt-1 text-[12px] leading-5 text-[#52605b]">{text.intro}</p>
-        <p className="mt-4 text-2xl font-extrabold text-[#17211f]">{insight.complete ? moneyText(insight.next.total) : (locale === "de" ? "Vorschau unvollständig" : "Forecast incomplete")}</p>
+        <p data-private-value className="mt-4 text-2xl font-extrabold text-[#17211f]">{insight.complete ? moneyText(insight.next.total) : (locale === "de" ? "Vorschau unvollständig" : "Forecast incomplete")}</p>
         {insight.complete ? (
           <>
-            <p className="mt-2 text-[13px] font-bold text-[#17211f]">{differenceText.replace("{amount}", moneyText(difference))}</p>
-            {insight.difference > 0.01 && driver && <p className="mt-2 text-[12px] text-[#52605b]">{text.driver.replace("{name}", driver.cost.name).replace("{amount}", moneyText(driver.cost.amount)).replace("{average}", moneyText(driver.cost.amount - driver.extra))}</p>}
-            <p className="mt-3 text-[11px] text-[#65716d]">{text.basis.replace("{amount}", moneyText(insight.summary.monthlyTotal))}</p>
+            <p data-private-value className="mt-2 text-[13px] font-bold text-[#17211f]">{differenceText.replace("{amount}", moneyText(difference))}</p>
+            {insight.difference > 0.01 && driver && <p data-private-value className="mt-2 text-[12px] text-[#52605b]">{text.driver.replace("{name}", driver.cost.name).replace("{amount}", moneyText(driver.cost.amount)).replace("{average}", moneyText(driver.cost.amount - driver.extra))}</p>}
+            <p data-private-value className="mt-3 text-[11px] text-[#65716d]">{text.basis.replace("{amount}", moneyText(insight.summary.monthlyTotal))}</p>
           </>
         ) : <p className="mt-2 text-[12px] leading-5 text-[#52605b]">{costs.length ? text.incomplete.replace("{count}", String(insight.next.undatedCount)) : text.empty}</p>}
         {!insight.complete && costs.length > 0 && <button type="button" onClick={() => onReview(costs.find((cost) => !cost.nextDueDate) ?? costs[0])} className="eavesence-pill-button home-dashboard-action mt-3">{text.addDates}</button>}
@@ -183,8 +183,8 @@ export default function HouseholdInsightsPanel({ locale, currency, costs, histor
           <ul className="mt-4 space-y-3">
             {insight.reviewCandidates.map(({ cost, yearly, nextDate }) => (
               <li key={cost.id} className="rounded-xl border border-[#dfe5dd] bg-white/80 p-3">
-                <p className="text-[13px] font-bold">{cost.name} · {text.annual.replace("{amount}", moneyText(yearly))}</p>
-                <p className="mt-1 text-[11px] text-[#52605b]">{text.example.replace("{amount}", moneyText(yearly * 0.1))}</p>
+                <p data-private-value className="text-[13px] font-bold">{cost.name} · {text.annual.replace("{amount}", moneyText(yearly))}</p>
+                <p data-private-value className="mt-1 text-[11px] text-[#52605b]">{text.example.replace("{amount}", moneyText(yearly * 0.1))}</p>
                 <p className="mt-1 text-[11px] text-[#65716d]">{nextDate ? text.nextDue.replace("{date}", dateLabel(nextDate, locale)) : text.noDue}</p>
                 {cost.cancellationDeadline && <p className="mt-1 text-[11px] text-[#65716d]">{text.deadline.replace("{date}", dateLabel(cost.cancellationDeadline, locale))}</p>}
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -200,13 +200,13 @@ export default function HouseholdInsightsPanel({ locale, currency, costs, histor
       <div className="rounded-[1.45rem] border border-[#dde2d8] bg-[#f6f6f0] p-5 lg:col-span-2" data-monthly-review>
         <h2 className="text-lg font-extrabold">{text.recapTitle}</h2>
         <p className="mt-1 text-[12px] leading-5 text-[#52605b]">{text.recapIntro}</p>
-        {costs.length > 0 && insight.complete && <p className="mt-3 text-[13px] font-semibold">{text.recapValues.replace("{previous}", monthLabel(insight.previous.month, locale)).replace("{before}", moneyText(insight.previous.total)).replace("{current}", monthLabel(thisMonth, locale)).replace("{after}", moneyText(insight.current.total))}</p>}
-        {costs.length > 0 && <p className="mt-1 text-[12px] text-[#52605b]">{insight.current.undatedCount ? text.recapIncomplete.replace("{count}", String(insight.current.undatedCount)) : (plannedDifference > 0.01 ? text.recapUp : plannedDifference < -0.01 ? text.recapDown : text.recapSame).replace("{amount}", moneyText(Math.abs(plannedDifference)))}</p>}
+        {costs.length > 0 && insight.complete && <p data-private-value className="mt-3 text-[13px] font-semibold">{text.recapValues.replace("{previous}", monthLabel(insight.previous.month, locale)).replace("{before}", moneyText(insight.previous.total)).replace("{current}", monthLabel(thisMonth, locale)).replace("{after}", moneyText(insight.current.total))}</p>}
+        {costs.length > 0 && <p data-private-value className="mt-1 text-[12px] text-[#52605b]">{insight.current.undatedCount ? text.recapIncomplete.replace("{count}", String(insight.current.undatedCount)) : (plannedDifference > 0.01 ? text.recapUp : plannedDifference < -0.01 ? text.recapDown : text.recapSame).replace("{amount}", moneyText(Math.abs(plannedDifference)))}</p>}
         <div className="mt-3 border-t border-[#dfe5dd] pt-3">
           <h3 className="text-[12px] font-bold">{text.changesTitle}</h3>
-          {recentChanges.length ? <ul className="mt-1 space-y-1 text-[12px] text-[#52605b]">{recentChanges.map((event, index) => <li key={`${event.id}-${index}`}>{(event.kind === "added" ? text.added.replace("{amount}", moneyText(event.monthly)) : event.kind === "removed" ? text.removed.replace("{amount}", moneyText(event.previousMonthly)) : text.changed.replace("{before}", moneyText(event.previousMonthly)).replace("{after}", moneyText(event.monthly))).replace("{name}", event.name)}</li>)}</ul> : <p className="mt-1 text-[12px] text-[#65716d]">{text.changesEmpty}</p>}
+          {recentChanges.length ? <ul className="mt-1 space-y-1 text-[12px] text-[#52605b]">{recentChanges.map((event, index) => <li data-private-value key={`${event.id}-${index}`}>{(event.kind === "added" ? text.added.replace("{amount}", moneyText(event.monthly)) : event.kind === "removed" ? text.removed.replace("{amount}", moneyText(event.previousMonthly)) : text.changed.replace("{before}", moneyText(event.previousMonthly)).replace("{after}", moneyText(event.monthly))).replace("{name}", event.name)}</li>)}</ul> : <p className="mt-1 text-[12px] text-[#65716d]">{text.changesEmpty}</p>}
         </div>
-        <p className="mt-3 border-t border-[#dfe5dd] pt-3 text-[12px] text-[#52605b]">{energy && priorEnergy ? text.energy.replace("{month}", monthLabel(energy.month, locale)).replace("{amount}", moneyText(energy.cost)).replace("{kwh}", new Intl.NumberFormat(locale === "de" ? "de-DE" : "en-GB", { maximumFractionDigits: 1 }).format(energy.kwh)).replace("{direction}", energy.cost > priorEnergy.cost ? text.energyUp : energy.cost < priorEnergy.cost ? text.energyDown : text.energySame).replace("{difference}", moneyText(Math.abs(energy.cost - priorEnergy.cost))).replace("{previous}", monthLabel(priorEnergy.month, locale)) : text.energyEmpty}</p>
+        <p data-private-value className="mt-3 border-t border-[#dfe5dd] pt-3 text-[12px] text-[#52605b]">{energy && priorEnergy ? text.energy.replace("{month}", monthLabel(energy.month, locale)).replace("{amount}", moneyText(energy.cost)).replace("{kwh}", new Intl.NumberFormat(locale === "de" ? "de-DE" : "en-GB", { maximumFractionDigits: 1 }).format(energy.kwh)).replace("{direction}", energy.cost > priorEnergy.cost ? text.energyUp : energy.cost < priorEnergy.cost ? text.energyDown : text.energySame).replace("{difference}", moneyText(Math.abs(energy.cost - priorEnergy.cost))).replace("{previous}", monthLabel(priorEnergy.month, locale)) : text.energyEmpty}</p>
       </div>
     </section>
   );

@@ -148,7 +148,7 @@ export default function CostImportPanel({
             </summary>
             <label className="mt-2 grid gap-1 text-[12px]">
               {t("Rechnungstext", "Invoice text")}
-              <textarea
+              <textarea data-private-value
                 className={`${field} p-3`}
                 rows={4}
                 maxLength={100000}

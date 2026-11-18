@@ -735,11 +735,11 @@ function MonthlyHistoryChart({
             <div className="min-w-0 space-y-1.5">
               <div className="flex items-center gap-2">
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)]" style={{ width: `${Math.max(3, (entry.kwh / maxKwh) * 100)}%` }} /></div>
-                <span className="w-20 text-right text-[11px] tabular-nums text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span>
+                <span data-private-value className="w-20 text-right text-[11px] tabular-nums text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-sky-400" style={{ width: `${Math.max(3, (entry.cost / maxCost) * 100)}%` }} /></div>
-                <span className="w-20 text-right text-[11px] tabular-nums text-[#65716d]">{formatMoney(entry.cost, locale, currency)}</span>
+                <span data-private-value className="w-20 text-right text-[11px] tabular-nums text-[#65716d]">{formatMoney(entry.cost, locale, currency)}</span>
               </div>
             </div>
           </div>
@@ -1990,7 +1990,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               additionalIncome={<button type="button" className={`${homeDashboardActionClass} home-outlined-action`} onClick={()=>setAdditionalEntry(null)}>{locale==='de'?'Zusätzliche Einnahme erfassen':'Record additional income'}</button>}/>}
           </section>
 
-          {incomeReceipt&&<div className="income-receipt" role="status"><p>{formatMoney(incomeReceipt.amount,locale,profile.currency)} {locale==='de'?'für':'for'} {new Intl.DateTimeFormat(locale==='de'?'de-AT':'en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${incomeReceipt.date}T12:00:00Z`))} {incomeReceipt.status==='planned'?(locale==='de'?'geplant.':'planned.'):(locale==='de'?'erfasst.':'recorded.')}</p>{incomeReceipt.status==='received'&&profile.planning?.cash&&<button type="button" className="centre-text-action" onClick={()=>{changeWorkspace('plan');setPlanQuestion('payday');setPlanPeriod('payday');requestAnimationFrame(()=>{const button=document.querySelector<HTMLButtonElement>('[data-payday-edit-action]');button?.scrollIntoView({block:'center'});if(button?.getAttribute('aria-expanded')==='false')button.click();});}}>{locale==='de'?'Kontostand aktualisieren':'Update account balance'}</button>}<button type="button" className="centre-text-action" aria-label={locale==='de'?'Hinweis schließen':'Dismiss notice'} onClick={()=>setIncomeReceipt(null)}>×</button></div>}
+          {incomeReceipt&&<div className="income-receipt" role="status"><p data-private-value>{formatMoney(incomeReceipt.amount,locale,profile.currency)} {locale==='de'?'für':'for'} {new Intl.DateTimeFormat(locale==='de'?'de-AT':'en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${incomeReceipt.date}T12:00:00Z`))} {incomeReceipt.status==='planned'?(locale==='de'?'geplant.':'planned.'):(locale==='de'?'erfasst.':'recorded.')}</p>{incomeReceipt.status==='received'&&profile.planning?.cash&&<button type="button" className="centre-text-action" onClick={()=>{changeWorkspace('plan');setPlanQuestion('payday');setPlanPeriod('payday');requestAnimationFrame(()=>{const button=document.querySelector<HTMLButtonElement>('[data-payday-edit-action]');button?.scrollIntoView({block:'center'});if(button?.getAttribute('aria-expanded')==='false')button.click();});}}>{locale==='de'?'Kontostand aktualisieren':'Update account balance'}</button>}<button type="button" className="centre-text-action" aria-label={locale==='de'?'Hinweis schließen':'Dismiss notice'} onClick={()=>setIncomeReceipt(null)}>×</button></div>}
           {<AdditionalIncomeDialog open={additionalEntry !== undefined} locale={locale} currency={profile.currency} entries={profile.additionalIncome??[]} entry={additionalEntry} onSave={saveAdditionalIncome} onRemove={removeAdditionalIncome} onClose={()=>setAdditionalEntry(undefined)}/>}
 
           {settingsOpen && (
@@ -2149,7 +2149,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                       <button type="button" onClick={() => { setCostRequest(null); setActiveTileId(active ? null : tile.id); }} aria-expanded={active} className="block w-full px-4 pb-3 pt-4 pr-10 text-left">
                         <span className={`block text-[14px] font-extrabold ${active ? "text-[var(--brand-green)]" : "text-white"}`}><span className="flex items-start gap-2"><TileSymbol icon={iconForTile(tile)} className="mt-0.5 h-4 w-4 shrink-0"/><span>{title}</span></span></span>
                         <span className={`mt-1 block text-[11px] leading-4 ${active ? "text-[#52605b]" : "text-[#c3cbc7]"}`}>{text.tileHints[tile.kind]}</span>
-                        <span className={`mt-3 block text-[12px] font-bold ${active ? "text-[var(--brand-green)]" : "text-[#72dca3]"}`}>{homeTileSummary(tile)}</span>
+                        <span data-private-value className={`mt-3 block text-[12px] font-bold ${active ? "text-[var(--brand-green)]" : "text-[#72dca3]"}`}>{homeTileSummary(tile)}</span>
                       </button>
                       {active && (
                         <div className="flex items-center gap-1 border-t border-[#b8efcc] px-3 py-1.5">
@@ -2192,7 +2192,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <button type="button" onClick={() => setOpenEnergyDetail(openEnergyDetail === "monthly" ? null : "monthly")} aria-expanded={openEnergyDetail === "monthly"} className="flex w-full items-center justify-between gap-4 text-left">
               <span>
                 <span id="monthly-overview-title" className="block text-[14px] font-bold text-[#17211f]">{text.monthlyDetails}</span>
-                <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{text.monthlyDetailsHint} · {text.tileCountMonthly.replace("{count}", formatNumber(history.length, locale))}</span>
+                <span data-private-value className="mt-1 block text-[11px] leading-4 text-[#65716d]">{text.monthlyDetailsHint} · {text.tileCountMonthly.replace("{count}", formatNumber(history.length, locale))}</span>
               </span>
               <span className="flex items-center gap-2 text-[11px] font-bold text-[var(--brand-green)]">{text.openMonthly}<span aria-hidden="true" className={`site-disclosure-icon inline-block text-lg ${openEnergyDetail === "monthly" ? "-rotate-45" : "rotate-0"}`}>+</span></span>
             </button>
@@ -2209,16 +2209,16 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <p className={`text-[11px] font-bold uppercase tracking-[0.1em] ${currentMonthEntry ? "text-[var(--brand-green)]" : "text-amber-700"}`}>
                 {currentMonthEntry ? text.monthlyPulse : text.nextStep}
               </p>
-              <p className="mt-1 text-[14px] font-bold text-[#17211f]">
+              <p data-private-value className="mt-1 text-[14px] font-bold text-[#17211f]">
                 {currentMonthEntry
                   ? pulseTitle
                   : text.currentMonthOpen.replace("{month}", currentMonthLabel)}
               </p>
-              <p className="mt-0.5 text-[13px] leading-5 text-[#65716d]">
+              <p data-private-value className="mt-0.5 text-[13px] leading-5 text-[#65716d]">
                 {currentMonthEntry ? pulseText : text.currentMonthOpenText}
               </p>
               {currentMonthEntry && pulseDeviceText && (
-                <p className="mt-1 text-[12px] font-semibold leading-5 text-[#52605b]">
+                <p data-private-value className="mt-1 text-[12px] font-semibold leading-5 text-[#52605b]">
                   {pulseDeviceText}
                 </p>
               )}
@@ -2301,7 +2301,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.annualBill}</span><input type="text" inputMode="decimal" value={annualElectricityBill} onChange={(event) => setAnnualElectricityBill(event.target.value)} className={homeFieldClass} /></label>
                 <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]"><span>{text.annualKwh}</span><input type="text" inputMode="decimal" value={annualElectricityKwh} onChange={(event) => setAnnualElectricityKwh(event.target.value)} className={homeFieldClass} /></label>
-                {positiveNumber(annualElectricityBill) && positiveNumber(annualElectricityKwh) ? <p className="text-[13px] font-bold text-[var(--brand-green)] sm:col-span-2">{text.effectivePrice.replace("{price}", formatMoneyPrecise((positiveNumber(annualElectricityBill) ?? 0) / (positiveNumber(annualElectricityKwh) ?? 1), locale, profile.currency))}</p> : null}
+                {positiveNumber(annualElectricityBill) && positiveNumber(annualElectricityKwh) ? <p data-private-value className="text-[13px] font-bold text-[var(--brand-green)] sm:col-span-2">{text.effectivePrice.replace("{price}", formatMoneyPrecise((positiveNumber(annualElectricityBill) ?? 0) / (positiveNumber(annualElectricityKwh) ?? 1), locale, profile.currency))}</p> : null}
                 <label className="flex items-start gap-2 text-[11px] font-semibold leading-5 text-[#52605b] sm:col-span-2"><input type="checkbox" checked={electricityBillIncludesBonus} onChange={(event) => setElectricityBillIncludesBonus(event.target.checked)} className="mt-1 accent-[var(--brand-green)]" /><span>{text.bonusQuestion}{electricityBillIncludesBonus ? <span className="mt-1 block font-normal text-[#65716d]">{text.bonusHint}</span> : null}</span></label>
               </div>
             )}
@@ -2331,8 +2331,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             ].map(([label, value, detail], index) => (
               <article key={label} className={`rounded-xl border p-4 ${index === 0 ? "border-[#b8efcc] bg-[#dcfce8]" : "border-[#dfe5dd] bg-[#fbfcf8]"}`}>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#65716d]">{label}</p>
-                <p className="mt-2.5 text-xl font-extrabold tracking-[-0.035em]">{value}</p>
-                {detail && <p className="mt-1 text-[11px] font-semibold text-[var(--brand-green)]">{detail}</p>}
+                <p data-private-value className="mt-2.5 text-xl font-extrabold tracking-[-0.035em]">{value}</p>
+                {detail && <p data-private-value className="mt-1 text-[11px] font-semibold text-[var(--brand-green)]">{detail}</p>}
               </article>
             ))}
           </section>
@@ -2350,7 +2350,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             <div className="border-t border-[#cce5d6] pt-4 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
               {savedDevices.length > 0 ? <>
                 <p className="text-[13px] font-semibold text-[#52605b]">{locale === "de" ? "Mögliche Ersparnis pro Monat" : "Potential savings per month"}</p>
-                <p className="mt-2 text-xl font-extrabold tracking-[-0.035em] text-[var(--brand-green)]">{formatMoneyPrecise(monthlySavings, locale, profile.currency)}</p>
+                <p data-private-value className="mt-2 text-xl font-extrabold tracking-[-0.035em] text-[var(--brand-green)]">{formatMoneyPrecise(monthlySavings, locale, profile.currency)}</p>
                 <p className="mt-2 text-[12px] leading-5 text-[#65716d]">{locale === "de" ? "Schätzung für deine gespeicherten Geräte bei unverändertem Strompreis. Deine Haushaltskosten bleiben unverändert." : "Estimate for your saved devices at the same electricity price. Your household costs stay unchanged."}</p>
               </> : <p className="text-[13px] leading-5 text-[#65716d]">{locale === "de" ? "Speichere ein Gerät im Stromrechner, um die mögliche Ersparnis zu sehen." : "Save a device in the calculator to see the potential savings."}</p>}
             </div>
@@ -2405,7 +2405,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   >
                     <span>
                       <span className={`block text-[14px] font-bold ${active ? "text-[var(--brand-green)]" : "text-[#17211f]"}`}>{label}</span>
-                      <span className="mt-1 block text-[11px] leading-4 text-[#65716d]">{hint}</span>
+                      <span data-private-value className="mt-1 block text-[11px] leading-4 text-[#65716d]">{hint}</span>
                     </span>
                     <span aria-hidden="true" className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[16px] font-medium transition ${active ? "bg-[var(--brand-green)] text-white" : "bg-[#e8eee9] text-[var(--brand-green)] group-hover:bg-[#dcfce8]"}`}>
                       <span className={`site-disclosure-icon inline-block ${active ? "-rotate-45" : "rotate-0"}`}>+</span>
@@ -2425,9 +2425,9 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
               <div data-monthly-checkin-status className={`mt-4 rounded-xl border px-3 py-2.5 ${currentMonthEntry ? "border-[#b8efcc] bg-[#eefbf3]" : "border-amber-200 bg-amber-50"}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-[13px] font-bold text-[#17211f]">{(currentMonthEntry ? text.currentMonthComplete : text.currentMonthOpen).replace("{month}", currentMonthLabel)}</p>
-                  {historyStreak > 1 && <span className="rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-bold text-[var(--brand-green)]">{text.checkInStreak.replace("{count}", formatNumber(historyStreak, locale))}</span>}
+                  {historyStreak > 1 && <span data-private-value className="rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-bold text-[var(--brand-green)]">{text.checkInStreak.replace("{count}", formatNumber(historyStreak, locale))}</span>}
                 </div>
-                <p className="mt-1 text-[13px] leading-5 text-[#65716d]">{currentMonthEntry ? text.currentMonthCompleteText.replace("{kwh}", formatNumber(currentMonthEntry.kwh, locale, 1)).replace("{cost}", formatMoney(currentMonthEntry.cost, locale, profile.currency)) : text.currentMonthOpenText}</p>
+                <p data-private-value className="mt-1 text-[13px] leading-5 text-[#65716d]">{currentMonthEntry ? text.currentMonthCompleteText.replace("{kwh}", formatNumber(currentMonthEntry.kwh, locale, 1)).replace("{cost}", formatMoney(currentMonthEntry.cost, locale, profile.currency)) : text.currentMonthOpenText}</p>
               </div>
               <div className="mt-5 grid grid-cols-2 rounded-full border border-[#dfe5dd] bg-[#eef1ed] p-1">
                 <button type="button" aria-pressed={checkInMode === "consumption"} onClick={() => { setCheckInMode("consumption"); setCheckInFeedback(null); }} className={`home-primary-action rounded-full border-0 px-3 py-1 transition ${checkInMode === "consumption" ? "bg-[var(--brand-green)] text-white shadow-sm" : "bg-transparent text-[#65716d] hover:bg-white/70 hover:text-[#17211f]"}`}>{text.consumptionEntry}</button>
@@ -2439,12 +2439,12 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 {checkInMode === "consumption" ? (
                   <>
                     <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">{text.kwh}<input id="monthly-consumption-input" type="text" inputMode="decimal" value={monthKwh} onChange={(event) => { setMonthKwh(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
-                    <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedCost}</p><p className="mt-1 font-bold">{formatMoneyPrecise((positiveNumber(monthKwh) ?? 0) * profile.electricityPrice, locale, profile.currency)}</p></div>
+                    <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedCost}</p><p data-private-value className="mt-1 font-bold">{formatMoneyPrecise((positiveNumber(monthKwh) ?? 0) * profile.electricityPrice, locale, profile.currency)}</p></div>
                   </>
                 ) : (
                   <>
                     <label className="grid gap-1.5 text-[13px] font-semibold text-[#52605b]">{text.cost}<input type="text" inputMode="decimal" value={monthCost} onChange={(event) => { setMonthCost(event.target.value); setCheckInFeedback(null); }} className={homeFieldClass} /></label>
-                    <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.estimatedConsumption}</p><p className="mt-1 font-bold">{formatNumber(profile.electricityPrice > 0 ? (positiveNumber(monthCost) ?? 0) / profile.electricityPrice : 0, locale, 1)} kWh</p></div>
+                    <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-3 py-2"><p className="text-[11px] font-semibold text-[#65716d]">{text.estimatedConsumption}</p><p data-private-value className="mt-1 font-bold">{formatNumber(profile.electricityPrice > 0 ? (positiveNumber(monthCost) ?? 0) / profile.electricityPrice : 0, locale, 1)} kWh</p></div>
                   </>
                 )}
               </div>
@@ -2460,10 +2460,10 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <h2 className={homeSectionTitleClass}>{text.history}</h2>
                 {monthlyTrend && (
                   <div className="flex flex-wrap gap-2" aria-label={text.comparedWithPrevious}>
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${monthlyTrend.consumptionChangePercent <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                    <span data-private-value className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${monthlyTrend.consumptionChangePercent <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
                       {text.trendConsumptionShort} {monthlyTrend.consumptionChangePercent > 0 ? "+" : ""}{formatNumber(monthlyTrend.consumptionChangePercent, locale, 1)}%
                     </span>
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${monthlyTrend.costChangePercent <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                    <span data-private-value className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${monthlyTrend.costChangePercent <= 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
                       {text.trendCostShort} {monthlyTrend.costChangePercent > 0 ? "+" : ""}{formatNumber(monthlyTrend.costChangePercent, locale, 1)}%
                     </span>
                   </div>
@@ -2476,8 +2476,8 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     <div key={entry.month} data-monthly-history-entry={entry.month} className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] px-4 py-3">
                       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
                         <span className="col-span-2 text-[13px] font-semibold sm:col-span-1">{new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${entry.month}-01T00:00:00Z`))}</span>
-                        <span className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span>
-                        <span className="text-right text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span>
+                        <span data-private-value className="text-[13px] text-[#65716d]">{formatNumber(entry.kwh, locale, 1)} kWh</span>
+                        <span data-private-value className="text-right text-[13px] font-bold">{formatMoney(entry.cost, locale, profile.currency)}</span>
                       </div>
                       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                         {index === 0 && monthlyTrend !== null ? <span className="text-[11px] text-[#65716d]">{text.comparedWithPrevious}</span> : <span />}
@@ -2490,7 +2490,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                   ))}
                 </div>
               )}
-              {monthlyGoalProgress && <div data-monthly-goal-progress className="mt-5 rounded-xl border border-[#dfe5dd] bg-white/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[13px] font-bold text-[#17211f]">{text.monthlyGoalTitle}</p><span className="text-[11px] font-bold text-[var(--brand-green)]">{monthlyGoalProgress.reached ? text.monthlyGoalReached : text.monthlyGoalProgress.replace("{percent}", formatNumber(monthlyGoalProgress.progressPercent, locale, 0))}</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)] transition-all" style={{ width: `${monthlyGoalProgress.progressPercent}%` }} /></div><p className="mt-2 text-[11px] leading-5 text-[#65716d]">{text.monthlyGoalValues.replace("{target}", formatMoney(monthlyGoalProgress.targetCost, locale, profile.currency)).replace("{current}", formatMoney(monthlyGoalProgress.currentCost, locale, profile.currency))}</p></div>}
+              {monthlyGoalProgress && <div data-monthly-goal-progress className="mt-5 rounded-xl border border-[#dfe5dd] bg-white/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[13px] font-bold text-[#17211f]">{text.monthlyGoalTitle}</p><span data-private-value className="text-[11px] font-bold text-[var(--brand-green)]">{monthlyGoalProgress.reached ? text.monthlyGoalReached : text.monthlyGoalProgress.replace("{percent}", formatNumber(monthlyGoalProgress.progressPercent, locale, 0))}</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e3e8e4]"><div className="h-full rounded-full bg-[var(--brand-green)] transition-all" style={{ width: `${monthlyGoalProgress.progressPercent}%` }} /></div><p data-private-value className="mt-2 text-[11px] leading-5 text-[#65716d]">{text.monthlyGoalValues.replace("{target}", formatMoney(monthlyGoalProgress.targetCost, locale, profile.currency)).replace("{current}", formatMoney(monthlyGoalProgress.currentCost, locale, profile.currency))}</p></div>}
               <MonthlyHistoryChart entries={history} locale={locale} currency={profile.currency} range={chartMonths} onRangeChange={setChartMonths} labels={{ title: text.chartTitle, consumption: text.chartConsumption, cost: text.chartCost, sixMonths: text.chartSixMonths, twelveMonths: text.chartTwelveMonths }} />
             </div>
           </section>
@@ -2505,15 +2505,15 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             {latestActual && savedDevices.length > 0 ? (
               <div className="mt-5">
                 <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedEstimate}</p><p className="mt-2 text-xl font-bold">{formatNumber(summary?.monthlyKwh ?? 0, locale, 1)} kWh</p></div>
-                  <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"><p className="text-[11px] font-semibold text-[#65716d]">{text.actualRecorded}</p><p className="mt-2 text-xl font-bold">{formatNumber(latestActual.kwh, locale, 1)} kWh</p></div>
-                  <div className="rounded-xl border border-[#b8efcc] bg-[#dcfce8] p-4"><p className="text-[11px] font-semibold text-[var(--brand-green)]">{text.comparisonDifference}</p><p className="mt-2 text-xl font-bold text-[var(--brand-green)]">{comparisonDifference !== null && comparisonDifference > 0 ? "+" : ""}{formatNumber(comparisonDifference ?? 0, locale, 1)} kWh</p></div>
+                  <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"><p className="text-[11px] font-semibold text-[#65716d]">{text.calculatedEstimate}</p><p data-private-value className="mt-2 text-xl font-bold">{formatNumber(summary?.monthlyKwh ?? 0, locale, 1)} kWh</p></div>
+                  <div className="rounded-xl border border-[#dfe5dd] bg-[#fbfcf8] p-4"><p className="text-[11px] font-semibold text-[#65716d]">{text.actualRecorded}</p><p data-private-value className="mt-2 text-xl font-bold">{formatNumber(latestActual.kwh, locale, 1)} kWh</p></div>
+                  <div className="rounded-xl border border-[#b8efcc] bg-[#dcfce8] p-4"><p className="text-[11px] font-semibold text-[var(--brand-green)]">{text.comparisonDifference}</p><p data-private-value className="mt-2 text-xl font-bold text-[var(--brand-green)]">{comparisonDifference !== null && comparisonDifference > 0 ? "+" : ""}{formatNumber(comparisonDifference ?? 0, locale, 1)} kWh</p></div>
                 </div>
                 {comparisonContent && (
                   <div data-consumption-insight className={`mt-4 rounded-xl border p-4 ${comparisonContent.tone === "green" ? "border-[#b8efcc] bg-[#eefbf3]" : "border-amber-200 bg-amber-50"}`}>
-                    <p className="text-[13px] font-bold text-[#17211f]">{comparisonContent.summary}</p>
-                    <p className="mt-1 text-[11px] font-semibold text-[#65716d]">{comparisonContent.coverage}</p>
-                    <p className="mt-3 text-[13px] leading-6 text-[#52605b]">{comparisonContent.tip}</p>
+                    <p data-private-value className="text-[13px] font-bold text-[#17211f]">{comparisonContent.summary}</p>
+                    <p data-private-value className="mt-1 text-[11px] font-semibold text-[#65716d]">{comparisonContent.coverage}</p>
+                    <p data-private-value className="mt-3 text-[13px] leading-6 text-[#52605b]">{comparisonContent.tip}</p>
                     <Link href={comparisonContent.href} onClick={() => {
                       if (comparisonContent.href === "#monthly-check-in") {
                         revealEnergyDetail("monthly", "monthly-check-in");
@@ -2524,7 +2524,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                     </Link>
                   </div>
                 )}
-                <p className="mt-3 text-[11px] leading-5 text-[#7a8782]">
+                <p data-private-value className="mt-3 text-[11px] leading-5 text-[#7a8782]">
                   {savedDevices.length === 1
                     ? text.comparisonDataBasisSingle
                     : text.comparisonDataBasis.replace(
@@ -2543,7 +2543,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
                 <div>
                   <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--brand-green)]">{text.savingTipEyebrow}</p>
                   <h2 className={`mt-1 ${homeSectionTitleClass}`}>{text.savingTipTitle.replace("{device}", localizedSavedDeviceName(summary.topDevice, locale))}</h2>
-                  <p className="mt-1 text-[11px] font-semibold text-[#65716d]">{text.savingTipShare.replace("{share}", formatNumber(topDeviceShare, locale, 0))}</p>
+                  <p data-private-value className="mt-1 text-[11px] font-semibold text-[#65716d]">{text.savingTipShare.replace("{share}", formatNumber(topDeviceShare, locale, 0))}</p>
                   <p className="mt-3 max-w-3xl text-[13px] leading-6 text-[#52605b]">{topDeviceTip}</p>
                 </div>
                 <Link href={topDeviceHref} onClick={() => track("Home Saving Tip Opened", { locale, has_device_page: Boolean(topDeviceSource) })} className="eavesence-pill-link w-fit">

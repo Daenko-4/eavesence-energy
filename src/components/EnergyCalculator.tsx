@@ -2121,7 +2121,7 @@ export default function EnergyCalculator({
             </p>
 
             <div className={homePresentation ? "mt-3" : "mt-5"}>
-              <span className={`${homePresentation ? "text-[clamp(2rem,3.3vw,3.5rem)]" : "text-[clamp(2.5rem,4.4vw,4.6rem)]"} block max-w-full whitespace-normal font-bold leading-[0.98] tracking-[-0.045em] text-[#1d2926] tabular-nums [overflow-wrap:anywhere]`}>
+              <span data-private-value className={`${homePresentation ? "text-[clamp(2rem,3.3vw,3.5rem)]" : "text-[clamp(2.5rem,4.4vw,4.6rem)]"} block max-w-full whitespace-normal font-bold leading-[0.98] tracking-[-0.045em] text-[#1d2926] tabular-nums [overflow-wrap:anywhere]`}>
                 {formatMoney(
                   yearlyCost,
                   activeLocale,
@@ -2139,7 +2139,7 @@ export default function EnergyCalculator({
                   </svg>
                 </span>
                 <div className="min-w-0">
-                  <p className={`${homePresentation ? "text-base sm:text-lg" : "text-lg sm:text-xl"} break-words font-bold tracking-[-0.02em] text-[#24302d] tabular-nums [overflow-wrap:anywhere]`}>
+                  <p data-private-value className={`${homePresentation ? "text-base sm:text-lg" : "text-lg sm:text-xl"} break-words font-bold tracking-[-0.02em] text-[#24302d] tabular-nums [overflow-wrap:anywhere]`}>
                     {formatMoney(monthlyCost, activeLocale, currency)}
                   </p>
                   <p className="text-sm text-[#66736e]">{text.result.perMonth}</p>
@@ -2153,7 +2153,7 @@ export default function EnergyCalculator({
                   </svg>
                 </span>
                 <div className="min-w-0">
-                  <p className={`${homePresentation ? "text-base sm:text-lg" : "text-lg sm:text-xl"} break-words font-bold tracking-[-0.02em] text-[#24302d] tabular-nums [overflow-wrap:anywhere]`}>
+                  <p data-private-value className={`${homePresentation ? "text-base sm:text-lg" : "text-lg sm:text-xl"} break-words font-bold tracking-[-0.02em] text-[#24302d] tabular-nums [overflow-wrap:anywhere]`}>
                     {formatMoney(weeklyCost, activeLocale, currency)}
                   </p>
                   <p className="text-sm text-[#66736e]">{text.result.perWeek}</p>
@@ -2165,7 +2165,7 @@ export default function EnergyCalculator({
               <div className={`${homePresentation ? "mt-3 pt-3" : "mt-5 pt-4"} border-t border-[#dfe4da] pb-4`}>
                 <div className="flex flex-col items-start justify-between gap-2 text-xs sm:flex-row sm:gap-3">
                   <span className="font-semibold text-[#52605b]">{text.result.scenario}</span>
-                  <span className="whitespace-nowrap font-bold text-[var(--brand-green)] tabular-nums">
+                  <span data-private-value className="whitespace-nowrap font-bold text-[var(--brand-green)] tabular-nums">
                     {text.result.savings} {formatMoney(scenarioSavings, activeLocale, currency)} / {activeLocale === "de" ? "Jahr" : "year"}
                   </span>
                 </div>
@@ -2189,10 +2189,10 @@ export default function EnergyCalculator({
                   />
                 </div>
                 <div className="mt-1 flex items-center justify-between gap-3 text-[10px] font-medium text-[#66736e] tabular-nums">
-                  <span>
+                  <span data-private-value>
                     {text.result.currentUses}: {formatNumber(usageAmountValue, activeLocale, 0, 1)}× {isContinuousDevice ? text.fields.perWeek : usagePeriodText}
                   </span>
-                  <span className="text-right font-semibold text-[var(--brand-green)]">
+                  <span data-private-value className="text-right font-semibold text-[var(--brand-green)]">
                     {text.result.selectedUses}: {formatNumber(displayedScenarioUses, activeLocale, 0, 1)}× {isContinuousDevice ? text.fields.perWeek : usagePeriodText}
                   </span>
                 </div>
@@ -2213,8 +2213,8 @@ export default function EnergyCalculator({
               </button>
               <div id={`${fieldIdPrefix}-calculation-details`} hidden={!calculationDetailsOpen} className={`pb-5 ${homePresentation ? "px-6 sm:px-7" : "px-6 sm:px-8 lg:px-10"}`}>
                 <p className="text-[11px] font-semibold text-[var(--brand-green)]">{text.result.formula}</p>
-                <p data-calculation-formula className="mt-1 text-[12px] font-medium leading-5 text-[#52605b] [overflow-wrap:anywhere]">{calculationFormula}</p>
-                <p data-calculation-accuracy className="mt-2 text-[11px] leading-5 text-[#65716d]">{text.accuracy.title}: {accuracyText}</p>
+                <p data-private-value data-calculation-formula className="mt-1 text-[12px] font-medium leading-5 text-[#52605b] [overflow-wrap:anywhere]">{calculationFormula}</p>
+                <p data-private-value data-calculation-accuracy className="mt-2 text-[11px] leading-5 text-[#65716d]">{text.accuracy.title}: {accuracyText}</p>
               </div>
             </div>
           </>
@@ -2394,7 +2394,7 @@ export default function EnergyCalculator({
                     <p className="mt-1 truncate font-bold text-slate-950">
                       {option.name}
                     </p>
-                    <p className="mt-4 text-2xl font-extrabold text-[var(--brand-green)]">
+                    <p data-private-value className="mt-4 text-2xl font-extrabold text-[var(--brand-green)]">
                       {formatMoney(option.yearly, activeLocale, currency)}
                     </p>
                     <p className="text-xs text-slate-500">
@@ -2405,7 +2405,7 @@ export default function EnergyCalculator({
                         <p className="text-xs text-slate-500">
                           {text.comparison.yearlyConsumption}
                         </p>
-                        <p className="mt-1 font-semibold text-slate-900">
+                        <p data-private-value className="mt-1 font-semibold text-slate-900">
                           {formatKwh(option.kwh, activeLocale)} kWh
                         </p>
                       </div>
@@ -2417,7 +2417,7 @@ export default function EnergyCalculator({
                               ? text.comparison.perDay
                               : text.comparison.perUse}
                         </p>
-                        <p className="mt-1 font-semibold text-slate-900">
+                        <p data-private-value className="mt-1 font-semibold text-slate-900">
                           {formatMoney(option.perUse, activeLocale, currency)}
                         </p>
                       </div>
@@ -2426,7 +2426,7 @@ export default function EnergyCalculator({
                 ))}
               </div>
 
-              <div className="mt-4 rounded-xl bg-[var(--brand-green)] px-4 py-3 text-center text-sm font-semibold text-[var(--brand-off-white)]">
+              <div data-private-value className="mt-4 rounded-xl bg-[var(--brand-green)] px-4 py-3 text-center text-sm font-semibold text-[var(--brand-off-white)]">
                 {comparisonDifference < 0.01
                   ? text.comparison.same
                   : `${
@@ -2480,7 +2480,7 @@ export default function EnergyCalculator({
         >
           <span>
             <span className="block text-xs text-[color:var(--brand-green)]/65">{text.result.perYear}</span>
-            <span className="font-extrabold">{formatMoney(yearlyCost, activeLocale, currency)}</span>
+            <span data-private-value className="font-extrabold">{formatMoney(yearlyCost, activeLocale, currency)}</span>
           </span>
           <span className="text-sm font-bold">{text.result.viewResult} ↑</span>
         </button>

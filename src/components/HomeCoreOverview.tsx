@@ -57,11 +57,11 @@ export default function HomeCoreOverview({ incomeProvided, incomeDeferred = fals
         <div className="home-month-kpis finance-result-surface" data-home-monthly-budget>
           {forecastCards.map((card,index)=><article key={index} role={index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "status" : undefined} data-home-shortfall={index === 2 && outlook.remaining !== null && outlook.remaining < 0} data-home-kpi={index === 0 ? "income" : index === 1 ? "costs" : "remaining"} data-home-month-result={index === 2 ? "" : undefined} className={index === 2 ? "home-month-kpi home-month-kpi-result" : "home-month-kpi"}>
             <p className="home-month-kpi-label">{index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? de ? "Voraussichtlich fehlen nach Fixkosten" : "Expected shortfall after fixed costs" : index === 0 ? <button type="button" className="home-month-income-trigger" aria-label={incomeEditLabel} title={incomeEditLabel} aria-expanded={incomeOpen} onClick={onIncome}><span>{card.label}</span><svg aria-hidden="true" viewBox="0 0 16 16" fill="none"><path d="m10.5 2.5 3 3M3 10l7.8-7.8a1.4 1.4 0 0 1 2 2L5 12l-3 1 1-3Z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button> : card.label}</p>
-            <p className={`home-month-kpi-amount ${index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "text-[#ffd28c]" : ""}`} data-home-remaining={index === 2 ? "" : undefined}>{index === 2 && outlook.remaining !== null ? `${estimate}${money(Math.abs(outlook.remaining))}` : card.value}</p>
-            {card.note && <p className="home-month-kpi-note">{card.note}</p>}
+            <p data-private-value className={`home-month-kpi-amount ${index === 2 && outlook.remaining !== null && outlook.remaining < 0 ? "text-[#ffd28c]" : ""}`} data-home-remaining={index === 2 ? "" : undefined}>{index === 2 && outlook.remaining !== null ? `${estimate}${money(Math.abs(outlook.remaining))}` : card.value}</p>
+            {card.note && <p data-private-value className="home-month-kpi-note">{card.note}</p>}
           </article>)}
         </div>
-        {forecastCards[0].note && <p className="home-month-income-note">{forecastCards[0].note}</p>}
+        {forecastCards[0].note && <p data-private-value className="home-month-income-note">{forecastCards[0].note}</p>}
         <p className="home-month-context">
           {outlook.income === null
             ? de ? "Trage dein Einkommen ein, um zu sehen, was nach den Fixkosten übrig bleibt." : "Enter your income to see what is left after fixed costs."
@@ -105,8 +105,8 @@ function FinanceCards({cards, deficit}:{cards:FinanceCard[]; deficit:boolean}) {
   return <div className="mt-3 grid items-stretch gap-3 md:grid-cols-3">
     {cards.map(card => <article key={card.label} className={`min-w-0 rounded-2xl border p-4 ${card.emphasis ? "border-[#32363b] bg-[#24272c] text-white" : "border-[#dfe5dd] bg-white text-[#17211f]"}`}>
       <p className={`text-[13px] font-semibold ${card.emphasis ? "text-[#d1d7d4]" : "text-[#65716d]"}`}>{card.label}</p>
-      <p className={`mt-2 text-[20px] font-extrabold tracking-[-.035em] ${card.emphasis ? deficit ? "text-[#ffd28c]" : "text-[#72dca3]" : ""}`}>{card.value}</p>
-      {card.note && <p className={`mt-2 text-[12px] leading-5 ${card.emphasis ? "text-[#d1d7d4]" : "text-[#65716d]"}`}>{card.note}</p>}
+      <p data-private-value className={`mt-2 text-[20px] font-extrabold tracking-[-.035em] ${card.emphasis ? deficit ? "text-[#ffd28c]" : "text-[#72dca3]" : ""}`}>{card.value}</p>
+      {card.note && <p data-private-value className={`mt-2 text-[12px] leading-5 ${card.emphasis ? "text-[#d1d7d4]" : "text-[#65716d]"}`}>{card.note}</p>}
     </article>)}
   </div>;
 }
