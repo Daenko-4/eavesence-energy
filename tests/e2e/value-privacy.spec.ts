@@ -77,10 +77,18 @@ for (const locale of ['en', 'de']) for (const width of [320, 1365]) {
   });
 }
 
-test('privacy remains usable when local storage is blocked', async ({ page }) => {
+test('privacy remains usable when preference storage is blocked', async ({ page }) => {
   await page.addInitScript(() => {
-    Storage.prototype.getItem = () => { throw new DOMException('Blocked', 'SecurityError'); };
-    Storage.prototype.setItem = () => { throw new DOMException('Blocked', 'SecurityError'); };
+    const getItem = Storage.prototype.getItem;
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.getItem = function (key) {
+      if (key === 'eavesence-hide-values') throw new DOMException('Blocked', 'SecurityError');
+      return getItem.call(this, key);
+    };
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'eavesence-hide-values') throw new DOMException('Blocked', 'SecurityError');
+      return setItem.call(this, key, value);
+    };
   });
   await page.goto('/home');
   const toggle = page.locator('[data-header-privacy]');

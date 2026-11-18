@@ -1688,10 +1688,9 @@ html[data-private-values="true"] :is(main, [role="dialog"]) :is(input[inputmode=
   .header-private-actions { margin-left: 0; margin-right: 4px; }
 }
 @media (max-width: 389px) {
-  .header-with-value-privacy > div { padding-inline: 12px; }
   .header-with-value-privacy [data-header-mobile-logo] > span { gap: 4px; }
   .header-with-value-privacy [data-header-mobile-logo] svg { width: 28px; height: 28px; flex-shrink: 0; }
-  .header-with-value-privacy .brand-wordmark { font-size: .85rem; }
+  .header-with-value-privacy .brand-wordmark { font-size: .75rem; }
   .header-with-value-privacy [data-header-menu-button] { margin-right: 0; flex-shrink: 0; }
   .header-with-value-privacy .header-language-link { min-width: 54px; gap: 4px; }
   .header-private-actions { margin-right: 0; }
