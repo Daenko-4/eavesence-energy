@@ -404,7 +404,7 @@ export default function HouseholdCostsPanel({
           <h3 className="text-[14px] font-bold">
             {editingId ? text.formEdit : text.formNew}
           </h3>
-          <div className="mt-4 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 grid min-w-0 grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <label className="grid min-w-0 gap-1.5 text-[13px] font-semibold text-[#52605b] lg:col-span-2">
               {text.name}
               <input id="household-cost-name" value={name} onChange={(event) => setName(event.target.value)} onBlur={() => { if (!editingId && category === "housing") { const value = name.toLowerCase(); if (/internet|abo|stream|telefon/.test(value)) setCategory("subscriptions"); else if (/strom|heiz|electric|gas/.test(value)) setCategory("energy"); else if (/versicherung|insurance/.test(value)) setCategory("insurance"); } }} className={fieldClass} />
