@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { billReservePlan, goalProgress, planningFingerprint, planningSuggestions, purchaseImpact, readPlanningData, type NamedGoal, type PlanningData } from './planning.ts';
 import { createSavingsPlan, type SavingsPlanInput } from './savingsPlan.ts';
 
-export function usePlanning(input: SavingsPlanInput, value: PlanningData | undefined, onSave: (value: PlanningData) => void | Promise<void>, de: boolean) {
+export function usePlanning(baseInput: SavingsPlanInput, value: PlanningData | undefined, onSave: (value: PlanningData) => void | Promise<void>, de: boolean) {
   const data=readPlanningData(value);
+  const input={...baseInput,salaryGrowth:baseInput.incomeIsAnnualAverage ? undefined : data.salaryGrowth};
   const [error,setError]=useState(''); const [notice,setNotice]=useState(''); const [busy,setBusy]=useState(false);
   const [checkState,setCheckState]=useState({fingerprint:planningFingerprint(input),values:[false,false,false]});
   const [editing,setEditing]=useState<string|null>(null);

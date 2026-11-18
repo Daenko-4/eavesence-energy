@@ -1,3 +1,4 @@
+import { SalaryGrowthEditor } from "./SalaryGrowthEditor";
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useProInsights, type ProInsightsProps } from '@eavesence/core/useProInsights';
@@ -26,6 +27,7 @@ export function ProInsightsScreen(props:ProInsightsProps & {view?:"forecast"|"in
       {props.view?<Text accessibilityRole="header" style={styles.title}>{t('Die nächsten 90 Tage','The next 90 days')}</Text>:toggle(t('Die nächsten 90 Tage','The next 90 days'),open==='forecast',()=>setOpen(open==='forecast'?null:'forecast'))}
       {forecast?.firstShortfall&&<Text style={styles.warning}>{t('Engpass im Plan','Shortfall in your plan')}</Text>}
       {(props.view==='forecast'||open==='forecast')&&<>
+        <SalaryGrowthEditor income={props.input.incomeMonthly} data={props.data} onSave={props.onSave} currency={props.currency} enabled={!props.input.incomeIsAnnualAverage}/>
         {!forecast&&<>
           <Text style={styles.note}>{p.forecast.reason==='balance'?t('Bestätige zuerst deinen heutigen Kontostand und den nächsten Gehaltstag unter „Bis zum nächsten Gehalt“.','First confirm today’s balance and your next payday under Until next payday.'):p.forecast.reason==='income'?t('Trage dein reguläres Monatsnetto ein. Ein Jahresdurchschnitt zeigt nicht, wann Geld verfügbar ist.','Enter regular monthly net income. An annual average does not tell us when money is available.'):p.forecast.reason==='everyday'?t('Wie viel brauchst du im Monat für Lebensmittel, Freizeit und andere Alltagsausgaben? Gespeicherte Rechnungen sind schon berücksichtigt.','How much do you need each month for groceries, leisure and everyday spending? Saved bills are already included.'):t('Für diese Kosten fehlen noch Zahlungstermine:','These costs still need payment dates:')}</Text>
           {p.forecast.reason==='balance'&&button(t('Kontostand & Gehaltstag prüfen','Review balance & payday'),()=>props.onNavigate('payday'))}

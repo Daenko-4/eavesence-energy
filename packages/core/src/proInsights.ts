@@ -1,3 +1,4 @@
+import { projectedSalary } from './salaryGrowth.ts';
 import { paymentsForMonth, type HouseholdCost } from './householdCosts.ts';
 import { localToday, paydayForecast, validDay } from './homeValue.ts';
 import { extraIncomeForMonth, readAdditionalIncome, readIncomeExtras } from './income.ts';
@@ -80,7 +81,7 @@ export function forecast90Days(input:ForecastInput,value:PlanningData|undefined,
   for(let offset=0;offset<4;offset++){
     const date=monthlyDate(cash!.payday,offset);
     if(date>end)break;
-    if(date>=today)at(date).income+=input.incomeMonthly;
+    if(date>=today)at(date).income+=projectedSalary(input.incomeMonthly,date.slice(0,7),data.salaryGrowth);
   }
   type Month={month:string;from:string;to:string;income:number;extras:number;bills:number;everyday:number;closing:number;lowest:number;lowDate:string};
   const months:Month[]=[];

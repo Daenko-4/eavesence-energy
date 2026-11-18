@@ -1,4 +1,5 @@
 "use client";
+import SalaryGrowthEditor from "./SalaryGrowthEditor";
 import FormActions from "@/components/FormActions";
 
 import {useRef,useState} from "react";
@@ -19,6 +20,7 @@ export default function ProInsights(props:ProInsightsProps & {locale:'de'|'en';c
   return <section className="mt-4 grid min-w-0 gap-3" aria-label={props.mode==='forecast'?t('Deine 90-Tage-Vorschau','Your 90-day forecast'):t('Kosten besser planen','Plan costs more accurately')} data-pro-insights={props.mode}>
     {props.mode==='forecast'?<section className="pro-tool-card" data-pro-forecast>
       <h2 className="site-card-title">{t('Die nächsten 90 Tage','The next 90 days')}{forecast?.firstShortfall&&<span className="ml-2 text-[12px] font-medium text-amber-800">{t('Engpass im Plan','Shortfall in your plan')}</span>}</h2>
+      <SalaryGrowthEditor income={props.input.incomeMonthly} data={props.data} onSave={props.onSave} locale={props.locale} currency={props.currency} enabled={!props.input.incomeIsAnnualAverage}/>
       <div className="mt-3 space-y-4 text-[13px] leading-5">
         {!forecast&&<>
           <p>{p.forecast.reason==='balance'?t('Bestätige zuerst deinen heutigen Kontostand und den nächsten Gehaltstag unter „Bis zum nächsten Gehalt“.','First confirm today’s balance and your next payday under Until next payday.'):p.forecast.reason==='income'?t('Trage dein reguläres Monatsnetto ein. Ein Jahresdurchschnitt zeigt nicht, wann Geld verfügbar ist.','Enter regular monthly net income. An annual average does not tell us when money is available.'):p.forecast.reason==='everyday'?t('Wie viel brauchst du im Monat für Lebensmittel, Freizeit und andere Alltagsausgaben? Gespeicherte Rechnungen sind schon berücksichtigt.','How much do you need each month for groceries, leisure and everyday spending? Saved bills are already included.'):t('Für diese Kosten fehlen noch Zahlungstermine:','These costs still need payment dates:')}</p>

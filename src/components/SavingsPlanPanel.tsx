@@ -1,4 +1,5 @@
 "use client";
+import SalaryGrowthEditor from "./SalaryGrowthEditor";
 import FormActions from "@/components/FormActions";
 
 import ProTools from "./ProTools";
@@ -26,6 +27,7 @@ type Props = {
   locale: Locale;
   currency: string;
   incomeMonthly: number;
+  incomeIsAnnualAverage?: boolean;
   incomeExtras?: IncomeExtra[];
   additionalIncome?: AdditionalIncome[];
   costs: HouseholdCost[];
@@ -43,7 +45,7 @@ type Props = {
   onSaveActions: (actions: SavingsAction[]) => void;
 };
 
-export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, onApplyPlanSuggestion, onPayments, advanced = true, locale, currency, incomeMonthly, incomeExtras = [], additionalIncome = [], costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions, onConfirmAction, onReviewCost }: Props) {
+export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, onApplyPlanSuggestion, onPayments, advanced = true, locale, currency, incomeMonthly, incomeIsAnnualAverage = false, incomeExtras = [], additionalIncome = [], costs, variableMonthly, bufferMonthly, goalMonthly, actions = [], planning, onSavePlanning, onEditCosts, onEditIncome, onSave, onSaveActions, onConfirmAction, onReviewCost }: Props) {
   const [variable, setVariable] = useState(variableMonthly == null ? "" : String(variableMonthly));
   const [storedVariable, setStoredVariable] = useState(variableMonthly);
   if (storedVariable !== variableMonthly) { setStoredVariable(variableMonthly); setVariable(variableMonthly == null ? "" : String(variableMonthly)); }
@@ -60,7 +62,7 @@ export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, on
   const budgetDraft = parseBudgetDraft({ variable, buffer, goal }, locale);
   const preview = budgetDraft ?? { variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0 };
   const budgetDirty = !!budgetDraft && (budgetDraft.variableMonthly !== (variableMonthly ?? null) || budgetDraft.bufferMonthly !== (bufferMonthly ?? 0) || budgetDraft.goalMonthly !== (goalMonthly ?? 0));
-  const result = createSavingsPlan({ incomeMonthly, incomeExtras, additionalIncome, ...preview, costs, startMonth });
+  const result = createSavingsPlan({ incomeMonthly, salaryGrowth: incomeIsAnnualAverage ? undefined : planning?.salaryGrowth, incomeExtras, additionalIncome, ...preview, costs, startMonth });
   async function save() {
     if (saving.current) return;
     setNotice("");
@@ -91,10 +93,11 @@ export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, on
       <div hidden={!["change","annual","reserves"].includes(tool)} data-planning-tool="bills"><ProTools tool={tool === "annual" ? "annual" : tool === "reserves" ? "reserves" : "changes"} locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,additionalIncome,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} data={planning} onSave={onSavePlanning} onReview={onReviewCost}/>
       </div>
       {advanced && section === "savings" && <SavingsActionsPanel embedded locale={locale} currency={currency} input={{incomeMonthly,incomeExtras,additionalIncome,variableMonthly:variableMonthly??null,bufferMonthly:bufferMonthly??0,goalMonthly:goalMonthly??0,costs,startMonth}} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />}
-      {advanced && <PlanningWorkbench input={{ incomeMonthly, incomeExtras, additionalIncome, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} costChange={<SavingsActionsPanel embedded locale={locale} currency={currency} input={{ incomeMonthly, incomeExtras, additionalIncome, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />} />}
+      {advanced && <PlanningWorkbench input={{ incomeMonthly, incomeIsAnnualAverage, incomeExtras, additionalIncome, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} onEditCosts={onEditCosts} onEditIncome={onEditIncome} onEditBudget={() => document.getElementById("savings-budget-input")?.focus()} costChange={<SavingsActionsPanel embedded locale={locale} currency={currency} input={{ incomeMonthly, incomeIsAnnualAverage, incomeExtras, additionalIncome, variableMonthly: variableMonthly ?? null, bufferMonthly: bufferMonthly ?? 0, goalMonthly: goalMonthly ?? 0, costs, startMonth }} actions={actions} onChange={onSaveActions} onConfirm={onConfirmAction} />} />}
     </div>}
     {section !== "budget" && <PlanningNavigation locale={locale} kind="tool" value={tool} onChange={onTool}/>}
 
+    {section === "budget" && <SalaryGrowthEditor income={incomeMonthly} data={planning} onSave={onSavePlanning} locale={locale} currency={currency} enabled={!incomeIsAnnualAverage}/> }
     <form hidden={section !== "budget"} className="pro-tool-card" data-planning-budget onSubmit={event => {event.preventDefault();void save();}}>
     <h2 className="site-card-title">{de ? "Dein Monatsbudget" : "Your monthly budget"}</h2>
     <p className="mt-1 text-[13px] text-[#52605b]">{de ? "Einkommen und Fixkosten sind schon übernommen. Schätze noch deine übrigen Alltagsausgaben – daraus berechnen wir, was dir im Monat bleibt." : "Income and fixed costs are already included. Estimate your other everyday spending to see what is left each month."}</p>
@@ -120,7 +123,7 @@ export default function SavingsPlanPanel({ section, tool, onTool, onNavigate, on
         <p className="mt-2 text-[11px] text-[#52605b]">{de ? "Jahres- und andere unregelmäßige Rechnungen sind im Fixkosten-Durchschnitt enthalten. Im Zahlungsmonat kann der Rest niedriger sein." : "Annual and other less frequent bills are included in the fixed-cost average. The amount left may be lower when a bill is due."}</p>
       </div>
       <details className="home-disclosure mt-4 text-[12px] text-[#52605b]"><summary className="cursor-pointer font-bold">{de ? "12 Monate ansehen" : "View 12 months"}</summary>
-        <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-4">{result.months.map((item) => <div key={item.month} className={`rounded-xl border p-3 ${item.afterGoal < 0 ? "border-amber-300 bg-amber-50" : "border-[#dfe5dd] bg-white"}`}><p className="text-[12px] font-bold">{new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${item.month}-01T00:00:00Z`))}</p><p data-private-value className="mt-1 text-[15px] font-extrabold">{incomeMonthly > 0 ? money(item.remaining) : "—"}</p><p data-private-value className="text-[11px] text-[#52605b]">{item.extraIncome > 0 ? de ? `Inklusive ${money(item.extraIncome)} geplanter Sonderzahlung` : `Includes ${money(item.extraIncome)} planned extra income` : ""}</p><p className="text-[11px] text-[#52605b]">{preview.variableMonthly == null ? de ? "Alltagsausgaben fehlen noch" : "Everyday spending still missing" : de ? "Rest vor Sparziel" : "Left before savings goal"}</p></div>)}</div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-4">{result.months.map((item) => <div key={item.month} className={`rounded-xl border p-3 ${item.afterGoal < 0 ? "border-amber-300 bg-amber-50" : "border-[#dfe5dd] bg-white"}`}><p className="text-[12px] font-bold">{new Intl.DateTimeFormat(de ? "de-AT" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${item.month}-01T00:00:00Z`))}</p><p data-private-value className="mt-1 text-[15px] font-extrabold">{incomeMonthly > 0 ? money(item.remaining) : "—"}</p>{item.regularIncome !== incomeMonthly && <p data-private-value data-projected-salary className="text-[11px] text-[#28734d]">{de ? "Geschätztes Monatsnetto" : "Estimated monthly net income"}: {money(item.regularIncome)}</p>}<p data-private-value className="text-[11px] text-[#52605b]">{item.extraIncome > 0 ? de ? `Inklusive ${money(item.extraIncome)} geplanter Sonderzahlung` : `Includes ${money(item.extraIncome)} planned extra income` : ""}</p><p className="text-[11px] text-[#52605b]">{preview.variableMonthly == null ? de ? "Alltagsausgaben fehlen noch" : "Everyday spending still missing" : de ? "Rest vor Sparziel" : "Left before savings goal"}</p></div>)}</div>
         <p className="mt-3">{de ? `${result.undatedCount} Kosten ohne Termin werden monatlich gemittelt. Die Monatswerte sind eine Vorschau mit deinen heutigen Angaben.` : `${result.undatedCount} undated costs use a monthly average. These monthly figures are a forecast based on your current entries.`}</p>
       </details>
 

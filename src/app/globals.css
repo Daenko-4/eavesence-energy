@@ -1695,3 +1695,9 @@ html[data-private-values="true"] :is(main, [role="dialog"]) :is(input[inputmode=
   .header-with-value-privacy .header-language-link { min-width: 54px; gap: 4px; }
   .header-private-actions { margin-right: 0; }
 }
+
+@media (max-width: 339px) {
+  .header-with-value-privacy [data-header-mobile-logo] > span { gap: 3px; }
+  .header-with-value-privacy [data-header-mobile-logo] svg { width: 26px; height: 26px; }
+  .header-with-value-privacy .brand-wordmark { font-size: .65rem; }
+}

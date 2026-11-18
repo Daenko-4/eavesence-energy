@@ -2609,6 +2609,7 @@ export default function HouseholdDashboard({ locale }: { locale: Locale }) {
             locale={locale}
             currency={profile.currency}
             incomeMonthly={monthlyIncome}
+            incomeIsAnnualAverage={incomeSummary.annualAverage}
             incomeExtras={incomeSummary.extras}
             additionalIncome={profile.additionalIncome}
             costs={householdCosts}
