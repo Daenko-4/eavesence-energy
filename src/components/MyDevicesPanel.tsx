@@ -510,7 +510,7 @@ function MyDevicesPanel(
         data-device-save-destination
         className="mt-6 scroll-mt-[104px] border-t border-slate-200/80 pt-5"
       >
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <span className="w-fit rounded-full bg-[#ddf8e9] px-3 py-1 text-[11px] font-bold text-[var(--brand-green)]">
             {savedDevices.length}{" "}
             {savedDevices.length === 1

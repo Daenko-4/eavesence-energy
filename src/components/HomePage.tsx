@@ -522,7 +522,7 @@ export default function HomePage({
                   </>
                 }
                 afterSavingTip={
-                  <div id="how-it-works-steps" hidden={!howItWorksOpen} className={`${howItWorksOpen ? "grid" : "hidden"} mt-4 gap-3 border-t border-slate-200/80 px-1 pt-4 md:grid-cols-3 md:gap-4 md:divide-x md:divide-slate-200`}>
+                  <div id="how-it-works-steps" hidden={!howItWorksOpen} className={`${howItWorksOpen ? "grid" : "hidden"} mt-4 gap-3 border-t border-slate-200/80 pt-4 md:grid-cols-3 md:gap-4 md:divide-x md:divide-slate-200`}>
                     {text.howItWorks.steps.map((step) => (
                       <div key={step.number} className="flex gap-2.5 md:px-4 md:first:pl-0 md:last:pr-0">
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#dcfce8] text-[11px] font-extrabold text-[var(--brand-green)]">
@@ -545,7 +545,7 @@ export default function HomePage({
           id="faq"
           className="scroll-mt-[84px] px-5 pb-9 pt-2 sm:px-6 sm:pb-12"
         >
-          <div className="mx-auto max-w-5xl">
+          <div className="mx-auto max-w-6xl">
             <button
               type="button"
               onClick={() => setFaqOpen((current) => !current)}

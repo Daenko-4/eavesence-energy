@@ -56,8 +56,9 @@ test("calculator shows a relevant tip and keeps further guidance optional", asyn
   const actionBox = await viewAllDevices.boundingBox();
   expect(tipBox).not.toBeNull();
   expect(actionBox).not.toBeNull();
-  expect(actionBox!.x).toBeGreaterThan(tipBox!.x);
-  expect(Math.abs(actionBox!.y - tipBox!.y)).toBeLessThan(30);
+  // Guidance actions share the tip’s left edge and sit below its text.
+  expect(Math.abs(actionBox!.x - tipBox!.x)).toBeLessThan(1);
+  expect(actionBox!.y).toBeGreaterThanOrEqual(tipBox!.y + tipBox!.height);
   await expect(page.getByRole("region", { name: "EAVESENCE as an app" })).toHaveCount(0);
   await expect(page.getByText("No sign-up", { exact: true })).toHaveCount(0);
 
